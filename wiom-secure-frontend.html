@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiom IT Helpdesk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Sora:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0c10;--surface:#111318;--surface2:#181c26;--surface3:#1e2333;--border:rgba(99,179,237,0.1);--border2:rgba(99,179,237,0.22);--accent:#63b3ed;--accent-glow:rgba(99,179,237,0.13);--pink:#e91e8c;--text:#dde6f0;--muted:#7a8899;--muted2:#4a5568;--success:#48bb78;--warning:#f6ad55;--danger:#fc8181;--info:#76e4f7;--user-bubble:#0f1e3a;--bot-bubble:#111825;--font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;}
+[data-theme="light"]{--bg:#f0f4f8;--surface:#ffffff;--surface2:#f7f9fc;--surface3:#edf2f7;--border:rgba(0,0,0,0.08);--border2:rgba(99,179,237,0.3);--accent:#2b6cb0;--accent-glow:rgba(43,108,176,0.08);--text:#1a202c;--muted:#718096;--muted2:#a0aec0;--user-bubble:#ebf4ff;--bot-bubble:#ffffff;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;transition:background 0.3s,color 0.3s;}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo-img{width:36px;height:36px;border-radius:9px;object-fit:cover;flex-shrink:0;}
+.brand{flex:1;}.brand-name{font-size:15px;font-weight:600;color:var(--text);}.brand-name span{color:var(--pink);}
+.brand-tag{font-size:10.5px;color:var(--muted);margin-top:1px;}
+.header-actions{display:flex;align-items:center;gap:6px;}
+.icon-btn{width:32px;height:32px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all 0.2s;color:var(--text);}
+.icon-btn:hover{background:var(--surface3);}
+.online-pill{background:rgba(72,187,120,0.12);border:1px solid rgba(72,187,120,0.25);border-radius:20px;padding:3px 9px;font-size:10.5px;color:var(--success);display:flex;align-items:center;gap:4px;}
+.dot{width:5px;height:5px;background:var(--success);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.main-nav{background:var(--surface);border-bottom:1px solid var(--border);display:flex;overflow-x:auto;flex-shrink:0;scrollbar-width:none;}
+.main-nav::-webkit-scrollbar{display:none;}
+.nav-tab{padding:9px 14px;font-size:12px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;font-family:var(--font);background:none;border-top:none;border-left:none;border-right:none;}
+.nav-tab:hover{color:var(--text);}.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.nav-badge{background:var(--danger);color:#fff;border-radius:8px;padding:1px 5px;font-size:9px;font-weight:600;}
+.panel{display:none;flex:1;flex-direction:column;overflow:hidden;}.panel.active{display:flex;}
+.cat-tabs{background:var(--surface2);border-bottom:1px solid var(--border);padding:0 14px;display:flex;overflow-x:auto;flex-shrink:0;scrollbar-width:none;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{padding:8px 12px;font-size:11.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all 0.2s;font-family:var(--font);background:none;border-top:none;border-left:none;border-right:none;}
+.cat-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.chips-row{background:var(--surface2);border-bottom:1px solid var(--border);padding:7px 12px;display:flex;gap:6px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;}
+.chips-row::-webkit-scrollbar{display:none;}
+.chip{background:var(--surface3);border:1px solid var(--border);border-radius:14px;padding:4px 11px;font-size:11px;color:var(--accent);cursor:pointer;white-space:nowrap;font-family:var(--font);transition:all 0.2s;flex-shrink:0;}
+.chip:hover{background:var(--accent-glow);border-color:var(--accent);}
+.messages{flex:1;overflow-y:auto;padding:16px 12px;display:flex;flex-direction:column;gap:13px;scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;}
+.message{display:flex;gap:8px;max-width:100%;animation:fadeIn 0.25s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:none;}}
+.message.user{flex-direction:row-reverse;}
+.avatar{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;}
+.bot-av{background:linear-gradient(135deg,var(--pink),#9c27b0);}.user-av{background:var(--surface3);border:1px solid var(--border2);font-size:10px;color:var(--accent);font-weight:600;}
+.bubble{padding:10px 14px;border-radius:13px;font-size:13px;line-height:1.75;max-width:calc(100% - 40px);}
+.message.bot .bubble{background:var(--bot-bubble);border:1px solid var(--border);border-top-left-radius:3px;}
+.message.user .bubble{background:var(--user-bubble);border:1px solid var(--border2);border-top-right-radius:3px;}
+.bubble strong{color:var(--accent);font-weight:500;}.bubble code{background:rgba(128,128,128,0.15);padding:1px 5px;border-radius:3px;font-family:var(--mono);font-size:11px;}
+.bubble ul,.bubble ol{padding-left:16px;margin-top:4px;}.bubble li{margin-bottom:3px;}
+.ticket-card{background:var(--surface3);border:1px solid var(--border2);border-radius:10px;padding:11px;margin-top:9px;}
+.t-head{display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.t-id{font-family:var(--mono);color:var(--accent);font-size:11.5px;font-weight:500;}
+.t-badge{margin-left:auto;background:rgba(72,187,120,0.15);color:var(--success);border-radius:8px;padding:2px 8px;font-size:10.5px;border:1px solid rgba(72,187,120,0.25);}
+.t-row{display:flex;gap:5px;margin-bottom:4px;}.t-label{color:var(--muted);min-width:85px;font-size:11.5px;}.t-val{color:var(--text);font-size:11.5px;}.t-email{color:var(--accent);font-size:11.5px;}
+.p-critical{color:var(--danger);}.p-high{color:var(--warning);}.p-medium{color:var(--info);}.p-low{color:var(--success);}
+.escalate-btn{margin-top:8px;background:rgba(252,129,129,0.12);border:1px solid rgba(252,129,129,0.3);color:var(--danger);border-radius:8px;padding:6px 12px;font-size:11.5px;cursor:pointer;font-family:var(--font);transition:all 0.2s;width:100%;}
+.escalate-btn:hover{background:rgba(252,129,129,0.2);}
+.typing{display:flex;gap:4px;align-items:center;padding:10px 14px;}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--pink);opacity:0.4;animation:blink 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:0.2s;}.typing span:nth-child(3){animation-delay:0.4s;}
+@keyframes blink{0%,80%,100%{opacity:0.4;}40%{opacity:1;}}
+.input-wrap{background:var(--surface);border-top:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+.chat-tools{display:flex;gap:6px;align-items:center;}
+.tool-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:15px;padding:3px 5px;border-radius:6px;transition:all 0.2s;font-family:var(--font);}
+.tool-btn:hover{color:var(--accent);background:var(--accent-glow);}
+.input-row{display:flex;gap:8px;align-items:flex-end;}
+textarea{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:13px;resize:none;outline:none;min-height:40px;max-height:100px;line-height:1.5;transition:border-color 0.2s;}
+textarea::placeholder{color:var(--muted);}textarea:focus{border-color:rgba(233,30,140,0.35);}
+.send-btn{width:40px;height:40px;background:linear-gradient(135deg,var(--pink),#9c27b0);border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:opacity 0.2s,transform 0.1s;}
+.send-btn:hover{opacity:0.88;}.send-btn:active{transform:scale(0.93);}.send-btn:disabled{opacity:0.35;cursor:not-allowed;}
+.send-btn svg{width:16px;height:16px;fill:white;}
+.panel-inner{flex:1;overflow-y:auto;padding:16px;scrollbar-width:thin;scrollbar-color:var(--surface2) transparent;}
+.panel-title{font-size:15px;font-weight:600;color:var(--text);margin-bottom:14px;}
+.faq-search{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 13px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;margin-bottom:14px;}
+.faq-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.faq-q{padding:12px 14px;cursor:pointer;font-size:13px;font-weight:500;display:flex;justify-content:space-between;align-items:center;transition:background 0.2s;}
+.faq-q:hover{background:var(--surface3);}.faq-q .arr{transition:transform 0.2s;color:var(--muted);font-size:12px;}
+.faq-item.open .arr{transform:rotate(180deg);}
+.faq-a{display:none;padding:0 14px 12px;font-size:12.5px;color:var(--muted);line-height:1.7;}.faq-item.open .faq-a{display:block;}
+.faq-cat{font-size:11px;color:var(--muted);margin-bottom:8px;padding:0 2px;font-weight:500;text-transform:uppercase;letter-spacing:0.5px;}
+.asset-form{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;}
+.form-row{margin-bottom:11px;}.form-label{font-size:11.5px;color:var(--muted);margin-bottom:5px;display:block;}
+.form-input,.form-select{width:100%;background:var(--surface3);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;}
+.form-input:focus{border-color:var(--border2);}
+.submit-btn{width:100%;background:linear-gradient(135deg,var(--pink),#9c27b0);border:none;border-radius:9px;padding:10px;color:#fff;font-family:var(--font);font-size:13px;font-weight:500;cursor:pointer;}
+.asset-list{display:flex;flex-direction:column;gap:8px;}
+.asset-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;display:flex;gap:12px;align-items:center;}
+.asset-icon{width:38px;height:38px;border-radius:8px;background:var(--accent-glow);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.asset-info{flex:1;}.asset-name{font-size:13px;font-weight:500;margin-bottom:2px;}.asset-meta{font-size:11.5px;color:var(--muted);}
+.asset-status{font-size:11px;padding:2px 8px;border-radius:8px;}
+.status-ok{background:rgba(72,187,120,0.15);color:var(--success);border:1px solid rgba(72,187,120,0.25);}
+.status-warn{background:rgba(246,173,85,0.15);color:var(--warning);border:1px solid rgba(246,173,85,0.25);}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:16px;padding:4px;border-radius:6px;}
+.del-btn:hover{color:var(--danger);}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.stat-num{font-size:26px;font-weight:600;color:var(--accent);font-family:var(--mono);}.stat-label{font-size:11px;color:var(--muted);margin-top:3px;}
+.problems-chart{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:14px;}
+.chart-title{font-size:13px;font-weight:500;margin-bottom:12px;}
+.bar-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.bar-label{font-size:11.5px;color:var(--muted);width:120px;flex-shrink:0;}
+.bar-track{flex:1;height:8px;background:var(--surface3);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--pink),var(--accent));}
+.bar-count{font-size:11px;color:var(--muted);width:24px;text-align:right;}
+.ticket-history{background:var(--surface2);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.th-row{display:grid;grid-template-columns:80px 1fr 70px 60px;gap:8px;padding:9px 12px;border-bottom:1px solid var(--border);font-size:11.5px;}
+.th-head{color:var(--muted);font-weight:500;}
+.badge{border-radius:6px;padding:2px 7px;font-size:10px;}
+.b-open{background:rgba(246,173,85,0.15);color:var(--warning);}.b-closed{background:rgba(72,187,120,0.15);color:var(--success);}
+.clear-btn{width:100%;background:rgba(252,129,129,0.1);border:1px solid rgba(252,129,129,0.25);color:var(--danger);border-radius:8px;padding:8px;font-family:var(--font);font-size:12px;cursor:pointer;margin-top:10px;}
+.hist-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color 0.2s;}
+.hist-item:hover{border-color:var(--border2);}
+.hist-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;}
+.hist-title{font-size:13px;font-weight:500;}.hist-date{font-size:10.5px;color:var(--muted);}
+.hist-preview{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.hist-del{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 6px;border-radius:4px;}
+.hist-del:hover{color:var(--danger);}
+.no-hist{text-align:center;color:var(--muted);font-size:13px;padding:32px 0;}
+.toast{position:fixed;top:16px;right:16px;background:var(--surface);border:1px solid var(--border2);border-radius:10px;padding:12px 16px;font-size:13px;box-shadow:0 4px 24px rgba(0,0,0,0.4);z-index:999;transform:translateX(120%);transition:transform 0.3s;max-width:280px;}
+.toast.show{transform:none;}.toast-title{font-weight:500;margin-bottom:3px;}.toast-body{color:var(--muted);font-size:12px;}
+.lang-toggle{display:flex;background:var(--surface3);border-radius:8px;padding:2px;gap:2px;}
+.lang-btn{padding:3px 9px;border-radius:6px;border:none;background:none;font-size:11px;cursor:pointer;color:var(--muted);font-family:var(--font);transition:all 0.2s;}
+.lang-btn.active{background:var(--surface);color:var(--accent);}
+.footer{text-align:center;font-size:10px;color:var(--muted2);padding:3px 0 5px;flex-shrink:0;}
+.error-msg{color:var(--danger);font-size:12.5px;}
+@media(max-width:480px){.stats-grid{grid-template-columns:1fr 1fr;}.brand-tag{display:none;}.th-row{grid-template-columns:70px 1fr 60px;}.th-row .th-data:nth-child(4){display:none;}}
+</style>
+</head>
+<body>
+<div id="loginScreen" style="position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px;"><div style="background:var(--surface);border:1px solid var(--border2);border-radius:16px;padding:32px 28px;width:100%;max-width:360px;"><div style="text-align:center;margin-bottom:20px;"><img src="data:image/webp;base64,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" style="width:48px;height:48px;border-radius:12px;margin-bottom:10px;display:block;margin:0 auto 10px;"><div style="font-size:18px;font-weight:600;"><span style="color:var(--pink);">Wiom</span> IT Helpdesk</div><div style="font-size:11px;color:var(--muted);margin-top:4px;">Employee Login &middot; Secure Portal</div></div><div style="margin-bottom:12px;"><label style="font-size:11.5px;color:var(--muted);display:block;margin-bottom:5px;">Username</label><input id="loginUser" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;" placeholder="e.g. sajan.kumar"></div><div style="margin-bottom:14px;"><label style="font-size:11.5px;color:var(--muted);display:block;margin-bottom:5px;">Password</label><input id="loginPass" type="password" style="width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 14px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;" placeholder="password"></div><button onclick="doLogin()" id="loginBtn" style="width:100%;background:linear-gradient(135deg,#e91e8c,#9c27b0);border:none;border-radius:9px;padding:12px;color:#fff;font-family:var(--font);font-size:14px;font-weight:500;cursor:pointer;">Login karein &rarr;</button><div id="loginError" style="display:none;background:rgba(252,129,129,0.12);border:1px solid rgba(252,129,129,0.3);border-radius:8px;padding:9px;font-size:12.5px;color:#fc8181;margin-top:12px;"></div><div style="text-align:center;font-size:11px;color:var(--muted2);margin-top:20px;">Sirf Wiom employees ke liye &middot; Help: sajan.kumar@Wiom.in</div></div></div>
+<div id="mainApp" style="display:none;flex-direction:column;height:100%;overflow:hidden;flex:1;">
+<div class="header">
+  <img class="logo-img" src="data:image/webp;base64,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" alt="Wiom">
+  <div class="brand">
+    <div class="brand-name"><span>Wiom</span> IT Helpdesk</div>
+    <div class="brand-tag">घर का इंटरनेट। रिचार्ज से। &middot; IT Support Portal</div>
+  </div>
+  <div class="header-actions">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('hi',this)">हि</button>
+      <button class="lang-btn" onclick="setLang('en',this)">EN</button>
+    </div>
+    <button class="icon-btn" onclick="toggleTheme()" title="Theme Toggle">🌓</button>
+    <button class="icon-btn" id="notifBtn" onclick="requestNotifPerm()" title="Notifications">🔔</button>
+    <span id="userChip" style="background:var(--surface2);border:1px solid var(--border2);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--accent);white-space:nowrap;">&#128100; Employee</span><button onclick="doLogout()" style="background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;font-family:var(--font);padding:2px 6px;border-radius:6px;">Logout</button><div class="online-pill"><span class="dot"></span>Live</div>
+  </div>
+</div>
+
+<div class="main-nav">
+  <button class="nav-tab active" onclick="switchPanel('chat',this)">💬 Chat</button>
+  <button class="nav-tab" onclick="switchPanel('faq',this)">❓ FAQ</button>
+  <button class="nav-tab" onclick="switchPanel('asset',this)">💻 Assets</button>
+  <button class="nav-tab" onclick="switchPanel('history',this)">📋 History</button>
+  <button class="nav-tab" onclick="switchPanel('admin',this)">📊 Admin <span class="nav-badge" id="openCount">0</span></button>
+</div>
+
+<!-- CHAT -->
+<div class="panel active" id="panel-chat">
+  <div class="cat-tabs">
+    <button class="cat-tab active" onclick="switchCat(this,'laptop')">💻 Laptop</button>
+    <button class="cat-tab" onclick="switchCat(this,'network')">📶 Network</button>
+    <button class="cat-tab" onclick="switchCat(this,'software')">💾 Software</button>
+    <button class="cat-tab" onclick="switchCat(this,'purchase')">🛒 Purchase</button>
+    <button class="cat-tab" onclick="switchCat(this,'account')">🔐 Account</button>
+    <button class="cat-tab" onclick="switchCat(this,'ticket')">🎫 Ticket</button>
+  </div>
+  <div class="chips-row" id="chipsRow"></div>
+  <div class="messages" id="messages">
+    <div class="message bot">
+      <div class="avatar bot-av">🤖</div>
+      <div class="bubble">
+        <strong>Namaste! Main Wiom IT Helpdesk Assistant hoon 👋</strong><br><br>
+        <em style="color:var(--pink);font-size:12px;">घर का इंटरनेट। रिचार्ज से।</em><br><br>
+        Laptop, Network, Software, Purchase, Account — sab mein madad ke liye yahan hoon!<br><br>
+        Category chunein ya seedha problem likhein 👇
+      </div>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="chat-tools">
+      <button class="tool-btn" onclick="clearChat()" title="Clear chat">🗑️ Clear</button>
+      <button class="tool-btn" onclick="saveCurrentChat()" title="Save chat">💾 Save</button>
+      <button class="tool-btn" onclick="escalateToAdmin()" title="Email admin">🚨 Escalate</button>
+      <span style="font-size:10px;color:var(--muted);margin-left:auto;" id="charCount">0</span>
+    </div>
+    <div class="input-row">
+      <textarea id="input" placeholder="Apni IT problem yahan likho..." rows="1"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="footer">Wiom IT Helpdesk &middot; AI Powered &middot; Admin: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="b1c2d0dbd0df9fdac4dcd0c3f1e6d8dedc9fd8df">[email&#160;protected]</a></div>
+</div>
+
+<!-- FAQ -->
+<div class="panel" id="panel-faq">
+  <div class="panel-inner">
+    <div class="panel-title">❓ Aksar Pooche Jane Wale Sawaal</div>
+    <input class="faq-search" id="faqSearch" placeholder="FAQ mein search karein..." oninput="filterFAQ(this.value)">
+    <div id="faqList"></div>
+  </div>
+</div>
+
+<!-- ASSET -->
+<div class="panel" id="panel-asset">
+  <div class="panel-inner">
+    <div class="panel-title">💻 IT Asset Tracker</div>
+    <div class="asset-form">
+      <div class="form-row"><label class="form-label">Employee Name</label><input class="form-input" id="assetEmp" placeholder="Aapka naam"></div>
+      <div class="form-row"><label class="form-label">Device Type</label>
+        <select class="form-select" id="assetType"><option>Laptop</option><option>Desktop</option><option>Monitor</option><option>Printer</option><option>Mouse/Keyboard</option><option>Mobile</option></select>
+      </div>
+      <div class="form-row"><label class="form-label">Brand &amp; Model</label><input class="form-input" id="assetModel" placeholder="e.g. Dell Latitude 5520"></div>
+      <div class="form-row"><label class="form-label">Serial Number</label><input class="form-input" id="assetSerial" placeholder="e.g. DL5520XYZ123"></div>
+      <div class="form-row"><label class="form-label">Condition</label>
+        <select class="form-select" id="assetCondition"><option>Good ✅</option><option>Fair ⚠️</option><option>Needs Repair 🔧</option></select>
+      </div>
+      <button class="submit-btn" onclick="addAsset()">+ Asset Register Karo</button>
+    </div>
+    <div class="panel-title" style="font-size:13px;margin-bottom:10px;">Registered Assets</div>
+    <div class="asset-list" id="assetList"></div>
+  </div>
+</div>
+
+<!-- HISTORY -->
+<div class="panel" id="panel-history">
+  <div class="panel-inner">
+    <div class="panel-title">📋 Chat History</div>
+    <div id="histList"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div class="panel" id="panel-admin">
+  <div class="panel-inner">
+    <div class="panel-title">📊 IT Admin Dashboard</div>
+    <div class="stats-grid">
+      <div class="stat-card"><div class="stat-num" id="s-total">0</div><div class="stat-label">Total Tickets</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-open" style="color:var(--warning)">0</div><div class="stat-label">Open</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-closed" style="color:var(--success)">0</div><div class="stat-label">Closed</div></div>
+      <div class="stat-card"><div class="stat-num" id="s-assets" style="color:var(--info)">0</div><div class="stat-label">Assets</div></div>
+    </div>
+    <div class="problems-chart">
+      <div class="chart-title">🔥 Top IT Problems</div>
+      <div id="problemBars"></div>
+    </div>
+    <div class="ticket-history">
+      <div class="th-row"><div class="th-head">Ticket ID</div><div class="th-head">Issue</div><div class="th-head">Priority</div><div class="th-head">Status</div></div>
+      <div id="ticketTable"></div>
+    </div>
+    <button class="clear-btn" onclick="clearAllData()">🗑️ Saara Data Clear Karo</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"><div class="toast-title" id="toastTitle"></div><div class="toast-body" id="toastBody"></div></div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+var _authToken=localStorage.getItem('wiom_token')||'';
+
+async function doLogin(){
+  var username=document.getElementById('loginUser').value.trim();
+  var password=document.getElementById('loginPass').value;
+  var btn=document.getElementById('loginBtn');
+  var errEl=document.getElementById('loginError');
+  if(!username||!password){errEl.textContent='Username aur password dono likhein.';errEl.style.display='block';return;}
+  btn.disabled=true;btn.textContent='Login ho raha hai...';errEl.style.display='none';
+  try{
+    var res=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:username,password:password})});
+    var data=await res.json();
+    if(data.success){
+      _authToken=data.token;
+      localStorage.setItem('wiom_token',data.token);
+      document.getElementById('loginScreen').style.display='none';
+      var app=document.getElementById('mainApp');app.style.display='flex';
+      document.getElementById('userChip').textContent='\u{1F464} '+data.name;
+      renderChips('laptop');renderFAQ('');renderAssets();updateOpenCount();
+    } else {
+      errEl.textContent=data.error||'Galat credentials.';errEl.style.display='block';
+    }
+  } catch(e){errEl.textContent='Server se connect nahi ho raha.';errEl.style.display='block';}
+  btn.disabled=false;btn.textContent='Login karein \u2192';
+}
+
+function doLogout(){
+  localStorage.removeItem('wiom_token');_authToken='';
+  document.getElementById('mainApp').style.display='none';
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  if(typeof conversationHistory!=='undefined') conversationHistory=[];
+}
+
+(async function autoLogin(){
+  if(!_authToken) return;
+  try{
+    var res=await fetch('/api/verify',{headers:{'x-auth-token':_authToken}});
+    var d=await res.json();
+    if(d.valid){
+      document.getElementById('loginScreen').style.display='none';
+      var app=document.getElementById('mainApp');app.style.display='flex';
+      document.getElementById('userChip').textContent='\u{1F464} '+d.name;
+      renderChips('laptop');renderFAQ('');renderAssets();updateOpenCount();
+    } else { localStorage.removeItem('wiom_token');_authToken=''; }
+  } catch(e){ localStorage.removeItem('wiom_token');_authToken=''; }
+})();
+
+document.addEventListener('DOMContentLoaded',function(){
+  var lp=document.getElementById('loginPass');
+  if(lp) lp.addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+});
+
+</script><script>
+var conversationHistory=[];
+var isLoading=false;
+var currentLang='hi';
+var ticketLog=JSON.parse(localStorage.getItem('wiom_tickets')||'[]');
+var assets=JSON.parse(localStorage.getItem('wiom_assets')||'[]');
+var chatHistories=JSON.parse(localStorage.getItem('wiom_histories')||'[]');
+var problemCounts=JSON.parse(localStorage.getItem('wiom_problems')||'{}');
+var messagesEl=document.getElementById('messages');
+var inputEl=document.getElementById('input');
+var sendBtn=document.getElementById('sendBtn');
+
+var CHIPS={
+  laptop:['💻 Laptop On Nahi Ho Raha','🖥️ Screen Blink Kar Rahi Hai','🐢 Laptop Slow Chal Raha Hai','🧊 Laptop Hang Ho Raha Hai','⚡ Laptop Auto Off Ho Raha Hai','🔋 Charger Problem Hai','🖱️ Touchpad Kaam Nahi Karta','🔄 Laptop Change Chahiye','⌨️ Keyboard Problem','🔊 Audio Problem'],
+  network:['📶 WiFi Connect Nahi Ho Raha','🐌 Internet Slow Hai','🔌 LAN Problem','📧 Email Nahi Chal Raha','🔒 VPN Problem','📡 WiFi Password Chahiye'],
+  software:['💾 Software Install Karna Hai','🔧 Software Update','❌ Software Crash','📊 MS Office Problem','🖨️ Printer Driver','🛡️ Antivirus Issue'],
+  purchase:['🛒 Laptop Purchase Request','🖨️ Printer Purchase','🖥️ Monitor Purchase','⌨️ Keyboard/Mouse','📱 Mobile Request','💡 Equipment Quote'],
+  account:['🔑 Password Reset','🔐 Admin Password','🔓 Account Unlock','👤 New User Account','📧 Email Account Setup','🛡️ 2FA Problem'],
+  ticket:['🎫 New Ticket Raise Karo','📋 Ticket Status Check','🔁 Ticket Escalate Karna Hai']
+};
+
+var FAQS=[
+  {cat:'Laptop',q:'Laptop on nahi ho raha — kya karein?',a:'1. Power button 30 second hold karein. 2. Charger laga ke try karein. 3. Battery disconnect-reconnect karein. 4. Doosra charger try karein. Agar phir bhi nahi chala — sajan.kumar@Wiom.in pe ticket raise karein.'},
+  {cat:'Laptop',q:'Laptop bahut slow chal raha hai?',a:'1. Ctrl+Alt+Del > Task Manager kholo. 2. High CPU/RAM processes band karo. 3. Startup programs disable karo (msconfig). 4. Disk Cleanup run karo. 5. Antivirus scan karo.'},
+  {cat:'Laptop',q:'Laptop charge nahi ho raha?',a:'1. Charger pin check karo. 2. Port mein kuch fansa nahi? 3. Doosra charger try karo. 4. Battery health check karo. Agar charger kharab ho — ticket raise karo.'},
+  {cat:'Laptop',q:'Screen blink ya flicker kar rahi hai?',a:'1. Display driver update karo (Device Manager). 2. Brightness adjust karo. 3. External monitor se test karo. 4. Refresh rate check karo. Ticket raise karo agar theek na ho.'},
+  {cat:'Laptop',q:'Laptop hang ho jata hai baar baar?',a:'1. Ctrl+Alt+Del > Task Manager > heavy processes band karo. 2. Storage check karo — 10% free hona chahiye. 3. RAM usage dekho. 4. Restart karo. Baar baar ho toh ticket raise karo.'},
+  {cat:'Network',q:'WiFi connect nahi ho raha?',a:'1. Airplane mode off karo. 2. WiFi off/on karo. 3. Laptop restart karo. 4. Network forget karke reconnect karo. 5. ipconfig /flushdns command run karo.'},
+  {cat:'Network',q:'Internet slow hai — kya karein?',a:'1. fast.com pe speed test karo. 2. Background downloads check karo. 3. Browser cache clear karo. 4. Office-wide problem ho toh IT ko report karo.'},
+  {cat:'Network',q:'VPN connect nahi ho raha?',a:'VPN credentials check karo. Software reinstall karo. sajan.kumar@Wiom.in se updated config file maango.'},
+  {cat:'Software',q:'Software install karna hai — kya process hai?',a:'1. Ticket raise karo — software name aur business reason batao. 2. sajan.kumar@Wiom.in approve karenge. 3. IT team 1-2 working days mein install karegi.'},
+  {cat:'Software',q:'MS Office activate nahi ho raha?',a:'File > Account > Activate Office. Company email se sign in karo. License error aaye toh sajan.kumar@Wiom.in ko email karo.'},
+  {cat:'Account',q:'Password reset karna hai?',a:'Windows: Ctrl+Alt+Del > Change Password. Email: Account settings > Security. Locked out ho gaye toh sajan.kumar@Wiom.in pe employee ID ke saath email karo.'},
+  {cat:'Account',q:'Admin password kaise milega?',a:'Admin password sirf IT Admin de sakte hain. sajan.kumar@Wiom.in pe email karein — naam, employee ID aur reason clearly likhein.'},
+  {cat:'Purchase',q:'New laptop ki request kaise karein?',a:'Ticket raise karein — employee name, designation, purpose, specs (RAM, storage) likhein. sajan.kumar@Wiom.in approve karenge. 5-7 working days mein deliver hoga.'},
+  {cat:'Purchase',q:'IT equipment ka quote kaise milega?',a:'Requirements ticket mein likhein. IT team vendor quotes collect karegi. Management approval ke baad purchase order jaari hoga.'},
+];
+
+var SYSTEM_PROMPT_HI = "Aap Wiom IT Helpdesk Assistant hain. Sirf Hindi/Hinglish mein jawab dein. IT Admin: sajan.kumar@Wiom.in\n\nLAPTOP: On nahi hona=30sec hold,charger test | Screen blink=driver update,ext monitor | Slow=TaskMgr,startup disable | Hang=Ctrl+Alt+Del,restart | Auto off=overheating,cooling pad | Charger=doosra charger,port check | Touchpad=Fn+F7,Settings>Touchpad | Change=reason+ticket,3-5 din\nNETWORK: WiFi=airplane off,disable/enable,flushdns | VPN=reinstall,sajan.kumar config | WiFi pass=sirf IT Admin\nSOFTWARE: Install=approval+ticket,1-2 din | MS Office=activate,company email | Antivirus=company approved only\nPURCHASE: Equipment=reason+specs+ticket,5-7 din approve sajan.kumar@Wiom.in\nACCOUNT: Password=Ctrl+Alt+Del ya email settings | ADMIN PWD='Sirf sajan.kumar@Wiom.in pe email karein - naam,ID,reason' | New user=dept approval+ticket\nTICKET FORMAT:\n\u{1F3AB} TICKET RAISED\nID: TKT-[5 digit]\nCategory: [Hardware/Software/Network/Purchase/Account]\nPriority: [Low/Medium/High/Critical]\nAssigned To: sajan.kumar@Wiom.in\nStatus: Open\nETA: [time]\n\nRULES: 'Physical check/replacement' line KABHI mat likho | Friendly Hindi | Numbered steps | Sirf IT topics";
+
+var SYSTEM_PROMPT_EN = "You are Wiom IT Helpdesk Assistant. Reply in English only. IT Admin: sajan.kumar@Wiom.in\nHandle all IT issues. For Admin Password always say: contact sajan.kumar@Wiom.in with name, employee ID and reason.\nTicket format:\n\u{1F3AB} TICKET RAISED\nID: TKT-[5 digits]\nCategory: [Hardware/Software/Network/Purchase/Account]\nPriority: [Low/Medium/High/Critical]\nAssigned To: sajan.kumar@Wiom.in\nStatus: Open\nETA: [estimate]\nRules: Be friendly, numbered steps, IT topics only, never mention physical check or replacement.";
+
+function toast(title,body,dur){
+  var t=document.getElementById('toast');
+  document.getElementById('toastTitle').textContent=title;
+  document.getElementById('toastBody').textContent=body||'';
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},dur||3500);
+}
+function toggleTheme(){
+  var isLight=document.body.getAttribute('data-theme')==='light';
+  document.body.setAttribute('data-theme',isLight?'':'light');
+  localStorage.setItem('wiom_theme',isLight?'':'light');
+}
+function setLang(lang,btn){
+  currentLang=lang;
+  document.querySelectorAll('.lang-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  toast(lang==='hi'?'Hindi Mode':'English Mode',lang==='hi'?'Ab Hindi mein baat karein':'Chatting in English now');
+}
+function switchPanel(id,btn){
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.nav-tab').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('panel-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='admin') refreshAdmin();
+  if(id==='history') renderHistory();
+  if(id==='asset') renderAssets();
+  if(id==='faq') renderFAQ('');
+}
+function switchCat(btn,cat){
+  document.querySelectorAll('.cat-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderChips(cat);
+}
+function renderChips(cat){
+  var row=document.getElementById('chipsRow');
+  row.innerHTML='';
+  (CHIPS[cat]||[]).forEach(function(label){
+    var btn=document.createElement('button');
+    btn.className='chip';btn.textContent=label;
+    btn.onclick=function(){inputEl.value=label.replace(/^[^\w\s]*\s/,'').trim();sendMessage();};
+    row.appendChild(btn);
+  });
+}
+function addMessage(role,content,isHtml){
+  var div=document.createElement('div');div.className='message '+role;
+  var av=document.createElement('div');av.className='avatar '+(role==='bot'?'bot-av':'user-av');av.textContent=role==='bot'?'\u{1F916}':'WM';
+  var bub=document.createElement('div');bub.className='bubble';
+  if(isHtml) bub.innerHTML=content; else bub.textContent=content;
+  div.appendChild(av);div.appendChild(bub);
+  messagesEl.appendChild(div);messagesEl.scrollTop=messagesEl.scrollHeight;
+}
+function showTyping(){
+  var d=document.createElement('div');d.className='message bot';d.id='typing-ind';
+  d.innerHTML='<div class="avatar bot-av">\u{1F916}</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  messagesEl.appendChild(d);messagesEl.scrollTop=messagesEl.scrollHeight;
+}
+function removeTyping(){var t=document.getElementById('typing-ind');if(t)t.remove();}
+function formatResponse(text){
+  var html=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`(.*?)`/g,'<code>$1</code>');
+  html=html.replace(/\u{1F3AB} TICKET RAISED\n([\s\S]*?)(?=\n\n|$)/gu,function(match,body){
+    var lines=body.trim().split('\n').filter(Boolean);
+    var tid='',priority='';
+    lines.forEach(function(l){if(l.startsWith('ID:'))tid=l.replace('ID:','').trim();if(l.startsWith('Priority:'))priority=l.replace('Priority:','').trim();});
+    var card='<div class="ticket-card"><div class="t-head"><span class="t-id">\u{1F3AB} '+( tid||'TKT-XXXXX')+'</span><span class="t-badge">Open</span></div>';
+    lines.forEach(function(line){
+      if(line.startsWith('ID:')||line.startsWith('Status:')) return;
+      var parts=line.split(':');var key=parts[0];var v=parts.slice(1).join(':').trim();
+      if(!v) return;
+      var vc='t-val';
+      if(key.trim()==='Priority'){if(v==='Critical')vc='t-val p-critical';else if(v==='High')vc='t-val p-high';else if(v==='Medium')vc='t-val p-medium';else vc='t-val p-low';}
+      if(key.trim()==='Assigned To') vc='t-email';
+      card+='<div class="t-row"><span class="t-label">'+key.trim()+'</span><span class="'+vc+'">'+v+'</span></div>';
+    });
+    var tnum=Math.floor(10000+Math.random()*90000);
+    var tobj={id:'TKT-'+tnum,issue:tid||'General',priority:priority,status:'Open',date:new Date().toLocaleDateString('en-IN')};
+    ticketLog.push(tobj);localStorage.setItem('wiom_tickets',JSON.stringify(ticketLog));
+    updateOpenCount();
+    sendBrowserNotif('\u{1F3AB} Ticket Raised!','TKT-'+tnum+' assigned to sajan.kumar@Wiom.in');
+    card+='<button class="escalate-btn" onclick="escalateTicket('+tnum+')">\u{1F6A8} Admin ko Seedha Escalate Karo</button></div>';
+    return card;
+  });
+  html=html.replace(/(?:^|\n)(\d+)\. (.+)/g,function(m,n,c){return '<li>'+c+'</li>';});
+  html=html.replace(/(<li>[\s\S]*?<\/li>)/g,function(s){return s.includes('<ol>')?s:'<ol>'+s+'</ol>';});
+  html=html.replace(/(?:^|\n)[•\-] (.+)/g,function(m,c){return '<li>'+c+'</li>';});
+  html=html.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  return html;
+}
+function trackProblem(text){
+  var keywords={'Laptop Off':['on nahi','start nahi','boot'],'Screen Issue':['screen','blink','flicker'],'Slow/Hang':['slow','hang','lag'],'WiFi/Net':['wifi','internet','connect'],'Password':['password','account'],'Software':['software','install'],'Charger':['charger','charge','battery'],'Purchase':['purchase','buy','kharidna']};
+  var lc=text.toLowerCase();
+  Object.entries(keywords).forEach(function(e){if(e[1].some(function(k){return lc.includes(k);})){problemCounts[e[0]]=(problemCounts[e[0]]||0)+1;localStorage.setItem('wiom_problems',JSON.stringify(problemCounts));}});
+}
+async function sendMessage(){
+  var text=inputEl.value.trim();
+  if(!text||isLoading) return;
+  inputEl.value='';inputEl.style.height='auto';
+  isLoading=true;sendBtn.disabled=true;
+  document.getElementById('charCount').textContent='0';
+  trackProblem(text);
+  addMessage('user',text);
+  conversationHistory.push({role:'user',content:text});
+  showTyping();
+  try{
+    var _tok=localStorage.getItem('wiom_token')||'';var res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json','x-auth-token':_tok},body:JSON.stringify({messages:conversationHistory,language:currentLang})});
+    var data=await res.json();removeTyping();
+    if(res.status===401){doLogout();return;}
+    if(data.reply){
+      var reply=data.reply;
+      conversationHistory.push({role:'assistant',content:reply});
+      addMessage('bot',formatResponse(reply),true);
+    } else { addMessage('bot','<span class="error-msg">Error aa gaya. Dobara try karein.</span>',true); }
+  } catch(e){removeTyping();addMessage('bot','<span class="error-msg">Connection error. Internet check karein.</span>',true);}
+  isLoading=false;sendBtn.disabled=false;inputEl.focus();
+}
+function clearChat(){if(!confirm('Chat clear karein?')) return;messagesEl.innerHTML='';conversationHistory=[];addMessage('bot','Chat clear ho gaya. Nayi problem ke saath shuru karein! \u{1F60A}',false);}
+function saveCurrentChat(){
+  if(conversationHistory.length<2){toast('Kuch nahi hai','Pehle chat karein.');return;}
+  var preview=conversationHistory.find(function(m){return m.role==='user';})?.content||'Chat';
+  var hist={id:Date.now(),title:preview.slice(0,40),date:new Date().toLocaleDateString('en-IN'),messages:JSON.parse(JSON.stringify(conversationHistory))};
+  chatHistories.unshift(hist);if(chatHistories.length>20)chatHistories.pop();
+  localStorage.setItem('wiom_histories',JSON.stringify(chatHistories));
+  toast('\u2705 Chat Saved!','History mein dekh sakte hain.');
+}
+function escalateToAdmin(){
+  var lastMsg=conversationHistory.filter(function(m){return m.role==='user';}).pop()?.content||'General IT Issue';
+  var subject=encodeURIComponent('[URGENT] IT Escalation - '+lastMsg.slice(0,50));
+  var body=encodeURIComponent('Namaste Sajan ji,\n\nMain IT helpdesk se escalate kar raha hoon.\n\nProblem: '+lastMsg+'\n\nKripya jaldi resolve karein.\n\nDhanyawad');
+  window.open('mailto:sajan.kumar@Wiom.in?subject='+subject+'&body='+body);
+  toast('\u{1F4E7} Email Draft Ready','Mail app mein khulega.');
+}
+function escalateTicket(tnum){
+  var subject=encodeURIComponent('[ESCALATION] Ticket TKT-'+tnum);
+  var body=encodeURIComponent('Namaste Sajan ji,\n\nTicket TKT-'+tnum+' ke baare mein follow-up.\n\nKripya jaldi resolve karein.\n\nDhanyawad');
+  window.open('mailto:sajan.kumar@Wiom.in?subject='+subject+'&body='+body);
+}
+async function requestNotifPerm(){
+  if(!('Notification' in window)){toast('Browser notifications support nahi karta.');return;}
+  var perm=await Notification.requestPermission();
+  if(perm==='granted'){toast('\u{1F514} Notifications ON!','IT alerts milenge.');document.getElementById('notifBtn').textContent='\u{1F515}';}
+  else toast('Notifications off hain.','');
+}
+function sendBrowserNotif(title,body){if(Notification.permission==='granted') new Notification(title,{body:body});}
+function renderFAQ(filter){
+  var list=document.getElementById('faqList');
+  var filtered=filter?FAQS.filter(function(f){return f.q.toLowerCase().includes(filter.toLowerCase())||f.a.toLowerCase().includes(filter.toLowerCase());}):FAQS;
+  var cats=[...new Set(FAQS.map(function(f){return f.cat;}))];
+  var html='';
+  if(filter){
+    filtered.forEach(function(f,i){html+=faqItem(f,'s'+i);});
+  } else {
+    cats.forEach(function(cat){
+      var items=filtered.filter(function(f){return f.cat===cat;});
+      if(!items.length) return;
+      html+='<div class="faq-cat">'+cat+'</div>';
+      items.forEach(function(f,i){html+=faqItem(f,cat+i);});
+    });
+  }
+  if(!html) html='<div style="text-align:center;color:var(--muted);padding:20px;font-size:13px;">Koi result nahi mila.</div>';
+  list.innerHTML=html;
+}
+function faqItem(f,i){return '<div class="faq-item" id="faq-'+i+'"><div class="faq-q" onclick="document.getElementById('faq-'+i+'').classList.toggle('open')">'+f.q+'<span class="arr">\u25BE</span></div><div class="faq-a">'+f.a+'</div></div>';}
+function filterFAQ(v){renderFAQ(v);}
+function addAsset(){
+  var emp=document.getElementById('assetEmp').value.trim();
+  var type=document.getElementById('assetType').value;
+  var model=document.getElementById('assetModel').value.trim();
+  var serial=document.getElementById('assetSerial').value.trim();
+  var cond=document.getElementById('assetCondition').value;
+  if(!emp||!model){toast('Required fields','Employee name aur model likhein.');return;}
+  var asset={id:Date.now(),emp:emp,type:type,model:model,serial:serial,cond:cond,date:new Date().toLocaleDateString('en-IN')};
+  assets.push(asset);localStorage.setItem('wiom_assets',JSON.stringify(assets));
+  document.getElementById('assetEmp').value='';document.getElementById('assetModel').value='';document.getElementById('assetSerial').value='';
+  renderAssets();toast('\u2705 Asset Registered!',type+' - '+model);
+}
+function renderAssets(){
+  var list=document.getElementById('assetList');
+  if(!assets.length){list.innerHTML='<div style="text-align:center;color:var(--muted);font-size:13px;padding:20px;">Koi asset registered nahi hai.</div>';return;}
+  var icons={Laptop:'\u{1F4BB}',Desktop:'\u{1F5A5}\uFE0F',Monitor:'\u{1F5A5}\uFE0F',Printer:'\u{1F5A8}\uFE0F','Mouse/Keyboard':'\u2328\uFE0F',Mobile:'\u{1F4F1}'};
+  list.innerHTML=assets.map(function(a){return '<div class="asset-card"><div class="asset-icon">'+(icons[a.type]||'\u{1F4BC}')+'</div><div class="asset-info"><div class="asset-name">'+a.model+'</div><div class="asset-meta">'+a.emp+' \u00B7 '+a.type+' \u00B7 S/N: '+(a.serial||'N/A')+' \u00B7 '+a.date+'</div></div><span class="asset-status '+(a.cond.includes('Good')?'status-ok':'status-warn')+'">'+a.cond.split(' ')[0]+'</span><button class="del-btn" onclick="deleteAsset('+a.id+')">\u{1F5D1}\uFE0F</button></div>';}).join('');
+}
+function deleteAsset(id){assets=assets.filter(function(a){return a.id!==id;});localStorage.setItem('wiom_assets',JSON.stringify(assets));renderAssets();}
+function renderHistory(){
+  var list=document.getElementById('histList');
+  if(!chatHistories.length){list.innerHTML='<div class="no-hist">Koi saved chat nahi hai.<br><span style="font-size:12px;">Chat save karne ke liye \u{1F4BE} icon use karein.</span></div>';return;}
+  list.innerHTML=chatHistories.map(function(h){return '<div class="hist-item"><div class="hist-head"><span class="hist-title">'+h.title+'...</span><span style="display:flex;align-items:center;gap:6px;"><span class="hist-date">'+h.date+'</span><button class="hist-del" onclick="deleteHistory('+h.id+')">\u{1F5D1}\uFE0F</button></span></div><div class="hist-preview">'+h.messages.length+' messages</div></div>';}).join('');
+}
+function deleteHistory(id){chatHistories=chatHistories.filter(function(h){return h.id!==id;});localStorage.setItem('wiom_histories',JSON.stringify(chatHistories));renderHistory();}
+function refreshAdmin(){
+  var open=ticketLog.filter(function(t){return t.status==='Open';}).length;
+  var closed=ticketLog.length-open;
+  document.getElementById('s-total').textContent=ticketLog.length;
+  document.getElementById('s-open').textContent=open;
+  document.getElementById('s-closed').textContent=closed;
+  document.getElementById('s-assets').textContent=assets.length;
+  updateOpenCount();
+  var sorted=Object.entries(problemCounts).sort(function(a,b){return b[1]-a[1];}).slice(0,6);
+  var max=sorted[0]?sorted[0][1]:1;
+  document.getElementById('problemBars').innerHTML=sorted.length?sorted.map(function(e){return '<div class="bar-row"><span class="bar-label">'+e[0]+'</span><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(e[1]/max*100)+'%"></div></div><span class="bar-count">'+e[1]+'</span></div>';}).join(''):'<div style="color:var(--muted);font-size:12px;">Abhi tak koi data nahi.</div>';
+  document.getElementById('ticketTable').innerHTML=ticketLog.length?[...ticketLog].reverse().slice(0,10).map(function(t){return '<div class="th-row"><div style="font-family:var(--mono);color:var(--accent);font-size:11px;">'+t.id+'</div><div style="font-size:11px;overflow:hidden;text-overflow:ellipsis;">'+(t.issue||'').slice(0,25)+'</div><div style="font-size:11px;">'+(t.priority||'\u2014')+'</div><div><span class="badge '+(t.status==='Open'?'b-open':'b-closed')+'">'+t.status+'</span></div></div>';}).join(''):'<div style="padding:12px;color:var(--muted);font-size:12px;">Koi ticket nahi.</div>';
+}
+function updateOpenCount(){var open=ticketLog.filter(function(t){return t.status==='Open';}).length;document.getElementById('openCount').textContent=open;}
+function clearAllData(){
+  if(!confirm('Saara data clear karein?')) return;
+  ticketLog=[];assets=[];chatHistories=[];problemCounts={};
+  localStorage.clear();conversationHistory=[];messagesEl.innerHTML='';
+  addMessage('bot','Saara data clear ho gaya. Fresh start! \u2728',false);
+  refreshAdmin();toast('\u2705 Done','Saara data clear.');
+}
+inputEl.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+inputEl.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';document.getElementById('charCount').textContent=this.v
