@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wiom IT Helpdesk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{--bg:#0a0c10;--surface:#111318;--surface2:#181c26;--surface3:#1e2333;--border:rgba(99,179,237,0.1);--border2:rgba(99,179,237,0.22);--accent:#63b3ed;--pink:#e91e8c;--text:#dde6f0;--muted:#7a8899;--success:#48bb78;--warning:#f6ad55;--danger:#fc8181;--info:#76e4f7;--user-bubble:#0f1e3a;--bot-bubble:#111825;--font:'Sora',sans-serif;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
+.logo-img{width:36px;height:36px;border-radius:9px;object-fit:cover;flex-shrink:0;}
+.brand{flex:1;}.brand-name{font-size:15px;font-weight:600;color:var(--text);}.brand-name span{color:var(--pink);}
+.brand-tag{font-size:10.5px;color:var(--muted);margin-top:1px;}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.online-pill{background:rgba(72,187,120,0.12);border:1px solid rgba(72,187,120,0.25);border-radius:20px;padding:3px 9px;font-size:10.5px;color:var(--success);display:flex;align-items:center;gap:4px;}
+.dot{width:5px;height:5px;background:var(--success);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.3;}}
+.cat-tabs{background:var(--surface2);border-bottom:1px solid var(--border);padding:0 14px;display:flex;overflow-x:auto;flex-shrink:0;scrollbar-width:none;}
+.cat-tabs::-webkit-scrollbar{display:none;}
+.cat-tab{padding:9px 12px;font-size:11.5px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;font-family:var(--font);background:none;border-top:none;border-left:none;border-right:none;transition:all 0.2s;}
+.cat-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.chips-row{background:var(--surface2);border-bottom:1px solid var(--border);padding:8px 12px;display:flex;gap:7px;overflow-x:auto;flex-shrink:0;scrollbar-width:none;min-height:42px;}
+.chips-row::-webkit-scrollbar{display:none;}
+.chip{background:var(--surface3);border:1px solid var(--border);border-radius:14px;padding:5px 12px;font-size:11.5px;color:var(--accent);cursor:pointer;white-space:nowrap;font-family:var(--font);flex-shrink:0;}
+.chip:hover{background:rgba(99,179,237,0.1);}
+.messages{flex:1;overflow-y:auto;padding:16px 12px;display:flex;flex-direction:column;gap:12px;}
+.message{display:flex;gap:8px;}
+.message.user{flex-direction:row-reverse;}
+.avatar{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.bot-av{background:linear-gradient(135deg,var(--pink),#9c27b0);}
+.user-av{background:var(--surface3);border:1px solid var(--border2);font-size:10px;color:var(--accent);font-weight:600;}
+.bubble{padding:10px 14px;border-radius:13px;font-size:13px;line-height:1.75;max-width:calc(100% - 42px);}
+.message.bot .bubble{background:var(--bot-bubble);border:1px solid var(--border);border-top-left-radius:3px;}
+.message.user .bubble{background:var(--user-bubble);border:1px solid var(--border2);border-top-right-radius:3px;}
+.bubble strong{color:var(--accent);font-weight:500;}
+.bubble ol,.bubble ul{padding-left:16px;margin-top:4px;}.bubble li{margin-bottom:3px;}
+.ticket-card{background:var(--surface3);border:1px solid var(--border2);border-radius:10px;padding:11px;margin-top:9px;font-size:12px;}
+.t-head{display:flex;align-items:center;gap:7px;margin-bottom:8px;padding-bottom:7px;border-bottom:1px solid var(--border);}
+.t-id{font-family:monospace;color:var(--accent);font-size:11.5px;font-weight:500;}
+.t-badge{margin-left:auto;background:rgba(72,187,120,0.15);color:var(--success);border-radius:8px;padding:2px 8px;font-size:10.5px;}
+.t-row{display:flex;gap:5px;margin-bottom:4px;}.t-label{color:var(--muted);min-width:85px;font-size:11.5px;}.t-val{color:var(--text);font-size:11.5px;}.t-email{color:var(--accent);font-size:11.5px;}
+.p-critical{color:var(--danger);}.p-high{color:var(--warning);}.p-medium{color:var(--info);}.p-low{color:var(--success);}
+.escalate-btn{margin-top:8px;background:rgba(252,129,129,0.12);border:1px solid rgba(252,129,129,0.3);color:var(--danger);border-radius:8px;padding:6px 12px;font-size:11.5px;cursor:pointer;font-family:var(--font);width:100%;}
+.typing{display:flex;gap:4px;align-items:center;padding:10px 14px;}
+.typing span{width:6px;height:6px;border-radius:50%;background:var(--pink);opacity:0.4;animation:blink 1.2s infinite;}
+.typing span:nth-child(2){animation-delay:0.2s;}.typing span:nth-child(3){animation-delay:0.4s;}
+@keyframes blink{0%,80%,100%{opacity:0.4;}40%{opacity:1;}}
+.input-wrap{background:var(--surface);border-top:1px solid var(--border);padding:10px 12px;display:flex;flex-direction:column;gap:6px;flex-shrink:0;}
+.chat-tools{display:flex;gap:8px;align-items:center;}
+.tool-btn{background:none;border:none;cursor:pointer;color:var(--muted);font-size:12px;font-family:var(--font);padding:3px 6px;border-radius:6px;}
+.tool-btn:hover{color:var(--accent);}
+.input-row{display:flex;gap:8px;align-items:flex-end;}
+textarea{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;color:var(--text);font-family:var(--font);font-size:13px;resize:none;outline:none;min-height:40px;max-height:100px;line-height:1.5;}
+textarea:focus{border-color:rgba(233,30,140,0.35);}
+textarea::placeholder{color:var(--muted);}
+.send-btn{width:40px;height:40px;background:linear-gradient(135deg,var(--pink),#9c27b0);border:none;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.send-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.send-btn svg{width:16px;height:16px;fill:white;}
+.footer{text-align:center;font-size:10px;color:var(--muted);padding:3px 0 5px;flex-shrink:0;}
+.error-msg{color:var(--danger);}
+</style>
+</head>
+<body>
+<div class="header">
+  <img class="logo-img" src="data:image/webp;base64,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" alt="Wiom">
+  <div class="brand">
+    <div class="brand-name"><span>Wiom</span> IT Helpdesk</div>
+    <div class="brand-tag">IT Support Portal</div>
+  </div>
+  <div class="header-right">
+    <div class="online-pill"><span class="dot"></span>Live</div>
+  </div>
+</div>
+<div class="cat-tabs" id="catTabs">
+  <button class="cat-tab active" onclick="switchCat(this,'laptop')">&#128187; Laptop</button>
+  <button class="cat-tab" onclick="switchCat(this,'network')">&#128246; Network</button>
+  <button class="cat-tab" onclick="switchCat(this,'software')">&#128190; Software</button>
+  <button class="cat-tab" onclick="switchCat(this,'purchase')">&#128722; Purchase</button>
+  <button class="cat-tab" onclick="switchCat(this,'account')">&#128274; Account</button>
+  <button class="cat-tab" onclick="switchCat(this,'ticket')">&#127915; Ticket</button>
+</div>
+<div class="chips-row" id="chipsRow"></div>
+<div class="messages" id="messages">
+  <div class="message bot">
+    <div class="avatar bot-av">&#129302;</div>
+    <div class="bubble"><strong>Namaste! Main Wiom IT Helpdesk Assistant hoon &#128075;</strong><br><br><em style="color:var(--pink);">IT Helpdesk</em><br><br>Category chunein ya seedha problem likhein &#128071;</div>
+  </div>
+</div>
+<div class="input-wrap">
+  <div class="chat-tools">
+    <button class="tool-btn" onclick="clearChat()">&#128465; Clear</button>
+    <button class="tool-btn" onclick="escalateToAdmin()">&#128680; Escalate</button>
+  </div>
+  <div class="input-row">
+    <textarea id="input" placeholder="Apni IT problem yahan likho..." rows="1"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+      <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+    </button>
+  </div>
+</div>
+<div class="footer">Wiom IT Helpdesk &middot; AI Powered &middot; Admin: sajan.kumar@Wiom.in</div>
+
+<script>
+var conv=[];var loading=false;
+var CHIPS={
+  laptop:['&#128187; Laptop On Nahi Ho Raha','&#128421; Screen Blink Kar Rahi Hai','&#128034; Laptop Slow Hai','&#129392; Laptop Hang Ho Raha Hai','&#9889; Laptop Auto Off Ho Raha','&#128267; Charger Problem','&#128433; Touchpad Kaam Nahi Karta','&#128260; Laptop Change Chahiye'],
+  network:['&#128246; WiFi Connect Nahi Ho Raha','&#128014; Internet Slow Hai','&#128274; VPN Problem','&#128139; Email Issue','&#128225; Office WiFi Password'],
+  software:['&#128190; Software Install Karna Hai','&#10060; Software Crash Ho Raha Hai','&#128202; MS Office Problem','&#128424; Printer Driver Install','&#128737; Antivirus Issue'],
+  purchase:['&#128722; New Laptop Purchase','&#128424; Printer Purchase','&#128421; Monitor Purchase','&#128241; Mobile Purchase','&#128161; Equipment Quote Chahiye'],
+  account:['&#128273; Password Reset','&#128274; Admin Password Chahiye','&#128275; Account Unlock','&#128100; New User Account','&#128737; 2FA Problem'],
+  ticket:['&#127915; New Ticket Raise Karo','&#128203; Ticket Status Check','&#128260; Ticket Escalate Karna Hai']
+};
+var PROMPT='Aap Wiom IT Helpdesk Assistant hain. Sirf Hindi/Hinglish mein jawab dein. IT Admin: sajan.kumar@Wiom.in\n\nLaptop: on nahi=30sec hold,charger test | screen blink=driver update | slow=TaskMgr,startup disable | hang=Ctrl+Alt+Del | auto off=overheating,cooling pad | charger=doosra try karo | touchpad=Fn+F7,settings enable | change=ticket raise karo\nNetwork: wifi=airplane off,disable/enable,flushdns | VPN=reinstall | wifi pass=sirf IT Admin denge\nSoftware: install=approval+ticket,1-2 din | MS Office=activate,company email\nPurchase: equipment=reason+specs+ticket,5-7 din,sajan.kumar approve karenge\nAccount: password=Ctrl+Alt+Del | ADMIN PWD=sirf sajan.kumar@Wiom.in pe email | new user=dept approval+ticket\nTicket format:\n&#127915; TICKET RAISED\nID: TKT-[5 digit]\nCategory: [Hardware/Software/Network/Purchase/Account]\nPriority: [Low/Medium/High/Critical]\nAssigned To: sajan.kumar@Wiom.in\nStatus: Open\nETA: [time]\nRules: Physical check/replacement line KABHI mat likho | Friendly Hindi | Numbered steps | Sirf IT';
+
+function switchCat(btn,cat){
+  document.querySelectorAll('.cat-tab').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  renderChips(cat);
+}
+function renderChips(cat){
+  var row=document.getElementById('chipsRow');
+  row.innerHTML='';
+  (CHIPS[cat]||[]).forEach(function(label){
+    var btn=document.createElement('button');
+    btn.className='chip';
+    btn.innerHTML=label;
+    btn.onclick=function(){
+      document.getElementById('input').value=btn.innerText.replace(/^.\s/,'').trim();
+      sendMessage();
+    };
+    row.appendChild(btn);
+  });
+}
+function addMsg(role,content,isHtml){
+  var div=document.createElement('div');div.className='message '+role;
+  var av=document.createElement('div');av.className='avatar '+(role==='bot'?'bot-av':'user-av');
+  av.innerHTML=role==='bot'?'&#129302;':'WM';
+  var bub=document.createElement('div');bub.className='bubble';
+  if(isHtml)bub.innerHTML=content;else bub.textContent=content;
+  div.appendChild(av);div.appendChild(bub);
+  var msgs=document.getElementById('messages');
+  msgs.appendChild(div);msgs.scrollTop=msgs.scrollHeight;
+}
+function showTyping(){
+  var d=document.createElement('div');d.className='message bot';d.id='typing-ind';
+  d.innerHTML='<div class="avatar bot-av">&#129302;</div><div class="bubble"><div class="typing"><span></span><span></span><span></span></div></div>';
+  var msgs=document.getElementById('messages');msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;
+}
+function removeTyping(){var t=document.getElementById('typing-ind');if(t)t.remove();}
+function formatReply(text){
+  var h=text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/&#127915; TICKET RAISED\n([\s\S]*?)(?=\n\n|$)/g,function(m,body){
+    var lines=body.trim().split('\n').filter(Boolean);
+    var tid='',pri='';
+    lines.forEach(function(l){if(l.startsWith('ID:'))tid=l.replace('ID:','').trim();if(l.startsWith('Priority:'))pri=l.replace('Priority:','').trim();});
+    var c='<div class="ticket-card"><div class="t-head"><span class="t-id">&#127915; '+tid+'</span><span class="t-badge">Open</span></div>';
+    lines.forEach(function(line){
+      if(line.startsWith('ID:')||line.startsWith('Status:'))return;
+      var p=line.split(':');var k=p[0];var v=p.slice(1).join(':').trim();if(!v)return;
+      var vc='t-val';if(k.trim()==='Priority'){if(v==='Critical')vc='t-val p-critical';else if(v==='High')vc='t-val p-high';else if(v==='Medium')vc='t-val p-medium';else vc='t-val p-low';}
+      if(k.trim()==='Assigned To')vc='t-email';
+      c+='<div class="t-row"><span class="t-label">'+k.trim()+'</span><span class="'+vc+'">'+v+'</span></div>';
+    });
+    var tnum=Math.floor(10000+Math.random()*90000);
+    c+='<button class="escalate-btn" onclick="escalateTicket('+tnum+')">&#128680; Admin ko Escalate Karo</button></div>';
+    return c;
+  });
+  h=h.replace(/(?:^|\n)(\d+)\. (.+)/g,function(m,n,ct){return '<li>'+ct+'</li>';});
+  h=h.replace(/(<li>[\s\S]*?<\/li>)/g,function(s){return '<ol>'+s+'</ol>';});
+  h=h.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>');
+  return h;
+}
+async function sendMessage(){
+  var txt=document.getElementById('input').value.trim();
+  if(!txt||loading)return;
+  document.getElementById('input').value='';
+  document.getElementById('input').style.height='auto';
+  loading=true;document.getElementById('sendBtn').disabled=true;
+  addMsg('user',txt);
+  conv.push({role:'user',content:txt});
+  showTyping();
+  try{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1024,system:PROMPT,messages:conv})
+    });
+    var data=await res.json();removeTyping();
+    if(data.content&&data.content[0]){
+      var reply=data.content[0].text;
+      conv.push({role:'assistant',content:reply});
+      addMsg('bot',formatReply(reply),true);
+    } else {addMsg('bot','<span class="error-msg">Error. Dobara try karein.</span>',true);}
+  }catch(e){removeTyping();addMsg('bot','<span class="error-msg">Connection error.</span>',true);}
+  loading=false;document.getElementById('sendBtn').disabled=false;
+  document.getElementById('input').focus();
+}
+function clearChat(){if(!confirm('Chat clear karein?'))return;document.getElementById('messages').innerHTML='';conv=[];addMsg('bot','Chat clear ho gaya! &#128522;',false);}
+function escalateToAdmin(){
+  var last=conv.filter(function(m){return m.role==='user';}).pop();
+  var msg=last?last.content:'IT Issue';
+  var sub=encodeURIComponent('[URGENT] IT Issue: '+msg.slice(0,50));
+  var bod=encodeURIComponent('Namaste Sajan ji,\n\nProblem: '+msg+'\n\nKripya jaldi resolve karein.\n\nDhanyawad');
+  window.open('mailto:sajan.kumar@Wiom.in?subject='+sub+'&body='+bod);
+}
+function escalateTicket(n){
+  var sub=encodeURIComponent('[ESCALATION] Ticket TKT-'+n);
+  var bod=encodeURIComponent('Namaste Sajan ji,\n\nTKT-'+n+' ka follow-up.\n\nDhanyawad');
+  window.open('mailto:sajan.kumar@Wiom.in?subject='+sub+'&body='+bod);
+}
+document.getElementById('input').addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
+document.getElementById('input').addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';});
+renderChips('laptop');
+</script>
+</body>
+</html>
