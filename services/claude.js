@@ -13,24 +13,13 @@ TOOLS USED: Microsoft Teams, Outlook, Chrome, Excel, Zoom, VLC, Notepad++, WinRA
 PERSONALITY: Friendly, Hinglish (Hindi+English mix), patient, simple steps (max 3-4 per reply)
 You are an EXPERT in ALL laptop and internet related problems. Always try to solve first before creating ticket.
 
-ALWAYS respond in this EXACT JSON format (no extra text):
-{
-  "reply": "Your Hinglish message with numbered steps",
-  "shouldCreateTicket": false,
-  "ticketData": null
-}
+⚠️ CRITICAL OUTPUT RULE: Your ENTIRE response must be ONLY valid JSON. No text before, no text after, no explanation outside JSON. Start your response with { and end with }. Never write anything outside the JSON object.
+
+ALWAYS respond in this EXACT JSON format:
+{"reply":"Your Hinglish message with numbered steps","shouldCreateTicket":false,"ticketData":null}
 
 If creating ticket:
-{
-  "reply": "Ticket create ho gaya, Sajan jald help karega!",
-  "shouldCreateTicket": true,
-  "ticketData": {
-    "category": "Network",
-    "priority": "High",
-    "description": "Brief issue description",
-    "steps": ["Step tried 1", "Step tried 2"]
-  }
-}
+{"reply":"Ticket create ho gaya, Sajan jald help karega!","shouldCreateTicket":true,"ticketData":{"category":"Purchase","priority":"Medium","description":"Brief issue description","steps":["Step tried 1","Step tried 2"]}}
 
 PRIORITY: Critical=floor down/data loss, High=can't work, Medium=slow/printer, Low=minor
 CATEGORIES: Hardware, Software, Network, Account, Purchase, Other
@@ -210,14 +199,34 @@ const chat = async (messages, { empId, empName, source }) => {
 
   let parsed;
   try {
-    const jsonMatch = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/) || [null, raw];
-    parsed = JSON.parse(jsonMatch[1].trim());
+    // 1) Try code block first  ```json ... ```
+    const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    if (codeBlock) {
+      parsed = JSON.parse(codeBlock[1].trim());
+    } else {
+      // 2) Find the LAST { ... } block in the response (handles text-before-JSON)
+      const jsonStart = raw.indexOf('{');
+      const jsonEnd   = raw.lastIndexOf('}');
+      if (jsonStart !== -1 && jsonEnd > jsonStart) {
+        parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
+      } else {
+        parsed = JSON.parse(raw);
+      }
+    }
   } catch {
+    // 3) Fallback: use raw as reply, no ticket
     parsed = { reply: raw, shouldCreateTicket: false, ticketData: null };
   }
 
+  // Safety: if reply contains raw JSON accidentally, clean it up
+  let reply = parsed.reply || raw;
+  if (reply.includes('"shouldCreateTicket"') || reply.includes('"ticketData"')) {
+    const cleanMatch = reply.match(/^([^{]+)\{/);
+    reply = cleanMatch ? cleanMatch[1].trim() : 'Kuch issue aa gaya, please dobara try karo ya Sajan se contact karo: 9654244281';
+  }
+
   return {
-    reply             : parsed.reply || raw,
+    reply             : reply,
     shouldCreateTicket: !!parsed.shouldCreateTicket,
     ticketData        : parsed.ticketData || null
   };
@@ -235,7 +244,14 @@ const quickReply = async (userMessage, empName = 'Employee') => {
   });
   const raw = completion.choices[0]?.message?.content?.trim() || '';
   try {
-    const parsed = JSON.parse(raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/)?.[1] || raw);
+    const codeBlock = raw.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+    let parsed;
+    if (codeBlock) {
+      parsed = JSON.parse(codeBlock[1].trim());
+    } else {
+      const s = raw.indexOf('{'), e = raw.lastIndexOf('}');
+      parsed = (s !== -1 && e > s) ? JSON.parse(raw.slice(s, e+1)) : JSON.parse(raw);
+    }
     return parsed.reply || raw;
   } catch {
     return raw;
