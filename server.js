@@ -270,8 +270,8 @@ app.listen(PORT, () => {
           sessions[userId].messages = [...messages, { role: 'assistant', content: reply }];
 
           const blocks = [
-            { type:'section', text:{ type:'mrkdwn', text:`🤖 *WIOM IT Helpdesk*\n\n${reply}` }},
-            { type:'context', elements:[{ type:'mrkdwn', text:`👤 ${emp.empName || emp.empId} | _Type \`/helpdesk\` to continue_` }]}
+            { type:'section', text:{ type:'mrkdwn', text: reply }},
+            { type:'context', elements:[{ type:'mrkdwn', text:`👤 ${emp.empName || emp.empId}` }]}
           ];
 
           if (shouldCreateTicket && ticketData) {
@@ -286,8 +286,8 @@ app.listen(PORT, () => {
               const priEmoji = { Critical:'🔴', High:'🟠', Medium:'🟡', Low:'🟢' };
               blocks.push({ type:'divider' });
               blocks.push({ type:'section', fields:[
-                { type:'mrkdwn', text:`*✅ Ticket Created*\n\`${ticket.ticketId}\`` },
-                { type:'mrkdwn', text:`*${priEmoji[ticket.priority]||'🟡'} Priority*\n${ticket.priority}` }
+                { type:'mrkdwn', text:`*✅ Ticket Bana:*\n\`${ticket.ticketId}\`` },
+                { type:'mrkdwn', text:`*${priEmoji[ticket.priority]||'🟡'} Priority:*\n${ticket.priority}` }
               ]});
               blocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`Sajan Kumar ko alert kar diya gaya 🙏` }]});
               await notifySajan(client, ticket, emp);
@@ -318,7 +318,8 @@ app.listen(PORT, () => {
           sessions[userId].messages = [...messages, { role: 'assistant', content: reply }];
 
           const blocks = [
-            { type:'section', text:{ type:'mrkdwn', text:`🤖 *WIOM IT Helpdesk*\n\n${reply}` }}
+            { type:'section', text:{ type:'mrkdwn', text: reply }},
+            { type:'context', elements:[{ type:'mrkdwn', text:`👤 ${emp.empName || emp.empId}` }]}
           ];
           await say({ text: reply, blocks, thread_ts: message.ts });
 
