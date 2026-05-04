@@ -11,6 +11,10 @@ const ticketRoutes   = require('./routes/tickets');
 const aiRoutes       = require('./routes/ai');
 const employeeRoutes = require('./routes/employees');
 const slaService     = require('./services/sla');
+const Ticket         = require('./models/Ticket');
+
+// ── Slack client (set after bot starts) ──────────────────────────────────────
+let slackClient = null;
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -69,6 +73,40 @@ app.use((err, req, res, next) => {
 cron.schedule('*/30 * * * *', () => {
   console.log('⏰ SLA check running...');
   slaService.checkBreaches();
+});
+
+// ── Auto-Escalation Cron: Every hour — Slack DM Sajan for 4h+ open tickets ──
+cron.schedule('0 * * * *', async () => {
+  try {
+    const sajanId = process.env.SAJAN_SLACK_ID;
+    if (!slackClient || !sajanId || sajanId === 'FILL_KARO') return;
+
+    const fourHoursAgo = new Date(Date.now() - 4 * 3600000);
+    const stale = await Ticket.find({
+      status       : { $in: ['Open', 'In Progress'] },
+      createdAt    : { $lte: fourHoursAgo },
+      escalationSent: false
+    });
+
+    for (const t of stale) {
+      const hoursOld = Math.round((Date.now() - t.createdAt) / 3600000);
+      const priEmoji = { Critical:'🔴', High:'🟠', Medium:'🟡', Low:'🟢' };
+      try {
+        await slackClient.chat.postMessage({
+          channel: sajanId,
+          text: `⚠️ *Escalation Alert — ${t.ticketId}*\n*Employee:* ${t.empName} (${t.empDept||'Unknown'})\n*Issue:* ${t.description}\n*Priority:* ${priEmoji[t.priority]||'🟡'} ${t.priority}\n*Open since:* ${hoursOld}h ago\n_Abhi tak resolve nahi hua — please check karo!_`
+        });
+        t.escalationSent = true;
+        await t.save();
+        console.log(`📣 Escalation sent for ${t.ticketId} (${hoursOld}h old)`);
+      } catch (err) {
+        console.error(`Escalation DM failed for ${t.ticketId}:`, err.message);
+      }
+    }
+    if (stale.length) console.log(`⚡ Escalated ${stale.length} tickets to Sajan`);
+  } catch (err) {
+    console.error('Escalation cron error:', err.message);
+  }
 });
 
 // ── Start Server ──────────────────────────────────────────────────────────────
@@ -201,6 +239,7 @@ app.listen(PORT, () => {
 
       slackApp.start().then(() => {
         console.log('🤖 Slack Bot started! Socket Mode active.');
+        slackClient = slackApp.client; // make available to escalation cron
       }).catch(err => {
         console.error('❌ Slack Bot start failed:', err.message);
       });

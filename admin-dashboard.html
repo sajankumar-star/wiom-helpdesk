@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WIOM IT Helpdesk — Admin Dashboard</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background:#0f172a; color:#e2e8f0; min-height:100vh; }
+
+  /* ── Login ── */
+  #loginPage { display:flex; justify-content:center; align-items:center; height:100vh; background:linear-gradient(135deg,#0f172a,#1e293b); }
+  .login-box { background:#1e293b; padding:40px; border-radius:16px; width:380px; border:1px solid #334155; box-shadow:0 20px 60px rgba(0,0,0,0.5); }
+  .login-box h1 { font-size:22px; margin-bottom:6px; color:#f1f5f9; }
+  .login-box p  { font-size:13px; color:#94a3b8; margin-bottom:28px; }
+  .login-box input { width:100%; padding:12px 14px; background:#0f172a; border:1px solid #334155; border-radius:8px; color:#f1f5f9; font-size:14px; margin-bottom:14px; outline:none; transition:border .2s; }
+  .login-box input:focus { border-color:#6366f1; }
+  .btn-primary { width:100%; padding:13px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border:none; border-radius:8px; color:#fff; font-size:15px; font-weight:600; cursor:pointer; transition:opacity .2s; }
+  .btn-primary:hover { opacity:.9; }
+  .login-error { color:#f87171; font-size:13px; margin-top:10px; text-align:center; display:none; }
+  .logo { text-align:center; margin-bottom:24px; }
+  .logo-icon { font-size:48px; }
+
+  /* ── Main Layout ── */
+  #mainPage { display:none; }
+  .sidebar { position:fixed; left:0; top:0; width:220px; height:100vh; background:#1e293b; border-right:1px solid #334155; padding:20px 0; z-index:100; }
+  .sidebar-logo { padding:0 20px 20px; border-bottom:1px solid #334155; margin-bottom:16px; }
+  .sidebar-logo h2 { font-size:15px; color:#f1f5f9; font-weight:700; }
+  .sidebar-logo p  { font-size:11px; color:#64748b; margin-top:2px; }
+  .nav-item { display:flex; align-items:center; gap:10px; padding:11px 20px; cursor:pointer; font-size:14px; color:#94a3b8; transition:all .2s; border-left:3px solid transparent; }
+  .nav-item:hover  { background:#0f172a; color:#e2e8f0; }
+  .nav-item.active { background:#0f172a; color:#6366f1; border-left-color:#6366f1; }
+  .nav-item .icon  { font-size:16px; }
+
+  .main-content { margin-left:220px; padding:24px; min-height:100vh; }
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; }
+  .topbar h1 { font-size:22px; font-weight:700; color:#f1f5f9; }
+  .topbar-right { display:flex; align-items:center; gap:12px; }
+  .badge { background:#6366f1; color:#fff; padding:4px 10px; border-radius:20px; font-size:12px; }
+  .logout-btn { background:transparent; border:1px solid #334155; color:#94a3b8; padding:7px 14px; border-radius:8px; cursor:pointer; font-size:13px; }
+  .logout-btn:hover { border-color:#f87171; color:#f87171; }
+
+  /* ── Stats Cards ── */
+  .stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin-bottom:24px; }
+  .stat-card { background:#1e293b; border:1px solid #334155; border-radius:12px; padding:20px; position:relative; overflow:hidden; }
+  .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; }
+  .stat-card.blue::before  { background:#6366f1; }
+  .stat-card.orange::before{ background:#f59e0b; }
+  .stat-card.green::before { background:#10b981; }
+  .stat-card.red::before   { background:#ef4444; }
+  .stat-card .label { font-size:12px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-bottom:10px; }
+  .stat-card .value { font-size:32px; font-weight:700; color:#f1f5f9; }
+  .stat-card .sub   { font-size:12px; color:#64748b; margin-top:4px; }
+  .stat-card .icon  { position:absolute; right:16px; top:16px; font-size:28px; opacity:.3; }
+
+  /* ── Tables ── */
+  .card { background:#1e293b; border:1px solid #334155; border-radius:12px; margin-bottom:20px; }
+  .card-header { padding:16px 20px; border-bottom:1px solid #334155; display:flex; justify-content:space-between; align-items:center; }
+  .card-header h3 { font-size:15px; font-weight:600; color:#f1f5f9; }
+  .card-body { padding:0; }
+  table { width:100%; border-collapse:collapse; }
+  th { padding:11px 16px; text-align:left; font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; background:#0f172a; }
+  td { padding:13px 16px; font-size:13px; color:#cbd5e1; border-top:1px solid #1e293b40; }
+  tr:hover td { background:#0f172a40; }
+  .empty-row td { text-align:center; color:#475569; padding:30px; }
+
+  /* ── Badges ── */
+  .pri { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+  .pri.Critical { background:#7f1d1d; color:#fca5a5; }
+  .pri.High     { background:#7c2d12; color:#fdba74; }
+  .pri.Medium   { background:#713f12; color:#fde047; }
+  .pri.Low      { background:#14532d; color:#86efac; }
+
+  .status { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+  .status.Open        { background:#1e3a5f; color:#93c5fd; }
+  .status.In-Progress { background:#3b1f6b; color:#c4b5fd; }
+  .status.Resolved    { background:#14532d; color:#86efac; }
+  .status.Closed      { background:#1f2937; color:#6b7280; }
+
+  /* ── Filters ── */
+  .filters { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:16px; }
+  .filter-btn { padding:7px 14px; border-radius:8px; border:1px solid #334155; background:transparent; color:#94a3b8; font-size:13px; cursor:pointer; transition:all .2s; }
+  .filter-btn:hover, .filter-btn.active { background:#6366f1; border-color:#6366f1; color:#fff; }
+  .search-box { padding:8px 14px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#e2e8f0; font-size:13px; outline:none; width:220px; }
+  .search-box:focus { border-color:#6366f1; }
+
+  /* ── Action Buttons ── */
+  .action-btn { padding:5px 10px; border-radius:6px; border:none; font-size:12px; cursor:pointer; margin:2px; }
+  .action-btn.resolve { background:#14532d; color:#86efac; }
+  .action-btn.view    { background:#1e3a5f; color:#93c5fd; }
+  .action-btn.resolve:hover { background:#166534; }
+
+  /* ── Modal ── */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:200; justify-content:center; align-items:center; }
+  .modal-overlay.show { display:flex; }
+  .modal { background:#1e293b; border:1px solid #334155; border-radius:16px; padding:28px; width:520px; max-height:80vh; overflow-y:auto; }
+  .modal h3 { font-size:17px; font-weight:700; margin-bottom:16px; color:#f1f5f9; }
+  .modal-field { margin-bottom:12px; }
+  .modal-field label { font-size:11px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; display:block; margin-bottom:4px; }
+  .modal-field span  { font-size:14px; color:#e2e8f0; }
+  .modal-close { float:right; background:transparent; border:none; color:#64748b; font-size:20px; cursor:pointer; }
+  .modal-actions { margin-top:20px; display:flex; gap:10px; }
+  .btn-resolve { padding:10px 20px; background:#10b981; border:none; border-radius:8px; color:#fff; font-size:14px; cursor:pointer; }
+  .btn-close   { padding:10px 20px; background:#334155; border:none; border-radius:8px; color:#e2e8f0; font-size:14px; cursor:pointer; }
+
+  /* ── Tab Content ── */
+  .tab-content { display:none; }
+  .tab-content.active { display:block; }
+
+  /* ── Refresh btn ── */
+  .refresh-btn { padding:7px 14px; background:transparent; border:1px solid #334155; border-radius:8px; color:#94a3b8; font-size:13px; cursor:pointer; }
+  .refresh-btn:hover { border-color:#6366f1; color:#6366f1; }
+
+  /* ── Export btn ── */
+  .export-btn { padding:7px 14px; background:transparent; border:1px solid #10b981; border-radius:8px; color:#10b981; font-size:13px; cursor:pointer; }
+  .export-btn:hover { background:#10b981; color:#fff; }
+
+  /* ── Select filter ── */
+  .filter-select { padding:7px 12px; border-radius:8px; border:1px solid #334155; background:#0f172a; color:#94a3b8; font-size:13px; outline:none; cursor:pointer; }
+  .filter-select:focus { border-color:#6366f1; }
+
+  /* ── Loading ── */
+  .loading { text-align:center; padding:30px; color:#475569; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width:6px; }
+  ::-webkit-scrollbar-track { background:#0f172a; }
+  ::-webkit-scrollbar-thumb { background:#334155; border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN PAGE ════════════════════════════════════════════════════════ -->
+<div id="loginPage">
+  <div class="login-box">
+    <div class="logo"><div class="logo-icon">🛠️</div></div>
+    <h1>WIOM IT Helpdesk</h1>
+    <p>Admin Dashboard — Sajan Kumar</p>
+    <input type="text" id="username" placeholder="Username" value="sajan"/>
+    <input type="password" id="password" placeholder="Password" value="Wiom@2024"/>
+    <button class="btn-primary" onclick="doLogin()">Login</button>
+    <div class="login-error" id="loginError">❌ Wrong credentials!</div>
+  </div>
+</div>
+
+<!-- ══ MAIN PAGE ═════════════════════════════════════════════════════════ -->
+<div id="mainPage">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🛠️ WIOM Helpdesk</h2>
+      <p>IT Admin Panel</p>
+    </div>
+    <div class="nav-item active" onclick="showTab('dashboard')"><span class="icon">📊</span> Dashboard</div>
+    <div class="nav-item" onclick="showTab('tickets')"><span class="icon">🎫</span> All Tickets</div>
+    <div class="nav-item" onclick="showTab('open')"><span class="icon">⏳</span> Open Tickets</div>
+    <div class="nav-item" onclick="showTab('employees')"><span class="icon">👥</span> Employees</div>
+    <div class="nav-item" onclick="showTab('report')"><span class="icon">📈</span> Aaj Ka Report</div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main-content">
+    <div class="topbar">
+      <h1 id="pageTitle">Dashboard</h1>
+      <div class="topbar-right">
+        <span class="badge">Sajan Kumar</span>
+        <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+        <button class="logout-btn" onclick="doLogout()">Logout</button>
+      </div>
+    </div>
+
+    <!-- ── DASHBOARD TAB ── -->
+    <div id="tab-dashboard" class="tab-content active">
+      <div class="stats-grid">
+        <div class="stat-card blue">
+          <div class="icon">🎫</div>
+          <div class="label">Total Tickets</div>
+          <div class="value" id="statTotal">—</div>
+          <div class="sub">Aaj tak ke sab</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="icon">⏳</div>
+          <div class="label">Open Tickets</div>
+          <div class="value" id="statOpen">—</div>
+          <div class="sub">Abhi pending hain</div>
+        </div>
+        <div class="stat-card green">
+          <div class="icon">✅</div>
+          <div class="label">Resolved Today</div>
+          <div class="value" id="statResolved">—</div>
+          <div class="sub">Aaj resolve hue</div>
+        </div>
+        <div class="stat-card red">
+          <div class="icon">🚨</div>
+          <div class="label">SLA Breached</div>
+          <div class="value" id="statSLA">—</div>
+          <div class="sub">Time limit cross</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>🔥 Recent Tickets</h3>
+          <button class="refresh-btn" onclick="loadDashboard()">Refresh</button>
+        </div>
+        <div class="card-body">
+          <table>
+            <thead><tr><th>Ticket ID</th><th>Employee</th><th>Issue</th><th>Priority</th><th>Status</th><th>Time</th><th>Action</th></tr></thead>
+            <tbody id="recentTickets"><tr class="empty-row"><td colspan="7">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ALL TICKETS TAB ── -->
+    <div id="tab-tickets" class="tab-content">
+      <div style="display:flex;gap:12px;margin-bottom:16px;flex-wrap:wrap;align-items:center;">
+        <input class="search-box" id="ticketSearch" placeholder="🔍 Search ticket/employee..." oninput="filterTickets()"/>
+        <div class="filters">
+          <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+          <button class="filter-btn" onclick="setFilter('Open',this)">Open</button>
+          <button class="filter-btn" onclick="setFilter('In Progress',this)">In Progress</button>
+          <button class="filter-btn" onclick="setFilter('Resolved',this)">Resolved</button>
+          <button class="filter-btn" onclick="setFilter('Critical',this)">🔴 Critical</button>
+          <button class="filter-btn" onclick="setFilter('High',this)">🟠 High</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h3>🎫 Tickets</h3>
+          <button class="export-btn" onclick="exportTicketsCSV()">📥 Export Excel</button>
+        </div>
+        <div class="card-body">
+          <table>
+            <thead><tr><th>Ticket ID</th><th>Employee</th><th>Category</th><th>Issue</th><th>Priority</th><th>Status</th><th>Created</th><th>Action</th></tr></thead>
+            <tbody id="allTicketsBody"><tr class="empty-row"><td colspan="8">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OPEN TICKETS TAB ── -->
+    <div id="tab-open" class="tab-content">
+      <div class="card">
+        <div class="card-header"><h3>⏳ Open & In-Progress Tickets</h3></div>
+        <div class="card-body">
+          <table>
+            <thead><tr><th>Ticket ID</th><th>Employee</th><th>Issue</th><th>Priority</th><th>SLA Left</th><th>Source</th><th>Action</th></tr></thead>
+            <tbody id="openTicketsBody"><tr class="empty-row"><td colspan="7">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EMPLOYEES TAB ── -->
+    <div id="tab-employees" class="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h3>👥 Employees (<span id="empCount">—</span>)</h3>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+            <input class="search-box" id="empSearch" placeholder="🔍 Name / ID / Serial No..." oninput="filterEmployees()" style="width:200px;"/>
+            <select class="filter-select" id="deptFilter" onchange="filterEmployees()">
+              <option value="">All Departments</option>
+              <option>Technology</option>
+              <option>Product</option>
+              <option>Analytics</option>
+              <option>Solution Design</option>
+              <option>Tech For Future</option>
+              <option>Founders Office</option>
+              <option>Sales</option>
+              <option>Operations</option>
+              <option>HR</option>
+              <option>Finance</option>
+              <option>Marketing</option>
+            </select>
+            <select class="filter-select" id="floorFilter" onchange="filterEmployees()">
+              <option value="">All Floors</option>
+              <option>1st Floor</option>
+              <option>2nd Floor</option>
+            </select>
+            <button class="export-btn" onclick="exportEmployeesCSV()">📥 Export</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <table>
+            <thead><tr><th>Emp ID</th><th>Name</th><th>Department</th><th>Floor</th><th>Laptop Model</th><th>Serial No</th><th>Tickets</th></tr></thead>
+            <tbody id="empBody"><tr class="empty-row"><td colspan="7">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── REPORT TAB ── -->
+    <div id="tab-report" class="tab-content">
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+        <div class="stat-card blue">
+          <div class="icon">📅</div>
+          <div class="label">Aaj Aaye</div>
+          <div class="value" id="rptToday">—</div>
+        </div>
+        <div class="stat-card green">
+          <div class="icon">✅</div>
+          <div class="label">Aaj Resolve</div>
+          <div class="value" id="rptResolved">—</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="icon">⏳</div>
+          <div class="label">Abhi Pending</div>
+          <div class="value" id="rptPending">—</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>📊 Category Breakdown</h3></div>
+        <div class="card-body" style="padding:20px;">
+          <div id="categoryChart"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>🎫 Aaj Ke Tickets</h3>
+          <button class="export-btn" onclick="exportTodayCSV()">📥 Export</button>
+        </div>
+        <div class="card-body">
+          <table>
+            <thead><tr><th>Ticket ID</th><th>Employee</th><th>Category</th><th>Priority</th><th>Status</th><th>Time</th></tr></thead>
+            <tbody id="todayTickets"><tr class="empty-row"><td colspan="6">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div><!-- /mainPage -->
+
+<!-- ══ TICKET DETAIL MODAL ═══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="ticketModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3 id="modalTitle">Ticket Details</h3>
+    <div id="modalBody"></div>
+    <div class="modal-actions">
+      <button class="btn-resolve" id="modalResolveBtn" onclick="resolveTicket()">✅ Mark Resolved</button>
+      <button class="btn-close" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://web-production-ef6c1.up.railway.app';
+let token = '';
+let allTickets = [];
+let allEmployees = [];
+let currentFilter = 'all';
+let currentTicketId = '';
+
+// ── LOGIN ──────────────────────────────────────────────────────────────────
+async function doLogin() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  try {
+    const res = await fetch(`${API}/api/auth/admin-login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    if (data.token) {
+      token = data.token;
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('mainPage').style.display = 'block';
+      loadDashboard();
+      loadAllTickets();
+      loadEmployees();
+    } else {
+      document.getElementById('loginError').style.display = 'block';
+    }
+  } catch(e) {
+    document.getElementById('loginError').style.display = 'block';
+    document.getElementById('loginError').textContent = '❌ Server se connect nahi ho pa raha!';
+  }
+}
+
+function doLogout() {
+  token = '';
+  document.getElementById('mainPage').style.display = 'none';
+  document.getElementById('loginPage').style.display = 'flex';
+}
+
+// ── API CALLS ──────────────────────────────────────────────────────────────
+async function apiGet(path) {
+  const res = await fetch(`${API}${path}`, { headers: { 'Authorization': `Bearer ${token}` } });
+  return res.json();
+}
+
+async function apiPatch(path, body) {
+  const res = await fetch(`${API}${path}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+// ── TABS ───────────────────────────────────────────────────────────────────
+function showTab(tab) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  event.currentTarget.classList.add('active');
+  const titles = { dashboard:'Dashboard', tickets:'All Tickets', open:'Open Tickets', employees:'Employees', report:'Aaj Ka Report' };
+  document.getElementById('pageTitle').textContent = titles[tab] || tab;
+  if (tab === 'report') loadReport();
+  if (tab === 'open') loadOpenTickets();
+}
+
+function refreshData() {
+  loadDashboard();
+  loadAllTickets();
+  loadEmployees();
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────────────────────
+async function loadDashboard() {
+  try {
+    const data = await apiGet('/api/tickets/stats');
+    const stats = data.stats || data;
+    document.getElementById('statTotal').textContent    = stats.total || 0;
+    document.getElementById('statOpen').textContent     = (stats.byStatus?.Open || 0) + (stats.byStatus?.['In Progress'] || 0);
+    document.getElementById('statResolved').textContent = stats.resolvedToday || stats.byStatus?.Resolved || 0;
+    document.getElementById('statSLA').textContent      = stats.slaBreached || 0;
+  } catch(e) {
+    // If stats API fails, use ticket data
+    document.getElementById('statTotal').textContent = allTickets.length;
+    document.getElementById('statOpen').textContent  = allTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
+    document.getElementById('statResolved').textContent = allTickets.filter(t => t.status === 'Resolved').length;
+    document.getElementById('statSLA').textContent = 0;
+  }
+  renderRecentTickets();
+}
+
+function renderRecentTickets() {
+  const recent = [...allTickets].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0,10);
+  const tbody = document.getElementById('recentTickets');
+  if (!recent.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Abhi koi ticket nahi hai</td></tr>'; return; }
+  tbody.innerHTML = recent.map(t => `
+    <tr>
+      <td><b>${t.ticketId}</b></td>
+      <td>${t.empName || t.empId}</td>
+      <td>${(t.description||'').substring(0,40)}...</td>
+      <td><span class="pri ${t.priority}">${t.priority}</span></td>
+      <td><span class="status ${(t.status||'').replace(' ','-')}">${t.status}</span></td>
+      <td>${timeAgo(t.createdAt)}</td>
+      <td>
+        <button class="action-btn view" onclick="viewTicket('${t._id}')">👁 View</button>
+        ${t.status !== 'Resolved' ? `<button class="action-btn resolve" onclick="quickResolve('${t._id}','${t.ticketId}')">✅</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+// ── ALL TICKETS ────────────────────────────────────────────────────────────
+async function loadAllTickets() {
+  try {
+    document.getElementById('allTicketsBody').innerHTML = '<tr class="empty-row"><td colspan="8">Loading...</td></tr>';
+    const data = await apiGet('/api/tickets?limit=200');
+    allTickets = data.tickets || data || [];
+    renderAllTickets();
+    renderRecentTickets();
+    updateStats();
+  } catch(e) {
+    document.getElementById('allTicketsBody').innerHTML = '<tr class="empty-row"><td colspan="8">❌ Load failed. Refresh karo.</td></tr>';
+  }
+}
+
+function renderAllTickets() {
+  let tickets = [...allTickets];
+  const search = (document.getElementById('ticketSearch')?.value || '').toLowerCase();
+  if (currentFilter !== 'all') tickets = tickets.filter(t => t.status === currentFilter || t.priority === currentFilter);
+  if (search) tickets = tickets.filter(t =>
+    (t.ticketId||'').toLowerCase().includes(search) ||
+    (t.empName||'').toLowerCase().includes(search) ||
+    (t.empId||'').toLowerCase().includes(search) ||
+    (t.description||'').toLowerCase().includes(search)
+  );
+  tickets.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  const tbody = document.getElementById('allTicketsBody');
+  if (!tickets.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Koi ticket nahi mila</td></tr>'; return; }
+  tbody.innerHTML = tickets.map(t => `
+    <tr>
+      <td><b>${t.ticketId}</b></td>
+      <td>${t.empName || t.empId}</td>
+      <td>${t.category||'Other'}</td>
+      <td title="${t.description||''}">${(t.description||'').substring(0,35)}...</td>
+      <td><span class="pri ${t.priority}">${t.priority}</span></td>
+      <td><span class="status ${(t.status||'').replace(' ','-')}">${t.status}</span></td>
+      <td>${timeAgo(t.createdAt)}</td>
+      <td>
+        <button class="action-btn view" onclick="viewTicket('${t._id}')">👁</button>
+        ${t.status === 'Open' ? `<button class="action-btn" style="background:#3b1f6b;color:#c4b5fd;" onclick="setInProgress('${t._id}','${t.ticketId}')">🔄</button>` : ''}
+        ${t.status !== 'Resolved' && t.status !== 'Closed' ? `<button class="action-btn resolve" onclick="quickResolve('${t._id}','${t.ticketId}')">✅</button>` : ''}
+      </td>
+    </tr>`).join('');
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderAllTickets();
+}
+
+function filterTickets() { renderAllTickets(); }
+
+// ── OPEN TICKETS ───────────────────────────────────────────────────────────
+function loadOpenTickets() {
+  const open = allTickets.filter(t => t.status === 'Open' || t.status === 'In Progress');
+  open.sort((a,b) => {
+    const pri = {Critical:0,High:1,Medium:2,Low:3};
+    return (pri[a.priority]||2) - (pri[b.priority]||2);
+  });
+  const tbody = document.getElementById('openTicketsBody');
+  if (!open.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">🎉 Koi open ticket nahi! Sab clear hai.</td></tr>'; return; }
+  tbody.innerHTML = open.map(t => {
+    const slaHours = t.slaHours || 24;
+    const created  = new Date(t.createdAt);
+    const elapsed  = (Date.now() - created) / 3600000;
+    const left     = Math.max(0, slaHours - elapsed).toFixed(1);
+    const slaStyle = left < 2 ? 'color:#f87171;font-weight:bold;' : left < 6 ? 'color:#fbbf24;' : 'color:#86efac;';
+    return `
+      <tr>
+        <td><b>${t.ticketId}</b></td>
+        <td>${t.empName || t.empId}</td>
+        <td>${(t.description||'').substring(0,40)}...</td>
+        <td><span class="pri ${t.priority}">${t.priority}</span></td>
+        <td style="${slaStyle}">${left}h left</td>
+        <td>${t.source || 'Web'}</td>
+        <td>
+          <button class="action-btn view" onclick="viewTicket('${t._id}')">👁 View</button>
+          <button class="action-btn resolve" onclick="quickResolve('${t._id}','${t.ticketId}')">✅ Resolve</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+// ── EMPLOYEES ──────────────────────────────────────────────────────────────
+async function loadEmployees() {
+  try {
+    const data = await apiGet('/api/employees?limit=500');
+    allEmployees = data.employees || data || [];
+    renderEmployees();
+    document.getElementById('empCount').textContent = allEmployees.length;
+  } catch(e) {
+    document.getElementById('empBody').innerHTML = '<tr class="empty-row"><td colspan="7">❌ Load failed.</td></tr>';
+  }
+}
+
+function renderEmployees() {
+  const search  = (document.getElementById('empSearch')?.value  || '').toLowerCase();
+  const dept    = (document.getElementById('deptFilter')?.value || '');
+  const floor   = (document.getElementById('floorFilter')?.value|| '');
+  let emps = [...allEmployees];
+  if (search) emps = emps.filter(e =>
+    (e.name||'').toLowerCase().includes(search) ||
+    (e.empId||'').toLowerCase().includes(search) ||
+    (e.email||'').toLowerCase().includes(search) ||
+    (e.department||'').toLowerCase().includes(search) ||
+    (e.laptopSN||'').toLowerCase().includes(search) ||
+    (e.laptop||'').toLowerCase().includes(search)
+  );
+  if (dept)  emps = emps.filter(e => (e.department||'') === dept);
+  if (floor) emps = emps.filter(e => (e.floor||'') === floor);
+  document.getElementById('empCount').textContent = emps.length;
+  const tbody = document.getElementById('empBody');
+  if (!emps.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Koi employee nahi mila.</td></tr>'; return; }
+  tbody.innerHTML = emps.map(e => {
+    const tktCount = allTickets.filter(t => t.empId === e.empId).length;
+    return `
+    <tr>
+      <td><b>${e.empId}</b></td>
+      <td>${e.name}</td>
+      <td>${e.department||'—'}</td>
+      <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;background:${e.floor==='2nd Floor'?'#1e3a5f':'#1a3320'};color:${e.floor==='2nd Floor'?'#93c5fd':'#86efac'};">${e.floor||'—'}</span></td>
+      <td style="font-size:11px;">${e.laptop||'—'}</td>
+      <td style="font-family:monospace;font-size:12px;color:#6366f1;">${e.laptopSN||'—'}</td>
+      <td><span style="color:${tktCount>0?'#fbbf24':'#475569'};font-weight:${tktCount>0?'600':'400'};">${tktCount}</span></td>
+    </tr>`}).join('');
+}
+
+function filterEmployees() { renderEmployees(); }
+
+// ── REPORT ─────────────────────────────────────────────────────────────────
+function loadReport() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const todayTickets = allTickets.filter(t => new Date(t.createdAt) >= today);
+  const resolved     = todayTickets.filter(t => t.status === 'Resolved' || t.status === 'Closed');
+  const pending      = allTickets.filter(t => t.status === 'Open' || t.status === 'In Progress');
+
+  document.getElementById('rptToday').textContent    = todayTickets.length;
+  document.getElementById('rptResolved').textContent = resolved.length;
+  document.getElementById('rptPending').textContent  = pending.length;
+
+  // Category chart
+  const cats = {};
+  allTickets.forEach(t => { cats[t.category||'Other'] = (cats[t.category||'Other']||0) + 1; });
+  const max = Math.max(...Object.values(cats), 1);
+  document.getElementById('categoryChart').innerHTML = Object.entries(cats)
+    .sort((a,b) => b[1]-a[1])
+    .map(([cat,count]) => `
+      <div style="margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:13px;">
+          <span>${cat}</span><span style="color:#6366f1;font-weight:600;">${count}</span>
+        </div>
+        <div style="background:#0f172a;border-radius:4px;height:8px;">
+          <div style="background:linear-gradient(90deg,#6366f1,#8b5cf6);height:8px;border-radius:4px;width:${Math.round(count/max*100)}%;transition:width .5s;"></div>
+        </div>
+      </div>`).join('');
+
+  // Today's tickets table
+  const tbody = document.getElementById('todayTickets');
+  if (!todayTickets.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="6">Aaj koi ticket nahi aaya 🎉</td></tr>'; return; }
+  tbody.innerHTML = todayTickets.sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt)).map(t => `
+    <tr>
+      <td><b>${t.ticketId}</b></td>
+      <td>${t.empName||t.empId}</td>
+      <td>${t.category||'Other'}</td>
+      <td><span class="pri ${t.priority}">${t.priority}</span></td>
+      <td><span class="status ${(t.status||'').replace(' ','-')}">${t.status}</span></td>
+      <td>${timeAgo(t.createdAt)}</td>
+    </tr>`).join('');
+}
+
+// ── TICKET MODAL ───────────────────────────────────────────────────────────
+function viewTicket(id) {
+  const t = allTickets.find(x => x._id === id);
+  if (!t) return;
+  currentTicketId = id;
+  document.getElementById('modalTitle').textContent = `🎫 ${t.ticketId}`;
+  document.getElementById('modalResolveBtn').style.display = (t.status === 'Resolved' || t.status === 'Closed') ? 'none' : 'block';
+  document.getElementById('modalBody').innerHTML = `
+    <div class="modal-field"><label>Employee</label><span>${t.empName || t.empId}</span></div>
+    <div class="modal-field"><label>Department</label><span>${t.empDept || '—'}</span></div>
+    <div class="modal-field"><label>Email</label><span>${t.empEmail || '—'}</span></div>
+    <div class="modal-field"><label>Category</label><span>${t.category}</span></div>
+    <div class="modal-field"><label>Priority</label><span class="pri ${t.priority}">${t.priority}</span></div>
+    <div class="modal-field"><label>Status</label><span class="status ${(t.status||'').replace(' ','-')}">${t.status}</span></div>
+    <div class="modal-field"><label>Source</label><span>${t.source || 'Web'}</span></div>
+    <div class="modal-field"><label>Description</label><span>${t.description || '—'}</span></div>
+    <div class="modal-field"><label>AI Steps Tried</label><span>${(t.aiSteps||[]).join(', ') || 'None'}</span></div>
+    <div class="modal-field"><label>Created</label><span>${new Date(t.createdAt).toLocaleString('en-IN')}</span></div>
+    <div class="modal-field"><label>SLA Hours</label><span>${t.slaHours || 24}h</span></div>
+    ${t.resolution ? `<div class="modal-field"><label>Resolution</label><span>${t.resolution}</span></div>` : ''}
+  `;
+  document.getElementById('ticketModal').classList.add('show');
+}
+
+function closeModal() { document.getElementById('ticketModal').classList.remove('show'); }
+
+async function resolveTicket() {
+  const t = allTickets.find(x => x._id === currentTicketId);
+  if (!t) return;
+  try {
+    await apiPatch(`/api/tickets/${t.ticketId}`, { status: 'Resolved', resolvedBy: 'Human', resolution: 'Resolved by Sajan Kumar via Admin Dashboard' });
+    closeModal();
+    await loadAllTickets();
+    alert(`✅ ${t.ticketId} resolved!`);
+  } catch(e) { alert('❌ Error: ' + e.message); }
+}
+
+async function quickResolve(id, ticketId) {
+  if (!confirm(`${ticketId} resolve mark karna hai?`)) return;
+  try {
+    await apiPatch(`/api/tickets/${ticketId}`, { status: 'Resolved', resolvedBy: 'Human', resolution: 'Resolved by Sajan Kumar' });
+    await loadAllTickets();
+  } catch(e) { alert('❌ Error: ' + e.message); }
+}
+
+// ── STATS UPDATE ───────────────────────────────────────────────────────────
+function updateStats() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  document.getElementById('statTotal').textContent    = allTickets.length;
+  document.getElementById('statOpen').textContent     = allTickets.filter(t => t.status==='Open'||t.status==='In Progress').length;
+  document.getElementById('statResolved').textContent = allTickets.filter(t => (t.status==='Resolved'||t.status==='Closed') && new Date(t.createdAt)>=today).length;
+  const breached = allTickets.filter(t => {
+    if (t.status==='Resolved'||t.status==='Closed') return false;
+    const hrs = (Date.now()-new Date(t.createdAt))/3600000;
+    return hrs > (t.slaHours||24);
+  });
+  document.getElementById('statSLA').textContent = breached.length;
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function timeAgo(dateStr) {
+  const diff = (Date.now() - new Date(dateStr)) / 1000;
+  if (diff < 60)   return 'abhi abhi';
+  if (diff < 3600) return Math.floor(diff/60) + ' min ago';
+  if (diff < 86400)return Math.floor(diff/3600) + ' hrs ago';
+  return Math.floor(diff/86400) + ' days ago';
+}
+
+// ── SET IN PROGRESS ────────────────────────────────────────────────────────
+async function setInProgress(id, ticketId) {
+  try {
+    await apiPatch(`/api/tickets/${ticketId}`, { status: 'In Progress' });
+    await loadAllTickets();
+  } catch(e) { alert('❌ Error: ' + e.message); }
+}
+
+// ── EXPORT TICKETS CSV ─────────────────────────────────────────────────────
+function exportTicketsCSV() {
+  let tickets = [...allTickets];
+  const search = (document.getElementById('ticketSearch')?.value||'').toLowerCase();
+  if (currentFilter !== 'all') tickets = tickets.filter(t => t.status===currentFilter||t.priority===currentFilter);
+  if (search) tickets = tickets.filter(t =>
+    (t.ticketId||'').toLowerCase().includes(search)||(t.empName||'').toLowerCase().includes(search)||(t.description||'').toLowerCase().includes(search)
+  );
+  tickets.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+
+  const headers = ['Ticket ID','Employee','Emp ID','Department','Email','Category','Priority','Status','Description','Source','Created At','Resolved At','SLA Hours','SLA Breached'];
+  const rows = tickets.map(t => [
+    t.ticketId, t.empName||'', t.empId||'', t.empDept||'', t.empEmail||'',
+    t.category||'Other', t.priority, t.status,
+    (t.description||'').replace(/,/g,';'), t.source||'web',
+    t.createdAt ? new Date(t.createdAt).toLocaleString('en-IN') : '',
+    t.resolvedAt ? new Date(t.resolvedAt).toLocaleString('en-IN') : '',
+    t.slaHours||24, t.slaBreached?'Yes':'No'
+  ]);
+
+  const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿'+csv], { type: 'text/csv;charset=utf-8;' });
+  const a    = document.createElement('a');
+  a.href     = URL.createObjectURL(blob);
+  a.download = `WIOM_Tickets_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ── EXPORT EMPLOYEES CSV ───────────────────────────────────────────────────
+function exportEmployeesCSV() {
+  const search = (document.getElementById('empSearch')?.value||'').toLowerCase();
+  const dept   = (document.getElementById('deptFilter')?.value||'');
+  const floor  = (document.getElementById('floorFilter')?.value||'');
+  let emps = [...allEmployees];
+  if (search) emps = emps.filter(e=>(e.name||'').toLowerCase().includes(search)||(e.empId||'').includes(search)||(e.laptopSN||'').toLowerCase().includes(search)||(e.department||'').toLowerCase().includes(search));
+  if (dept)  emps = emps.filter(e=>(e.department||'')===dept);
+  if (floor) emps = emps.filter(e=>(e.floor||'')===floor);
+
+  const headers = ['Emp ID','Name','Department','Floor','Email','Laptop Model','Serial No','Total Tickets'];
+  const rows = emps.map(e=>[
+    e.empId, e.name, e.department||'', e.floor||'', e.email||'',
+    e.laptop||'', e.laptopSN||'',
+    allTickets.filter(t=>t.empId===e.empId).length
+  ]);
+  const csv = [headers,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const blob = new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `WIOM_Employees_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// ── EXPORT TODAY CSV ───────────────────────────────────────────────────────
+function exportTodayCSV() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const tickets = allTickets.filter(t=>new Date(t.createdAt)>=today)
+    .sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const headers = ['Ticket ID','Employee','Emp ID','Category','Priority','Status','Description','Created At'];
+  const rows = tickets.map(t=>[
+    t.ticketId, t.empName||'', t.empId||'', t.category||'Other',
+    t.priority, t.status, (t.description||'').replace(/,/g,';'),
+    t.createdAt?new Date(t.createdAt).toLocaleString('en-IN'):''
+  ]);
+  const csv=[headers,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');
+  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8;'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`WIOM_Today_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+}
+
+// Enter key login
+document.getElementById('password').addEventListener('keypress', e => { if (e.key==='Enter') doLogin(); });
+
+// Close modal on overlay click
+document.getElementById('ticketModal').addEventListener('click', e => { if (e.target===e.currentTarget) closeModal(); });
+</script>
+</body>
+</html>
