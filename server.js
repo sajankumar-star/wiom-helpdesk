@@ -396,6 +396,15 @@ app.listen(PORT, () => {
           }
         }
 
+        // ── Reset session on greeting — fresh start ───────────────────────────
+        const isGreeting = /^(hello|hi|hey|namaste|hlo|hii|namaskar|good morning|good afternoon|good evening|salam|sup|helo)$/i.test(text.trim());
+        if (isGreeting) {
+          sessions[userId] = { ...emp, messages: [] };
+          const firstName = (emp.empName || 'there').split(' ')[0];
+          await say({ text: `Hello ${firstName}! 👋 WIOM IT Helpdesk mein aapka swagat hai. Aapki kya IT samasya hai? Batayein, main turant sahayata karunga.` });
+          return;
+        }
+
         // ── Normal AI chat ────────────────────────────────────────────────────
         const messages = [...(sess.messages || []), { role: 'user', content: text }];
         sessions[userId] = { ...sess, messages };
