@@ -191,6 +191,23 @@ input::placeholder{color:var(--muted);}
 ::-webkit-scrollbar{width:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ── DIAGNOSTIC BANNER ── */
+.diag-banner{background:rgba(232,25,125,0.07);border:1px solid rgba(232,25,125,0.25);
+  border-radius:14px;padding:14px 16px;margin-bottom:12px;display:flex;
+  align-items:center;justify-content:space-between;gap:12px;
+  box-shadow:0 2px 16px rgba(232,25,125,0.08);}
+.diag-banner-left{display:flex;align-items:center;gap:10px;}
+.diag-icon{font-size:22px;}
+.diag-info{flex:1;}
+.diag-title{font-size:13px;font-weight:600;color:#fff;}
+.diag-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.diag-btn{padding:8px 16px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:600;
+  cursor:pointer;font-family:var(--font);white-space:nowrap;
+  box-shadow:0 2px 10px rgba(232,25,125,0.4);transition:all .2s;text-decoration:none;
+  display:inline-block;}
+.diag-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(232,25,125,0.55);}
 </style>
 </head>
 <body>
@@ -246,6 +263,9 @@ input::placeholder{color:var(--muted);}
     <button class="tab-btn" onclick="switchTab('tickets',this)">🎫 Mere Tickets</button>
   </div>
 
+  <!-- Diagnostic Banner (shown only when laptop detected) -->
+  <div id="diagBanner" style="display:none;"></div>
+
   <!-- Chat Tab -->
   <div id="tab-chat">
     <div class="chat-card">
@@ -262,6 +282,7 @@ input::placeholder{color:var(--muted);}
         <span class="chip" onclick="quickSend('Blue screen aa raha hai')">💙 BSOD</span>
         <span class="chip" onclick="quickSend('Mic nahi chal raha Teams mein')">🎤 Mic</span>
         <span class="chip" onclick="quickSend('Screen flickering hai')">🖥️ Monitor</span>
+        <span class="chip" id="diagChip" onclick="openDiagnostics()" style="display:none;background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.3);color:#34d399;">🔍 Run Diagnostics</span>
       </div>
       <div class="chat-input-row">
         <input class="chat-input" id="chatInput" placeholder="Apni problem likho — Hindi ya English dono chalega..." onkeypress="if(event.key==='Enter')sendMsg()"/>
@@ -305,6 +326,7 @@ async function doLogin() {
     document.getElementById('empPill').textContent = initial + ' ' + empData.name.split(' ')[0];
     document.getElementById('empInfoBar').textContent = [empData.dept, empData.floor, empData.laptop].filter(Boolean).join(' · ');
     addWelcome();
+    showDiagBanner();
   } catch(e) { showErr('Server error. Sajan ko call karo: 9654244281'); }
 }
 function showErr(msg) {
@@ -312,8 +334,11 @@ function showErr(msg) {
   el.textContent = '❌ ' + msg; el.style.display = 'block';
 }
 function doLogout() {
-  empData={}; chatHistory=[];
+  empData={}; chatHistory=[]; _diagUrl='';
   document.getElementById('chatMessages').innerHTML='';
+  document.getElementById('diagBanner').style.display='none';
+  document.getElementById('diagBanner').innerHTML='';
+  document.getElementById('diagChip').style.display='none';
   document.getElementById('mainPage').style.display='none';
   document.getElementById('loginPage').style.display='flex';
   document.getElementById('loginErr').style.display='none';
@@ -494,6 +519,54 @@ function timeAgo(d) {
   return Math.floor(s/86400)+'d pehle';
 }
 document.getElementById('empNameInput').addEventListener('keypress',e=>{if(e.key==='Enter')doLogin();});
+
+// ── DIAGNOSTICS ──────────────────────────────────────────────────────────────
+const DIAG_MAP = [
+  { brand:'lenovo',  icon:'🔵', name:'Lenovo Vantage',       step:'Start menu → "Lenovo Vantage" → Device → System Health → Run Diagnostics', url:'https://apps.microsoft.com/detail/9WZDNCRFJ4MV' },
+  { brand:'dell',    icon:'🔵', name:'Dell SupportAssist',   step:'Start menu → "Dell SupportAssist" → Run Diagnostics', url:'https://www.dell.com/support/home/en-in/products/laptop' },
+  { brand:'hp',      icon:'🔵', name:'HP Support Assistant', step:'Start menu → "HP Support Assistant" → My Devices → Run Diagnostics', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
+  { brand:'hewlett', icon:'🔵', name:'HP Support Assistant', step:'Start menu → "HP Support Assistant" → My Devices → Run Diagnostics', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
+  { brand:'asus',    icon:'🔵', name:'MyASUS',               step:'Start menu → "MyASUS" → Customer Support → Diagnostics', url:'https://www.asus.com/in/support/myasus/' },
+  { brand:'apple',   icon:'🍎', name:'Apple Diagnostics',    step:'Restart karo → Power on karte waqt D key hold karo → Diagnostics chalega', url:'https://support.apple.com/en-in/102514' },
+  { brand:'macbook', icon:'🍎', name:'Apple Diagnostics',    step:'Restart karo → Power on karte waqt D key hold karo → Diagnostics chalega', url:'https://support.apple.com/en-in/102514' },
+  { brand:'acer',    icon:'🔵', name:'Acer Care Center',     step:'Start menu → "Acer Care Center" → Diagnostics', url:'https://www.acer.com/in-en/support' },
+  { brand:'msi',     icon:'🔵', name:'MSI Center',           step:'Start menu → "MSI Center" → Tools → Diagnostics', url:'https://www.msi.com/Landing/msi-center' },
+  { brand:'samsung', icon:'🔵', name:'Samsung Settings',     step:'Start menu → "Samsung Settings" → Performance → Diagnostics', url:'https://www.samsung.com/in/support/' },
+];
+let _diagUrl = '';
+
+function getDiagInfo(laptop) {
+  if (!laptop) return null;
+  const l = laptop.toLowerCase();
+  return DIAG_MAP.find(d => l.includes(d.brand)) || null;
+}
+
+function showDiagBanner() {
+  const diag = getDiagInfo(empData.laptop);
+  if (!diag) return;
+  _diagUrl = diag.url;
+  const banner = document.getElementById('diagBanner');
+  const chip   = document.getElementById('diagChip');
+  banner.style.display = 'block';
+  chip.style.display   = 'inline-flex';
+  banner.innerHTML = `
+    <div class="diag-banner">
+      <div class="diag-banner-left">
+        <div class="diag-icon">${diag.icon}</div>
+        <div class="diag-info">
+          <div class="diag-title">🔍 ${diag.name} — Laptop Diagnostics</div>
+          <div class="diag-sub">Laptop model: <b style="color:var(--pink)">${empData.laptop}</b> &nbsp;·&nbsp; ${diag.step}</div>
+        </div>
+      </div>
+      <a href="${diag.url}" target="_blank" class="diag-btn">▶ Run Diagnostics</a>
+    </div>`;
+}
+
+function openDiagnostics() {
+  if (_diagUrl) window.open(_diagUrl, '_blank');
+  const diag = getDiagInfo(empData.laptop);
+  if (diag) quickSend(`Mera ${empData.laptop} hai. ${diag.name} se diagnostic run karna chahta hoon.`);
+}
 </script>
 </body>
 </html>
