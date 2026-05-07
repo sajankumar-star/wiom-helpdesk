@@ -348,16 +348,14 @@ function doLogout() {
 function addWelcome() {
   const firstName = empData.name.split(' ')[0];
   const laptopLine = empData.laptop
-    ? `\n\n🖥️ <b>Aapka Laptop:</b> ${empData.laptop}${empData.laptopSN ? `\n🔢 <b>Serial Number:</b> ${empData.laptopSN}` : ''}`
+    ? `\n\n🖥️ <b>Aapka Laptop:</b> ${empData.laptop}` +
+      (empData.laptopSN ? `\n🔢 <b>Serial Number:</b> ${empData.laptopSN}` : '')
     : '';
-  const deptLine = [empData.dept, empData.floor].filter(Boolean).join(', ');
   addBotMsg(
     `Namaste <b>${firstName}</b> ji! 👋\n\n` +
-    `Aapka swagat hai WIOM IT Helpdesk mein.\n` +
-    `<b>Naam:</b> ${empData.name} &nbsp;|&nbsp; <b>Department:</b> ${deptLine || '—'}` +
+    `Aapka swagat hai WIOM IT Helpdesk mein.` +
     laptopLine +
-    `\n\nHamara record ke anusaar ye aapka assigned device hai. Agar koi galat information hai toh IT team ko batayein.\n\n` +
-    `Aapki kisi bhi IT samasya mein sahayata ke liye main yahan hoon — laptop, WiFi, software, account ya koi bhi technical problem. Kripaya apni samasya batayein. 🛠️`
+    `\n\nAapki kisi bhi IT samasya mein sahayata ke liye main yahan hoon. 🛠️`
   );
 }
 
