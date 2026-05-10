@@ -477,6 +477,206 @@ app.listen(PORT, () => {
         }
       });
 
+      // ── APP HOME TAB ─────────────────────────────────────────────────────
+      slackApp.event('app_home_opened', async ({ event, client }) => {
+        try {
+          const userId = event.user;
+          const emp = await Employee.findOne({
+            $or: [{ slackUserId: userId }, { empId: userId }]
+          });
+          const name      = emp?.name?.split(' ')[0] || 'Employee';
+          const laptop    = emp?.laptop    || null;
+          const laptopSN  = emp?.laptopSN  || null;
+          const dept      = emp?.department || null;
+          const floor     = emp?.floor     || null;
+
+          // ── Open Ticket count ──────────────────────────────────────────────
+          let openCount = 0;
+          if (emp?.empId) {
+            openCount = await Ticket.countDocuments({ empId: emp.empId, status: { $in: ['Open','In Progress'] } });
+          }
+
+          const blocks = [
+            // ── Header ──────────────────────────────────────────────────────
+            {
+              type: 'header',
+              text: { type: 'plain_text', text: '🛠️ WIOM IT Helpdesk', emoji: true }
+            },
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: `*Namaste ${name}!* 👋  Aapka swagat hai WIOM IT Helpdesk mein.\n*Ghar Ka Net — Gurgaon Office Support*\n\nKoi bhi IT problem ho — DM karo ya neeche se quick action lo. 🤖` }
+            },
+
+            // ── Employee Info ────────────────────────────────────────────────
+            ...(emp ? [{
+              type: 'section',
+              fields: [
+                { type: 'mrkdwn', text: `🪪 *Emp ID:* \`${emp.empId}\`` },
+                { type: 'mrkdwn', text: `🏢 *Dept:* ${dept || '—'}` },
+                { type: 'mrkdwn', text: `💻 *Laptop:* ${laptop || '—'}` },
+                { type: 'mrkdwn', text: `🔢 *Serial No:* \`${laptopSN || '—'}\`` },
+                { type: 'mrkdwn', text: `🏠 *Floor:* ${floor || '—'}` },
+                { type: 'mrkdwn', text: `🎫 *Open Tickets:* ${openCount > 0 ? `*${openCount}*` : '✅ None'}` }
+              ]
+            }] : []),
+
+            { type: 'divider' },
+
+            // ── Quick Actions ─────────────────────────────────────────────────
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: '*⚡ Quick Self-Service — ek message karo:*' }
+            },
+            {
+              type: 'actions',
+              elements: [
+                { type:'button', text:{ type:'plain_text', text:'💻 Laptop Slow', emoji:true }, value:'laptop slow hai', action_id:'home_quick_1' },
+                { type:'button', text:{ type:'plain_text', text:'📶 WiFi Issue', emoji:true  }, value:'WiFi nahi chal raha', action_id:'home_quick_2' },
+                { type:'button', text:{ type:'plain_text', text:'📧 Outlook', emoji:true     }, value:'Outlook nahi khul raha', action_id:'home_quick_3' },
+                { type:'button', text:{ type:'plain_text', text:'📹 Teams', emoji:true       }, value:'Teams call drop ho raha hai', action_id:'home_quick_4' },
+                { type:'button', text:{ type:'plain_text', text:'🔑 Password', emoji:true    }, value:'Password reset karna hai', action_id:'home_quick_5' }
+              ]
+            },
+            {
+              type: 'actions',
+              elements: [
+                { type:'button', text:{ type:'plain_text', text:'🖨️ Printer', emoji:true      }, value:'Printer nahi chal raha', action_id:'home_quick_6' },
+                { type:'button', text:{ type:'plain_text', text:'💙 Blue Screen', emoji:true  }, value:'Blue screen aa raha hai', action_id:'home_quick_7' },
+                { type:'button', text:{ type:'plain_text', text:'🌡️ Overheating', emoji:true  }, value:'Laptop overheating hai', action_id:'home_quick_8' },
+                { type:'button', text:{ type:'plain_text', text:'🔇 Mic Issue', emoji:true    }, value:'Mic nahi chal raha Teams mein', action_id:'home_quick_9' },
+                { type:'button', text:{ type:'plain_text', text:'🆘 Emergency', emoji:true }, style:'danger', value:'emergency it help chahiye', action_id:'home_sos' }
+              ]
+            },
+
+            { type: 'divider' },
+
+            // ── IT Tips ───────────────────────────────────────────────────────
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: '*📋 IT Best Practices — Zaroori Tips (Must Follow)*' }
+            },
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text:
+                '🔒 *Security*\n' +
+                '• `#1` Lock screen when away — *Win + L* press karo\n' +
+                '• `#2` Password 12+ characters, special symbols daalo\n' +
+                '• `#3` Public WiFi pe company kaam mat karo (cafe, train, hotel)\n' +
+                '• `#4` Suspicious email links pe click mat karo — phishing ho sakta hai\n' +
+                '• `#5` Company data personal WhatsApp/email pe share mat karo\n' +
+                '• `#6` Unauthorized software install mat karo — IT se request karo'
+              }
+            },
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text:
+                '💻 *Laptop Care*\n' +
+                '• `#7` Laptop hamesha bag mein le jaao — haath mein nahi\n' +
+                '• `#8` Charger/USB cable seedha nikalo — angle se nahi (port damage hoti hai)\n' +
+                '• `#9` Keyboard aur screen monthly saaf karo — microfiber cloth se\n' +
+                '• `#10` Power mode: *Balanced* use karo — High Performance nahi\n' +
+                '• `#11` Screen timeout 5 minutes set karo: Settings → Power & Sleep'
+              }
+            },
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text:
+                '📁 *Data & Performance*\n' +
+                '• `#12` Important files *OneDrive* pe save karo — sirf Desktop pe nahi (crash hone pe sab kho jaata hai)\n' +
+                '• `#13` Laptop din mein ek baar restart karo — 80% slowness issues fix ho jaate hain\n' +
+                '• `#14` IT issues same day report karo — der karne se choti problem badi ho jaati hai\n' +
+                '• `#15` Software install ke liye IT se bolo — manager approval ke baad admin password milega'
+              }
+            },
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text:
+                '📧 *Email & Communication*\n' +
+                '• `#16` Company email se hi official kaam karo — Gmail nahi\n' +
+                '• `#17` Email mein OTP, password, payment links pe click mat karo\n' +
+                '• `#18` IT/HR se aaya bhi email lage to pehle call karke verify karo\n' +
+                '• `#19` Teams pe meetings join karte waqt earphones use karo — noise reduce hoti hai'
+              }
+            },
+
+            { type: 'divider' },
+
+            // ── Self-Fix Guide ─────────────────────────────────────────────────
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: '*🔧 Common Problems — Pehle Ye Try Karo*' }
+            },
+            {
+              type: 'section',
+              fields: [
+                { type: 'mrkdwn', text: '*💻 Laptop Slow?*\nTask Manager → CPU/RAM dekho → Chrome tabs band karo → Restart' },
+                { type: 'mrkdwn', text: '*📶 WiFi Nahi?*\nWiFi off/on karo → Airplane mode on/off → Restart' },
+                { type: 'mrkdwn', text: '*💻 Laptop On Nahi?*\nCharger lagao → 5 min wait → Power button ek baar press' },
+                { type: 'mrkdwn', text: '*🌐 Internet Nahi (WiFi hai)?*\nCMD → `ipconfig /flushdns` → Browser restart' },
+                { type: 'mrkdwn', text: '*📧 Outlook Error?*\nOutlook → File → Account Settings → Repair karo' },
+                { type: 'mrkdwn', text: '*📹 Teams Audio/Video?*\nSettings → Devices → Correct mic/camera select karo' }
+              ]
+            },
+
+            { type: 'divider' },
+
+            // ── Contact ───────────────────────────────────────────────────────
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text:
+                '*📞 IT Team Contact*\n' +
+                '👤 *Sajan Kumar* — IT Admin\n' +
+                '📱 *9654244281*\n' +
+                '📧 sajan.kumar@wiom.in\n' +
+                '⏰ Mon–Sat, 9AM–7PM IST\n\n' +
+                '_Koi bhi problem ho — is app ko DM karo! AI turant jawab dega. 🤖_'
+              }
+            },
+            {
+              type: 'context',
+              elements: [{ type: 'mrkdwn', text: `🔄 Last updated: ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })} IST  |  WIOM Internet Services — IT Department` }]
+            }
+          ];
+
+          await client.views.publish({
+            user_id: userId,
+            view   : { type: 'home', blocks }
+          });
+        } catch (err) {
+          console.error('App Home error:', err.message);
+        }
+      });
+
+      // ── Quick Action buttons from Home tab ────────────────────────────────
+      const homeQuickActions = ['home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_8','home_quick_9','home_sos'];
+      homeQuickActions.forEach(actionId => {
+        slackApp.action(actionId, async ({ body, ack, client }) => {
+          await ack();
+          const userId  = body.user.id;
+          const problem = body.actions[0].value;
+          try {
+            await client.chat.postMessage({
+              channel: userId,
+              text   : `You: ${problem}`,
+              blocks : [{ type:'section', text:{ type:'mrkdwn', text:`📨 *Aapka message:* "${problem}"\n\n⏳ AI jawab de raha hai...` }}]
+            });
+            // Trigger same flow as DM
+            const fakeReq = { body: { Body: problem, From: `slack:${userId}` } };
+            const emp = await Employee.findOne({ slackUserId: userId });
+            const empInfo = { empId: emp?.empId || userId, empName: emp?.name || 'Employee', source:'slack', laptop: emp?.laptop, laptopSN: emp?.laptopSN, dept: emp?.department, floor: emp?.floor };
+            const claudeSvc = require('./services/claude');
+            const { reply } = await claudeSvc.chat([{ role:'user', content: problem }], empInfo);
+            await client.chat.postMessage({
+              channel: userId,
+              text   : reply,
+              blocks : [{ type:'section', text:{ type:'mrkdwn', text: reply }}]
+            });
+          } catch (err) {
+            console.error('Home quick action error:', err.message);
+          }
+        });
+      });
+
       // ── DM Handler ────────────────────────────────────────────────────────
       slackApp.message(async ({ message, client, say }) => {
         if (message.bot_id || message.subtype) return;
