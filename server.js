@@ -176,6 +176,52 @@ cron.schedule('0 * * * *', async () => {
   }
 });
 
+// ── Employee Reminder Cron: Every hour — ticket 4h+ open → remind employee via Slack ─
+cron.schedule('30 * * * *', async () => {
+  try {
+    if (!slackClient) return;
+
+    const fourHoursAgo = new Date(Date.now() - 4 * 3600000);
+    const unreminded = await Ticket.find({
+      status       : { $in: ['Open', 'In Progress'] },
+      createdAt    : { $lte: fourHoursAgo },
+      reminderSent : false,
+      slackUserId  : { $exists: true, $ne: null }
+    });
+
+    for (const t of unreminded) {
+      const hoursOld = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
+      const priEmoji = { Critical:'🔴', High:'🟠', Medium:'🟡', Low:'🟢' };
+      try {
+        await slackClient.chat.postMessage({
+          channel: t.slackUserId,
+          text   : `⏳ Aapka ticket ${t.ticketId} abhi bhi open hai — IT team kaam kar rahi hai!`,
+          blocks : [
+            { type:'section', text:{ type:'mrkdwn', text:
+              `⏳ *Aapka ticket abhi bhi open hai!*\n\n` +
+              `*🎫 Ticket:* \`${t.ticketId}\`\n` +
+              `*${priEmoji[t.priority]||'🟡'} Priority:* ${t.priority}\n` +
+              `*📝 Problem:* ${(t.description||'').substring(0,80)}${(t.description||'').length>80?'...':''}\n` +
+              `*⏱ Open Since:* ${hoursOld} ghante pehle`
+            }},
+            { type:'context', elements:[{ type:'mrkdwn', text:
+              `_IT team aapke ticket par kaam kar rahi hai 🙏 Jaldi solve ho jayega!_\nUrgent ho toh call karein: *9654244281*`
+            }]}
+          ]
+        });
+        t.reminderSent = true;
+        await t.save();
+        console.log(`🔔 Reminder sent to ${t.slackUserId} for ticket ${t.ticketId} (${hoursOld}h old)`);
+      } catch (err) {
+        console.error(`Reminder DM failed for ${t.ticketId}:`, err.message);
+      }
+    }
+    if (unreminded.length) console.log(`🔔 Sent ${unreminded.length} employee reminders`);
+  } catch (err) {
+    console.error('Employee reminder cron error:', err.message);
+  }
+});
+
 // ── Auto-Close Cron: Daily 2AM — Resolved 3+ days ago → Closed ───────────────
 cron.schedule('0 2 * * *', async () => {
   try {
@@ -457,6 +503,130 @@ app.listen(PORT, () => {
         }
       });
 
+      // ── /ticket command — Quick modal ticket creation ─────────────────────
+      slackApp.command('/ticket', async ({ command, ack, client }) => {
+        await ack();
+        try {
+          await client.views.open({
+            trigger_id: command.trigger_id,
+            view: {
+              type       : 'modal',
+              callback_id: 'ticket_modal',
+              title  : { type:'plain_text', text:'🎫 Naya IT Ticket', emoji:true },
+              submit : { type:'plain_text', text:'Ticket Banao ✅', emoji:true },
+              close  : { type:'plain_text', text:'Cancel', emoji:true },
+              blocks : [
+                {
+                  type    : 'input',
+                  block_id: 'description_block',
+                  label   : { type:'plain_text', text:'📝 Problem kya hai?', emoji:true },
+                  element : {
+                    type       : 'plain_text_input',
+                    action_id  : 'description_input',
+                    multiline  : true,
+                    min_length : 10,
+                    placeholder: { type:'plain_text', text:'Jaise: Laptop on nahi ho raha, WiFi nahi chal raha, Password bhool gaya...' }
+                  }
+                },
+                {
+                  type    : 'input',
+                  block_id: 'category_block',
+                  label   : { type:'plain_text', text:'📂 Category', emoji:true },
+                  element : {
+                    type       : 'static_select',
+                    action_id  : 'category_input',
+                    placeholder: { type:'plain_text', text:'Category select karo' },
+                    options    : [
+                      { text:{ type:'plain_text', text:'💻 Hardware — Laptop, keyboard, mouse, screen' }, value:'Hardware' },
+                      { text:{ type:'plain_text', text:'💿 Software — App, Windows, Office' }, value:'Software' },
+                      { text:{ type:'plain_text', text:'📶 Network — WiFi, internet, VPN' }, value:'Network' },
+                      { text:{ type:'plain_text', text:'🔑 Account — Password, login, email' }, value:'Account' },
+                      { text:{ type:'plain_text', text:'🛒 Purchase — New equipment request' }, value:'Purchase' },
+                      { text:{ type:'plain_text', text:'❓ Other — Kuch aur' }, value:'Other' }
+                    ]
+                  }
+                },
+                {
+                  type    : 'input',
+                  block_id: 'priority_block',
+                  label   : { type:'plain_text', text:'🚨 Kitna Urgent Hai?', emoji:true },
+                  element : {
+                    type          : 'static_select',
+                    action_id     : 'priority_input',
+                    initial_option: { text:{ type:'plain_text', text:'🟡 Medium — Normal problem' }, value:'Medium' },
+                    options       : [
+                      { text:{ type:'plain_text', text:'🔴 Critical — Kaam bilkul ruk gaya' }, value:'Critical' },
+                      { text:{ type:'plain_text', text:'🟠 High — Bahut zaruri, jaldi chahiye' }, value:'High' },
+                      { text:{ type:'plain_text', text:'🟡 Medium — Normal problem, chal sakta hai' }, value:'Medium' },
+                      { text:{ type:'plain_text', text:'🟢 Low — Jab time mile tab theek karo' }, value:'Low' }
+                    ]
+                  }
+                }
+              ]
+            }
+          });
+        } catch (err) {
+          console.error('/ticket modal open error:', err.message);
+        }
+      });
+
+      // ── /ticket modal submission ───────────────────────────────────────────
+      slackApp.view('ticket_modal', async ({ ack, body, view, client }) => {
+        await ack();
+        const userId = body.user.id;
+        try {
+          const vals       = view.state.values;
+          const description = vals.description_block.description_input.value;
+          const category    = vals.category_block.category_input.selected_option?.value || 'Other';
+          const priority    = vals.priority_block.priority_input.selected_option?.value || 'Medium';
+
+          const emp = await lookupEmployee(userId, client);
+
+          const result = await createTicketSlack({
+            empId  : emp.empId,   empName : emp.empName, empEmail: emp.email,
+            empDept: emp.dept,    empFloor: emp.floor,
+            laptop : emp.laptop,  laptopSN: emp.laptopSN,
+            description, category, priority,
+            source: 'slack', slackUserId: userId
+          });
+
+          const priEmoji = { Critical:'🔴', High:'🟠', Medium:'🟡', Low:'🟢' };
+
+          if (result?._duplicate) {
+            await client.chat.postMessage({
+              channel: userId,
+              text   : `⚠️ ${result.message}`
+            });
+          } else if (result) {
+            await client.chat.postMessage({
+              channel: userId,
+              text   : `🎫 Ticket ${result.ticketId} create ho gaya!`,
+              blocks : [
+                { type:'header', text:{ type:'plain_text', text:'✅ Ticket Create Ho Gaya!', emoji:true }},
+                { type:'section', fields:[
+                  { type:'mrkdwn', text:`*🎫 Ticket ID:*\n\`${result.ticketId}\`` },
+                  { type:'mrkdwn', text:`*${priEmoji[result.priority]||'🟡'} Priority:*\n${result.priority}` },
+                  { type:'mrkdwn', text:`*📂 Category:*\n${result.category}` },
+                  { type:'mrkdwn', text:`*⏳ Status:*\nOpen` }
+                ]},
+                { type:'section', text:{ type:'mrkdwn', text:`*📝 Problem:*\n${description}` }},
+                { type:'context', elements:[{ type:'mrkdwn', text:`✅ IT team ko notify kar diya gaya 🙏 | _App Home mein "Mere Tickets" section mein dekh sakte ho_` }]}
+              ]
+            });
+            await notifyAdmin(client, result, emp);
+            console.log(`🎫 Ticket ${result.ticketId} created via /ticket modal by ${emp.empName}`);
+          }
+        } catch (err) {
+          console.error('/ticket modal submit error:', err.message);
+          try {
+            await client.chat.postMessage({
+              channel: userId,
+              text   : '❌ Ticket create karne mein error aaya. Dobara try karein ya call karein: *9654244281*'
+            });
+          } catch {}
+        }
+      });
+
       // ── FEATURE 8: Rating action handler ─────────────────────────────────
       slackApp.action('rate_ticket', async ({ body, ack, client }) => {
         await ack();
@@ -506,11 +676,16 @@ app.listen(PORT, () => {
           const dept      = emp?.department || null;
           const floor     = emp?.floor     || null;
 
-          // ── Open Ticket count ──────────────────────────────────────────────
-          let openCount = 0;
+          // ── Open Tickets (last 10) ─────────────────────────────────────────
+          let myTickets = [];
           if (emp?.empId) {
-            openCount = await Ticket.countDocuments({ empId: emp.empId, status: { $in: ['Open','In Progress'] } });
+            myTickets = await Ticket.find({ empId: emp.empId })
+              .sort({ createdAt: -1 }).limit(10).lean();
           }
+          const openTickets = myTickets.filter(t => t.status === 'Open' || t.status === 'In Progress');
+
+          const statusEmoji = { 'Open':'🟡', 'In Progress':'🔵', 'Resolved':'✅', 'Closed':'⚫' };
+          const priEmoji2   = { 'Critical':'🔴', 'High':'🟠', 'Medium':'🟡', 'Low':'🟢' };
 
           const blocks = [
             // ── Header ──────────────────────────────────────────────────────
@@ -520,7 +695,7 @@ app.listen(PORT, () => {
             },
             {
               type: 'section',
-              text: { type: 'mrkdwn', text: `*Namaste ${name}!* 👋\nKoi bhi IT problem ho — neeche button dabao ya DM karo. AI turant jawab dega! 🤖` }
+              text: { type: 'mrkdwn', text: `*Namaste ${name}!* 👋\nKoi bhi IT problem ho — neeche button dabao ya DM karo. AI turant jawab dega! 🤖\n_Tip: \`/ticket\` type karo seedha ticket banane ke liye_` }
             },
 
             // ── Employee Info ────────────────────────────────────────────────
@@ -531,9 +706,28 @@ app.listen(PORT, () => {
                 { type: 'mrkdwn', text: `🏢 *Dept:* ${dept || '—'}` },
                 { type: 'mrkdwn', text: `💻 *Laptop:* ${laptop || '—'}` },
                 { type: 'mrkdwn', text: `🔢 *Serial No:* \`${laptopSN || '—'}\`` },
-                { type: 'mrkdwn', text: `🎫 *Open Tickets:* ${openCount > 0 ? `*${openCount}*` : '✅ None'}` }
+                { type: 'mrkdwn', text: `🎫 *Open Tickets:* ${openTickets.length > 0 ? `*${openTickets.length}*` : '✅ None'}` }
               ]
             }] : []),
+
+            { type: 'divider' },
+
+            // ── #1 MERI TICKETS ───────────────────────────────────────────────
+            {
+              type: 'section',
+              text: { type: 'mrkdwn', text: `*🎫 Mere Tickets (Last 10)*` }
+            },
+            ...(myTickets.length === 0 ? [{
+              type: 'section',
+              text: { type: 'mrkdwn', text: '✅ Koi ticket nahi — sab theek chal raha hai!' }
+            }] : myTickets.map(t => ({
+              type: 'section',
+              text: { type: 'mrkdwn', text:
+                `${statusEmoji[t.status]||'🟡'} *${t.ticketId}* — ${(t.description||'').substring(0,50)}${(t.description||'').length>50?'...':''}\n` +
+                `${priEmoji2[t.priority]||'🟡'} ${t.priority} · ${t.category||'Other'} · _${Math.floor((Date.now()-new Date(t.createdAt))/3600000)}h ago_` +
+                (t.resolution ? `\n✅ *Resolved:* ${t.resolution.substring(0,60)}` : '')
+              }
+            }))),
 
             { type: 'divider' },
 
