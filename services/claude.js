@@ -75,8 +75,8 @@ Laptop slow: Ctrl+Shift+Esc → Task Manager → Processes → sort by CPU → E
 Laptop frozen: Hold Power button 10 seconds (force shutdown) → press once to restart
 Black screen: Press Fn+F5 or Fn+F8 (brightness keys) → if no change, hold Power 10sec → restart
 WiFi not connecting: Taskbar WiFi icon → right-click WiFi name → Forget → reconnect → type password
-Office WiFi Password: Ground Floor = spartns500 | First Floor = spartns500 (both floors same password)
-If employee asks WiFi password → directly tell them: "Office WiFi password hai: spartns500 (dono floors ke liye same)"
+Office WiFi Password: Ground Floor = spartans500 | First Floor = spartans500 (both floors same password)
+If employee asks WiFi password → directly tell them: "Office WiFi password hai: spartans500 (dono floors ke liye same)"
 Outlook not opening: Ctrl+Shift+Esc → find Outlook → End Task → then Win+R → type: outlook /safe → Enter
 Teams not working: Win+R → type: %appdata%\Microsoft\Teams → Enter → Ctrl+A → Delete → reinstall or use teams.microsoft.com
 Chrome slow: 3-dot menu → More Tools → Extensions → disable all → Settings → Clear browsing data → All time
