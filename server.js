@@ -349,6 +349,20 @@ app.listen(PORT, async () => {
               { text:'💨 Fan Noise',        value:'Laptop se bahut tez awaaz aa rahi hai fan ki noise hai',                   id:'home_quick_38' },
               { text:'📺 Screen Flicker',   value:'Laptop ki screen flicker kar rahi hai ya blink ho rahi hai',               id:'home_quick_39' },
               { text:'🔵 Bluetooth',        value:'Laptop ka bluetooth kaam nahi kar raha device connect nahi ho raha',       id:'home_quick_40' }
+            ],
+            [
+              { text:'🔌 USB Nahi Chala',   value:'USB port kaam nahi kar raha pendrive ya device detect nahi ho rahi',      id:'home_quick_63' },
+              { text:'😴 Sleep Se Nahi Utha',value:'Laptop sleep ya hibernate se nahi uth raha screen black hai',             id:'home_quick_64' },
+              { text:'🚫 Boot Error',        value:'Laptop start nahi ho raha boot error aa raha hai Windows nahi khul rahi', id:'home_quick_65' },
+              { text:'👆 Touchscreen Nahi',  value:'Laptop ki touchscreen kaam nahi kar rahi touch respond nahi kar raha',    id:'home_quick_66' },
+              { text:'🖥️ HDMI Nahi Chala',  value:'HDMI cable se monitor ya TV connect nahi ho raha display nahi aa rahi',   id:'home_quick_67' }
+            ],
+            [
+              { text:'💳 SD Card Nahi Dikh Raha', value:'SD card ya memory card laptop mein detect nahi ho rahi',            id:'home_quick_68' },
+              { text:'🔐 Fingerprint Nahi',       value:'Fingerprint reader kaam nahi kar raha login nahi ho raha',          id:'home_quick_69' },
+              { text:'💧 Laptop Mein Paani',      value:'Laptop mein paani ya liquid gir gaya hai damage ho sakta hai',      id:'home_quick_70', style:'danger' },
+              { text:'🐌 Update Ke Baad Slow',    value:'Windows update ke baad laptop bahut slow ho gaya hai',              id:'home_quick_71' },
+              { text:'🔡 Caps Lock Atka',         value:'Caps Lock on hi rehta hai ya keyboard mein keys atki hui hain',     id:'home_quick_72' }
             ]
           ]
         },
@@ -942,7 +956,7 @@ app.listen(PORT, async () => {
       });
 
       // ── Quick Action buttons from Home tab ────────────────────────────────
-      const homeQuickActions = ['home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_8','home_quick_9','home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14','home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19','home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24','home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29','home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34','home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39','home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44','home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49','home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54','home_quick_55','home_quick_56','home_quick_57','home_quick_58','home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_sos'];
+      const homeQuickActions = ['home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_8','home_quick_9','home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14','home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19','home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24','home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29','home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34','home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39','home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44','home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49','home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54','home_quick_55','home_quick_56','home_quick_57','home_quick_58','home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_quick_63','home_quick_64','home_quick_65','home_quick_66','home_quick_67','home_quick_68','home_quick_69','home_quick_70','home_quick_71','home_quick_72','home_sos'];
       homeQuickActions.forEach(actionId => {
         slackApp.action(actionId, async ({ body, ack, client }) => {
           await ack();
