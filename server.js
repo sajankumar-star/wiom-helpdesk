@@ -849,11 +849,6 @@ app.listen(PORT, async () => {
           const userId  = body.user.id;
           const problem = body.actions[0].value;
           try {
-            await client.chat.postMessage({
-              channel: userId,
-              text   : `You: ${problem}`,
-              blocks : [{ type:'section', text:{ type:'mrkdwn', text:`📨 *Aapka message:* "${problem}"\n\n⏳ AI jawab de raha hai...` }}]
-            });
             // Trigger same flow as DM
             const fakeReq = { body: { Body: problem, From: `slack:${userId}` } };
             const emp = await Employee.findOne({ slackUserId: userId });
