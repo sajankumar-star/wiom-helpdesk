@@ -321,7 +321,196 @@ app.listen(PORT, async () => {
       });
 
       // ── In-memory store for pending ticket confirmations (short-lived) ─────
-      const pendingTickets = new Map(); // slackUserId -> ticketData
+      const pendingTickets  = new Map(); // slackUserId -> ticketData
+      const expandedHomeMap = new Map(); // slackUserId -> Set<categoryKey>
+
+      // ── Category definitions ──────────────────────────────────────────────
+      const CATEGORIES = [
+        {
+          key: 'laptop', label: '💻 Laptop — Hardware',
+          rows: [
+            [
+              { text:'💻 Laptop Slow',      value:'Laptop bahut slow hai, kya karun',                                         id:'home_quick_1'  },
+              { text:'💻 Laptop On Nahi',   value:'Laptop on nahi ho raha hai',                                               id:'home_quick_2'  },
+              { text:'💙 Blue Screen',      value:'Blue screen of death aa raha hai',                                         id:'home_quick_3'  },
+              { text:'🌡️ Overheating',      value:'Laptop bahut garam ho raha hai overheating',                               id:'home_quick_4'  },
+              { text:'🔋 Battery Issue',    value:'Laptop ki battery jaldi khatam ho rahi hai ya charge nahi ho rahi',        id:'home_quick_5'  }
+            ],
+            [
+              { text:'🖥️ Screen Black',     value:'Laptop screen black hai kuch nahi dikh raha',                             id:'home_quick_6'  },
+              { text:'⌨️ Keyboard Issue',   value:'Laptop ki keyboard kaam nahi kar rahi kuch keys nahi chal rahi',           id:'home_quick_7'  },
+              { text:'🖱️ Mouse/Touchpad',   value:'Mouse ya touchpad kaam nahi kar raha',                                    id:'home_quick_8'  },
+              { text:'🔌 Charger Issue',    value:'Laptop ka charger kaam nahi kar raha charge nahi ho raha',                 id:'home_quick_10' },
+              { text:'❄️ Laptop Hang',      value:'Laptop hang ya freeze ho raha hai respond nahi kar raha',                  id:'home_quick_21' }
+            ],
+            [
+              { text:'⚡ Sudden Shutdown',  value:'Laptop achanak band ho jaata hai shutdown ho jaata hai',                   id:'home_quick_30' },
+              { text:'🔁 Restart Loop',     value:'Laptop restart loop mein hai baar baar restart ho raha hai',               id:'home_quick_33' },
+              { text:'💨 Fan Noise',        value:'Laptop se bahut tez awaaz aa rahi hai fan ki noise hai',                   id:'home_quick_38' },
+              { text:'📺 Screen Flicker',   value:'Laptop ki screen flicker kar rahi hai ya blink ho rahi hai',               id:'home_quick_39' },
+              { text:'🔵 Bluetooth',        value:'Laptop ka bluetooth kaam nahi kar raha device connect nahi ho raha',       id:'home_quick_40' }
+            ]
+          ]
+        },
+        {
+          key: 'network', label: '🌐 Network / Internet',
+          rows: [
+            [
+              { text:'📶 WiFi Issue',       value:'WiFi nahi chal raha internet nahi hai',                                    id:'home_quick_11' },
+              { text:'🐢 Slow Internet',    value:'Internet bahut slow chal raha hai speed kam hai',                          id:'home_quick_29' },
+              { text:'🔑 WiFi Password',    value:'WiFi ka password bhool gaya ya galat ho gaya',                             id:'home_quick_32' },
+              { text:'📡 Hotspot Issue',    value:'Mobile hotspot se laptop connect nahi ho raha',                            id:'home_quick_26' },
+              { text:'🔌 LAN/Ethernet',     value:'LAN cable ya ethernet port kaam nahi kar raha internet nahi aa raha',      id:'home_quick_41' }
+            ],
+            [
+              { text:'🔒 VPN Issue',        value:'VPN connect nahi ho raha ya VPN mein problem hai',                         id:'home_quick_42' },
+              { text:'🚫 Website Blocked',  value:'Website open nahi ho rahi hai blocked aa rahi hai',                        id:'home_quick_43' },
+              { text:'📶 WiFi Drops',       value:'WiFi baar baar disconnect ho jaata hai drop ho jaata hai',                 id:'home_quick_44' },
+              { text:'📧 Email Load Nahi',  value:'Email inbox load nahi ho raha ya email nahi aa rahe',                      id:'home_quick_45' }
+            ]
+          ]
+        },
+        {
+          key: 'audio', label: '🎤 Audio / Video / Display',
+          rows: [
+            [
+              { text:'🔊 No Sound',         value:'Laptop mein sound nahi aa rahi speaker kaam nahi kar raha',                id:'home_quick_9'  },
+              { text:'🔇 Speaker Issue',    value:'Laptop ka speaker kaam nahi kar raha awaaz nahi aa rahi',                  id:'home_quick_28' },
+              { text:'🎤 Mic Issue',        value:'Mic kaam nahi kar raha Teams ya calls mein awaaz nahi jaati',              id:'home_quick_16' },
+              { text:'📷 Camera Nahi',      value:'Laptop ki camera kaam nahi kar rahi Teams ya Zoom mein',                   id:'home_quick_20' },
+              { text:'🖥️ Monitor Issue',    value:'External monitor detect nahi ho raha screen nahi aa rahi',                 id:'home_quick_17' }
+            ],
+            [
+              { text:'🎧 Headphone',        value:'Headphone ya earphone laptop se connect nahi ho raha ya awaaz nahi aa rahi', id:'home_quick_46' },
+              { text:'📽️ Projector',        value:'Laptop projector se connect nahi ho raha presentation nahi dikh rahi',     id:'home_quick_47' },
+              { text:'🖥️ Resolution',       value:'Screen resolution galat hai sab bada ya chota dikh raha hai',               id:'home_quick_48' },
+              { text:'📹 Video Call',       value:'Video call mein problem hai video nahi aa raha ya lag ho raha hai',         id:'home_quick_49' }
+            ]
+          ]
+        },
+        {
+          key: 'software', label: '💿 Software / Apps',
+          rows: [
+            [
+              { text:'📹 Teams',            value:'Teams mein problem hai call drop ho raha hai',                              id:'home_quick_13' },
+              { text:'🖥️ Zoom Problem',     value:'Zoom kaam nahi kar raha meeting join nahi ho rahi',                        id:'home_quick_27' },
+              { text:'📄 Word/Excel',       value:'Microsoft Word ya Excel nahi khul raha error aa raha hai',                  id:'home_quick_23' },
+              { text:'🌐 Browser Crash',    value:'Browser slow hai ya crash ho raha hai',                                    id:'home_quick_31' },
+              { text:'🔄 Windows Update',   value:'Windows update mein problem hai ya update stuck hai',                      id:'home_quick_24' }
+            ],
+            [
+              { text:'🔐 Software Install', value:'Naya software install karna hai permission chahiye',                        id:'home_quick_25' },
+              { text:'📋 Copy Paste Nahi',  value:'Copy paste kaam nahi kar raha Ctrl+C Ctrl+V nahi chal raha',               id:'home_quick_34' },
+              { text:'🕐 Date/Time Wrong',  value:'Laptop ki date ya time galat dikh rahi hai',                               id:'home_quick_35' },
+              { text:'📧 Outlook Issue',    value:'Outlook nahi khul raha ya email send receive nahi ho rahi',                 id:'home_quick_50' },
+              { text:'☁️ OneDrive Issue',   value:'OneDrive sync nahi ho raha files cloud mein nahi ja rahi',                  id:'home_quick_51' }
+            ],
+            [
+              { text:'📄 PDF Nahi Khula',   value:'PDF file open nahi ho rahi ya PDF reader kaam nahi kar raha',              id:'home_quick_52' },
+              { text:'💥 App Crash',        value:'App baar baar crash ya band ho jaata hai suddenly',                        id:'home_quick_53' },
+              { text:'🖨️ Print Problem',    value:'Printer kaam nahi kar raha print nahi ho raha',                            id:'home_quick_54' }
+            ]
+          ]
+        },
+        {
+          key: 'account', label: '🔐 Account / Security / Storage',
+          rows: [
+            [
+              { text:'🔑 Password Reset',   value:'Password bhool gaya reset karna hai',                                      id:'home_quick_14' },
+              { text:'💾 Storage Full',     value:'Laptop ki storage full ho gayi C drive full hai',                          id:'home_quick_18' },
+              { text:'🦠 Virus/Slow PC',    value:'Laptop mein virus lag gaya bahut slow hai ya ads aa rahe hain',            id:'home_quick_19' },
+              { text:'🔗 Shared Drive',     value:'Shared drive ya network folder access nahi ho raha',                       id:'home_quick_36' },
+              { text:'🔒 Account Locked',   value:'Account lock ho gaya hai login nahi ho pa raha',                           id:'home_quick_55' }
+            ],
+            [
+              { text:'📱 2FA/OTP Issue',    value:'Two factor authentication ya OTP nahi aa raha login nahi ho raha',         id:'home_quick_56' },
+              { text:'🛡️ Antivirus Alert',  value:'Antivirus ne kuch block kiya hai ya alert aa raha hai',                   id:'home_quick_57' },
+              { text:'☁️ OneDrive Full',    value:'OneDrive storage full ho gayi hai files sync nahi ho rahi',                id:'home_quick_58' },
+              { text:'📧 Email Password',   value:'Email account ka password bhool gaya ya change karna hai',                 id:'home_quick_59' }
+            ]
+          ]
+        },
+        {
+          key: 'replacement', label: '🔄 Replacement / Upgrade',
+          rows: [
+            [
+              { text:'🔄 Laptop Replace',   value:'Laptop exchange ya replace karna hai purana kharab ho gaya', id:'home_quick_37', style:'danger' },
+              { text:'🖱️ Mouse Replace',    value:'Mouse kharab ho gaya naya chahiye replacement request',      id:'home_quick_60' },
+              { text:'⌨️ Keyboard Replace', value:'Keyboard kharab ho gaya naya chahiye replacement request',   id:'home_quick_61' },
+              { text:'🖥️ Monitor Request',  value:'New monitor chahiye ya monitor replace karna hai request',   id:'home_quick_62' }
+            ]
+          ]
+        }
+      ];
+
+      // ── Build Home Tab blocks (with collapsible categories) ───────────────
+      const buildHomeBlocks = (emp, myTickets, expandedSet) => {
+        const name     = emp?.name?.split(' ')[0] || 'Employee';
+        const laptop   = emp?.laptop    || null;
+        const laptopSN = emp?.laptopSN  || null;
+        const dept     = emp?.department || null;
+        const floor    = emp?.floor     || null;
+        const openCnt  = myTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
+
+        const statEmoji = { 'Open':'🟡', 'In Progress':'🔵', 'Resolved':'✅', 'Closed':'⚫' };
+        const priEmoji2 = { 'Critical':'🔴', 'High':'🟠', 'Medium':'🟡', 'Low':'🟢' };
+
+        const blocks = [
+          { type:'header', text:{ type:'plain_text', text:'🛠️ WIOM IT Helpdesk', emoji:true }},
+          { type:'section', text:{ type:'mrkdwn', text:`*Namaste ${name}!* 👋\nKoi bhi IT problem ho — neeche category dabao. AI turant jawab dega! 🤖\n_Tip: \`/ticket\` type karo seedha ticket banane ke liye_` }},
+          ...(emp ? [{
+            type:'section', fields:[
+              { type:'mrkdwn', text:`🪪 *Emp ID:* \`${emp.empId}\`` },
+              { type:'mrkdwn', text:`🏢 *Dept:* ${dept||'—'}` },
+              { type:'mrkdwn', text:`💻 *Laptop:* ${laptop||'—'}` },
+              { type:'mrkdwn', text:`🔢 *Serial No:* \`${laptopSN||'—'}\`` },
+              { type:'mrkdwn', text:`🎫 *Open Tickets:* ${openCnt > 0 ? `*${openCnt}*` : '✅ None'}` }
+            ]
+          }] : []),
+          { type:'divider' },
+          { type:'section', text:{ type:'mrkdwn', text:'*🎫 Mera Last Ticket*' }},
+          ...(myTickets.length === 0
+            ? [{ type:'section', text:{ type:'mrkdwn', text:'✅ Koi ticket nahi — sab theek chal raha hai!' }}]
+            : [{ type:'section', text:{ type:'mrkdwn', text:
+                `${statEmoji[myTickets[0].status]||'🟡'} *${myTickets[0].ticketId}* — ${(myTickets[0].description||'').substring(0,50)}${(myTickets[0].description||'').length>50?'...':''}\n` +
+                `${priEmoji2[myTickets[0].priority]||'🟡'} ${myTickets[0].priority} · ${myTickets[0].category||'Other'} · _${Math.floor((Date.now()-new Date(myTickets[0].createdAt))/3600000)}h ago_` +
+                (myTickets[0].resolution ? `\n✅ *Resolved:* ${myTickets[0].resolution.substring(0,60)}` : '')
+              }}]
+          ),
+          { type:'divider' },
+          { type:'section', text:{ type:'mrkdwn', text:'*⚡ Quick Self-Service — category click karo to expand:*' }}
+        ];
+
+        for (const cat of CATEGORIES) {
+          const isExpanded = expandedSet.has(cat.key);
+          const arrow = isExpanded ? '▼' : '▶';
+          blocks.push({
+            type: 'actions',
+            elements: [{
+              type: 'button',
+              text: { type: 'plain_text', text: `${arrow}  ${cat.label}`, emoji: true },
+              action_id: `cat_toggle_${cat.key}`,
+              value: cat.key
+            }]
+          });
+          if (isExpanded) {
+            for (const row of cat.rows) {
+              blocks.push({
+                type: 'actions',
+                elements: row.map(btn => ({
+                  type    : 'button',
+                  text    : { type: 'plain_text', text: btn.text, emoji: true },
+                  value   : btn.value,
+                  action_id: btn.id,
+                  ...(btn.style ? { style: btn.style } : {})
+                }))
+              });
+            }
+            blocks.push({ type: 'divider' });
+          }
+        }
+        return blocks;
+      };
 
       // ── FEATURE 5: Office hours check (IST = UTC+5:30) ────────────────────
       const isOfficeHours = () => {
@@ -689,156 +878,67 @@ app.listen(PORT, async () => {
       slackApp.event('app_home_opened', async ({ event, client }) => {
         try {
           const userId = event.user;
-          const emp = await Employee.findOne({
-            $or: [{ slackUserId: userId }, { empId: userId }]
-          });
-          const name      = emp?.name?.split(' ')[0] || 'Employee';
-          const laptop    = emp?.laptop    || null;
-          const laptopSN  = emp?.laptopSN  || null;
-          const dept      = emp?.department || null;
-          const floor     = emp?.floor     || null;
-
-          // ── Open Tickets (last 10) ─────────────────────────────────────────
+          const emp = await Employee.findOne({ $or: [{ slackUserId: userId }, { empId: userId }] });
           let myTickets = [];
           if (emp?.empId) {
-            myTickets = await Ticket.find({ empId: emp.empId })
-              .sort({ createdAt: -1 }).limit(1).lean();
+            myTickets = await Ticket.find({ empId: emp.empId }).sort({ createdAt: -1 }).limit(1).lean();
           }
-          const openTickets = myTickets.filter(t => t.status === 'Open' || t.status === 'In Progress');
-
-          const statusEmoji = { 'Open':'🟡', 'In Progress':'🔵', 'Resolved':'✅', 'Closed':'⚫' };
-          const priEmoji2   = { 'Critical':'🔴', 'High':'🟠', 'Medium':'🟡', 'Low':'🟢' };
-
-          const blocks = [
-            // ── Header ──────────────────────────────────────────────────────
-            {
-              type: 'header',
-              text: { type: 'plain_text', text: '🛠️ WIOM IT Helpdesk', emoji: true }
-            },
-            {
-              type: 'section',
-              text: { type: 'mrkdwn', text: `*Namaste ${name}!* 👋\nKoi bhi IT problem ho — neeche button dabao ya DM karo. AI turant jawab dega! 🤖\n_Tip: \`/ticket\` type karo seedha ticket banane ke liye_` }
-            },
-
-            // ── Employee Info ────────────────────────────────────────────────
-            ...(emp ? [{
-              type: 'section',
-              fields: [
-                { type: 'mrkdwn', text: `🪪 *Emp ID:* \`${emp.empId}\`` },
-                { type: 'mrkdwn', text: `🏢 *Dept:* ${dept || '—'}` },
-                { type: 'mrkdwn', text: `💻 *Laptop:* ${laptop || '—'}` },
-                { type: 'mrkdwn', text: `🔢 *Serial No:* \`${laptopSN || '—'}\`` },
-                { type: 'mrkdwn', text: `🎫 *Open Tickets:* ${openTickets.length > 0 ? `*${openTickets.length}*` : '✅ None'}` }
-              ]
-            }] : []),
-
-            { type: 'divider' },
-
-            // ── #1 MERI TICKETS ───────────────────────────────────────────────
-            {
-              type: 'section',
-              text: { type: 'mrkdwn', text: `*🎫 Mera Last Ticket*` }
-            },
-            ...(myTickets.length === 0 ? [{
-              type: 'section',
-              text: { type: 'mrkdwn', text: '✅ Koi ticket nahi — sab theek chal raha hai!' }
-            }] : myTickets.slice(0,1).map(t => ({
-              type: 'section',
-              text: { type: 'mrkdwn', text:
-                `${statusEmoji[t.status]||'🟡'} *${t.ticketId}* — ${(t.description||'').substring(0,50)}${(t.description||'').length>50?'...':''}\n` +
-                `${priEmoji2[t.priority]||'🟡'} ${t.priority} · ${t.category||'Other'} · _${Math.floor((Date.now()-new Date(t.createdAt))/3600000)}h ago_` +
-                (t.resolution ? `\n✅ *Resolved:* ${t.resolution.substring(0,60)}` : '')
-              }
-            }))),
-
-            { type: 'divider' },
-
-            // ── Quick Actions — Category-wise ────────────────────────────────
-            { type:'section', text:{ type:'mrkdwn', text:'*⚡ Quick Self-Service — apni problem category se select karo:*' }},
-
-            // ── 💻 LAPTOP HARDWARE ───────────────────────────────────────────
-            { type:'section', text:{ type:'mrkdwn', text:'> *💻 Laptop — Hardware*' }},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'💻 Laptop Slow',    emoji:true }, value:'Laptop bahut slow hai, kya karun', action_id:'home_quick_1' },
-              { type:'button', text:{ type:'plain_text', text:'💻 Laptop On Nahi', emoji:true }, value:'Laptop on nahi ho raha hai', action_id:'home_quick_2' },
-              { type:'button', text:{ type:'plain_text', text:'💙 Blue Screen',    emoji:true }, value:'Blue screen of death aa raha hai', action_id:'home_quick_3' },
-              { type:'button', text:{ type:'plain_text', text:'🌡️ Overheating',    emoji:true }, value:'Laptop bahut garam ho raha hai overheating', action_id:'home_quick_4' },
-              { type:'button', text:{ type:'plain_text', text:'🔋 Battery Issue',  emoji:true }, value:'Laptop ki battery jaldi khatam ho rahi hai ya charge nahi ho rahi', action_id:'home_quick_5' }
-            ]},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'🖥️ Screen Black',   emoji:true }, value:'Laptop screen black hai kuch nahi dikh raha', action_id:'home_quick_6' },
-              { type:'button', text:{ type:'plain_text', text:'⌨️ Keyboard Issue', emoji:true }, value:'Laptop ki keyboard kaam nahi kar rahi kuch keys nahi chal rahi', action_id:'home_quick_7' },
-              { type:'button', text:{ type:'plain_text', text:'🖱️ Mouse/Touchpad', emoji:true }, value:'Mouse ya touchpad kaam nahi kar raha', action_id:'home_quick_8' },
-              { type:'button', text:{ type:'plain_text', text:'🔌 Charger Issue',  emoji:true }, value:'Laptop ka charger kaam nahi kar raha charge nahi ho raha', action_id:'home_quick_10' },
-              { type:'button', text:{ type:'plain_text', text:'❄️ Laptop Hang',    emoji:true }, value:'Laptop hang ya freeze ho raha hai respond nahi kar raha', action_id:'home_quick_21' }
-            ]},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'⚡ Sudden Shutdown', emoji:true }, value:'Laptop achanak band ho jaata hai shutdown ho jaata hai', action_id:'home_quick_30' },
-              { type:'button', text:{ type:'plain_text', text:'🔁 Restart Loop',    emoji:true }, value:'Laptop restart loop mein hai baar baar restart ho raha hai', action_id:'home_quick_33' }
-            ]},
-
-            // ── 🌐 NETWORK / INTERNET ────────────────────────────────────────
-            { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'> *🌐 Network / Internet*' }},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'📶 WiFi Issue',    emoji:true }, value:'WiFi nahi chal raha internet nahi hai', action_id:'home_quick_11' },
-              { type:'button', text:{ type:'plain_text', text:'🐢 Slow Internet', emoji:true }, value:'Internet bahut slow chal raha hai speed kam hai', action_id:'home_quick_29' },
-              { type:'button', text:{ type:'plain_text', text:'🔑 WiFi Password', emoji:true }, value:'WiFi ka password bhool gaya ya galat ho gaya', action_id:'home_quick_32' },
-              { type:'button', text:{ type:'plain_text', text:'📡 Hotspot Issue', emoji:true }, value:'Mobile hotspot se laptop connect nahi ho raha', action_id:'home_quick_26' }
-            ]},
-
-            // ── 🎤 AUDIO / VIDEO / DISPLAY ───────────────────────────────────
-            { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'> *🎤 Audio / Video / Display*' }},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'🔊 No Sound',       emoji:true }, value:'Laptop mein sound nahi aa rahi speaker kaam nahi kar raha', action_id:'home_quick_9' },
-              { type:'button', text:{ type:'plain_text', text:'🔇 Speaker Issue',  emoji:true }, value:'Laptop ka speaker kaam nahi kar raha awaaz nahi aa rahi', action_id:'home_quick_28' },
-              { type:'button', text:{ type:'plain_text', text:'🎤 Mic Issue',      emoji:true }, value:'Mic kaam nahi kar raha Teams ya calls mein awaaz nahi jaati', action_id:'home_quick_16' },
-              { type:'button', text:{ type:'plain_text', text:'📷 Camera Nahi',    emoji:true }, value:'Laptop ki camera kaam nahi kar rahi Teams ya Zoom mein', action_id:'home_quick_20' },
-              { type:'button', text:{ type:'plain_text', text:'🖥️ Monitor Issue',  emoji:true }, value:'External monitor detect nahi ho raha screen nahi aa rahi', action_id:'home_quick_17' }
-            ]},
-
-            // ── 💿 SOFTWARE / APPS ───────────────────────────────────────────
-            { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'> *💿 Software / Apps*' }},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'📹 Teams',           emoji:true }, value:'Teams mein problem hai call drop ho raha hai', action_id:'home_quick_13' },
-              { type:'button', text:{ type:'plain_text', text:'🖥️ Zoom Problem',    emoji:true }, value:'Zoom kaam nahi kar raha meeting join nahi ho rahi', action_id:'home_quick_27' },
-              { type:'button', text:{ type:'plain_text', text:'📄 Word/Excel',      emoji:true }, value:'Microsoft Word ya Excel nahi khul raha error aa raha hai', action_id:'home_quick_23' },
-              { type:'button', text:{ type:'plain_text', text:'🌐 Browser Crash',   emoji:true }, value:'Browser slow hai ya crash ho raha hai Chrome Firefox band ho jaata hai', action_id:'home_quick_31' },
-              { type:'button', text:{ type:'plain_text', text:'🔄 Windows Update',  emoji:true }, value:'Windows update mein problem hai ya update stuck hai', action_id:'home_quick_24' }
-            ]},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'🔐 Software Install', emoji:true }, value:'Naya software install karna hai permission chahiye', action_id:'home_quick_25' },
-              { type:'button', text:{ type:'plain_text', text:'📋 Copy Paste Nahi',  emoji:true }, value:'Copy paste kaam nahi kar raha Ctrl+C Ctrl+V nahi chal raha', action_id:'home_quick_34' },
-              { type:'button', text:{ type:'plain_text', text:'🕐 Date/Time Wrong',  emoji:true }, value:'Laptop ki date ya time galat dikh rahi hai', action_id:'home_quick_35' }
-            ]},
-
-            // ── 🔐 ACCOUNT / SECURITY / STORAGE ─────────────────────────────
-            { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'> *🔐 Account / Security / Storage*' }},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'🔑 Password Reset', emoji:true }, value:'Password bhool gaya reset karna hai', action_id:'home_quick_14' },
-              { type:'button', text:{ type:'plain_text', text:'💾 Storage Full',   emoji:true }, value:'Laptop ki storage full ho gayi C drive full hai', action_id:'home_quick_18' },
-              { type:'button', text:{ type:'plain_text', text:'🦠 Virus/Slow PC',  emoji:true }, value:'Laptop mein virus lag gaya bahut slow hai ya ads aa rahe hain', action_id:'home_quick_19' },
-              { type:'button', text:{ type:'plain_text', text:'🔗 Shared Drive',   emoji:true }, value:'Shared drive ya network folder access nahi ho raha', action_id:'home_quick_36' }
-            ]},
-
-            // ── 🔄 REPLACEMENT ───────────────────────────────────────────────
-            { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'> *🔄 Replacement / Upgrade*' }},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'🔄 Laptop Replace', emoji:true }, value:'Laptop exchange ya replace karna hai purana kharab ho gaya', action_id:'home_quick_37', style:'danger' }
-            ]}
-          ];
-
-          await client.views.publish({
-            user_id: userId,
-            view   : { type: 'home', blocks }
-          });
+          const expandedSet = expandedHomeMap.get(userId) || new Set();
+          const blocks = buildHomeBlocks(emp, myTickets, expandedSet);
+          await client.views.publish({ user_id: userId, view: { type: 'home', blocks } });
         } catch (err) {
           console.error('App Home error:', err.message);
         }
+      });
+
+      // ── Category toggle handlers (Home Tab accordion) ─────────────────────
+      CATEGORIES.forEach(cat => {
+        slackApp.action(`cat_toggle_${cat.key}`, async ({ body, ack, client }) => {
+          await ack();
+          const userId = body.user.id;
+          if (!expandedHomeMap.has(userId)) expandedHomeMap.set(userId, new Set());
+          const userExpanded = expandedHomeMap.get(userId);
+          if (userExpanded.has(cat.key)) userExpanded.delete(cat.key);
+          else userExpanded.add(cat.key);
+
+          try {
+            const emp = await Employee.findOne({ $or: [{ slackUserId: userId }, { empId: userId }] });
+            let myTickets = [];
+            if (emp?.empId) myTickets = await Ticket.find({ empId: emp.empId }).sort({ createdAt: -1 }).limit(1).lean();
+            const blocks = buildHomeBlocks(emp, myTickets, userExpanded);
+            await client.views.publish({ user_id: userId, view: { type: 'home', blocks } });
+          } catch (err) {
+            console.error('cat_toggle error:', err.message);
+          }
+        });
+      });
+
+      // ── DM category expand handlers (post sub-buttons on click) ──────────
+      CATEGORIES.forEach(cat => {
+        slackApp.action(`dm_cat_${cat.key}`, async ({ body, ack, client }) => {
+          await ack();
+          const userId = body.user.id;
+          try {
+            const catBlocks = [
+              { type:'section', text:{ type:'mrkdwn', text:`> *${cat.label}*` }}
+            ];
+            for (const row of cat.rows) {
+              catBlocks.push({
+                type: 'actions',
+                elements: row.map(btn => ({
+                  type    : 'button',
+                  text    : { type: 'plain_text', text: btn.text, emoji: true },
+                  value   : btn.value,
+                  action_id: btn.id,
+                  ...(btn.style ? { style: btn.style } : {})
+                }))
+              });
+            }
+            await client.chat.postMessage({ channel: userId, text: cat.label, blocks: catBlocks });
+          } catch (err) {
+            console.error('dm_cat action error:', err.message);
+          }
+        });
       });
 
       // ── Quick Action buttons from Home tab ────────────────────────────────
@@ -929,117 +1029,17 @@ app.listen(PORT, async () => {
             await say({
               text: `Hello ${firstName}! 👋 WIOM IT Helpdesk`,
               blocks: [
-                // ── Welcome Header ─────────────────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:`*Hello ${firstName}!* 👋` }},
+                { type:'section', text:{ type:'mrkdwn', text:`*Hello ${firstName}!* 👋\n_Apni IT problem category select karo:_` }},
                 { type:'divider' },
-
-                // ── 💻 Laptop Hardware ─────────────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'> *💻 Laptop — Hardware*' }},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'💻 Laptop Slow',    emoji:true }, value:'Laptop bahut slow hai, kya karun', action_id:'home_quick_1' },
-                  { type:'button', text:{ type:'plain_text', text:'💻 Laptop On Nahi', emoji:true }, value:'Laptop on nahi ho raha hai', action_id:'home_quick_2' },
-                  { type:'button', text:{ type:'plain_text', text:'💙 Blue Screen',    emoji:true }, value:'Blue screen of death aa raha hai', action_id:'home_quick_3' },
-                  { type:'button', text:{ type:'plain_text', text:'🌡️ Overheating',    emoji:true }, value:'Laptop bahut garam ho raha hai overheating', action_id:'home_quick_4' },
-                  { type:'button', text:{ type:'plain_text', text:'🔋 Battery Issue',  emoji:true }, value:'Laptop ki battery jaldi khatam ho rahi hai ya charge nahi ho rahi', action_id:'home_quick_5' }
-                ]},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'🖥️ Screen Black',   emoji:true }, value:'Laptop screen black hai kuch nahi dikh raha', action_id:'home_quick_6' },
-                  { type:'button', text:{ type:'plain_text', text:'⌨️ Keyboard Issue', emoji:true }, value:'Laptop ki keyboard kaam nahi kar rahi', action_id:'home_quick_7' },
-                  { type:'button', text:{ type:'plain_text', text:'🖱️ Mouse/Touchpad', emoji:true }, value:'Mouse ya touchpad kaam nahi kar raha', action_id:'home_quick_8' },
-                  { type:'button', text:{ type:'plain_text', text:'🔌 Charger Issue',  emoji:true }, value:'Laptop ka charger kaam nahi kar raha', action_id:'home_quick_10' },
-                  { type:'button', text:{ type:'plain_text', text:'❄️ Laptop Hang',    emoji:true }, value:'Laptop hang ya freeze ho raha hai', action_id:'home_quick_21' }
-                ]},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'⚡ Sudden Shutdown', emoji:true }, value:'Laptop achanak band ho jaata hai', action_id:'home_quick_30' },
-                  { type:'button', text:{ type:'plain_text', text:'🔁 Restart Loop',    emoji:true }, value:'Laptop restart loop mein hai baar baar restart ho raha hai', action_id:'home_quick_33' },
-                  { type:'button', text:{ type:'plain_text', text:'💨 Fan Noise',        emoji:true }, value:'Laptop se bahut tez awaaz aa rahi hai fan ki noise hai', action_id:'home_quick_38' },
-                  { type:'button', text:{ type:'plain_text', text:'📺 Screen Flicker',   emoji:true }, value:'Laptop ki screen flicker kar rahi hai ya blink ho rahi hai', action_id:'home_quick_39' },
-                  { type:'button', text:{ type:'plain_text', text:'🔵 Bluetooth Issue',  emoji:true }, value:'Laptop ka bluetooth kaam nahi kar raha device connect nahi ho raha', action_id:'home_quick_40' }
-                ]},
-                { type:'divider' },
-
-                // ── 🌐 Network / Internet ──────────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'> *🌐 Network / Internet*' }},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'📶 WiFi Issue',      emoji:true }, value:'WiFi nahi chal raha internet nahi hai', action_id:'home_quick_11' },
-                  { type:'button', text:{ type:'plain_text', text:'🐢 Slow Internet',   emoji:true }, value:'Internet bahut slow chal raha hai', action_id:'home_quick_29' },
-                  { type:'button', text:{ type:'plain_text', text:'🔑 WiFi Password',   emoji:true }, value:'WiFi ka password bhool gaya ya galat ho gaya', action_id:'home_quick_32' },
-                  { type:'button', text:{ type:'plain_text', text:'📡 Hotspot Issue',   emoji:true }, value:'Mobile hotspot se laptop connect nahi ho raha', action_id:'home_quick_26' },
-                  { type:'button', text:{ type:'plain_text', text:'🔌 LAN/Ethernet',    emoji:true }, value:'LAN cable ya ethernet port kaam nahi kar raha internet nahi aa raha', action_id:'home_quick_41' }
-                ]},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'🔒 VPN Issue',       emoji:true }, value:'VPN connect nahi ho raha ya VPN mein problem hai', action_id:'home_quick_42' },
-                  { type:'button', text:{ type:'plain_text', text:'🚫 Website Blocked', emoji:true }, value:'Website open nahi ho rahi hai blocked aa rahi hai', action_id:'home_quick_43' },
-                  { type:'button', text:{ type:'plain_text', text:'📶 WiFi Drops',      emoji:true }, value:'WiFi baar baar disconnect ho jaata hai drop ho jaata hai', action_id:'home_quick_44' },
-                  { type:'button', text:{ type:'plain_text', text:'📧 Email Load Nahi', emoji:true }, value:'Email inbox load nahi ho raha ya email nahi aa rahe', action_id:'home_quick_45' }
-                ]},
-                { type:'divider' },
-
-                // ── 🎤 Audio / Video / Display ────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'> *🎤 Audio / Video / Display*' }},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'🔊 No Sound',       emoji:true }, value:'Laptop mein sound nahi aa rahi', action_id:'home_quick_9' },
-                  { type:'button', text:{ type:'plain_text', text:'🔇 Speaker Issue',  emoji:true }, value:'Laptop ka speaker kaam nahi kar raha', action_id:'home_quick_28' },
-                  { type:'button', text:{ type:'plain_text', text:'🎤 Mic Issue',      emoji:true }, value:'Mic kaam nahi kar raha', action_id:'home_quick_16' },
-                  { type:'button', text:{ type:'plain_text', text:'📷 Camera Nahi',    emoji:true }, value:'Laptop ki camera kaam nahi kar rahi', action_id:'home_quick_20' },
-                  { type:'button', text:{ type:'plain_text', text:'🖥️ Monitor Issue',  emoji:true }, value:'External monitor detect nahi ho raha', action_id:'home_quick_17' }
-                ]},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'🎧 Headphone Issue',  emoji:true }, value:'Headphone ya earphone laptop se connect nahi ho raha ya awaaz nahi aa rahi', action_id:'home_quick_46' },
-                  { type:'button', text:{ type:'plain_text', text:'📽️ Projector',        emoji:true }, value:'Laptop projector se connect nahi ho raha presentation nahi dikh rahi', action_id:'home_quick_47' },
-                  { type:'button', text:{ type:'plain_text', text:'🖥️ Resolution Wrong', emoji:true }, value:'Screen resolution galat hai sab bada ya chota dikh raha hai', action_id:'home_quick_48' },
-                  { type:'button', text:{ type:'plain_text', text:'📹 Video Call Issue', emoji:true }, value:'Video call mein problem hai video nahi aa raha ya lag ho raha hai', action_id:'home_quick_49' }
-                ]},
-                { type:'divider' },
-
-                // ── 💿 Software / Apps ────────────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'> *💿 Software / Apps*' }},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'📹 Teams',          emoji:true }, value:'Teams mein problem hai call drop ho raha hai', action_id:'home_quick_13' },
-                  { type:'button', text:{ type:'plain_text', text:'🖥️ Zoom Problem',   emoji:true }, value:'Zoom kaam nahi kar raha', action_id:'home_quick_27' },
-                  { type:'button', text:{ type:'plain_text', text:'📄 Word/Excel',     emoji:true }, value:'Microsoft Word ya Excel nahi khul raha', action_id:'home_quick_23' },
-                  { type:'button', text:{ type:'plain_text', text:'🌐 Browser Crash',  emoji:true }, value:'Browser slow hai ya crash ho raha hai', action_id:'home_quick_31' },
-                  { type:'button', text:{ type:'plain_text', text:'🔄 Windows Update', emoji:true }, value:'Windows update mein problem hai', action_id:'home_quick_24' }
-                ]},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'🔐 Software Install', emoji:true }, value:'Naya software install karna hai', action_id:'home_quick_25' },
-                  { type:'button', text:{ type:'plain_text', text:'📋 Copy Paste Nahi',  emoji:true }, value:'Copy paste kaam nahi kar raha', action_id:'home_quick_34' },
-                  { type:'button', text:{ type:'plain_text', text:'🕐 Date/Time Wrong',  emoji:true }, value:'Laptop ki date ya time galat dikh rahi hai', action_id:'home_quick_35' },
-                  { type:'button', text:{ type:'plain_text', text:'📧 Outlook Issue',    emoji:true }, value:'Outlook nahi khul raha ya email send receive nahi ho rahi', action_id:'home_quick_50' },
-                  { type:'button', text:{ type:'plain_text', text:'☁️ OneDrive Issue',   emoji:true }, value:'OneDrive sync nahi ho raha files cloud mein nahi ja rahi', action_id:'home_quick_51' }
-                ]},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'📄 PDF Nahi Khula',   emoji:true }, value:'PDF file open nahi ho rahi ya PDF reader kaam nahi kar raha', action_id:'home_quick_52' },
-                  { type:'button', text:{ type:'plain_text', text:'💥 App Crash',         emoji:true }, value:'App baar baar crash ya band ho jaata hai suddenly', action_id:'home_quick_53' },
-                  { type:'button', text:{ type:'plain_text', text:'🖨️ Print Problem',     emoji:true }, value:'Printer kaam nahi kar raha print nahi ho raha', action_id:'home_quick_54' }
-                ]},
-                { type:'divider' },
-
-                // ── 🔐 Account / Security / Storage ──────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'> *🔐 Account / Security / Storage*' }},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'🔑 Password Reset',   emoji:true }, value:'Password bhool gaya reset karna hai', action_id:'home_quick_14' },
-                  { type:'button', text:{ type:'plain_text', text:'💾 Storage Full',     emoji:true }, value:'Laptop ki storage full ho gayi C drive full hai', action_id:'home_quick_18' },
-                  { type:'button', text:{ type:'plain_text', text:'🦠 Virus/Slow PC',    emoji:true }, value:'Laptop mein virus lag gaya', action_id:'home_quick_19' },
-                  { type:'button', text:{ type:'plain_text', text:'🔗 Shared Drive',     emoji:true }, value:'Shared drive ya network folder access nahi ho raha', action_id:'home_quick_36' },
-                  { type:'button', text:{ type:'plain_text', text:'🔒 Account Locked',   emoji:true }, value:'Account lock ho gaya hai login nahi ho pa raha', action_id:'home_quick_55' }
-                ]},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'📱 2FA/OTP Issue',    emoji:true }, value:'Two factor authentication ya OTP nahi aa raha login nahi ho raha', action_id:'home_quick_56' },
-                  { type:'button', text:{ type:'plain_text', text:'🛡️ Antivirus Alert',  emoji:true }, value:'Antivirus ne kuch block kiya hai ya alert aa raha hai', action_id:'home_quick_57' },
-                  { type:'button', text:{ type:'plain_text', text:'☁️ OneDrive Full',    emoji:true }, value:'OneDrive storage full ho gayi hai files sync nahi ho rahi', action_id:'home_quick_58' },
-                  { type:'button', text:{ type:'plain_text', text:'📧 Email Password',   emoji:true }, value:'Email account ka password bhool gaya ya change karna hai', action_id:'home_quick_59' }
-                ]},
-                { type:'divider' },
-
-                // ── 🔄 Replacement ────────────────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'> *🔄 Replacement / Upgrade*' }},
-                { type:'actions', elements:[
-                  { type:'button', text:{ type:'plain_text', text:'🔄 Laptop Replace',   emoji:true }, value:'Laptop exchange ya replace karna hai purana kharab ho gaya', action_id:'home_quick_37', style:'danger' },
-                  { type:'button', text:{ type:'plain_text', text:'🖱️ Mouse Replace',    emoji:true }, value:'Mouse kharab ho gaya naya chahiye replacement request', action_id:'home_quick_60' },
-                  { type:'button', text:{ type:'plain_text', text:'⌨️ Keyboard Replace', emoji:true }, value:'Keyboard kharab ho gaya naya chahiye replacement request', action_id:'home_quick_61' },
-                  { type:'button', text:{ type:'plain_text', text:'🖥️ Monitor Request',  emoji:true }, value:'New monitor chahiye ya monitor replace karna hai request', action_id:'home_quick_62' }
-                ]}
+                ...CATEGORIES.map(cat => ({
+                  type: 'actions',
+                  elements: [{
+                    type    : 'button',
+                    text    : { type: 'plain_text', text: cat.label, emoji: true },
+                    action_id: `dm_cat_${cat.key}`,
+                    value   : cat.key
+                  }]
+                }))
               ]
             });
             return;
