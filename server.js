@@ -757,7 +757,7 @@ app.listen(PORT, async () => {
             { type:'section', text:{ type:'mrkdwn', text:'*⚡ Quick Self-Service — apni problem category se select karo:*' }},
 
             // ── 💻 LAPTOP HARDWARE ───────────────────────────────────────────
-            { type:'section', text:{ type:'mrkdwn', text:'*💻 Laptop — Hardware*' }},
+            { type:'section', text:{ type:'mrkdwn', text:'> *💻 Laptop — Hardware*' }},
             { type:'actions', elements:[
               { type:'button', text:{ type:'plain_text', text:'💻 Laptop Slow',    emoji:true }, value:'Laptop bahut slow hai, kya karun', action_id:'home_quick_1' },
               { type:'button', text:{ type:'plain_text', text:'💻 Laptop On Nahi', emoji:true }, value:'Laptop on nahi ho raha hai', action_id:'home_quick_2' },
@@ -779,7 +779,7 @@ app.listen(PORT, async () => {
 
             // ── 🌐 NETWORK / INTERNET ────────────────────────────────────────
             { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'*🌐 Network / Internet*' }},
+            { type:'section', text:{ type:'mrkdwn', text:'> *🌐 Network / Internet*' }},
             { type:'actions', elements:[
               { type:'button', text:{ type:'plain_text', text:'📶 WiFi Issue',    emoji:true }, value:'WiFi nahi chal raha internet nahi hai', action_id:'home_quick_11' },
               { type:'button', text:{ type:'plain_text', text:'🐢 Slow Internet', emoji:true }, value:'Internet bahut slow chal raha hai speed kam hai', action_id:'home_quick_29' },
@@ -789,7 +789,7 @@ app.listen(PORT, async () => {
 
             // ── 🎤 AUDIO / VIDEO / DISPLAY ───────────────────────────────────
             { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'*🎤 Audio / Video / Display*' }},
+            { type:'section', text:{ type:'mrkdwn', text:'> *🎤 Audio / Video / Display*' }},
             { type:'actions', elements:[
               { type:'button', text:{ type:'plain_text', text:'🔊 No Sound',       emoji:true }, value:'Laptop mein sound nahi aa rahi speaker kaam nahi kar raha', action_id:'home_quick_9' },
               { type:'button', text:{ type:'plain_text', text:'🔇 Speaker Issue',  emoji:true }, value:'Laptop ka speaker kaam nahi kar raha awaaz nahi aa rahi', action_id:'home_quick_28' },
@@ -800,7 +800,7 @@ app.listen(PORT, async () => {
 
             // ── 💿 SOFTWARE / APPS ───────────────────────────────────────────
             { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'*💿 Software / Apps*' }},
+            { type:'section', text:{ type:'mrkdwn', text:'> *💿 Software / Apps*' }},
             { type:'actions', elements:[
               { type:'button', text:{ type:'plain_text', text:'📹 Teams',           emoji:true }, value:'Teams mein problem hai call drop ho raha hai', action_id:'home_quick_13' },
               { type:'button', text:{ type:'plain_text', text:'🖥️ Zoom Problem',    emoji:true }, value:'Zoom kaam nahi kar raha meeting join nahi ho rahi', action_id:'home_quick_27' },
@@ -816,7 +816,7 @@ app.listen(PORT, async () => {
 
             // ── 🔐 ACCOUNT / SECURITY / STORAGE ─────────────────────────────
             { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'*🔐 Account / Security / Storage*' }},
+            { type:'section', text:{ type:'mrkdwn', text:'> *🔐 Account / Security / Storage*' }},
             { type:'actions', elements:[
               { type:'button', text:{ type:'plain_text', text:'🔑 Password Reset', emoji:true }, value:'Password bhool gaya reset karna hai', action_id:'home_quick_14' },
               { type:'button', text:{ type:'plain_text', text:'💾 Storage Full',   emoji:true }, value:'Laptop ki storage full ho gayi C drive full hai', action_id:'home_quick_18' },
@@ -826,7 +826,7 @@ app.listen(PORT, async () => {
 
             // ── 🔄 REPLACEMENT ───────────────────────────────────────────────
             { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:'*🔄 Replacement / Upgrade*' }},
+            { type:'section', text:{ type:'mrkdwn', text:'> *🔄 Replacement / Upgrade*' }},
             { type:'actions', elements:[
               { type:'button', text:{ type:'plain_text', text:'🔄 Laptop Replace', emoji:true }, value:'Laptop exchange ya replace karna hai purana kharab ho gaya', action_id:'home_quick_37', style:'danger' }
             ]}
@@ -934,7 +934,7 @@ app.listen(PORT, async () => {
                 { type:'divider' },
 
                 // ── 💻 Laptop Hardware ─────────────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'*💻 Laptop — Hardware*' }},
+                { type:'section', text:{ type:'mrkdwn', text:'> *💻 Laptop — Hardware*' }},
                 { type:'actions', elements:[
                   { type:'button', text:{ type:'plain_text', text:'💻 Laptop Slow',    emoji:true }, value:'Laptop bahut slow hai, kya karun', action_id:'home_quick_1' },
                   { type:'button', text:{ type:'plain_text', text:'💻 Laptop On Nahi', emoji:true }, value:'Laptop on nahi ho raha hai', action_id:'home_quick_2' },
@@ -956,7 +956,7 @@ app.listen(PORT, async () => {
                 { type:'divider' },
 
                 // ── 🌐 Network / Internet ──────────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'*🌐 Network / Internet*' }},
+                { type:'section', text:{ type:'mrkdwn', text:'> *🌐 Network / Internet*' }},
                 { type:'actions', elements:[
                   { type:'button', text:{ type:'plain_text', text:'📶 WiFi Issue',    emoji:true }, value:'WiFi nahi chal raha internet nahi hai', action_id:'home_quick_11' },
                   { type:'button', text:{ type:'plain_text', text:'🐢 Slow Internet', emoji:true }, value:'Internet bahut slow chal raha hai', action_id:'home_quick_29' },
@@ -966,7 +966,7 @@ app.listen(PORT, async () => {
                 { type:'divider' },
 
                 // ── 🎤 Audio / Video / Display ────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'*🎤 Audio / Video / Display*' }},
+                { type:'section', text:{ type:'mrkdwn', text:'> *🎤 Audio / Video / Display*' }},
                 { type:'actions', elements:[
                   { type:'button', text:{ type:'plain_text', text:'🔊 No Sound',      emoji:true }, value:'Laptop mein sound nahi aa rahi', action_id:'home_quick_9' },
                   { type:'button', text:{ type:'plain_text', text:'🔇 Speaker Issue', emoji:true }, value:'Laptop ka speaker kaam nahi kar raha', action_id:'home_quick_28' },
@@ -977,7 +977,7 @@ app.listen(PORT, async () => {
                 { type:'divider' },
 
                 // ── 💿 Software / Apps ────────────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'*💿 Software / Apps*' }},
+                { type:'section', text:{ type:'mrkdwn', text:'> *💿 Software / Apps*' }},
                 { type:'actions', elements:[
                   { type:'button', text:{ type:'plain_text', text:'📹 Teams',          emoji:true }, value:'Teams mein problem hai call drop ho raha hai', action_id:'home_quick_13' },
                   { type:'button', text:{ type:'plain_text', text:'🖥️ Zoom Problem',   emoji:true }, value:'Zoom kaam nahi kar raha', action_id:'home_quick_27' },
@@ -993,7 +993,7 @@ app.listen(PORT, async () => {
                 { type:'divider' },
 
                 // ── 🔐 Account / Security / Storage ──────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'*🔐 Account / Security / Storage*' }},
+                { type:'section', text:{ type:'mrkdwn', text:'> *🔐 Account / Security / Storage*' }},
                 { type:'actions', elements:[
                   { type:'button', text:{ type:'plain_text', text:'🔑 Password Reset', emoji:true }, value:'Password bhool gaya reset karna hai', action_id:'home_quick_14' },
                   { type:'button', text:{ type:'plain_text', text:'💾 Storage Full',   emoji:true }, value:'Laptop ki storage full ho gayi C drive full hai', action_id:'home_quick_18' },
@@ -1003,7 +1003,7 @@ app.listen(PORT, async () => {
                 { type:'divider' },
 
                 // ── 🔄 Replacement ────────────────────────────────────────
-                { type:'section', text:{ type:'mrkdwn', text:'*🔄 Replacement / Upgrade*' }},
+                { type:'section', text:{ type:'mrkdwn', text:'> *🔄 Replacement / Upgrade*' }},
                 { type:'actions', elements:[
                   { type:'button', text:{ type:'plain_text', text:'🔄 Laptop Replace', emoji:true }, value:'Laptop exchange ya replace karna hai purana kharab ho gaya', action_id:'home_quick_37', style:'danger' }
                 ]}
