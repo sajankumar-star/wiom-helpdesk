@@ -935,8 +935,7 @@ app.listen(PORT, async () => {
               text: `Hello ${firstName}! 👋 WIOM IT Helpdesk`,
               blocks: [
                 // ── Welcome Header ─────────────────────────────────────────
-                { type:'header', text:{ type:'plain_text', text:'🛠️ WIOM IT Helpdesk', emoji:true }},
-                { type:'section', text:{ type:'mrkdwn', text:`*Hello ${firstName}!* 👋  Apni problem select karo:` }},
+                { type:'section', text:{ type:'mrkdwn', text:`*Hello ${firstName}!* 👋` }},
                 { type:'divider' },
 
                 // ── 💻 Laptop Hardware ─────────────────────────────────────
