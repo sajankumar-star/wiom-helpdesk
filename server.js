@@ -374,7 +374,6 @@ app.listen(PORT, async () => {
               { text:'🐢 Internet Very Slow',          value:'Internet speed is very slow browsing not working properly',                  id:'home_quick_29' },
               { text:'🔑 WiFi Password',               value:'Need WiFi password or forgot WiFi password',                                 id:'home_quick_32' },
               { text:'📡 Mobile Hotspot Issue',        value:'Mobile hotspot not connecting to laptop',                                    id:'home_quick_26' },
-              { text:'🔌 LAN / Ethernet Not Working',  value:'LAN cable or ethernet port not working no wired internet',                   id:'home_quick_41' }
             ],
             [
               { text:'🔒 VPN Not Connecting',          value:'VPN not connecting or VPN giving error',                                     id:'home_quick_42' },

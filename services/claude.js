@@ -106,7 +106,6 @@ WiFi not working: Taskbar WiFi → toggle off/on → Win+R → ncpa.cpl → WiFi
 Slow internet: Move closer to router → forget network → reconnect. Office WiFi password: spartans500
 WiFi password: spartans500 (Ground Floor & First Floor — same password)
 Hotspot: Turn phone hotspot off → on → forget on laptop → reconnect → ensure mobile data is on
-LAN/Ethernet: Unplug cable → replug firmly → ncpa.cpl → Ethernet → Disable → Enable → try new cable
 VPN: Raise ticket — IT sets up VPN, no DIY
 Website blocked: Try different browser → if office policy block → raise ticket
 WiFi disconnecting: Device Manager → Network adapters → WiFi → Properties → Power Management → uncheck "Allow PC to turn off this device"
