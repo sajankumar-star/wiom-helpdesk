@@ -330,39 +330,39 @@ app.listen(PORT, async () => {
           key: 'laptop', label: '💻 Laptop — Hardware',
           rows: [
             [
-              { text:'💻 Laptop Slow',      value:'Laptop bahut slow hai, kya karun',                                         id:'home_quick_1'  },
-              { text:'💻 Laptop On Nahi',   value:'Laptop on nahi ho raha hai',                                               id:'home_quick_2'  },
-              { text:'💙 Blue Screen',      value:'Blue screen of death aa raha hai',                                         id:'home_quick_3'  },
-              { text:'🌡️ Overheating',      value:'Laptop bahut garam ho raha hai overheating',                               id:'home_quick_4'  },
-              { text:'🔋 Battery Issue',    value:'Laptop ki battery jaldi khatam ho rahi hai ya charge nahi ho rahi',        id:'home_quick_5'  }
+              { text:'💻 Laptop Very Slow',          value:'My laptop is very slow, what should I do',                                    id:'home_quick_1'  },
+              { text:'💻 Laptop Won\'t Turn On',      value:'My laptop is not turning on at all',                                          id:'home_quick_2'  },
+              { text:'💙 Blue Screen Error',          value:'Getting blue screen of death BSOD error',                                     id:'home_quick_3'  },
+              { text:'🌡️ Laptop Overheating',         value:'My laptop is overheating getting very hot',                                   id:'home_quick_4'  },
+              { text:'🔋 Battery Not Charging',       value:'Laptop battery drains quickly or not charging at all',                        id:'home_quick_5'  }
             ],
             [
-              { text:'🖥️ Screen Black',     value:'Laptop screen black hai kuch nahi dikh raha',                             id:'home_quick_6'  },
-              { text:'⌨️ Keyboard Issue',   value:'Laptop ki keyboard kaam nahi kar rahi kuch keys nahi chal rahi',           id:'home_quick_7'  },
-              { text:'🖱️ Mouse/Touchpad',   value:'Mouse ya touchpad kaam nahi kar raha',                                    id:'home_quick_8'  },
-              { text:'🔌 Charger Issue',    value:'Laptop ka charger kaam nahi kar raha charge nahi ho raha',                 id:'home_quick_10' },
-              { text:'❄️ Laptop Hang',      value:'Laptop hang ya freeze ho raha hai respond nahi kar raha',                  id:'home_quick_21' }
+              { text:'🖥️ Screen Black / No Display',  value:'Laptop screen is black cannot see anything',                                 id:'home_quick_6'  },
+              { text:'⌨️ Keyboard Not Working',        value:'Laptop keyboard not working some keys not responding',                       id:'home_quick_7'  },
+              { text:'🖱️ Mouse / Touchpad Issue',      value:'Mouse or touchpad is not working not responding',                            id:'home_quick_8'  },
+              { text:'🔌 Charger Not Working',         value:'Laptop charger not working laptop not charging',                             id:'home_quick_10' },
+              { text:'❄️ Laptop Freezing / Hanging',   value:'Laptop is hanging freezing not responding at all',                           id:'home_quick_21' }
             ],
             [
-              { text:'⚡ Sudden Shutdown',  value:'Laptop achanak band ho jaata hai shutdown ho jaata hai',                   id:'home_quick_30' },
-              { text:'🔁 Restart Loop',     value:'Laptop restart loop mein hai baar baar restart ho raha hai',               id:'home_quick_33' },
-              { text:'💨 Fan Noise',        value:'Laptop se bahut tez awaaz aa rahi hai fan ki noise hai',                   id:'home_quick_38' },
-              { text:'📺 Screen Flicker',   value:'Laptop ki screen flicker kar rahi hai ya blink ho rahi hai',               id:'home_quick_39' },
-              { text:'🔵 Bluetooth',        value:'Laptop ka bluetooth kaam nahi kar raha device connect nahi ho raha',       id:'home_quick_40' }
+              { text:'⚡ Sudden Shutdown',             value:'Laptop shuts down suddenly without any warning',                             id:'home_quick_30' },
+              { text:'🔁 Stuck in Restart Loop',       value:'Laptop is stuck in restart loop keeps restarting again and again',           id:'home_quick_33' },
+              { text:'💨 Fan Making Loud Noise',       value:'Laptop fan is making very loud noise constantly',                            id:'home_quick_38' },
+              { text:'📺 Screen Flickering',           value:'Laptop screen is flickering blinking or flashing',                          id:'home_quick_39' },
+              { text:'🔵 Bluetooth Not Working',       value:'Laptop bluetooth not working cannot connect any device',                     id:'home_quick_40' }
             ],
             [
-              { text:'🔌 USB Nahi Chala',   value:'USB port kaam nahi kar raha pendrive ya device detect nahi ho rahi',      id:'home_quick_63' },
-              { text:'😴 Sleep Se Nahi Utha',value:'Laptop sleep ya hibernate se nahi uth raha screen black hai',             id:'home_quick_64' },
-              { text:'🚫 Boot Error',        value:'Laptop start nahi ho raha boot error aa raha hai Windows nahi khul rahi', id:'home_quick_65' },
-              { text:'👆 Touchscreen Nahi',  value:'Laptop ki touchscreen kaam nahi kar rahi touch respond nahi kar raha',    id:'home_quick_66' },
-              { text:'🖥️ HDMI Nahi Chala',  value:'HDMI cable se monitor ya TV connect nahi ho raha display nahi aa rahi',   id:'home_quick_67' }
+              { text:'🔌 USB Port Not Working',        value:'USB port not working pendrive or device not detected',                       id:'home_quick_63' },
+              { text:'😴 Won\'t Wake from Sleep',      value:'Laptop not waking up from sleep or hibernate screen stays black',            id:'home_quick_64' },
+              { text:'🚫 Boot Error / Won\'t Start',   value:'Laptop not starting getting boot error Windows not loading',                 id:'home_quick_65' },
+              { text:'👆 Touchscreen Not Working',     value:'Laptop touchscreen not working touch not responding at all',                 id:'home_quick_66' },
+              { text:'🖥️ HDMI / External Display',     value:'HDMI cable not working external monitor or TV not connecting',              id:'home_quick_67' }
             ],
             [
-              { text:'💳 SD Card Nahi Dikh Raha', value:'SD card ya memory card laptop mein detect nahi ho rahi',            id:'home_quick_68' },
-              { text:'🔐 Fingerprint Nahi',       value:'Fingerprint reader kaam nahi kar raha login nahi ho raha',          id:'home_quick_69' },
-              { text:'💧 Laptop Mein Paani',      value:'Laptop mein paani ya liquid gir gaya hai damage ho sakta hai',      id:'home_quick_70', style:'danger' },
-              { text:'🐌 Update Ke Baad Slow',    value:'Windows update ke baad laptop bahut slow ho gaya hai',              id:'home_quick_71' },
-              { text:'🔡 Caps Lock Atka',         value:'Caps Lock on hi rehta hai ya keyboard mein keys atki hui hain',     id:'home_quick_72' }
+              { text:'💳 SD Card Not Detected',        value:'SD card or memory card not being detected in laptop',                        id:'home_quick_68' },
+              { text:'🔐 Fingerprint Not Working',     value:'Fingerprint reader not working cannot login with fingerprint',               id:'home_quick_69' },
+              { text:'💧 Liquid / Water Damage',       value:'Liquid or water spilled on laptop needs immediate attention',                id:'home_quick_70', style:'danger' },
+              { text:'🐌 Slow After Windows Update',   value:'Laptop became very slow after a Windows update',                            id:'home_quick_71' },
+              { text:'🔡 Caps Lock / Keys Stuck',      value:'Caps Lock always stays on or keyboard keys are stuck',                      id:'home_quick_72' }
             ]
           ]
         },
@@ -370,17 +370,17 @@ app.listen(PORT, async () => {
           key: 'network', label: '🌐 Network / Internet',
           rows: [
             [
-              { text:'📶 WiFi Issue',       value:'WiFi nahi chal raha internet nahi hai',                                    id:'home_quick_11' },
-              { text:'🐢 Slow Internet',    value:'Internet bahut slow chal raha hai speed kam hai',                          id:'home_quick_29' },
-              { text:'🔑 WiFi Password',    value:'WiFi ka password bhool gaya ya galat ho gaya',                             id:'home_quick_32' },
-              { text:'📡 Hotspot Issue',    value:'Mobile hotspot se laptop connect nahi ho raha',                            id:'home_quick_26' },
-              { text:'🔌 LAN/Ethernet',     value:'LAN cable ya ethernet port kaam nahi kar raha internet nahi aa raha',      id:'home_quick_41' }
+              { text:'📶 WiFi Not Working',            value:'WiFi not working no internet connection',                                    id:'home_quick_11' },
+              { text:'🐢 Internet Very Slow',          value:'Internet speed is very slow browsing not working properly',                  id:'home_quick_29' },
+              { text:'🔑 WiFi Password',               value:'Need WiFi password or forgot WiFi password',                                 id:'home_quick_32' },
+              { text:'📡 Mobile Hotspot Issue',        value:'Mobile hotspot not connecting to laptop',                                    id:'home_quick_26' },
+              { text:'🔌 LAN / Ethernet Not Working',  value:'LAN cable or ethernet port not working no wired internet',                   id:'home_quick_41' }
             ],
             [
-              { text:'🔒 VPN Issue',        value:'VPN connect nahi ho raha ya VPN mein problem hai',                         id:'home_quick_42' },
-              { text:'🚫 Website Blocked',  value:'Website open nahi ho rahi hai blocked aa rahi hai',                        id:'home_quick_43' },
-              { text:'📶 WiFi Drops',       value:'WiFi baar baar disconnect ho jaata hai drop ho jaata hai',                 id:'home_quick_44' },
-              { text:'📧 Email Load Nahi',  value:'Email inbox load nahi ho raha ya email nahi aa rahe',                      id:'home_quick_45' }
+              { text:'🔒 VPN Not Connecting',          value:'VPN not connecting or VPN giving error',                                     id:'home_quick_42' },
+              { text:'🚫 Website Blocked / Not Opening',value:'Website not opening showing blocked or access denied',                      id:'home_quick_43' },
+              { text:'📶 WiFi Keeps Disconnecting',    value:'WiFi keeps disconnecting again and again dropping connection',               id:'home_quick_44' },
+              { text:'📧 Emails Not Loading',          value:'Email inbox not loading emails not coming or not sending',                   id:'home_quick_45' }
             ]
           ]
         },
@@ -388,17 +388,17 @@ app.listen(PORT, async () => {
           key: 'audio', label: '🎤 Audio / Video / Display',
           rows: [
             [
-              { text:'🔊 No Sound',         value:'Laptop mein sound nahi aa rahi speaker kaam nahi kar raha',                id:'home_quick_9'  },
-              { text:'🔇 Speaker Issue',    value:'Laptop ka speaker kaam nahi kar raha awaaz nahi aa rahi',                  id:'home_quick_28' },
-              { text:'🎤 Mic Issue',        value:'Mic kaam nahi kar raha Teams ya calls mein awaaz nahi jaati',              id:'home_quick_16' },
-              { text:'📷 Camera Nahi',      value:'Laptop ki camera kaam nahi kar rahi Teams ya Zoom mein',                   id:'home_quick_20' },
-              { text:'🖥️ Monitor Issue',    value:'External monitor detect nahi ho raha screen nahi aa rahi',                 id:'home_quick_17' }
+              { text:'🔊 No Sound / Audio',            value:'No sound coming from laptop speakers audio not working',                    id:'home_quick_9'  },
+              { text:'🔇 Speaker Not Working',         value:'Laptop speaker not working no audio output at all',                         id:'home_quick_28' },
+              { text:'🎤 Microphone Not Working',      value:'Microphone not working voice not going in Teams or calls',                   id:'home_quick_16' },
+              { text:'📷 Camera Not Working',          value:'Laptop camera not working in Teams Zoom or Meet',                           id:'home_quick_20' },
+              { text:'🖥️ External Monitor Not Working',value:'External monitor not detected screen not showing on it',                    id:'home_quick_17' }
             ],
             [
-              { text:'🎧 Headphone',        value:'Headphone ya earphone laptop se connect nahi ho raha ya awaaz nahi aa rahi', id:'home_quick_46' },
-              { text:'📽️ Projector',        value:'Laptop projector se connect nahi ho raha presentation nahi dikh rahi',     id:'home_quick_47' },
-              { text:'🖥️ Resolution',       value:'Screen resolution galat hai sab bada ya chota dikh raha hai',               id:'home_quick_48' },
-              { text:'📹 Video Call',       value:'Video call mein problem hai video nahi aa raha ya lag ho raha hai',         id:'home_quick_49' }
+              { text:'🎧 Headphone Not Working',       value:'Headphone or earphone not connecting or no sound in headphone',             id:'home_quick_46' },
+              { text:'📽️ Projector Not Connecting',    value:'Laptop not connecting to projector presentation not showing',               id:'home_quick_47' },
+              { text:'🖥️ Wrong Screen Resolution',     value:'Screen resolution is wrong everything looks too big or too small',          id:'home_quick_48' },
+              { text:'📹 Video Call Quality Issue',    value:'Video call not working properly video lagging or freezing',                  id:'home_quick_49' }
             ]
           ]
         },
@@ -406,23 +406,23 @@ app.listen(PORT, async () => {
           key: 'software', label: '💿 Software / Apps',
           rows: [
             [
-              { text:'📹 Teams',            value:'Teams mein problem hai call drop ho raha hai',                              id:'home_quick_13' },
-              { text:'🖥️ Zoom Problem',     value:'Zoom kaam nahi kar raha meeting join nahi ho rahi',                        id:'home_quick_27' },
-              { text:'📄 Word/Excel',       value:'Microsoft Word ya Excel nahi khul raha error aa raha hai',                  id:'home_quick_23' },
-              { text:'🌐 Browser Crash',    value:'Browser slow hai ya crash ho raha hai',                                    id:'home_quick_31' },
-              { text:'🔄 Windows Update',   value:'Windows update mein problem hai ya update stuck hai',                      id:'home_quick_24' }
+              { text:'📹 Microsoft Teams Issue',       value:'Microsoft Teams not working call dropping or not opening',                   id:'home_quick_13' },
+              { text:'🖥️ Zoom Not Working',            value:'Zoom not working cannot join meeting or Zoom crashing',                     id:'home_quick_27' },
+              { text:'📄 Word / Excel Not Opening',    value:'Microsoft Word or Excel not opening showing error',                         id:'home_quick_23' },
+              { text:'🌐 Browser Crashing / Slow',     value:'Browser is slow crashing or freezing Chrome Firefox Edge',                  id:'home_quick_31' },
+              { text:'🔄 Windows Update Problem',      value:'Windows update not installing stuck or causing issues',                     id:'home_quick_24' }
             ],
             [
-              { text:'🔐 Software Install', value:'Naya software install karna hai permission chahiye',                        id:'home_quick_25' },
-              { text:'📋 Copy Paste Nahi',  value:'Copy paste kaam nahi kar raha Ctrl+C Ctrl+V nahi chal raha',               id:'home_quick_34' },
-              { text:'🕐 Date/Time Wrong',  value:'Laptop ki date ya time galat dikh rahi hai',                               id:'home_quick_35' },
-              { text:'📧 Outlook Issue',    value:'Outlook nahi khul raha ya email send receive nahi ho rahi',                 id:'home_quick_50' },
-              { text:'☁️ OneDrive Issue',   value:'OneDrive sync nahi ho raha files cloud mein nahi ja rahi',                  id:'home_quick_51' }
+              { text:'🔐 Software Installation',       value:'Need to install new software need IT permission',                           id:'home_quick_25' },
+              { text:'📋 Copy Paste Not Working',      value:'Copy paste not working Ctrl+C Ctrl+V not responding',                       id:'home_quick_34' },
+              { text:'🕐 Wrong Date / Time',           value:'Laptop showing wrong date or time needs to be corrected',                   id:'home_quick_35' },
+              { text:'📧 Outlook Not Working',         value:'Outlook not opening or cannot send receive emails',                         id:'home_quick_50' },
+              { text:'☁️ OneDrive Not Syncing',        value:'OneDrive not syncing files not going to cloud',                             id:'home_quick_51' }
             ],
             [
-              { text:'📄 PDF Nahi Khula',   value:'PDF file open nahi ho rahi ya PDF reader kaam nahi kar raha',              id:'home_quick_52' },
-              { text:'💥 App Crash',        value:'App baar baar crash ya band ho jaata hai suddenly',                        id:'home_quick_53' },
-              { text:'🖨️ Print Problem',    value:'Printer kaam nahi kar raha print nahi ho raha',                            id:'home_quick_54' }
+              { text:'📄 PDF Not Opening',             value:'PDF file not opening PDF reader not working',                               id:'home_quick_52' },
+              { text:'💥 App Keeps Crashing',          value:'Application keeps crashing or closing suddenly',                            id:'home_quick_53' },
+              { text:'🖨️ Printer Not Working',         value:'Printer not working print job not completing',                             id:'home_quick_54' }
             ]
           ]
         },
@@ -430,17 +430,17 @@ app.listen(PORT, async () => {
           key: 'account', label: '🔐 Account / Security / Storage',
           rows: [
             [
-              { text:'🔑 Password Reset',   value:'Password bhool gaya reset karna hai',                                      id:'home_quick_14' },
-              { text:'💾 Storage Full',     value:'Laptop ki storage full ho gayi C drive full hai',                          id:'home_quick_18' },
-              { text:'🦠 Virus/Slow PC',    value:'Laptop mein virus lag gaya bahut slow hai ya ads aa rahe hain',            id:'home_quick_19' },
-              { text:'🔗 Shared Drive',     value:'Shared drive ya network folder access nahi ho raha',                       id:'home_quick_36' },
-              { text:'🔒 Account Locked',   value:'Account lock ho gaya hai login nahi ho pa raha',                           id:'home_quick_55' }
+              { text:'🔑 Password Reset',              value:'Forgot password need to reset it',                                          id:'home_quick_14' },
+              { text:'💾 Storage / Disk Full',         value:'Laptop storage full C drive is full cannot save files',                     id:'home_quick_18' },
+              { text:'🦠 Virus / Malware Suspected',   value:'Laptop may have virus showing ads or behaving strangely',                   id:'home_quick_19' },
+              { text:'🔗 Shared Drive Access Issue',   value:'Cannot access shared drive or network folder',                              id:'home_quick_36' },
+              { text:'🔒 Account Locked / Login Issue',value:'Account is locked cannot login to Windows or any account',                  id:'home_quick_55' }
             ],
             [
-              { text:'📱 2FA/OTP Issue',    value:'Two factor authentication ya OTP nahi aa raha login nahi ho raha',         id:'home_quick_56' },
-              { text:'🛡️ Antivirus Alert',  value:'Antivirus ne kuch block kiya hai ya alert aa raha hai',                   id:'home_quick_57' },
-              { text:'☁️ OneDrive Full',    value:'OneDrive storage full ho gayi hai files sync nahi ho rahi',                id:'home_quick_58' },
-              { text:'📧 Email Password',   value:'Email account ka password bhool gaya ya change karna hai',                 id:'home_quick_59' }
+              { text:'📱 2FA / OTP Not Received',      value:'Two factor authentication OTP not coming cannot login',                     id:'home_quick_56' },
+              { text:'🛡️ Antivirus Alert / Warning',   value:'Antivirus showing alert or has blocked something',                         id:'home_quick_57' },
+              { text:'☁️ OneDrive Storage Full',       value:'OneDrive storage is full files not syncing',                               id:'home_quick_58' },
+              { text:'📧 Email Password Reset',        value:'Forgot email account password need to reset it',                           id:'home_quick_59' }
             ]
           ]
         },
@@ -448,10 +448,10 @@ app.listen(PORT, async () => {
           key: 'replacement', label: '🔄 Replacement / Upgrade',
           rows: [
             [
-              { text:'🔄 Laptop Replace',   value:'Laptop exchange ya replace karna hai purana kharab ho gaya', id:'home_quick_37', style:'danger' },
-              { text:'🖱️ Mouse Replace',    value:'Mouse kharab ho gaya naya chahiye replacement request',      id:'home_quick_60' },
-              { text:'⌨️ Keyboard Replace', value:'Keyboard kharab ho gaya naya chahiye replacement request',   id:'home_quick_61' },
-              { text:'🖥️ Monitor Request',  value:'New monitor chahiye ya monitor replace karna hai request',   id:'home_quick_62' }
+              { text:'🔄 Laptop Replacement Request',  value:'Laptop needs replacement old one is damaged or not working',  id:'home_quick_37', style:'danger' },
+              { text:'🖱️ Mouse Replacement Request',   value:'Mouse is damaged need a replacement',                        id:'home_quick_60' },
+              { text:'⌨️ Keyboard Replacement Request', value:'Keyboard is damaged need a replacement',                     id:'home_quick_61' },
+              { text:'🖥️ New Monitor Request',         value:'Need a new monitor or monitor replacement',                  id:'home_quick_62' }
             ]
           ]
         }
