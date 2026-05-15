@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Lenovo Hardware Diagnostic
 color 09
 cls
@@ -27,7 +27,6 @@ echo.
 echo    Warranty check: pcsupport.lenovo.com/warranty
 echo    (Serial No copy karke paste karo)
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

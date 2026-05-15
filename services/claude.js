@@ -156,7 +156,8 @@ WiFi not working (2nd attempt — if 1st failed): Device Manager → Network Ada
 WiFi not working (3rd attempt — if 2nd failed): Win+R → cmd → type: netsh winsock reset → Enter → restart laptop → reconnect
 Slow internet (1st): Forget network → reconnect (password: spartans500) → close heavy apps (Teams, Chrome) → restart laptop
 Slow internet (2nd attempt): Device Manager → Network adapters → WiFi → right-click → Update driver → Search automatically
-WiFi password: spartans500 — same for Ground Floor and First Floor
+WiFi password: spartans500 — same for all networks
+WiFi networks: "spartans500" (all floors) and "wiom office 5g test" (5GHz, faster) — both use password: spartans500
 Hotspot (1st): Phone hotspot OFF → ON → laptop forget hotspot → reconnect → ensure mobile data ON on phone
 Hotspot (2nd attempt): Phone → Settings → Hotspot → change frequency to 2.4GHz → laptop reconnect
 Website blocked: Try different browser → check internet working → office block = raise ticket
@@ -234,7 +235,7 @@ const getKBFallback = (problem) => {
   if (p.includes('slow') || p.includes('hang') || p.includes('freez'))
     return `Laptop slow/hang fix karo! 🔧\nStep 1: Ctrl+Shift+Esc → CPU column sort karo → heavy app Right-click → End Task.\nStep 2: Win+R → type temp → Ctrl+A → Delete karo.\nStep 3: Laptop restart karo.\nScript button neeche hai — ek click mein automatic fix! ⬇️`;
   if (p.includes('wifi') || p.includes('internet') || p.includes('network'))
-    return `WiFi fix karo! 📶\nStep 1: Taskbar WiFi click → OFF karo → ON karo.\nStep 2: Network: spartans500 | Password: spartans500\nStep 3: Kaam nahi hua toh laptop restart karo.\nScript button neeche hai! ⬇️`;
+    return `WiFi fix karo! 📶\nStep 1: Taskbar WiFi click → OFF karo → ON karo.\nStep 2: "wiom office 5g test" ya "spartans500" select karo | Password: spartans500\nStep 3: Kaam nahi hua toh laptop restart karo.\nScript button neeche hai! ⬇️`;
   if (p.includes('sound') || p.includes('audio') || p.includes('speaker') || p.includes('headphone'))
     return `Sound fix karo! 🔊\nStep 1: Taskbar speaker icon Right-click → Sound settings.\nStep 2: Output device → sahi device select karo.\nStep 3: Volume 0% nahi honi chahiye — check karo.\nScript button neeche hai! ⬇️`;
   if (p.includes('blue screen') || p.includes('bsod'))

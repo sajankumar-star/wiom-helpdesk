@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - WiFi Fix
 color 0B
 cls
@@ -36,7 +36,6 @@ echo    Ab taskbar se WiFi network select karo:
 echo    Network name: Wiom
 echo    Password: spartans500
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

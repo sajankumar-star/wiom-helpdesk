@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Freezing / Hanging Fix
 color 0C
 cls
@@ -34,7 +34,6 @@ echo.
 echo    Agar abhi bhi hang ho raha hai:
 echo    Laptop restart karo (Start -> Restart)
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

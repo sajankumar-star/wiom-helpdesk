@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Screen Flicker Fix
 color 07
 cls
@@ -24,7 +24,6 @@ echo    Display Settings mein:
 echo    Advanced display -> Refresh rate ->
 echo    Highest available select karo
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

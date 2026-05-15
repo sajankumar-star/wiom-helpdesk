@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Black Screen Fix
 color 07
 cls
@@ -25,7 +25,6 @@ echo       (brightness increase key)
 echo    2. External monitor connect karo HDMI se
 echo       aur Win+P dabao
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

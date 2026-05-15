@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Touchscreen Fix
 color 0B
 cls
@@ -19,7 +19,6 @@ echo.
 echo    Test karo — screen touch karo.
 echo    Agar abhi bhi nahi: ticket raise karo
 echo    (touchscreen hardware issue ho sakta hai)
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

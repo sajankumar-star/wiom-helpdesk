@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - OneDrive Fix
 color 09
 cls
@@ -29,7 +29,6 @@ echo    Agar OneDrive storage full hai (5GB limit):
 echo    onedrive.live.com pe jaao -> old files delete karo
 echo    Ya IT se storage upgrade request karo
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

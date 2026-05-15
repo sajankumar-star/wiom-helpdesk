@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Camera Fix
 color 0D
 cls
@@ -22,7 +22,6 @@ echo.
 echo    Agar Windows Camera app mein kaam kare
 echo    but Teams mein na kare:
 echo    Teams -> Settings -> Devices -> Camera
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

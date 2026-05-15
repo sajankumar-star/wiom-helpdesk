@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Sudden Shutdown Fix
 color 0C
 cls
@@ -22,7 +22,6 @@ echo.
 echo    Agar baar baar shutdown ho raha hai:
 echo    Battery/thermal issue ho sakta hai
 echo    Ticket raise karo: ticket bana do
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

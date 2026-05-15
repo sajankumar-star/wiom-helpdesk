@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Screen Resolution Fix
 color 07
 cls
@@ -25,7 +25,6 @@ echo    (Usually 1920x1080 ya laptop ka native res)
 echo.
 echo    Agar "Recommended" option nahi dikh raha:
 echo    GPU driver update karna padega
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

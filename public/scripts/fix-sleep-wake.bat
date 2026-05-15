@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Sleep Wake Fix
 color 0A
 cls
@@ -21,7 +21,6 @@ echo    DONE! Sleep/Wake fix ho gaya.
 echo.
 echo    Ab laptop sleep se jagna chahiye.
 echo    Power button ya keyboard press karo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

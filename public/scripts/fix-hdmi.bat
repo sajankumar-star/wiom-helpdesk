@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - HDMI / External Display Fix
 color 07
 cls
@@ -26,7 +26,6 @@ echo    Win + P dabao -> Duplicate ya Extend
 echo    select karo.
 echo.
 echo    HDMI cable dono taraf check karo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

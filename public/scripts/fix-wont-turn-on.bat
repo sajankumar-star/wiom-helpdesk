@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Laptop Won't Turn On Fix
 color 0C
 cls
@@ -32,7 +32,6 @@ echo    Charger alag socket mein lagao
 echo    LED light aa rahi hai? (charging indicator)
 echo.
 echo    Kuch nahi hua - hardware issue hai:
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

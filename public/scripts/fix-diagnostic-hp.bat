@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - HP Hardware Diagnostic
 color 09
 cls
@@ -26,7 +26,6 @@ echo.
 echo    Warranty check: support.hp.com/checkwarranty
 echo    (Aapka Serial No upar dikh raha hai)
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

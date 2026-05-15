@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Slow Laptop Fix
 color 0A
 cls
@@ -38,7 +38,6 @@ echo.
 echo    DONE! Aapka laptop ab fast hona chahiye.
 echo.
 echo    Agar abhi bhi slow hai:
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

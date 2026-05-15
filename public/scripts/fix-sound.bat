@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Sound Fix
 color 0D
 cls
@@ -29,7 +29,6 @@ echo.
 echo    Check karo: taskbar mein speaker icon
 echo    Volume 0 pe to nahi? Mute to nahi?
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

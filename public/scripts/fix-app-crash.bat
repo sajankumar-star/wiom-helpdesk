@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - App Crash Fix
 color 0C
 cls
@@ -28,7 +28,6 @@ echo    3. App reinstall karo (IT se permission leke)
 echo    4. Windows update karo — bug fixes aate hain
 echo.
 echo    Agar specific app baar baar crash ho:
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

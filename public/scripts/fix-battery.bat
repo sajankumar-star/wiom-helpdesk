@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Battery / Charging Fix
 color 0E
 cls
@@ -28,7 +28,6 @@ echo    5. LED indicator check karo (orange = charging)
 echo.
 echo    Battery 80%% par nahi jaati:
 echo    Battery degraded hai - replacement ticket raise karo
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

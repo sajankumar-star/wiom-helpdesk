@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Video Call Quality Fix
 color 0B
 cls
@@ -28,7 +28,6 @@ echo       720p se kam karo (bandwidth bachao)
 echo    5. Camera/mic privacy settings check karo:
 echo       Settings -> Privacy -> Camera/Microphone
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

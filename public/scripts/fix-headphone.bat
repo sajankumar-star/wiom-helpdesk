@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Headphone Fix
 color 0B
 cls
@@ -28,7 +28,6 @@ echo    4. Taskbar speaker icon par right-click ->
 echo       Sound Settings -> Output device change karo
 echo.
 echo    Agar headphone detect nahi ho raha:
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Printer Fix
 color 09
 cls
@@ -28,7 +28,6 @@ echo    4. Printer settings mein "Print test page" try karo
 echo    5. USB cable/network cable check karo
 echo.
 echo    Network printer connect karna hai ya driver chahiye:
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

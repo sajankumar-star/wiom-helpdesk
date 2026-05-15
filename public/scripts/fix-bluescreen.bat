@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Blue Screen / Boot Error Fix
 color 0C
 cls
@@ -26,7 +26,6 @@ echo    3. Admin CMD mein: sfc /scannow
 echo    4. Admin CMD mein: DISM /Online /Cleanup-Image /RestoreHealth
 echo.
 echo    Immediately ticket raise karo:
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

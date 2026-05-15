@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Microphone Fix
 color 0D
 cls
@@ -24,7 +24,6 @@ echo    Input section mein apna mic select karo
 echo    Test button dabao — bold hona chahiye
 echo.
 echo    Teams mein: Settings -> Devices -> Mic
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

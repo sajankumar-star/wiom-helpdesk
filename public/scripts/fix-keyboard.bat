@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Keyboard Fix
 color 0B
 cls
@@ -22,7 +22,6 @@ echo.
 echo    On-Screen Keyboard se kaam chalao abhi.
 echo    Agar physical keyboard abhi bhi nahi
 echo    chala to ticket raise karo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

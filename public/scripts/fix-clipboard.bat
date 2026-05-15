@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Copy Paste Fix
 color 0C
 cls
@@ -29,7 +29,6 @@ echo.
 echo    Test karo: kuch select karo -> Ctrl+C
 echo    Phir kahi aur: Ctrl+V
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

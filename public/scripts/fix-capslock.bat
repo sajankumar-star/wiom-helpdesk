@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Caps Lock / Stuck Key Fix
 color 0E
 cls
@@ -28,7 +28,6 @@ echo    3. On-Screen Keyboard use karo temporarily:
 echo       Start -> On-Screen Keyboard
 echo.
 echo    Agar keyboard physically damaged hai:
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Fan Noise Fix
 color 0A
 cls
@@ -27,7 +27,6 @@ echo    4. Laptop bottom mein dust ho sakta hai
 echo.
 echo    Agar fan bahut loud hai ya grinding sound hai:
 echo    Hardware issue ho sakta hai — ticket raise karo
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

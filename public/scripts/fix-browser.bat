@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Browser Fix
 color 09
 cls
@@ -27,7 +27,6 @@ echo    3. Incognito mode mein try karo (Ctrl+Shift+N)
 echo    4. Browser reset karo:
 echo       Settings -> Reset Settings -> Restore defaults
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Bluetooth Fix
 color 0B
 cls
@@ -21,7 +21,6 @@ echo    DONE! Bluetooth reset ho gaya.
 echo.
 echo    Settings mein Bluetooth toggle OFF->ON karo
 echo    Phir apna device pair karo (Remove -> Add)
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

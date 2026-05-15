@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Word / Excel Fix
 color 09
 cls
@@ -28,7 +28,6 @@ echo    3. Office license check karo:
 echo       File -> Account -> Product Information
 echo.
 echo    Agar "Not Licensed" dikh raha hai: ticket raise karo
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

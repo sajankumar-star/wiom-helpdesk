@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Virus Scan / Antivirus Fix
 color 0C
 cls
@@ -28,7 +28,6 @@ echo    - Pop-ups aane lage hain
 echo    - Browser home page change ho gayi
 echo    - Unknown apps install hue hain
 echo    IMMEDIATELY ticket raise karo — laptop band karo!
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

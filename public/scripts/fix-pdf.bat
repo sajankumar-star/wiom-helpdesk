@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - PDF Fix
 color 09
 cls
@@ -28,7 +28,6 @@ echo    3. Agar specific PDF reader chahiye:
 echo       Adobe Acrobat Reader free download kar sakte hain
 echo       (IT permission required)
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

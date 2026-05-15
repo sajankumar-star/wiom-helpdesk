@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Date Time Fix
 color 0E
 cls
@@ -31,7 +31,6 @@ echo.
 echo    Taskbar mein clock check karo.
 echo    Agar ghalat hai: ticket bana do
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

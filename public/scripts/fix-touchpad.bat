@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Touchpad Fix
 color 0B
 cls
@@ -21,7 +21,6 @@ echo    DONE! Touchpad settings khuli hain.
 echo.
 echo    Settings mein Touchpad ON karo.
 echo    Fn + Touchpad key bhi try karo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

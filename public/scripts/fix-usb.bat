@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - USB Fix
 color 0E
 cls
@@ -21,7 +21,6 @@ echo    DONE! USB reset ho gaya.
 echo.
 echo    Device nikaalo aur dobara lagao.
 echo    Doosra USB port bhi try karo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Storage Cleanup
 color 0A
 cls
@@ -43,7 +43,6 @@ echo.
 echo    Agar C: abhi bhi 90%+ full hai:
 echo    Type karo Slack mein: ticket bana do
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

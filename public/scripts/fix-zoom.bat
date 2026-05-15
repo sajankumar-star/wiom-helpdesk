@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Zoom Fix
 color 0B
 cls
@@ -27,7 +27,6 @@ echo    1. Browser se join karo (zoom.us/j/...)
 echo    2. Zoom uninstall -> reinstall karo
 echo    3. Antivirus temporarily off karke try karo
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

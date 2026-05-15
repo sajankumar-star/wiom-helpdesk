@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Windows Update Fix
 color 09
 cls
@@ -30,7 +30,6 @@ echo    Agar update ke baad laptop slow hai:
 echo    Settings -> Windows Update -> View update history ->
 echo    Uninstall updates -> Last update remove karo
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

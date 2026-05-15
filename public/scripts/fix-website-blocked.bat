@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Website Not Opening Fix
 color 09
 cls
@@ -28,7 +28,6 @@ echo    3. Mobile data se try karo
 echo.
 echo    Agar office policy se block hai:
 echo    * IT se unblock request karo (ticket raise)
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

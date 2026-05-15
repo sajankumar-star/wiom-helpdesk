@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Dell Hardware Diagnostic
 color 09
 cls
@@ -27,7 +27,6 @@ echo.
 echo    Aapki warranty page browser mein khul gayi hai
 echo    (Service Tag automatically fill hua hai)
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Teams Fix
 color 0E
 cls
@@ -35,7 +35,6 @@ echo.
 echo    Calls/messages ab theek kaam karenge.
 echo    Agar phir bhi issue: teams.microsoft.com
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

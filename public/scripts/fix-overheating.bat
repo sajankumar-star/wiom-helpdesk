@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Overheating Fix
 color 0C
 cls
@@ -21,7 +21,6 @@ echo    DONE! Laptop ab thanda hona chahiye.
 echo.
 echo    Important: Laptop hard flat surface par
 echo    rakho — bed/sofa par nahi!
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

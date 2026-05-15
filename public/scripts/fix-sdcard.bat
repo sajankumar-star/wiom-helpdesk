@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - SD Card Fix
 color 0E
 cls
@@ -24,7 +24,6 @@ echo    1. Card nikaalo, wait 5 sec, dobara lagao
 echo    2. File Explorer check karo (This PC)
 echo    3. Device Manager -> Memory -> Scan
 echo.
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

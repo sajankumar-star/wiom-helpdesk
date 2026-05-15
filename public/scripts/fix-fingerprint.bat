@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 title WIOM IT Helpdesk - Fingerprint Fix
 color 0D
 cls
@@ -25,7 +25,6 @@ echo    3-4 baar enroll karo same finger ko
 echo    (better recognition ke liye)
 echo.
 echo    Agar reader nahi dikh raha: ticket raise
-echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause
