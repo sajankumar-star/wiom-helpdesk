@@ -205,6 +205,96 @@ const fixes = {
     };
   },
 
+  // Open Lenovo Vantage diagnostics
+  run_lenovo_diag: async () => {
+    const paths = [
+      'C:\\Program Files\\Lenovo\\VantageService\\LenovoVantage.exe',
+      'C:\\Program Files (x86)\\Lenovo\\VantageService\\LenovoVantage.exe',
+      'C:\\Program Files\\WindowsApps\\E046963F.LenovoCompanion_10.2404.5.0_x64__k1h2ywk1493x8\\App\\LenovoVantage.exe'
+    ];
+    let opened = false;
+    for (const p of paths) {
+      const check = await runPS(`Test-Path '${p.replace(/'/g, "''")}'`);
+      if (check.output?.trim().toLowerCase() === 'true') {
+        await runPS(`Start-Process '${p.replace(/'/g, "''")}'`);
+        opened = true;
+        break;
+      }
+    }
+    if (!opened) {
+      const uriResult = await runPS(`Start-Process 'lenovovantage:' -ErrorAction SilentlyContinue; Write-Output 'ok'`);
+      opened = !!uriResult.ok;
+    }
+    const sn = await runPS(`(Get-CimInstance Win32_BIOS).SerialNumber`);
+    return {
+      ok     : true,
+      result : opened
+        ? `✅ Lenovo Vantage khul gaya! *Hardware Settings → Diagnostics → Run All* click karo. Serial: \`${sn.output || 'N/A'}\``
+        : `⚠️ Lenovo Vantage install nahi hai. Microsoft Store se install karo. Serial: \`${sn.output || 'N/A'}\``,
+      summary: 'Opened Lenovo Vantage diagnostics'
+    };
+  },
+
+  // Open HP diagnostics
+  run_hp_diag: async () => {
+    const paths = [
+      'C:\\Program Files (x86)\\HP\\HP PC Hardware Diagnostics Windows\\HPDiagnosticsWindows.exe',
+      'C:\\Program Files\\HP\\HP PC Hardware Diagnostics Windows\\HPDiagnosticsWindows.exe',
+      'C:\\Program Files (x86)\\HP\\HP Support Framework\\HPSF.exe',
+      'C:\\Program Files\\HP\\HP Support Framework\\HPSF.exe'
+    ];
+    let opened = false;
+    for (const p of paths) {
+      const check = await runPS(`Test-Path '${p.replace(/'/g, "''")}'`);
+      if (check.output?.trim().toLowerCase() === 'true') {
+        await runPS(`Start-Process '${p.replace(/'/g, "''")}'`);
+        opened = true;
+        break;
+      }
+    }
+    if (!opened) {
+      await runPS(`Start-Process 'https://support.hp.com/us-en/checkwarranty'`);
+    }
+    const sn = await runPS(`(Get-CimInstance Win32_BIOS).SerialNumber`);
+    return {
+      ok     : true,
+      result : opened
+        ? `✅ HP Diagnostics tool khul gaya! *Run All Tests* select karo. Serial: \`${sn.output || 'N/A'}\``
+        : `⚠️ HP Diagnostics app nahi mili — HP warranty page browser mein khula. Serial: \`${sn.output || 'N/A'}\``,
+      summary: 'Opened HP Hardware Diagnostics'
+    };
+  },
+
+  // Open Dell SupportAssist diagnostics
+  run_dell_diag: async () => {
+    const paths = [
+      'C:\\Program Files\\Dell\\SupportAssistAgent\\bin\\SupportAssist.exe',
+      'C:\\Program Files (x86)\\Dell\\SupportAssistAgent\\bin\\SupportAssist.exe',
+      'C:\\Program Files\\Dell\\SupportAssist\\pcdrstarter.exe'
+    ];
+    let opened = false;
+    for (const p of paths) {
+      const check = await runPS(`Test-Path '${p.replace(/'/g, "''")}'`);
+      if (check.output?.trim().toLowerCase() === 'true') {
+        await runPS(`Start-Process '${p.replace(/'/g, "''")}'`);
+        opened = true;
+        break;
+      }
+    }
+    if (!opened) {
+      const sn = await runPS(`(Get-CimInstance Win32_BIOS).SerialNumber`);
+      await runPS(`Start-Process 'https://www.dell.com/support/home/?s=BSD&ServiceTag=${(sn.output||'').trim()}'`);
+    }
+    const sn = await runPS(`(Get-CimInstance Win32_BIOS).SerialNumber`);
+    return {
+      ok     : true,
+      result : opened
+        ? `✅ Dell SupportAssist khul gaya! *Run Hardware Test* click karo. Service Tag: \`${sn.output || 'N/A'}\``
+        : `⚠️ Dell SupportAssist nahi mila — Dell support page browser mein khula. Service Tag: \`${sn.output || 'N/A'}\``,
+      summary: 'Opened Dell SupportAssist diagnostics'
+    };
+  },
+
   // Disk cleanup
   clean_disk: async () => {
     // Set cleanup flags for drive C

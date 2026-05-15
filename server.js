@@ -1590,11 +1590,71 @@ app.listen(PORT, async () => {
             }
           }
 
+          // ── "Aap karo" / "You do it" detection ─────────────────────────
+          const isAapKaro = /\b(aap\s*(he|hi|karo|kar|kardo|krdo|khud|chalao|run|open)|tum\s*karo|khud\s*kar|agent\s*(se|karo|chalao)|auto.*fix|you\s*do\s*it|do\s*it\s*yourself|khud\s*(karo|kare|chalao))\b/i.test(text);
+          if (isAapKaro) {
+            const brand     = detectBrand(emp?.laptop);
+            const brandInfo = getBrandInfo(brand, emp?.laptopSN);
+            const isOnline  = emp?.agentRegistered && emp?.agentLastSeen
+              && (Date.now() - new Date(emp.agentLastSeen)) < 120000;
+
+            const aapKaroBlocks = [];
+
+            if (isOnline && emp?.laptopSN) {
+              // Agent online → create a FixJob for diagnostic
+              const diagFixMap = { hp: 'run_hp_diag', dell: 'run_dell_diag', lenovo: 'run_lenovo_diag' };
+              const diagFix    = diagFixMap[brand] || 'kill_heavy';
+              const diagLabel  = brandInfo.diagScript
+                ? `🔍 ${brandInfo.brandLabel} Diagnostic`
+                : '💻 Auto Cleanup';
+              await FixJob.create({
+                empId: emp.empId, empName: emp.empName, laptopSN: emp.laptopSN,
+                fixType: [diagFix], fixLabel: diagLabel,
+                status: 'pending', slackUserId: userId
+              });
+              aapKaroBlocks.push({
+                type: 'section',
+                text: { type: 'mrkdwn', text:
+                  `⚡ *Chal raha hoon!* Agent aapke laptop par *${diagLabel}* run kar raha hai.\n_30-60 seconds mein result milega — wait karo!_ 🔍`
+                }
+              });
+            } else {
+              // Agent offline → show download script
+              aapKaroBlocks.push({
+                type: 'section',
+                text: { type: 'mrkdwn', text:
+                  `🤖 *Script download karo → double-click karo → automatic chalega!*\n_IT ka safe script hai — bilkul ek click mein kaam ho jayega._`
+                }
+              });
+              if (brandInfo.diagScript) {
+                aapKaroBlocks.push({ type: 'divider' });
+                aapKaroBlocks.push({
+                  type: 'actions',
+                  elements: [{
+                    type: 'button',
+                    text: { type: 'plain_text', text: `⬇️ ${brandInfo.diagLabel}`, emoji: true },
+                    style: 'primary',
+                    url: `${PORTAL}/scripts/${brandInfo.diagScript}`,
+                    action_id: 'diag_dl_dm'
+                  }]
+                });
+              } else {
+                aapKaroBlocks.push({
+                  type: 'context',
+                  elements: [{ type: 'mrkdwn', text: '_Is problem ke liye specific script nahi hai — ticket raise karo ya steps manually karo._' }]
+                });
+              }
+            }
+
+            await say({ text: '🤖 Auto-fix chal raha hai!', blocks: aapKaroBlocks });
+            return;
+          }
+
           // ── Normal AI chat ────────────────────────────────────────────────
           const conv = await getSlackSession(userId, emp);
           conv.messages.push({ role: 'user', content: text });
-          // Trim to last 20 messages to keep DB lean
-          if (conv.messages.length > 20) conv.messages = conv.messages.slice(-20);
+          // Trim to last 30 messages to keep DB lean
+          if (conv.messages.length > 30) conv.messages = conv.messages.slice(-30);
           await conv.save();
 
           const { reply, shouldCreateTicket, ticketData } = await claudeSvc.chat(
