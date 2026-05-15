@@ -470,10 +470,28 @@ app.listen(PORT, async () => {
         'home_quick_13': { fixType: ['fix_teams'],                label: '📹 Teams Fix'              },
         'home_quick_50': { fixType: ['fix_outlook'],              label: '📧 Outlook Fix'            },
         'home_quick_34': { fixType: ['fix_clipboard'],            label: '📋 Copy-Paste Fix'         },
-        'home_quick_9' : { fixType: ['fix_sound'],               label: '🔊 Sound Fix'              },
-        'home_quick_28': { fixType: ['fix_sound'],               label: '🔊 Speaker Fix'            },
-        'home_quick_35': { fixType: ['fix_datetime'],            label: '🕐 Date/Time Fix'          },
+        'home_quick_9' : { fixType: ['fix_sound'],                label: '🔊 Sound Fix'             },
+        'home_quick_28': { fixType: ['fix_sound'],                label: '🔊 Speaker Fix'            },
+        'home_quick_35': { fixType: ['fix_datetime'],             label: '🕐 Date/Time Fix'         },
         'home_quick_18': { fixType: ['clean_disk', 'clean_temp'], label: '💾 Storage Cleanup'        },
+      };
+
+      // ── Download Script mapping: 1-click .bat scripts hosted on server ───
+      const PORTAL = process.env.API_BASE_URL || 'https://web-production-ef6c1.up.railway.app';
+      const SCRIPT_MAP = {
+        'home_quick_1' : { file: 'fix-slow-laptop.bat', label: '💻 Slow Laptop Fix'   },
+        'home_quick_21': { file: 'fix-freezing.bat',    label: '💻 Freezing Fix'       },
+        'home_quick_71': { file: 'fix-slow-laptop.bat', label: '💻 Speed Fix'          },
+        'home_quick_11': { file: 'fix-wifi.bat',        label: '📶 WiFi Fix'           },
+        'home_quick_44': { file: 'fix-wifi.bat',        label: '📶 WiFi Fix'           },
+        'home_quick_29': { file: 'fix-wifi.bat',        label: '📶 Internet Fix'       },
+        'home_quick_13': { file: 'fix-teams.bat',       label: '📹 Teams Fix'          },
+        'home_quick_50': { file: 'fix-outlook.bat',     label: '📧 Outlook Fix'        },
+        'home_quick_34': { file: 'fix-clipboard.bat',   label: '📋 Copy-Paste Fix'     },
+        'home_quick_9' : { file: 'fix-sound.bat',       label: '🔊 Sound Fix'          },
+        'home_quick_28': { file: 'fix-sound.bat',       label: '🔊 Sound Fix'          },
+        'home_quick_35': { file: 'fix-datetime.bat',    label: '🕐 Date/Time Fix'      },
+        'home_quick_18': { file: 'fix-storage.bat',     label: '💾 Storage Cleanup'    },
       };
 
       // ── Build Home Tab blocks (with collapsible categories) ───────────────
@@ -1013,29 +1031,46 @@ app.listen(PORT, async () => {
 
             const blocks = [{ type:'section', text:{ type:'mrkdwn', text: formattedReply }}];
 
-            // ── Auto-Fix button (if this problem is auto-fixable AND agent is registered) ──
+            // ── One-Click Download Script (always shown for fixable problems) ──
+            const scriptConfig = SCRIPT_MAP[actionId];
+            if (scriptConfig) {
+              const scriptUrl = `${PORTAL}/scripts/${scriptConfig.file}`;
+              blocks.push({ type: 'divider' });
+              blocks.push({
+                type: 'section',
+                text: { type: 'mrkdwn', text: `*⚡ Ya ek click mein automatic fix karo:*\n_IT ka safe script hai — download karo, double-click karo, kaam ho jayega!_` }
+              });
+              blocks.push({
+                type: 'actions',
+                elements: [
+                  {
+                    type     : 'button',
+                    text     : { type: 'plain_text', text: `⬇️ ${scriptConfig.label} — Auto Script`, emoji: true },
+                    style    : 'primary',
+                    url      : scriptUrl,
+                    action_id: `dl_${actionId}`
+                  }
+                ]
+              });
+            }
+
+            // ── Agent Auto-Fix button (only if agent registered + online) ────
             const fixConfig = AUTO_FIX_MAP[actionId];
             if (fixConfig && emp?.laptopSN && emp?.agentRegistered) {
               const isOnline = emp.agentLastSeen && (Date.now() - new Date(emp.agentLastSeen)) < 120000;
               if (isOnline) {
                 const fixValue = `${fixConfig.fixType.join(',')}|${fixConfig.label}|${emp.laptopSN}`;
-                blocks.push({ type: 'divider' });
-                blocks.push({
-                  type: 'section',
-                  text: { type: 'mrkdwn', text: `_🤖 *Auto-Fix available!* IT Agent aapke laptop par ready hai._` }
-                });
                 blocks.push({
                   type: 'actions',
                   elements: [
                     {
                       type     : 'button',
-                      text     : { type: 'plain_text', text: `⚡ Auto-Fix Karo — ${fixConfig.label}`, emoji: true },
-                      style    : 'primary',
+                      text     : { type: 'plain_text', text: `⚡ IT Agent se Auto-Fix (Background)`, emoji: true },
                       action_id: 'autofix_request',
                       value    : fixValue,
                       confirm  : {
                         title  : { type: 'plain_text', text: 'Auto-Fix Confirm?' },
-                        text   : { type: 'mrkdwn', text: `*${fixConfig.label}* automatically run hogi aapke laptop par.\n\n30 seconds mein result milega! 🔧` },
+                        text   : { type: 'mrkdwn', text: `*${fixConfig.label}* automatically run hogi aapke laptop par silently.\n30 seconds mein result milega! 🔧` },
                         confirm: { type: 'plain_text', text: 'Haan, Fix Karo!' },
                         deny   : { type: 'plain_text', text: 'Nahi' }
                       }
