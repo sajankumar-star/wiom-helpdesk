@@ -992,8 +992,23 @@ app.listen(PORT, async () => {
               dept   : emp?.department,
               floor  : emp?.floor
             };
+
+            // ── Start a fresh conversation session and SAVE it ────────────
+            // This ensures that when user says "nahi huaa", the DM handler
+            // loads this session and Claude sees full history → no repeats.
+            await Conversation.updateMany(
+              { slackUserId: userId, source: 'slack', resolved: false },
+              { resolved: true }
+            );
+            const conv = await getSlackSession(userId, empInfo);
+            conv.messages.push({ role: 'user', content: problem });
+
             const claudeSvc = require('./services/claude');
-            const { reply } = await claudeSvc.chat([{ role:'user', content: problem }], empInfo);
+            const { reply } = await claudeSvc.chat(conv.messages, empInfo);
+
+            // Save both the user message and AI reply to MongoDB
+            conv.messages.push({ role: 'assistant', content: reply });
+            await conv.save();
             const formattedReply = formatForSlack(reply);
 
             const blocks = [{ type:'section', text:{ type:'mrkdwn', text: formattedReply }}];
