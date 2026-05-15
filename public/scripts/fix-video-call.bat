@@ -28,7 +28,7 @@ echo       720p se kam karo (bandwidth bachao)
 echo    5. Camera/mic privacy settings check karo:
 echo       Settings -> Privacy -> Camera/Microphone
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

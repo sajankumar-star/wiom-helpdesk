@@ -28,7 +28,7 @@ echo    3. Office license check karo:
 echo       File -> Account -> Product Information
 echo.
 echo    Agar "Not Licensed" dikh raha hai: ticket raise karo
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

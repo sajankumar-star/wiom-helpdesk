@@ -29,7 +29,7 @@ echo.
 echo    Check karo: taskbar mein speaker icon
 echo    Volume 0 pe to nahi? Mute to nahi?
 echo.
-echo    IT Helpdesk: 9654244281 (9AM - 7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

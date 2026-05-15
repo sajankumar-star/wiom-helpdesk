@@ -28,7 +28,7 @@ echo    3. Agar specific PDF reader chahiye:
 echo       Adobe Acrobat Reader free download kar sakte hain
 echo       (IT permission required)
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

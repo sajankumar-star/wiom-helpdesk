@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
 });
 
 const FROM    = `"WIOM IT Helpdesk" <${process.env.SMTP_USER}>`;
-const SAJAN   = process.env.ADMIN_EMAIL || 'sajan.kumar@wiom.in';
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'it@wiom.in';
 
 // ── Priority colors ───────────────────────────────────────────────────────────
 const priColor = { Critical:'#ef4444', High:'#f97316', Medium:'#eab308', Low:'#22c55e' };
@@ -28,7 +28,7 @@ const wrap = (body) => `
   </div>
   <div style="padding:24px">${body}</div>
   <div style="background:#f9fafb;padding:16px;text-align:center;font-size:12px;color:#6b7280;border-top:1px solid #e5e7eb">
-    WIOM Internet Services | IT Department | Gurgaon | 9654244281
+    WIOM Internet Services | IT Department | Gurgaon | IT Helpdesk (Slack)
   </div>
 </div>
 </body></html>`;
@@ -40,7 +40,7 @@ const sendTicketConfirmation = async (ticket) => {
   const color = priColor[ticket.priority] || '#6b7280';
   const html  = wrap(`
     <p style="color:#374151">Hi <strong>${ticket.empName || ticket.empId}</strong>,</p>
-    <p style="color:#374151">Aapka IT ticket create ho gaya hai. Sajan Kumar jald hi aapki problem solve karega.</p>
+    <p style="color:#374151">Aapka IT ticket create ho gaya hai. IT team jald hi aapki problem solve karegi.</p>
 
     <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:16px 0;border-left:4px solid ${color}">
       <table style="width:100%;border-collapse:collapse">
@@ -57,8 +57,8 @@ const sendTicketConfirmation = async (ticket) => {
       </table>
     </div>
 
-    <p style="color:#374151;font-size:14px">Koi bhi update ke liye Sajan se directly contact karein:<br>
-    📱 <strong>9654244281</strong> | 📧 <strong>sajan.kumar@wiom.in</strong></p>
+    <p style="color:#374151;font-size:14px">Koi bhi update ke liye ADMIN_EMAIL se directly contact karein:<br>
+    📱 <strong>IT Helpdesk (Slack)</strong> | 📧 <strong>ADMIN_EMAIL.kumar@wiom.in</strong></p>
   `);
 
   await transporter.sendMail({
@@ -69,7 +69,7 @@ const sendTicketConfirmation = async (ticket) => {
   });
 };
 
-// ── Send alert to Sajan ───────────────────────────────────────────────────────
+// ── Send alert to ADMIN_EMAIL ───────────────────────────────────────────────────────
 const sendAdminAlert = async (ticket) => {
   const color = priColor[ticket.priority] || '#6b7280';
   const isCrit = ticket.priority === 'Critical' || ticket.priority === 'High';
@@ -113,7 +113,7 @@ const sendAdminAlert = async (ticket) => {
 
   await transporter.sendMail({
     from   : FROM,
-    to     : SAJAN,
+    to     : ADMIN_EMAIL,
     subject: `${isCrit ? '🚨 URGENT ' : ''}[${ticket.ticketId}] ${ticket.category} — ${ticket.empName || ticket.empId} (${ticket.priority})`,
     html
   });
@@ -136,7 +136,7 @@ const sendResolutionEmail = async (ticket) => {
       <p style="color:#1f2937;margin:8px 0 0">${ticket.resolution}</p>
     </div>` : ''}
     <p style="color:#374151;font-size:14px">Agar problem dobara aaye ya kuch aur issue ho toh Slack par ya direct contact karein:<br>
-    📱 <strong>9654244281</strong></p>
+    📱 <strong>IT Helpdesk (Slack)</strong></p>
   `);
 
   await transporter.sendMail({
@@ -147,7 +147,7 @@ const sendResolutionEmail = async (ticket) => {
   });
 };
 
-// ── Send SLA breach warning to Sajan ─────────────────────────────────────────
+// ── Send SLA breach warning to ADMIN_EMAIL ─────────────────────────────────────────
 const sendSLABreachAlert = async (ticket) => {
   const html = wrap(`
     <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;text-align:center;margin-bottom:16px">
@@ -171,7 +171,7 @@ const sendSLABreachAlert = async (ticket) => {
 
   await transporter.sendMail({
     from   : FROM,
-    to     : SAJAN,
+    to     : ADMIN_EMAIL,
     subject: `⏰ SLA BREACH — [${ticket.ticketId}] ${ticket.empName} — ${ticket.hoursOpen}h open`,
     html
   });

@@ -21,7 +21,7 @@ echo    DONE! Bluetooth reset ho gaya.
 echo.
 echo    Settings mein Bluetooth toggle OFF->ON karo
 echo    Phir apna device pair karo (Remove -> Add)
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

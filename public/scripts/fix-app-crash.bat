@@ -28,7 +28,7 @@ echo    3. App reinstall karo (IT se permission leke)
 echo    4. Windows update karo — bug fixes aate hain
 echo.
 echo    Agar specific app baar baar crash ho:
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

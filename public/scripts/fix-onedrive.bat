@@ -29,7 +29,7 @@ echo    Agar OneDrive storage full hai (5GB limit):
 echo    onedrive.live.com pe jaao -> old files delete karo
 echo    Ya IT se storage upgrade request karo
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

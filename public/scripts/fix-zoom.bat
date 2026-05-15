@@ -27,7 +27,7 @@ echo    1. Browser se join karo (zoom.us/j/...)
 echo    2. Zoom uninstall -> reinstall karo
 echo    3. Antivirus temporarily off karke try karo
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

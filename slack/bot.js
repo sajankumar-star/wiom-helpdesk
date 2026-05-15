@@ -147,11 +147,11 @@ app.command('/helpdesk', async ({ command, ack, client, respond }) => {
                   `📋 *Category:* ${ticketRes.category}\n` +
                   `🔴 *Priority:* ${ticketRes.priority}\n` +
                   `⏱ *SLA:* ${ticketRes.slaHours} hours\n\n` +
-                  `Sajan Kumar ko alert kar diya gaya hai. Woh jald hi aapki madad karenge! 🙏`
+                  `ADMIN_EMAIL Kumar ko alert kar diya gaya hai. Woh jald hi aapki madad karenge! 🙏`
           }
         });
-        // Send Sajan a DM alert
-        await notifySajan(client, ticketRes, emp, command.channel_id);
+        // Send ADMIN_EMAIL a DM alert
+        await notifyADMIN_EMAIL(client, ticketRes, emp, command.channel_id);
       }
     } else {
       // Add quick action buttons
@@ -182,7 +182,7 @@ app.command('/helpdesk', async ({ command, ack, client, respond }) => {
   } catch (err) {
     console.error('Slack /helpdesk error:', err);
     await respond({
-      text         : '❌ Kuch error aa gaya. Seedha Sajan se contact karo: 9654244281',
+      text         : '❌ Kuch error aa gaya. IT Helpdesk se Slack pe contact karo',
       response_type: 'ephemeral'
     });
   }
@@ -233,9 +233,9 @@ app.action('raise_ticket', async ({ ack, body, respond, client }) => {
     await respond({
       response_type: 'ephemeral',
       replace_original: true,
-      text: `✅ *Ticket ${ticket.ticketId} create ho gaya!*\nSajan Kumar ko alert kar diya. Woh jald aapki madad karenge. 🙏`
+      text: `✅ *Ticket ${ticket.ticketId} create ho gaya!*\nADMIN_EMAIL Kumar ko alert kar diya. Woh jald aapki madad karenge. 🙏`
     });
-    await notifySajan(client, ticket, { empId, empName }, body.channel?.id);
+    await notifyADMIN_EMAIL(client, ticket, { empId, empName }, body.channel?.id);
   }
 });
 
@@ -273,15 +273,15 @@ app.message(async ({ message, client, say }) => {
       });
       if (ticket) {
         await say({
-          text     : `🎫 *Ticket ${ticket.ticketId}* create ho gaya! Sajan ko alert kar diya. Priority: *${ticket.priority}*, SLA: *${ticket.slaHours}h*`,
+          text     : `🎫 *Ticket ${ticket.ticketId}* create ho gaya! ADMIN_EMAIL ko alert kar diya. Priority: *${ticket.priority}*, SLA: *${ticket.slaHours}h*`,
           thread_ts: message.ts
         });
-        await notifySajan(client, ticket, emp, message.channel);
+        await notifyADMIN_EMAIL(client, ticket, emp, message.channel);
       }
     }
   } catch (err) {
     console.error('DM handler error:', err);
-    await say({ text: '❌ Kuch error aa gaya. Sajan se directly contact karo: 9654244281', thread_ts: message.ts });
+    await say({ text: '❌ Kuch error aa gaya. IT Helpdesk se Slack pe contact karo', thread_ts: message.ts });
   }
 });
 
@@ -301,16 +301,16 @@ const createTicket = async (data) => {
   }
 };
 
-// ── Helper: Notify Sajan via Slack DM ────────────────────────────────────────
-const notifySajan = async (client, ticket, emp, channelId) => {
+// ── Helper: Notify ADMIN_EMAIL via Slack DM ────────────────────────────────────────
+const notifyADMIN_EMAIL = async (client, ticket, emp, channelId) => {
   try {
-    const sajanId = process.env.SAJAN_SLACK_ID;
-    if (!sajanId) return;
+    const ADMIN_EMAILId = process.env.ADMIN_EMAIL_SLACK_ID;
+    if (!ADMIN_EMAILId) return;
 
     const priEmoji = { Critical:'🔴', High:'🟠', Medium:'🟡', Low:'🟢' };
 
     await client.chat.postMessage({
-      channel: sajanId,
+      channel: ADMIN_EMAILId,
       blocks : [
         {
           type: 'section',
@@ -344,7 +344,7 @@ const notifySajan = async (client, ticket, emp, channelId) => {
       ]
     });
   } catch (err) {
-    console.error('Sajan DM error:', err.message);
+    console.error('ADMIN_EMAIL DM error:', err.message);
   }
 };
 
@@ -360,7 +360,7 @@ app.action('admin_resolve', async ({ ack, body, client, respond }) => {
         'Content-Type' : 'application/json',
         'Authorization': `Bearer ${process.env.ADMIN_JWT_TOKEN}`
       },
-      body: JSON.stringify({ status: 'Resolved', resolvedBy: 'Human', resolution: 'Resolved by Sajan via Slack' })
+      body: JSON.stringify({ status: 'Resolved', resolvedBy: 'Human', resolution: 'Resolved by ADMIN_EMAIL via Slack' })
     });
 
     await respond({

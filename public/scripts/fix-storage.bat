@@ -43,7 +43,7 @@ echo.
 echo    Agar C: abhi bhi 90%+ full hai:
 echo    Type karo Slack mein: ticket bana do
 echo.
-echo    IT Helpdesk: 9654244281 (9AM - 7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

@@ -26,7 +26,7 @@ echo    3. Admin CMD mein: sfc /scannow
 echo    4. Admin CMD mein: DISM /Online /Cleanup-Image /RestoreHealth
 echo.
 echo    Immediately ticket raise karo:
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

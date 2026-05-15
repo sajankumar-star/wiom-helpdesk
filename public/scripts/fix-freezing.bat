@@ -34,7 +34,7 @@ echo.
 echo    Agar abhi bhi hang ho raha hai:
 echo    Laptop restart karo (Start -> Restart)
 echo.
-echo    IT Helpdesk: 9654244281 (9AM - 7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

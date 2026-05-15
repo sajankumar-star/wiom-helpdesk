@@ -22,7 +22,7 @@ echo.
 echo    Agar Windows Camera app mein kaam kare
 echo    but Teams mein na kare:
 echo    Teams -> Settings -> Devices -> Camera
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

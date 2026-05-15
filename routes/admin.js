@@ -31,7 +31,7 @@ router.post('/broadcast', verifyAdmin, async (req, res) => {
           text   : `${emoji} IT Helpdesk: ${message}`,
           blocks : [
             { type:'section', text:{ type:'mrkdwn', text: `${emoji} *WIOM IT Helpdesk — Announcement*\n\n${message}` }},
-            { type:'context', elements:[{ type:'mrkdwn', text:`_Bheja by: ${adminName} | IT Helpdesk: 9654244281_` }]}
+            { type:'context', elements:[{ type:'mrkdwn', text:`_Bheja by: ${adminName} | IT Helpdesk (Slack pe ticket)_` }]}
           ]
         });
         sent++;

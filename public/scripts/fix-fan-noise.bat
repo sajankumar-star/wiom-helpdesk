@@ -27,7 +27,7 @@ echo    4. Laptop bottom mein dust ho sakta hai
 echo.
 echo    Agar fan bahut loud hai ya grinding sound hai:
 echo    Hardware issue ho sakta hai — ticket raise karo
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

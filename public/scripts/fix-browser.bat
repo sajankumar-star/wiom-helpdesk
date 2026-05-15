@@ -27,7 +27,7 @@ echo    3. Incognito mode mein try karo (Ctrl+Shift+N)
 echo    4. Browser reset karo:
 echo       Settings -> Reset Settings -> Restore defaults
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

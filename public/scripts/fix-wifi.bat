@@ -36,7 +36,7 @@ echo    Ab taskbar se WiFi network select karo:
 echo    Network name: Wiom
 echo    Password: spartans500
 echo.
-echo    IT Helpdesk: 9654244281 (9AM - 7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

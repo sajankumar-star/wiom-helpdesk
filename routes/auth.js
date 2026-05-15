@@ -38,7 +38,7 @@ router.post('/employee-login', async (req, res) => {
     if (!empId) return res.status(400).json({ error: 'Employee ID required' });
 
     const emp = await Employee.findOne({ empId: empId.toUpperCase(), isActive: true });
-    if (!emp) return res.status(404).json({ error: 'Employee not found. Contact Sajan.' });
+    if (!emp) return res.status(404).json({ error: 'Employee not found. Contact ADMIN_EMAIL.' });
 
     emp.lastLogin = new Date();
     await emp.save();
@@ -74,14 +74,14 @@ router.post('/setup-admin', async (req, res) => {
     return res.status(403).json({ error: 'Setup disabled' });
 
   try {
-    const existing = await Admin.findOne({ username: 'sajan' });
+    const existing = await Admin.findOne({ username: 'ADMIN_EMAIL' });
     if (existing) return res.status(400).json({ error: 'Admin already exists' });
 
     const admin = await Admin.create({
-      username    : 'sajan',
+      username    : 'ADMIN_EMAIL',
       passwordHash: req.body.password || 'Wiom@2024',
-      name        : 'Sajan Kumar',
-      email       : 'sajan.kumar@wiom.in',
+      name        : 'IT Admin',
+      email       : process.env.ADMIN_EMAIL || 'it@wiom.in',
       role        : 'superadmin'
     });
 

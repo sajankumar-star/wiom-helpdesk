@@ -19,7 +19,7 @@ echo.
 echo    Test karo — screen touch karo.
 echo    Agar abhi bhi nahi: ticket raise karo
 echo    (touchscreen hardware issue ho sakta hai)
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

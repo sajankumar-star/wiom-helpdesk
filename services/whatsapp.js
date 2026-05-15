@@ -114,7 +114,7 @@ const handleIncoming = async (req, res, twilioClient) => {
         if (ticketJson.ticket) {
           await twilioClient.messages.create({
             from: WA_FROM, to: from,
-            body: `🎫 *Ticket Create Ho Gaya!*\nTicket ID: ${ticketJson.ticket.ticketId}\nIT team jaldi contact karegi.\n\nUrgent ho to: 9654244281`
+            body: `🎫 *Ticket Create Ho Gaya!*\nTicket ID: ${ticketJson.ticket.ticketId}\nIT team jaldi contact karegi.\n\nUrgent ho to: IT Helpdesk (Slack)`
           });
         }
       } catch (e) {
@@ -130,7 +130,7 @@ const handleIncoming = async (req, res, twilioClient) => {
       if (from && req.twilioClient) {
         await req.twilioClient.messages.create({
           from: WA_FROM, to: from,
-          body: '❌ Kuch technical problem aa gayi. Thodi der baad try karein ya call karein: 9654244281'
+          body: '❌ Kuch technical problem aa gayi. Thodi der baad try karein ya call karein: IT Helpdesk (Slack)'
         });
       }
     } catch (e2) {}

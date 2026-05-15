@@ -29,7 +29,7 @@ echo.
 echo    Test karo: kuch select karo -> Ctrl+C
 echo    Phir kahi aur: Ctrl+V
 echo.
-echo    IT Helpdesk: 9654244281 (9AM - 7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

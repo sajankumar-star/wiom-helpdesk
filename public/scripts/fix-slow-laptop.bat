@@ -38,7 +38,7 @@ echo.
 echo    DONE! Aapka laptop ab fast hona chahiye.
 echo.
 echo    Agar abhi bhi slow hai:
-echo    IT Helpdesk: 9654244281 (9AM - 7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

@@ -28,7 +28,7 @@ echo    4. Taskbar speaker icon par right-click ->
 echo       Sound Settings -> Output device change karo
 echo.
 echo    Agar headphone detect nahi ho raha:
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

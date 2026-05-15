@@ -25,7 +25,7 @@ echo    (Usually 1920x1080 ya laptop ka native res)
 echo.
 echo    Agar "Recommended" option nahi dikh raha:
 echo    GPU driver update karna padega
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

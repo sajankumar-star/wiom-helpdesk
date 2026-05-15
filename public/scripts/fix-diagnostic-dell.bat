@@ -27,7 +27,7 @@ echo.
 echo    Aapki warranty page browser mein khul gayi hai
 echo    (Service Tag automatically fill hua hai)
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

@@ -51,7 +51,7 @@ echo.
 
 :: ── Get info from IT admin ────────────────────────────────────
 set /p EMP_ID="  Enter Employee Keka ID (e.g. WIOM001): "
-set /p AGENT_SECRET="  Enter Agent Secret (from Sajan): "
+set /p AGENT_SECRET="  Enter Agent Secret (from IT Admin): "
 set SERVER_URL=https://web-production-ef6c1.up.railway.app
 
 echo.

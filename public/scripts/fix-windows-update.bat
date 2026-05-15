@@ -30,7 +30,7 @@ echo    Agar update ke baad laptop slow hai:
 echo    Settings -> Windows Update -> View update history ->
 echo    Uninstall updates -> Last update remove karo
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

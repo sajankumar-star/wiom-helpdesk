@@ -24,7 +24,7 @@ echo    Display Settings mein:
 echo    Advanced display -> Refresh rate ->
 echo    Highest available select karo
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

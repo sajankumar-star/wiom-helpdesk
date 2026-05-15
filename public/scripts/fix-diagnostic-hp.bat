@@ -26,7 +26,7 @@ echo.
 echo    Warranty check: support.hp.com/checkwarranty
 echo    (Aapka Serial No upar dikh raha hai)
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

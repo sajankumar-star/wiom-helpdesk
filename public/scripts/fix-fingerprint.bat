@@ -25,7 +25,7 @@ echo    3-4 baar enroll karo same finger ko
 echo    (better recognition ke liye)
 echo.
 echo    Agar reader nahi dikh raha: ticket raise
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

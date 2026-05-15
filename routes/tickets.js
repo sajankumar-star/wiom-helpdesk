@@ -54,7 +54,7 @@ router.post('/', async (req, res) => {
       emailSvc.sendTicketConfirmation(ticket).catch(console.error);
     }
 
-    // Send alert to Sajan
+    // Send alert to ADMIN_EMAIL
     emailSvc.sendAdminAlert(ticket).catch(console.error);
 
     res.status(201).json({ success: true, ticket });
@@ -185,7 +185,7 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
               { type:'button', text:{ type:'plain_text', text:'⭐⭐⭐⭐⭐ 5', emoji:true }, value:`${ticket.ticketId}:5`, action_id:'rate_ticket' }
             ]},
             { type:'context', elements:[{ type:'mrkdwn',
-              text:`Resolved by ${resolvedBy_} | Agar problem wapas aaye: IT Helpdesk 9654244281` }]}
+              text:`Resolved by ${resolvedBy_} | Agar problem wapas aaye: IT Helpdesk (Slack)` }]}
           ]
         }).catch(e => console.error('Slack resolve DM error:', e.message));
       }

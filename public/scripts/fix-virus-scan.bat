@@ -28,7 +28,7 @@ echo    - Pop-ups aane lage hain
 echo    - Browser home page change ho gayi
 echo    - Unknown apps install hue hain
 echo    IMMEDIATELY ticket raise karo — laptop band karo!
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

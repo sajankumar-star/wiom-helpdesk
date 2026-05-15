@@ -74,7 +74,7 @@ These always get a ticket (no steps, just friendly redirect):
 - Password reset / account unlock → "Yeh main khud reset kar dunga! 🎫 Type karo: ticket bana do"
 - VPN setup, new software install → ticket only
 - Windows reinstall, BIOS, hard drive → ticket only
-- Liquid damage → "TURANT laptop band karo! 🚨 IT ko call karo: 9654244281"
+- Liquid damage → "TURANT laptop band karo! 🚨 IT ko call karo: IT Helpdesk (Slack)"
 
 ━━━ VAGUE MESSAGE ━━━
 If problem unclear — ask ONE short question only. No steps yet.
@@ -137,7 +137,7 @@ HDMI (1st): Win+P → select Duplicate or Extend → check if monitor powers on
 HDMI (2nd attempt): Restart laptop WITH monitor already plugged in via HDMI → Win+P again
 SD card: Remove → reinsert → check File Explorer → devmgmt.msc → Memory card → Scan for changes
 Fingerprint: Settings → Accounts → Sign-in options → Windows Hello Fingerprint → Remove → Add again. Fails = ticket
-Liquid/Water damage: IMMEDIATELY power off → DO NOT turn on → remove charger → call IT: 9654244281
+Liquid/Water damage: IMMEDIATELY power off → DO NOT turn on → remove charger → call IT: IT Helpdesk (Slack)
 Slow after update (1st): Ctrl+Shift+Esc → find "Delivery Optimization" or "Windows Update" → End Task
 Slow after update (2nd): Settings → Windows Update → Advanced → Delivery Optimization → OFF → restart
 Caps Lock/keys stuck: Press Caps Lock once → if blinking LED stops = fixed. Physically jammed key = ticket (keyboard replace)
@@ -207,7 +207,7 @@ Email password: Raise ticket — IT resets email passwords only
 🔄 REPLACEMENT:
 All replacement requests (laptop, mouse, keyboard, monitor) = Raise ticket only. IT team processes requests.
 
-Emergency: Call 9654244281 (9AM–7PM)`;
+Emergency: Call IT Helpdesk (Slack) (9AM–7PM)`;
 
 
 // ── Main chat function ────────────────────────────────────────────────────────
@@ -259,7 +259,7 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
 
   let reply = (typeof parsed.reply === 'string') ? parsed.reply.trim() : raw;
   if (reply.includes('"shouldCreateTicket"') || reply.startsWith('{')) {
-    reply = 'Kuch technical issue aa gaya. Please dobara try karein — IT Helpdesk: 9654244281';
+    reply = 'Kuch technical issue aa gaya. Please dobara try karein — IT Helpdesk: IT Helpdesk (Slack)';
   }
 
   // ── Strip bare title lines before "Step 1:" (but keep friendly openers) ──

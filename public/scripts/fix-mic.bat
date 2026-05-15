@@ -24,7 +24,7 @@ echo    Input section mein apna mic select karo
 echo    Test button dabao — bold hona chahiye
 echo.
 echo    Teams mein: Settings -> Devices -> Mic
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

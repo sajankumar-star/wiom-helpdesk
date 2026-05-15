@@ -21,7 +21,7 @@ echo    DONE! USB reset ho gaya.
 echo.
 echo    Device nikaalo aur dobara lagao.
 echo    Doosra USB port bhi try karo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

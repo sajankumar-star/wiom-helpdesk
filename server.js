@@ -134,7 +134,7 @@ cron.schedule('*/30 * * * *', () => {
 // ── Auto-Escalation Cron: Every hour ─────────────────────────────────────────
 cron.schedule('0 * * * *', async () => {
   try {
-    const adminId = process.env.SAJAN_SLACK_ID;
+    const adminId = process.env.ADMIN_EMAIL_SLACK_ID;
     if (!slackClient || !adminId || adminId === 'FILL_KARO') return;
 
     const fourHoursAgo = new Date(Date.now() - 4 * 3600000);
@@ -208,7 +208,7 @@ cron.schedule('30 * * * *', async () => {
               `*⏱ Open Since:* ${hoursOld} ghante pehle`
             }},
             { type:'context', elements:[{ type:'mrkdwn', text:
-              `_IT team aapke ticket par kaam kar rahi hai 🙏 Jaldi solve ho jayega!_\nUrgent ho toh call karein: *9654244281*`
+              `_IT team aapke ticket par kaam kar rahi hai 🙏 Jaldi solve ho jayega!_\nUrgent ho toh call karein: *IT Helpdesk (Slack)*`
             }]}
           ]
         });
@@ -244,7 +244,7 @@ cron.schedule('0 2 * * *', async () => {
 cron.schedule('*/30 * * * *', async () => {
   try {
     if (!slackClient) return;
-    const adminId = process.env.SAJAN_SLACK_ID;
+    const adminId = process.env.ADMIN_EMAIL_SLACK_ID;
     if (!adminId || adminId === 'FILL_KARO') return;
 
     const oneHourAgo = new Date(Date.now() - 3600000);
@@ -287,13 +287,13 @@ const ensureAdminExists = async () => {
     const count = await Admin.countDocuments();
     if (count === 0) {
       await Admin.create({
-        username    : 'sajan',
+        username    : 'ADMIN_EMAIL',
         passwordHash: process.env.ADMIN_PASSWORD || 'Wiom@2024',
-        name        : 'Sajan Kumar',
-        email       : 'sajan.kumar@wiom.in',
+        name        : 'IT Admin',
+        email       : process.env.ADMIN_EMAIL || 'it@wiom.in',
         role        : 'superadmin'
       });
-      console.log('✅ Default admin created: sajan / Wiom@2024');
+      console.log('✅ Default admin created: ADMIN_EMAIL / Wiom@2024');
     }
   } catch (err) {
     console.error('Admin setup error:', err.message);
@@ -739,7 +739,7 @@ app.listen(PORT, async () => {
       // ── Notify admin ──────────────────────────────────────────────────────
       const notifyAdmin = async (client, ticket, emp) => {
         try {
-          const adminId = process.env.SAJAN_SLACK_ID;
+          const adminId = process.env.ADMIN_EMAIL_SLACK_ID;
           if (!adminId || adminId === 'FILL_KARO') return;
           const priEmoji = { Critical:'🔴', High:'🟠', Medium:'🟡', Low:'🟢' };
           const priColor = { Critical:'#ef4444', High:'#f59e0b', Medium:'#3b82f6', Low:'#10b981' };
@@ -989,7 +989,7 @@ app.listen(PORT, async () => {
           try {
             await client.chat.postMessage({
               channel: userId,
-              text   : '❌ Ticket create karne mein error aaya. Dobara try karein ya call karein: *9654244281*'
+              text   : '❌ Ticket create karne mein error aaya. Dobara try karein ya call karein: *IT Helpdesk (Slack)*'
             });
           } catch {}
         }
@@ -1022,7 +1022,7 @@ app.listen(PORT, async () => {
               { type:'section', text:{ type:'mrkdwn', text:
                 `✅ *Ticket \`${ticketId}\` resolve ho gaya!*\n\n*Aapki Rating:* ${stars} (${rating}/5)\n${ratingMsg}`
               }},
-              { type:'context', elements:[{ type:'mrkdwn', text:`IT Helpdesk: 9654244281 | Koi aur problem ho toh batao!` }]}
+              { type:'context', elements:[{ type:'mrkdwn', text:`IT Helpdesk: IT Helpdesk (Slack) | Koi aur problem ho toh batao!` }]}
             ]
           });
           console.log(`⭐ Rating ${rating}/5 saved for ${ticketId}`);
@@ -1124,7 +1124,7 @@ app.listen(PORT, async () => {
               '2. Charger aur USB sab nikaalo\n' +
               '3. Laptop *ulta rakh do* (keyboard neeche)\n' +
               '4. *MAT chalaao* — circuit damage hoga\n' +
-              '5. IT ko call karo: *9654244281*'
+              '5. IT ko call karo: *IT Helpdesk (Slack)*'
             }
           });
           blocks.push({ type: 'divider' });
@@ -1135,7 +1135,7 @@ app.listen(PORT, async () => {
           const item = isMouseRep ? '🖱️ Mouse' : isKeyboardRep ? '⌨️ Keyboard' : '🖥️ Monitor';
           blocks.push({
             type: 'section',
-            text: { type: 'mrkdwn', text: `*${item} Replacement Request*\n\nIT team ko request bhej di jayegi. 1 working day mein replacement milegi.\n\nIT: *9654244281* (9AM–7PM)` }
+            text: { type: 'mrkdwn', text: `*${item} Replacement Request*\n\nIT team ko request bhej di jayegi. 1 working day mein replacement milegi.\n\nIT: *IT Helpdesk (Slack)* (9AM–7PM)` }
           });
           return blocks;
         }
@@ -1214,8 +1214,8 @@ app.listen(PORT, async () => {
           type: 'section',
           text: { type: 'mrkdwn', text:
             (isLiquid
-              ? '⚠️ *IT team ko turant ticket raise ho rahi hai...*\n_Aap unhe call bhi karo: 9654244281_'
-              : '*📋 Replacement ticket IT team ko jayega.*\n_1 working day mein respond karenge._\n_IT: 9654244281 (9AM–7PM)_'
+              ? '⚠️ *IT team ko turant ticket raise ho rahi hai...*\n_Aap unhe call bhi karo: IT Helpdesk (Slack)_'
+              : '*📋 Replacement ticket IT team ko jayega.*\n_1 working day mein respond karenge._\n_IT: IT Helpdesk (Slack) (9AM–7PM)_'
             )
           }
         });
@@ -1368,7 +1368,7 @@ app.listen(PORT, async () => {
           if (!emp) {
             await client.chat.postMessage({
               channel: userId,
-              text   : '❌ Employee record nahi mila. IT ko contact karo: 9654244281'
+              text   : '❌ Employee record nahi mila. IT ko contact karo: IT Helpdesk (Slack)'
             });
             return;
           }
@@ -1457,7 +1457,7 @@ app.listen(PORT, async () => {
             });
             await say({ blocks:[
               { type:'section', text:{ type:'mrkdwn', text: ticketText }},
-              { type:'context', elements:[{ type:'mrkdwn', text:`_Aur help chahiye to batao, ya call karein: 9654244281_` }]}
+              { type:'context', elements:[{ type:'mrkdwn', text:`_Aur help chahiye to batao, ya call karein: IT Helpdesk (Slack)_` }]}
             ], text: `Aapke ${tickets.length} open ticket(s)` });
             return;
           }
@@ -1545,7 +1545,7 @@ app.listen(PORT, async () => {
                 text: '🎫 Ticket banane ke liye `/ticket` command use karo — seedha modal khulega!',
                 blocks: [
                   { type:'section', text:{ type:'mrkdwn', text:`*🎫 Ticket Banana Hai?*\n\nDo tarike hain:\n\n*1.* \`/ticket\` type karo → form bhar do → turant ticket ban jayega ✅\n*2.* Apni problem batao → AI steps dega → phir ticket automatically suggest karega 🤖` }},
-                  { type:'context', elements:[{ type:'mrkdwn', text:`_Urgent hai? Call karo: *9654244281*_` }]}
+                  { type:'context', elements:[{ type:'mrkdwn', text:`_Urgent hai? Call karo: *IT Helpdesk (Slack)*_` }]}
                 ]
               });
             }
@@ -1628,7 +1628,7 @@ app.listen(PORT, async () => {
         } catch (err) {
           console.error('❌ DM handler error:', err.message);
           try {
-            await say({ text: '❌ Kuch technical problem aa gayi. Thoda wait karein aur dobara try karein. IT Helpdesk: 9654244281' });
+            await say({ text: '❌ Kuch technical problem aa gayi. Thoda wait karein aur dobara try karein. IT Helpdesk: IT Helpdesk (Slack)' });
           } catch (sayErr) {
             console.error('❌ Could not send error message:', sayErr.message);
           }
@@ -1642,10 +1642,10 @@ app.listen(PORT, async () => {
         app.locals.slackClient = slackApp.client;
 
         // Auto-link admin Slack ID
-        const adminSlackId = process.env.SAJAN_SLACK_ID;
+        const adminSlackId = process.env.ADMIN_EMAIL_SLACK_ID;
         if (adminSlackId && adminSlackId !== 'FILL_KARO') {
           await Employee.findOneAndUpdate(
-            { name: { $regex: 'sajan', $options: 'i' } },
+            { name: { $regex: 'ADMIN_EMAIL', $options: 'i' } },
             { slackUserId: adminSlackId },
             { new: true }
           ).catch(() => {});
@@ -1654,7 +1654,7 @@ app.listen(PORT, async () => {
         // ── FEATURE 6: Daily 9AM IST summary (= 03:30 UTC) ───────────────
         cron.schedule('30 3 * * *', async () => {
           try {
-            const adminId = process.env.SAJAN_SLACK_ID;
+            const adminId = process.env.ADMIN_EMAIL_SLACK_ID;
             if (!adminId || adminId === 'FILL_KARO') return;
 
             const todayStart = new Date();
@@ -1702,7 +1702,7 @@ app.listen(PORT, async () => {
                   { type:'divider' },
                   { type:'section', text:{ type:'mrkdwn', text:`*⏳ Sabse Purane Pending Tickets:*\n${oldestText}` }}
                 ] : []),
-                { type:'context', elements:[{ type:'mrkdwn', text:`_Aaj ki shuruat mubarak! IT Helpdesk: 9654244281_` }]}
+                { type:'context', elements:[{ type:'mrkdwn', text:`_Aaj ki shuruat mubarak! IT Helpdesk: IT Helpdesk (Slack)_` }]}
               ]
             });
             console.log('📊 Daily summary sent to admin');

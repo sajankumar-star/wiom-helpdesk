@@ -21,7 +21,7 @@ echo    DONE! Laptop ab thanda hona chahiye.
 echo.
 echo    Important: Laptop hard flat surface par
 echo    rakho — bed/sofa par nahi!
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

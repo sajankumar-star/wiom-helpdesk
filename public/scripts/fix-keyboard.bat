@@ -22,7 +22,7 @@ echo.
 echo    On-Screen Keyboard se kaam chalao abhi.
 echo    Agar physical keyboard abhi bhi nahi
 echo    chala to ticket raise karo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

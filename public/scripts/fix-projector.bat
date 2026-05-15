@@ -28,7 +28,7 @@ echo    2. HDMI/VGA cable dono side se check karo
 echo    3. Projector ON hai? Input source set hai?
 echo    4. Display Settings mein "Detect" click karo
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

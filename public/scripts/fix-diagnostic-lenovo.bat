@@ -27,7 +27,7 @@ echo.
 echo    Warranty check: pcsupport.lenovo.com/warranty
 echo    (Serial No copy karke paste karo)
 echo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

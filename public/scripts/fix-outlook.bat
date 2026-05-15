@@ -30,7 +30,7 @@ echo    Agar email aa rahe hain Safe Mode mein:
 echo    Close karo -> normally dobara kholo
 echo.
 echo    Agar Safe Mode mein bhi nahi chala:
-echo    IT Helpdesk: 9654244281 (9AM - 7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo.
 echo  ============================================
 echo.

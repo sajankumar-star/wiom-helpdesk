@@ -28,7 +28,7 @@ echo    4. Printer settings mein "Print test page" try karo
 echo    5. USB cable/network cable check karo
 echo.
 echo    Network printer connect karna hai ya driver chahiye:
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

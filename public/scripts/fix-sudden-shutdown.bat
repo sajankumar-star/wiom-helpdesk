@@ -22,7 +22,7 @@ echo.
 echo    Agar baar baar shutdown ho raha hai:
 echo    Battery/thermal issue ho sakta hai
 echo    Ticket raise karo: ticket bana do
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause

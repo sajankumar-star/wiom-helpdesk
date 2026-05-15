@@ -21,7 +21,7 @@ echo    DONE! Touchpad settings khuli hain.
 echo.
 echo    Settings mein Touchpad ON karo.
 echo    Fn + Touchpad key bhi try karo.
-echo    IT: 9654244281 (9AM-7PM)
+echo    IT Helpdesk: Slack pe ticket raise karo
 echo  ============================================
 echo.
 pause
