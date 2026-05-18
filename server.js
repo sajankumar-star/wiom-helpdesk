@@ -1219,6 +1219,34 @@ app.listen(PORT, async () => {
               floor  : emp?.floor
             };
 
+            // ── Email Password Reset — fixed steps ────────────────────────
+            if (actionId === 'home_quick_59') {
+              await client.chat.postMessage({
+                channel: userId,
+                text: 'Email Password Reset',
+                blocks: [
+                  { type: 'section', text: { type: 'mrkdwn', text:
+                    '*📧 Email / Google Account Password Reset*\n\n' +
+                    '*Yeh steps follow karo:*\n' +
+                    '1. *Google Account page* pe jaao: myaccount.google.com\n' +
+                    '2. *Security* tab click karo\n' +
+                    '3. *"How you sign in to Google"* section mein *Password* click karo\n' +
+                    '4. Current password enter karo _(ya fingerprint / screen prompt se verify karo)_\n' +
+                    '5. Naya password set karo\n\n' +
+                    '_Agar nahi hua to ticket banao — IT help karega_ 🎫'
+                  }},
+                  { type: 'actions', elements: [{
+                    type: 'button',
+                    text: { type: 'plain_text', text: '🎫 Ticket Banao', emoji: true },
+                    style: 'danger',
+                    action_id: 'raise_ticket_email_pwd',
+                    value: 'email_password_reset'
+                  }]}
+                ]
+              });
+              return;
+            }
+
             // ── Hardware Replacement / Emergency — special flow ────────────
             if (HARDWARE_SPECIAL_IDS.has(actionId)) {
               const hwBlocks = buildHardwareBlocks(actionId, emp);
@@ -1346,6 +1374,41 @@ app.listen(PORT, async () => {
 
       // ── Download script button clicks — just ack, URL opens in browser ──
       slackApp.action(/^dl_/, async ({ ack }) => { await ack(); });
+
+      // ── Email password reset ticket button ────────────────────────────────
+      slackApp.action('raise_ticket_email_pwd', async ({ body, ack, client }) => {
+        await ack();
+        const userId = body.user.id;
+        try {
+          const emp = await lookupEmployee(userId, client);
+          const result = await createTicketSlack({
+            empId: emp.empId, empName: emp.empName, empEmail: emp.email,
+            empDept: emp.dept, empFloor: emp.floor,
+            laptop: emp.laptop, laptopSN: emp.laptopSN,
+            description: 'Email / Google Account password reset — self-service steps try kiye, nahi hua',
+            category: 'Account', priority: 'High',
+            source: 'slack', slackUserId: userId
+          });
+          if (result && !result._duplicate) {
+            await client.chat.postMessage({
+              channel: userId,
+              text: `Ticket ${result.ticketId} create ho gaya!`,
+              blocks: [
+                { type: 'section', fields: [
+                  { type: 'mrkdwn', text: `*🎫 Ticket:*\n\`${result.ticketId}\`` },
+                  { type: 'mrkdwn', text: `*🟠 Priority:*\nHigh` }
+                ]},
+                { type: 'context', elements: [{ type: 'mrkdwn', text: '✅ IT team password reset kar degi — jaldi respond karenge 🙏' }]}
+              ]
+            });
+            await notifyAdmin(client, result, emp);
+          } else if (result?._duplicate) {
+            await client.chat.postMessage({ channel: userId, text: `⚠️ ${result.message}` });
+          }
+        } catch (err) {
+          console.error('Email pwd ticket error:', err.message);
+        }
+      });
       // ── Warranty / diagnostic / support link buttons — just ack ──────────
       slackApp.action(/^(warranty_|apple_support_|diag_dl_)/, async ({ ack }) => { await ack(); });
 
