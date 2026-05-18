@@ -1139,18 +1139,10 @@ app.listen(PORT, async () => {
 
       const buildHardwareBlocks = (actionId, emp) => {
         const isLiquid     = actionId === 'home_quick_70';
-        const isLaptopRep  = actionId === 'home_quick_37';
-        const isMouseRep   = actionId === 'home_quick_60';
-        const isKeyboardRep= actionId === 'home_quick_61';
-        const isMonitorRep = actionId === 'home_quick_62';
+        const isNewMonitor = actionId === 'home_quick_62';
+        const blocks       = [];
 
-        const brand     = detectBrand(emp?.laptop);
-        const brandInfo = getBrandInfo(brand, emp?.laptopSN);
-        const model     = emp?.laptop   || 'Unknown';
-        const sn        = emp?.laptopSN || 'Unknown';
-        const blocks    = [];
-
-        // ── Emergency alert (liquid damage) ────────────────────────────────
+        // ── Emergency alert (liquid damage) — unchanged ────────────────────
         if (isLiquid) {
           blocks.push({
             type: 'section',
@@ -1163,96 +1155,45 @@ app.listen(PORT, async () => {
               '5. IT ko call karo: *IT Helpdesk (Slack)*'
             }
           });
-          blocks.push({ type: 'divider' });
+          return blocks;
         }
 
-        // ── Peripheral replacements (mouse/keyboard/monitor) ───────────────
-        if (isMouseRep || isKeyboardRep || isMonitorRep) {
-          const item = isMouseRep ? '🖱️ Mouse' : isKeyboardRep ? '⌨️ Keyboard' : '🖥️ Monitor';
+        // ── New Monitor / New Equipment — Functional Head approval needed ──
+        if (isNewMonitor) {
           blocks.push({
             type: 'section',
-            text: { type: 'mrkdwn', text: `*${item} Replacement Request*\n\nIT team ko request bhej di jayegi. 1 working day mein replacement milegi.\n\nIT: *IT Helpdesk (Slack)* (9AM–7PM)` }
+            text: { type: 'mrkdwn', text:
+              '*🖥️ New Monitor Request*\n\n' +
+              'Naye equipment ke liye *Functional Head ki approval* zaroori hai.\n\n' +
+              '*Kya karna hai:*\n' +
+              '1. Apne *Reporting Manager* ko email karo\n' +
+              '2. CC mein dono add karo:\n' +
+              '   • *sajan.kumar@wiom.in*\n' +
+              '   • Apne *Functional Head*\n' +
+              '3. Email mein likho — item ki zaroorat kyun hai\n\n' +
+              '*Timeline: Functional Head ki approval ke baad 4 working days*'
+            }
           });
           return blocks;
         }
 
-        // ── Laptop info block (for laptop replacement + liquid damage) ─────
-        blocks.push({
-          type: 'section',
-          fields: [
-            { type: 'mrkdwn', text: `*💻 Aapka Laptop:*\n${model}` },
-            { type: 'mrkdwn', text: `*🔢 Serial No:*\n\`${sn}\`` },
-            { type: 'mrkdwn', text: `*🏷️ Brand:*\n${brandInfo.brandLabel}` },
-            { type: 'mrkdwn', text: `*📍 Floor:*\n${emp?.floor || '—'}` }
-          ]
-        });
-        blocks.push({ type: 'divider' });
+        // ── Replacement (Laptop / Mouse / Keyboard) ────────────────────────
+        const itemMap = {
+          'home_quick_37': '💻 Laptop',
+          'home_quick_60': '🖱️ Mouse',
+          'home_quick_61': '⌨️ Keyboard'
+        };
+        const item = itemMap[actionId] || '🔧 Equipment';
 
-        // ── Apple MacBook — separate section ──────────────────────────────
-        if (brandInfo.appleMode) {
-          blocks.push({
-            type: 'section',
-            text: { type: 'mrkdwn', text: '*🍎 Apple MacBook — Warranty Check:*\nAapka serial number se Apple coverage check karo:' }
-          });
-          blocks.push({
-            type: 'actions',
-            elements: [{ type:'button', text:{ type:'plain_text', text:'🔗 Apple Coverage Check', emoji:true }, url: brandInfo.warrantyUrl, action_id:`warranty_apple_${actionId}` }]
-          });
-          blocks.push({ type: 'divider' });
-          blocks.push({
-            type: 'section',
-            text: { type: 'mrkdwn', text:
-              '*🔍 Apple Diagnostics (Built-in — Free):*\n' +
-              '1. MacBook *band karo*\n' +
-              '2. Power button dabaao aur *hold karo* (startup options aane tak)\n' +
-              '3. Screen par options aate hi *D key* dabaao\n' +
-              '4. Diagnostics automatically start hogi ✅\n' +
-              '_Result screen par dikhega — IT ko photo bhejo_'
-            }
-          });
-          blocks.push({
-            type: 'actions',
-            elements: [{ type:'button', text:{ type:'plain_text', text:'🍎 Apple Support', emoji:true }, url: brandInfo.supportUrl, action_id:`apple_support_${actionId}` }]
-          });
-        } else {
-          // ── Non-Apple: Warranty + Diagnostic Script ──────────────────────
-          if (brandInfo.warrantyUrl) {
-            blocks.push({
-              type: 'section',
-              text: { type: 'mrkdwn', text: `*🛡️ Warranty Check (${brandInfo.brandLabel}):*\nAapka serial number \`${sn}\` se warranty status check karo:` }
-            });
-            blocks.push({
-              type: 'actions',
-              elements: [{ type:'button', text:{ type:'plain_text', text:`🔗 ${brandInfo.brandLabel} Warranty Check`, emoji:true }, url: brandInfo.warrantyUrl, action_id:`warranty_${brand}_${actionId}` }]
-            });
-            blocks.push({ type: 'divider' });
-          }
-          if (brandInfo.diagScript) {
-            blocks.push({
-              type: 'section',
-              text: { type: 'mrkdwn', text: `*🔍 Hardware Diagnostic (Auto-Run):*\nYe script download karo → double-click karo → automatically diagnostic tool chalega aur report dikhayega:` }
-            });
-            blocks.push({
-              type: 'actions',
-              elements: [{
-                type:'button', text:{ type:'plain_text', text:`⬇️ ${brandInfo.diagLabel}`, emoji:true },
-                style:'primary',
-                url: `${PORTAL}/scripts/${brandInfo.diagScript}`,
-                action_id: `diag_dl_${actionId}`
-              }]
-            });
-            blocks.push({ type: 'divider' });
-          }
-        }
-
-        // ── Ticket raise instruction (always at bottom) ────────────────────
         blocks.push({
           type: 'section',
           text: { type: 'mrkdwn', text:
-            (isLiquid
-              ? '⚠️ *IT team ko turant ticket raise ho rahi hai...*\n_Aap unhe call bhi karo: IT Helpdesk (Slack)_'
-              : '*📋 Replacement ticket IT team ko jayega.*\n_1 working day mein respond karenge._\n_IT: IT Helpdesk (Slack) (9AM–7PM)_'
-            )
+            `*${item} Replacement Request*\n\n` +
+            '*Kya karna hai:*\n' +
+            '1. Apne *Reporting Manager* ko email karo\n' +
+            '2. CC mein add karo: *sajan.kumar@wiom.in*\n' +
+            '3. Email mein likho — kya problem hai aur replacement kyun chahiye\n\n' +
+            '*Timeline: 2 working days*'
           }
         });
 
@@ -1283,45 +1224,20 @@ app.listen(PORT, async () => {
               const hwBlocks = buildHardwareBlocks(actionId, emp);
               await client.chat.postMessage({ channel: userId, text: '🔧 Hardware Request', blocks: hwBlocks });
 
-              // Auto-create ticket for peripheral replacements and liquid damage
-              const isLiquid2    = actionId === 'home_quick_70';
-              const isMouseRep2  = actionId === 'home_quick_60';
-              const isKeyRep2    = actionId === 'home_quick_61';
-              const isMonRep2    = actionId === 'home_quick_62';
-
-              if ((isLiquid2 || isMouseRep2 || isKeyRep2 || isMonRep2) && emp?.empId) {
+              // Auto-create ticket ONLY for liquid damage emergency
+              if (actionId === 'home_quick_70' && emp?.empId) {
                 try {
-                  const itemLabel = isLiquid2 ? 'Liquid/Water Damage' : isMouseRep2 ? 'Mouse Replacement' : isKeyRep2 ? 'Keyboard Replacement' : 'Monitor Replacement';
-                  const priority2 = isLiquid2 ? 'Critical' : 'Medium';
-                  const issue2    = isLiquid2
-                    ? `EMERGENCY: Liquid/Water Damage — ${emp.laptop || 'Laptop'} (S/N: ${emp.laptopSN || 'Unknown'})`
-                    : `${itemLabel} Request — ${emp.empName} (Floor: ${emp.floor || 'Unknown'})`;
-
                   const result = await createTicketSlack({
                     empId: emp.empId, empName: emp.empName, empEmail: emp.email,
                     empDept: emp.dept, empFloor: emp.floor,
                     laptop: emp.laptop, laptopSN: emp.laptopSN,
-                    description: issue2, category: 'Hardware', priority: priority2,
+                    description: `EMERGENCY: Liquid/Water Damage — ${emp.laptop || 'Laptop'} (S/N: ${emp.laptopSN || 'Unknown'})`,
+                    category: 'Hardware', priority: 'Critical',
                     source: 'slack', slackUserId: userId
                   });
-
-                  if (result && !result._duplicate) {
-                    const priEmoji = { Critical:'🔴', High:'🟠', Medium:'🟡', Low:'🟢' };
-                    await client.chat.postMessage({
-                      channel: userId,
-                      text: `Ticket ${result.ticketId} create ho gaya!`,
-                      blocks: [
-                        { type:'section', fields:[
-                          { type:'mrkdwn', text:`*🎫 Ticket Raised:*\n\`${result.ticketId}\`` },
-                          { type:'mrkdwn', text:`*${priEmoji[priority2]||'🟡'} Priority:*\n${priority2}` }
-                        ]},
-                        { type:'context', elements:[{ type:'mrkdwn', text:`✅ IT team ko request bhej di gayi — 1 working day mein respond karenge 🙏` }]}
-                      ]
-                    });
-                    await notifyAdmin(client, result, emp);
-                  }
+                  if (result && !result._duplicate) await notifyAdmin(client, result, emp);
                 } catch (ticketErr) {
-                  console.error('Peripheral replacement ticket error:', ticketErr.message);
+                  console.error('Liquid damage ticket error:', ticketErr.message);
                 }
               }
               return;
