@@ -395,6 +395,7 @@ app.listen(PORT, async () => {
       const CATEGORIES = [
         {
           key: 'laptop', label: '💻 Laptop & Display',
+          desc: 'Slow laptop • Screen • Keyboard • Audio • Camera • USB • Bluetooth aur zyada',
           rows: [
             [
               { text:'💻 Laptop Very Slow',         value:'My laptop is very slow what should I do',                                   id:'home_quick_1'  },
@@ -435,6 +436,7 @@ app.listen(PORT, async () => {
         },
         {
           key: 'network', label: '🌐 Network & Internet', style: 'primary',
+          desc: 'WiFi problem • Internet slow • Website blocked • Password • Disconnecting',
           rows: [
             [
               { text:'📶 WiFi Not Working',          value:'WiFi not working no internet connection',                                   id:'home_quick_11' },
@@ -447,6 +449,7 @@ app.listen(PORT, async () => {
         },
         {
           key: 'software', label: '💿 Software, Apps & Account',
+          desc: 'Teams • Zoom • Outlook • Password reset • Virus • Account locked • OneDrive',
           rows: [
             [
               { text:'📹 Teams Not Working',         value:'Microsoft Teams not working call dropping or not opening',                  id:'home_quick_13' },
@@ -479,6 +482,7 @@ app.listen(PORT, async () => {
         },
         {
           key: 'replacement', label: '🔄 Replacement / Upgrade', style: 'danger',
+          desc: 'Laptop • Mouse • Keyboard • Monitor — replacement request karein',
           rows: [
             [
               { text:'🔄 Laptop Replacement',        value:'Laptop needs replacement old one is damaged or not working',               id:'home_quick_37' },
@@ -677,22 +681,34 @@ app.listen(PORT, async () => {
           },
 
           { type:'divider' },
-          { type:'section', text:{ type:'mrkdwn', text:'*📂 Sab Problems — Category click karo to expand:*\n_Ya seedha DM mein apni problem type karo — AI help karega!_ 💬' }}
+          { type:'section', text:{ type:'mrkdwn', text:'*📂 Apni Category Choose Karo:*' }},
+          { type:'context', elements:[{ type:'mrkdwn', text:'_Category button click karo → expand hogi → apna problem select karo • Ya seedha DM mein type karo 💬_' }]}
         ];
 
         for (const cat of CATEGORIES) {
           const isExpanded = expandedSet.has(cat.key);
           const arrow = isExpanded ? '▼' : '▶';
+          const totalBtns = cat.rows.reduce((s, r) => s + r.length, 0);
+
           blocks.push({
             type: 'actions',
             elements: [{
               type: 'button',
-              text: { type: 'plain_text', text: `${arrow}  ${cat.label}`, emoji: true },
+              text: { type: 'plain_text', text: `${arrow}  ${cat.label}  (${totalBtns})`, emoji: true },
               action_id: `cat_toggle_${cat.key}`,
               value: cat.key,
               ...(cat.style ? { style: cat.style } : {})
             }]
           });
+
+          // Show description as context text under header
+          if (cat.desc) {
+            blocks.push({
+              type: 'context',
+              elements: [{ type: 'mrkdwn', text: `_${cat.desc}_` }]
+            });
+          }
+
           if (isExpanded) {
             for (const row of cat.rows) {
               blocks.push({
