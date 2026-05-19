@@ -1093,6 +1093,54 @@ app.listen(PORT, async () => {
  }
  });
 
+ // ── Vague pick button handler (quick problem selection from DM) ─────
+ slackApp.action(/^vague_pick_/, async ({ body, ack, client, say }) => {
+ await ack();
+ const userId = body.user.id;
+ const problem = body.actions[0].value; // e.g. "laptop very slow"
+ try {
+ const emp = await lookupEmployee(userId, client);
+ const conv = await getSlackSession(userId, emp);
+ conv.messages.push({ role: 'user', content: problem });
+ if (conv.messages.length > 30) conv.messages = conv.messages.slice(-30);
+ await conv.save();
+
+ const { reply, shouldCreateTicket } = await claudeSvc.chat(
+ conv.messages,
+ { empId: emp.empId, empName: emp.empName, source: 'slack',
+ laptop: emp.laptop, laptopSN: emp.laptopSN, dept: emp.dept, floor: emp.floor }
+ );
+
+ conv.messages.push({ role: 'assistant', content: reply });
+ await conv.save();
+
+ const formattedReply = formatForSlack(reply);
+ const blocks = [{ type: 'section', text: { type: 'mrkdwn', text: formattedReply }}];
+
+ if (shouldCreateTicket) {
+ const allUserText = conv.messages.filter(m=>m.role==='user').map(m=>m.content).join(' ').toLowerCase();
+ let autoCategory = 'Other';
+ if (/wifi|internet|network/i.test(allUserText)) autoCategory = 'Network';
+ else if (/teams|zoom|outlook|browser|app|software|windows/i.test(allUserText)) autoCategory = 'Software';
+ else if (/laptop|screen|keyboard|battery|hardware|slow|hang|freeze|blue screen/i.test(allUserText)) autoCategory = 'Hardware';
+ else if (/password|account|locked|login/i.test(allUserText)) autoCategory = 'Account';
+ pendingTickets.set(userId, {
+ empId: emp.empId, empName: emp.empName, empEmail: emp.email,
+ empDept: emp.dept, empFloor: emp.floor,
+ laptop: emp.laptop, laptopSN: emp.laptopSN,
+ category: autoCategory, priority: 'Medium',
+ description: problem, source: 'slack', slackUserId: userId
+ });
+ blocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`_Ticket banana hai? *"ha"* ya *"nahi"* type karo_` }]});
+ }
+
+ await client.chat.postMessage({ channel: userId, text: reply, blocks });
+ } catch (err) {
+ console.error('vague_pick action error:', err.message);
+ await client.chat.postMessage({ channel: userId, text: '❌ Kuch error aa gaya. Apni problem DM mein type karo.' });
+ }
+ });
+
  // ── FEATURE 8: Rating action handler ─────────────────────────────────
  slackApp.action('rate_ticket', async ({ body, ack, client }) => {
  await ack();
@@ -1637,23 +1685,110 @@ app.listen(PORT, async () => {
  }
 
  // ── Laptop info query ─────────────────────────────────────────────
- const isLaptopQuery = /laptop|model|serial|s\/n|sn|serial no|asset|device/i.test(text.trim());
+ const isLaptopQuery = /^(my laptop|laptop model|laptop serial|serial no|serial number|asset tag|device info)$/i.test(text.trim());
  if (isLaptopQuery) {
  const empRec = await Employee.findOne({ slackUserId: userId });
  const model = empRec?.laptop || emp.laptop || null;
  const sn = empRec?.laptopSN || emp.laptopSN || null;
  if (model || sn) {
  await say({
- text: ` Aapka Laptop: ${model||''} | SN: ${sn||''}`,
+ text: `Aapka Laptop: ${model||''} | SN: ${sn||''}`,
  blocks: [
  { type:'section', fields:[
- { type:'mrkdwn', text:`* Laptop Model:*\n${model||''}` },
- { type:'mrkdwn', text:`* Serial No:*\n\`${sn||''}\`` }
+ { type:'mrkdwn', text:`*Laptop Model:*\n${model||'N/A'}` },
+ { type:'mrkdwn', text:`*Serial No:*\n\`${sn||'N/A'}\`` }
  ]}
  ]
  });
  return;
  }
+ }
+
+ // ── Vague laptop/wifi/problem message → show quick-select buttons ──
+ const vaguePatterns = [
+ { regex: /^(laptop\s*(not\s*working|kharab|kaam\s*nahi|issue|problem|hang|slow|band|on\s*nahi|nahi\s*chal|theek\s*nahi|kuch\s*ho\s*gaya|bhot\s*slow|dead|crash)|laptop$)/i,
+ type: 'laptop' },
+ { regex: /^(wifi\s*(nahi|not|issue|problem|kharab|kaam\s*nahi|nahi\s*chal|disconnect)|internet\s*(nahi|not|slow|issue|kharab)|network\s*(issue|problem|nahi))/i,
+ type: 'wifi' },
+ { regex: /^(software\s*(issue|problem|nahi|not)|app\s*(crash|not|nahi|issue)|teams\s*(nahi|not|issue)|outlook\s*(nahi|not|issue)|windows\s*(issue|problem))/i,
+ type: 'software' },
+ { regex: /^(password\s*(bhool|forgot|reset|issue|nahi\s*pata)|account\s*(locked|issue|nahi)|login\s*(nahi|issue|problem))/i,
+ type: 'account' },
+ ];
+
+ const vagueMatch = vaguePatterns.find(p => p.regex.test(text.trim()));
+
+ if (vagueMatch) {
+ const quickButtons = {
+ laptop: [
+ { text: "Won't Turn On", val: 'wont_turn_on' },
+ { text: 'Very Slow', val: 'laptop_slow' },
+ { text: 'Screen Black', val: 'screen_black' },
+ { text: 'Blue Screen', val: 'blue_screen' },
+ { text: 'Freezing/Hanging', val: 'freezing' },
+ { text: 'Battery Issue', val: 'battery' },
+ { text: 'Overheating', val: 'overheat' },
+ { text: 'Something Else', val: 'laptop_other' },
+ ],
+ wifi: [
+ { text: 'WiFi Not Connecting', val: 'wifi_not_connect' },
+ { text: 'Very Slow Internet', val: 'internet_slow' },
+ { text: 'WiFi Keeps Dropping', val: 'wifi_drop' },
+ { text: 'Website Not Opening', val: 'website_blocked' },
+ ],
+ software: [
+ { text: 'Teams Not Working', val: 'teams_issue' },
+ { text: 'Outlook Issue', val: 'outlook_issue' },
+ { text: 'App Crashing', val: 'app_crash' },
+ { text: 'Windows Update Stuck', val: 'windows_update' },
+ { text: 'Something Else', val: 'software_other' },
+ ],
+ account: [
+ { text: 'Forgot Password', val: 'password_reset' },
+ { text: 'Account Locked', val: 'account_locked' },
+ { text: 'Email Password', val: 'email_password' },
+ { text: '2FA / OTP Issue', val: 'otp_issue' },
+ ],
+ };
+
+ const vagueAIMap = {
+ wont_turn_on: "laptop won't turn on", laptop_slow: 'laptop very slow',
+ screen_black: 'laptop screen black', blue_screen: 'laptop blue screen error',
+ freezing: 'laptop freezing and hanging', battery: 'laptop battery not charging',
+ overheat: 'laptop overheating', laptop_other: 'laptop hardware issue',
+ wifi_not_connect: 'wifi not connecting', internet_slow: 'internet very slow',
+ wifi_drop: 'wifi keeps disconnecting', website_blocked: 'website not opening',
+ teams_issue: 'Microsoft Teams not working', outlook_issue: 'Outlook not working',
+ app_crash: 'app crashing', windows_update: 'windows update stuck',
+ software_other: 'software issue', password_reset: 'forgot laptop password',
+ account_locked: 'account locked', email_password: 'email password reset',
+ otp_issue: '2FA OTP not received',
+ };
+
+ const btns = quickButtons[vagueMatch.type] || [];
+ // Split into rows of 4
+ const rows = [];
+ for (let i = 0; i < btns.length; i += 4) rows.push(btns.slice(i, i + 4));
+
+ const blocks = [
+ { type: 'section', text: { type: 'mrkdwn', text: `*Kya problem aa rahi hai exactly?* Select karo:` }},
+ ];
+ rows.forEach(row => {
+ blocks.push({
+ type: 'actions',
+ elements: row.map(b => ({
+ type: 'button',
+ text: { type: 'plain_text', text: b.text, emoji: true },
+ action_id: `vague_pick_${b.val}`,
+ value: vagueAIMap[b.val] || b.text,
+ }))
+ });
+ });
+
+ await say({ text: 'Kya problem hai exactly? Select karo:', blocks });
+
+ // Register handlers for these vague-pick actions (once per server start — use regex)
+ return;
  }
 
  // ── "Ticket bana do" instant creation ──────────────────────────
