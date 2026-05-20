@@ -49,8 +49,6 @@ echo.
 echo    Ya seedha message karo:
 echo    "Mera laptop bahut slow hai, ticket banana hai"
 echo.
-echo    IT Team 30 minute mein aapko contact karegi!
-echo.
-echo  ============================================
+echoecho  ============================================
 echo.
 pause
