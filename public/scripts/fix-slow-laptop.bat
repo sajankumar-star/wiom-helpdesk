@@ -37,7 +37,19 @@ echo  ============================================
 echo.
 echo    DONE! Aapka laptop ab fast hona chahiye.
 echo.
-echo    Agar abhi bhi slow hai:
+echo  ============================================
+echo.
+echo    Agar abhi bhi slow hai to ghabrao mat!
+echo.
+echo    Step 1: Slack kholo
+echo    Step 2: WIOM IT Helpdesk bot ko message karo
+echo    Step 3: /ticket type karo aur Enter dabao
+echo    Step 4: Form mein problem likho aur Submit karo
+echo.
+echo    Ya seedha message karo:
+echo    "Mera laptop bahut slow hai, ticket banana hai"
+echo.
+echo    IT Team 30 minute mein aapko contact karegi!
 echo.
 echo  ============================================
 echo.
