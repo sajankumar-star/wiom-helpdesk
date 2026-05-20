@@ -395,7 +395,8 @@ app.listen(PORT, async () => {
  const CATEGORIES = [
  {
  key: 'laptop', label: 'Laptop & Display',
- desc: 'Slow laptop Screen Keyboard Audio Camera USB Bluetooth aur zyada',
+ emoji: '🔵', color: 'primary',
+ desc: 'Slow, Screen, Keyboard, Audio, Camera, USB, Bluetooth',
  rows: [
  [
  { text:'Laptop Slow', value:'My laptop is very slow what should I do', id:'home_quick_1' },
@@ -435,8 +436,9 @@ app.listen(PORT, async () => {
  ]
  },
  {
- key: 'network', label: 'Network & Internet', style: 'primary',
- desc: 'WiFi problem Internet slow Website blocked Password Disconnecting',
+ key: 'network', label: 'Network & Internet',
+ emoji: '🟢', color: 'primary',
+ desc: 'WiFi, Internet slow, Website blocked, Disconnecting',
  rows: [
  [
  { text:'WiFi Not Working', value:'WiFi not working no internet connection', id:'home_quick_11' },
@@ -449,7 +451,8 @@ app.listen(PORT, async () => {
  },
  {
  key: 'software', label: 'Software, Apps & Account',
- desc: 'Teams Zoom Outlook Password reset Virus Account locked OneDrive',
+ emoji: '🟡', color: 'primary',
+ desc: 'Teams, Zoom, Outlook, Password reset, Virus, OneDrive',
  rows: [
  [
  { text:'Teams Issue', value:'Microsoft Teams not working call dropping or not opening', id:'home_quick_13' },
@@ -481,8 +484,9 @@ app.listen(PORT, async () => {
  ]
  },
  {
- key: 'replacement', label: 'Replacement / Upgrade', style: 'danger',
- desc: 'Laptop Mouse Keyboard Monitor replacement request karein',
+ key: 'replacement', label: 'Replacement / Upgrade',
+ emoji: '🔴', color: 'danger',
+ desc: 'Laptop, Mouse, Keyboard, Monitor replacement request',
  rows: [
  [
  { text:'Laptop Replacement', value:'Laptop needs replacement old one is damaged or not working', id:'home_quick_37' },
@@ -660,16 +664,18 @@ app.listen(PORT, async () => {
 
  for (const cat of CATEGORIES) {
  const isExpanded = expandedSet.has(cat.key);
- const arrow = isExpanded ? 'v' : '>';
+ // Colored section card — emoji gives distinct color per category
  blocks.push({
- type: 'actions',
- elements: [{
+ type: 'section',
+ text: { type: 'mrkdwn',
+ text: `${cat.emoji}  *${cat.label}*\n_${cat.desc}_` },
+ accessory: {
  type: 'button',
- text: { type: 'plain_text', text: `${arrow} ${cat.label}`, emoji: true },
+ text: { type: 'plain_text', text: isExpanded ? '▼ Close' : '▶ Select', emoji: true },
+ style: cat.color || 'primary',
  action_id: `cat_toggle_${cat.key}`,
- value: cat.key,
- ...(cat.style ? { style: cat.style } : {})
- }]
+ value: cat.key
+ }
  });
 
  if (isExpanded) {
@@ -681,10 +687,11 @@ app.listen(PORT, async () => {
  text : { type: 'plain_text', text: btn.text, emoji: true },
  value : btn.value,
  action_id: btn.id,
- style : btn.style || cat.style || undefined
+ style : btn.style || undefined
  }))
  });
  }
+ blocks.push({ type: 'divider' });
  }
  }
 
