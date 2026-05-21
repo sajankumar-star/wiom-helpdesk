@@ -1070,6 +1070,92 @@ app.listen(PORT, async () => {
  }
  });
 
+ // ── /broadcast — Admin sends message to all employees ─────────────────────
+ slackApp.command('/broadcast', async ({ command, ack, client }) => {
+ await ack();
+ const adminId = process.env.ADMIN_EMAIL_SLACK_ID;
+ // Only admin can broadcast
+ if (adminId && command.user_id !== adminId) {
+ await client.chat.postEphemeral({
+ channel: command.channel_id, user: command.user_id,
+ text: '❌ Sirf IT Admin broadcast kar sakta hai!'
+ });
+ return;
+ }
+ // Open modal to compose broadcast
+ await client.views.open({
+ trigger_id: command.trigger_id,
+ view: {
+ type: 'modal',
+ callback_id: 'broadcast_modal',
+ title: { type: 'plain_text', text: '📢 Broadcast Message' },
+ submit: { type: 'plain_text', text: 'Send to All' },
+ close: { type: 'plain_text', text: 'Cancel' },
+ blocks: [
+ { type: 'section', text: { type: 'mrkdwn', text: '*Yeh message SABHI employees ko Slack DM mein milega!* 📢' }},
+ { type: 'input', block_id: 'msg_block', label: { type: 'plain_text', text: 'Message' },
+ element: { type: 'plain_text_input', action_id: 'msg_input', multiline: true,
+ placeholder: { type: 'plain_text', text: 'e.g. Server maintenance tonight 11pm-1am. Save your work!' }}},
+ { type: 'input', block_id: 'type_block', label: { type: 'plain_text', text: 'Type' }, optional: true,
+ element: { type: 'static_select', action_id: 'type_input',
+ options: [
+ { text: { type: 'plain_text', text: '📢 Announcement' }, value: 'announcement' },
+ { text: { type: 'plain_text', text: '⚠️ Warning/Alert' }, value: 'warning' },
+ { text: { type: 'plain_text', text: '🔧 Maintenance' }, value: 'maintenance' },
+ { text: { type: 'plain_text', text: '✅ IT Update' }, value: 'update' },
+ ]
+ }
+ }
+ ]
+ }
+ });
+ });
+
+ // Broadcast modal submit
+ slackApp.view('broadcast_modal', async ({ body, ack, client }) => {
+ await ack();
+ const vals = body.view.state.values;
+ const message = vals.msg_block.msg_input.value;
+ const msgType = vals.type_block?.type_input?.selected_option?.value || 'announcement';
+ const typeEmoji = { announcement: '📢', warning: '⚠️', maintenance: '🔧', update: '✅' };
+ const emoji = typeEmoji[msgType] || '📢';
+ const typeLabel = { announcement: 'Announcement', warning: 'Alert', maintenance: 'Maintenance', update: 'IT Update' };
+
+ try {
+ const Employee = require('./models/Employee');
+ const employees = await Employee.find({ slackUserId: { $exists: true, $ne: null, $ne: '' } }).lean();
+ let sent = 0, failed = 0;
+ for (const emp of employees) {
+ try {
+ await client.chat.postMessage({
+ channel: emp.slackUserId,
+ text: `${emoji} IT ${typeLabel[msgType]}: ${message}`,
+ blocks: [
+ { type: 'header', text: { type: 'plain_text', text: `${emoji} IT ${typeLabel[msgType]}`, emoji: true }},
+ { type: 'section', text: { type: 'mrkdwn', text: message }},
+ { type: 'context', elements: [{ type: 'mrkdwn',
+ text: `_From: WIOM IT Team (Zivon) | ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}_`
+ }]}
+ ]
+ });
+ sent++;
+ } catch { failed++; }
+ }
+ // Confirm to admin
+ await client.chat.postMessage({
+ channel: body.user.id,
+ text: `✅ Broadcast sent! ${sent} employees ko message mila. ${failed > 0 ? `(${failed} failed)` : ''}`,
+ blocks: [
+ { type: 'section', text: { type: 'mrkdwn', text: `*✅ Broadcast Complete!*\n\n*Message:* ${message}\n*Delivered:* ${sent} employees\n${failed > 0 ? `*Failed:* ${failed}` : '*All delivered!* 🎉'}` }}
+ ]
+ });
+ console.log(`📢 Broadcast sent to ${sent} employees by ${body.user.id}`);
+ } catch (err) {
+ console.error('Broadcast error:', err.message);
+ await client.chat.postMessage({ channel: body.user.id, text: `❌ Broadcast failed: ${err.message}` });
+ }
+ });
+
  // ── Back to categories (DM) ──────────────────────────────────────────
  slackApp.action('dm_back_to_categories', async ({ body, ack, client }) => {
  await ack();
@@ -1712,9 +1798,224 @@ app.listen(PORT, async () => {
  }
  });
 
+ // ── /appoint — Book IT appointment ────────────────────────────────────
+ slackApp.command('/appoint', async ({ command, ack, client }) => {
+ await ack();
+ const userId = command.user_id;
+ // Generate next 5 working days slots
+ const slots = [];
+ const d = new Date();
+ d.setHours(0,0,0,0);
+ let daysAdded = 0;
+ while (daysAdded < 5) {
+ d.setDate(d.getDate() + 1);
+ if (d.getDay() !== 0 && d.getDay() !== 6) { // Skip weekends
+ const dateStr = d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' });
+ const dateVal = d.toISOString().split('T')[0];
+ ['10:00 AM','11:00 AM','12:00 PM','2:00 PM','3:00 PM','4:00 PM'].forEach(t => {
+ slots.push({ label: `${dateStr} ${t}`, value: `${dateVal}|${t}` });
+ });
+ daysAdded++;
+ }
+ }
+ await client.views.open({
+ trigger_id: command.trigger_id,
+ view: {
+ type: 'modal',
+ callback_id: 'appointment_modal',
+ title: { type: 'plain_text', text: '📅 IT Appointment' },
+ submit: { type: 'plain_text', text: 'Book Slot' },
+ close: { type: 'plain_text', text: 'Cancel' },
+ blocks: [
+ { type: 'section', text: { type: 'mrkdwn', text: '*IT se milne ka slot book karo!* 📅\nIT team aapki problem personally fix karegi.' }},
+ { type: 'input', block_id: 'slot_block', label: { type: 'plain_text', text: 'Date & Time' },
+ element: { type: 'static_select', action_id: 'slot_input',
+ placeholder: { type: 'plain_text', text: 'Slot select karo' },
+ options: slots.slice(0, 20).map(s => ({ text: { type: 'plain_text', text: s.label }, value: s.value }))
+ }},
+ { type: 'input', block_id: 'reason_block', label: { type: 'plain_text', text: 'Problem kya hai?' },
+ element: { type: 'plain_text_input', action_id: 'reason_input', multiline: true,
+ placeholder: { type: 'plain_text', text: 'Brief mein batao — laptop slow, setup needed, etc.' }}}
+ ]
+ }
+ });
+ });
+
+ // Appointment modal submit
+ slackApp.view('appointment_modal', async ({ body, ack, client }) => {
+ await ack();
+ const userId = body.user.id;
+ const vals = body.view.state.values;
+ const slotVal = vals.slot_block.slot_input.selected_option?.value;
+ const reason = vals.reason_block.reason_input.value;
+ if (!slotVal) return;
+ const [dateVal, timeSlot] = slotVal.split('|');
+ try {
+ const Appointment = require('./models/Appointment');
+ const emp = await lookupEmployee(userId, client);
+ const appt = await Appointment.create({
+ empId: emp.empId, empName: emp.empName, empEmail: emp.email,
+ slackUserId: userId, date: dateVal, timeSlot, reason, status: 'Pending'
+ });
+ const dateDisplay = new Date(dateVal).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
+ // Confirm to employee
+ await client.chat.postMessage({
+ channel: userId,
+ text: `✅ Appointment booked! ${dateDisplay} ${timeSlot}`,
+ blocks: [
+ { type: 'header', text: { type: 'plain_text', text: '📅 Appointment Booked!', emoji: true }},
+ { type: 'section', fields: [
+ { type: 'mrkdwn', text: `*Date:*\n${dateDisplay}` },
+ { type: 'mrkdwn', text: `*Time:*\n${timeSlot}` },
+ { type: 'mrkdwn', text: `*Problem:*\n${reason.substring(0,60)}` },
+ { type: 'mrkdwn', text: `*Status:*\n⏳ Pending Confirmation` }
+ ]},
+ { type: 'context', elements: [{ type: 'mrkdwn', text: '_IT team confirm karegi — Zivon se message aayega! 😊_' }]}
+ ]
+ });
+ // Notify admin
+ const adminId = process.env.ADMIN_EMAIL_SLACK_ID;
+ if (adminId && adminId !== 'FILL_KARO' && slackClient) {
+ slackClient.chat.postMessage({
+ channel: adminId,
+ text: `📅 New IT Appointment: ${emp.empName} — ${dateDisplay} ${timeSlot}`,
+ blocks: [
+ { type: 'header', text: { type: 'plain_text', text: '📅 New Appointment Request', emoji: true }},
+ { type: 'section', fields: [
+ { type: 'mrkdwn', text: `*Employee:*\n${emp.empName} (${emp.empId})` },
+ { type: 'mrkdwn', text: `*Date/Time:*\n${dateDisplay} ${timeSlot}` },
+ { type: 'mrkdwn', text: `*Problem:*\n${reason}` }
+ ]},
+ { type: 'actions', elements: [
+ { type: 'button', text: { type: 'plain_text', text: '✅ Confirm', emoji: true }, style: 'primary',
+ action_id: 'appt_confirm', value: `${appt._id}|${userId}` },
+ { type: 'button', text: { type: 'plain_text', text: '❌ Cancel', emoji: true }, style: 'danger',
+ action_id: 'appt_cancel', value: `${appt._id}|${userId}` }
+ ]}
+ ]
+ }).catch(() => {});
+ }
+ console.log(`📅 Appointment booked: ${emp.empName} → ${dateVal} ${timeSlot}`);
+ } catch (err) {
+ console.error('Appointment booking error:', err.message);
+ await client.chat.postMessage({ channel: userId, text: '❌ Booking mein kuch problem aayi. Dobara try karo ya /ticket use karo.' });
+ }
+ });
+
+ // Appointment confirm/cancel by admin
+ slackApp.action('appt_confirm', async ({ body, ack, client }) => {
+ await ack();
+ const [apptId, empSlackId] = body.actions[0].value.split('|');
+ try {
+ const Appointment = require('./models/Appointment');
+ const appt = await Appointment.findByIdAndUpdate(apptId, { status: 'Confirmed' }, { new: true });
+ if (appt) {
+ const dateDisplay = new Date(appt.date).toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Asia/Kolkata' });
+ await client.chat.postMessage({
+ channel: empSlackId,
+ text: `✅ IT Appointment Confirmed! ${dateDisplay} ${appt.timeSlot}`,
+ blocks: [
+ { type: 'header', text: { type: 'plain_text', text: '✅ Appointment Confirmed!', emoji: true }},
+ { type: 'section', text: { type: 'mrkdwn', text: `*${dateDisplay} ${appt.timeSlot}* pe IT team milegi! 😊\n\nProblem: ${appt.reason}\n\nLocation: IT Helpdesk Desk (Floor details IT team batayegi)` }},
+ { type: 'context', elements: [{ type: 'mrkdwn', text: '_Cancel karna ho toh IT ko Slack pe batao_' }]}
+ ]
+ });
+ await client.chat.update({ channel: body.channel.id, ts: body.message.ts,
+ text: `✅ Appointment confirmed: ${appt.empName} → ${dateDisplay} ${appt.timeSlot}`,
+ blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `✅ *Confirmed:* ${appt.empName} | ${dateDisplay} ${appt.timeSlot}` }}]
+ });
+ }
+ } catch (err) { console.error('Appt confirm error:', err.message); }
+ });
+
+ slackApp.action('appt_cancel', async ({ body, ack, client }) => {
+ await ack();
+ const [apptId, empSlackId] = body.actions[0].value.split('|');
+ try {
+ const Appointment = require('./models/Appointment');
+ const appt = await Appointment.findByIdAndUpdate(apptId, { status: 'Cancelled' }, { new: true });
+ if (appt) {
+ await client.chat.postMessage({
+ channel: empSlackId,
+ text: `❌ Appointment cancel ho gayi. Naya slot book karo: /appoint`,
+ blocks: [
+ { type: 'section', text: { type: 'mrkdwn', text: `❌ *Appointment Cancel* ho gayi aapki.\n\nNaya slot book karne ke liye: \`/appoint\`\nYa turant help ke liye: \`/ticket\`` }}
+ ]
+ });
+ await client.chat.update({ channel: body.channel.id, ts: body.message.ts,
+ text: `❌ Appointment cancelled: ${appt?.empName}`,
+ blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ *Cancelled:* ${appt?.empName}` }}]
+ });
+ }
+ } catch (err) { console.error('Appt cancel error:', err.message); }
+ });
+
  // ── DM Handler ────────────────────────────────────────────────────────
  slackApp.message(async ({ message, client, say }) => {
- if (message.bot_id || message.subtype) return;
+ if (message.bot_id) return;
+ // Handle file/image uploads (screenshot diagnosis)
+ if (message.subtype === 'file_share' && message.files && message.files.length > 0) {
+ const userId = message.user;
+ const file = message.files[0];
+ if (file.mimetype?.startsWith('image/')) {
+ try {
+ await say({ text: '📸 Screenshot dekh raha hoon...' });
+ // Try vision AI if Anthropic available
+ const claudeSvc = require('./services/claude');
+ const emp = await lookupEmployee(userId, client);
+ let diagnosis = null;
+ if (process.env.ANTHROPIC_API_KEY) {
+ const Anthropic = require('@anthropic-ai/sdk');
+ const ant = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+ // Get file URL with bot token
+ const fileInfo = await client.files.info({ file: file.id });
+ const imgUrl = fileInfo.file?.url_private;
+ if (imgUrl) {
+ // Download image
+ const https = require('https');
+ const imgBuffer = await new Promise((resolve, reject) => {
+ const chunks = [];
+ const req = https.get(imgUrl, { headers: { Authorization: `Bearer ${process.env.SLACK_BOT_TOKEN}` } }, (res) => {
+ res.on('data', c => chunks.push(c));
+ res.on('end', () => resolve(Buffer.concat(chunks)));
+ });
+ req.on('error', reject);
+ req.setTimeout(5000, () => { req.destroy(); reject(new Error('timeout')); });
+ });
+ const base64 = imgBuffer.toString('base64');
+ const ext = (file.name || '').split('.').pop()?.toLowerCase();
+ const mediaType = ext === 'png' ? 'image/png' : ext === 'gif' ? 'image/gif' : 'image/jpeg';
+ const resp = await ant.messages.create({
+ model: 'claude-3-5-haiku-20241022',
+ max_tokens: 300,
+ system: `You are Zivon, WIOM's IT helpdesk bot. Analyze this screenshot from an employee's laptop/screen. Identify the error/issue and give a SHORT friendly solution in Hindi/Hinglish (3-4 lines max). Be specific about what you see. Format: "Dekha! [what you see]. [solution]. [closing]"`,
+ messages: [{ role: 'user', content: [
+ { type: 'image', source: { type: 'base64', media_type: mediaType, data: base64 }},
+ { type: 'text', text: `Employee ${emp?.empName || ''} ne ye screenshot bheja hai. Kya dikha raha hai aur kya fix hai?` }
+ ]}]
+ });
+ diagnosis = resp.content[0]?.text;
+ }
+ }
+ if (diagnosis) {
+ const formatted = diagnosis.replace(/\*\*/g, '*');
+ await say({ text: diagnosis, blocks: [
+ { type: 'section', text: { type: 'mrkdwn', text: `📸 *Screenshot Analysis:*\n\n${formatted}` }},
+ { type: 'context', elements: [{ type: 'mrkdwn', text: '_Zivon AI Vision | Kaam nahi hua toh ticket raise karo: type *ha*_' }]}
+ ]});
+ } else {
+ await say({ text: 'Screenshot mila! 📸 Describe karo kya error aa raha hai — main help karunga! 😊' });
+ }
+ } catch (err) {
+ console.error('Photo diagnosis error:', err.message);
+ await say({ text: '📸 Screenshot mila! Kya error dikh raha hai? Describe karo — main turant fix batata hoon! 😊' });
+ }
+ } else {
+ await say({ text: `File mila (${file.name})! Iske baare mein kya help chahiye? 😊` });
+ }
+ return;
+ }
+ if (message.subtype) return;
  const userId = message.user;
  const text = message.text?.trim();
  if (!text) return;
@@ -2222,6 +2523,17 @@ app.listen(PORT, async () => {
  timeZone: 'Asia/Kolkata'
  });
 
+ // Trending: top categories today
+ const todayStart2 = new Date(); todayStart2.setHours(0,0,0,0);
+ const trendData = await Ticket.aggregate([
+ { $match: { createdAt: { $gte: new Date(Date.now() - 7*24*3600000) } } },
+ { $group: { _id: '$category', count: { $sum: 1 } } },
+ { $sort: { count: -1 } }, { $limit: 5 }
+ ]);
+ const trendText = trendData.length
+ ? trendData.map(t => `• *${t._id || 'Other'}:* ${t.count} tickets`).join('\n')
+ : '• No tickets this week';
+
  await slackApp.client.chat.postMessage({
  channel: adminId,
  text : `⚡ Zivon — Good Morning! IT Helpdesk Daily Summary ${dateStr}`,
@@ -2236,6 +2548,8 @@ app.listen(PORT, async () => {
  { type:'mrkdwn', text:`* Critical Open*\n*${critical}*` },
  { type:'mrkdwn', text:`*⚠️ SLA Breached*\n*${slaBreached}*` }
  ]},
+ { type: 'divider' },
+ { type: 'section', text: { type: 'mrkdwn', text: `*📊 Top Issues (Last 7 Days):*\n${trendText}` }},
  ...(oldestText ? [
  { type:'divider' },
  { type:'section', text:{ type:'mrkdwn', text:`*⏳ Sabse Purane Pending Tickets:*\n${oldestText}` }}
