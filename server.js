@@ -708,8 +708,8 @@ app.listen(PORT, async () => {
  {
  type: 'button',
  text: { type: 'plain_text', text: '📞 Contact IT', emoji: true },
- action_id: 'home_sos',
- value: 'sos',
+ action_id: 'home_contact_it',
+ value: 'contact_it',
  style: 'danger'
  }
  ]
@@ -1552,6 +1552,29 @@ app.listen(PORT, async () => {
  });
  } catch (err) {
  console.error('home_open_dm error:', err.message);
+ }
+ });
+
+ // ── Contact IT button → show phone number modal ──────────────────────
+ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
+ await ack();
+ try {
+ await client.views.open({
+ trigger_id: body.trigger_id,
+ view: {
+ type: 'modal',
+ title: { type: 'plain_text', text: '📞 Contact IT', emoji: true },
+ close: { type: 'plain_text', text: 'Close', emoji: true },
+ blocks: [
+ { type: 'section', text: { type: 'mrkdwn', text: '*IT Admin se seedha baat karo:*' }},
+ { type: 'divider' },
+ { type: 'section', text: { type: 'mrkdwn', text: '📱 *Phone:*\n*9654244281*' }},
+ { type: 'section', text: { type: 'mrkdwn', text: '📧 *Email:*\nsajan.kumar@wiom.in' }},
+ ]
+ }
+ });
+ } catch (err) {
+ console.error('home_contact_it error:', err.message);
  }
  });
 
