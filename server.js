@@ -1074,9 +1074,11 @@ app.listen(PORT, async () => {
  slackApp.action('dm_back_to_categories', async ({ body, ack, client }) => {
  await ack();
  const userId = body.user.id;
+ const channelId = body.channel?.id || userId;
+ const msgTs = body.message?.ts;
  try {
  const emp = await lookupEmployee(userId, client);
- const firstName = (emp.empName || 'there').split(' ')[0];
+ const firstName = (emp?.empName || 'there').split(' ')[0];
  const catBlocks = [
  { type:'section', text:{ type:'mrkdwn', text:`*Hello ${firstName}!* \n_Apni IT problem category select karo:_` }},
  { type:'divider' },
@@ -1091,14 +1093,24 @@ app.listen(PORT, async () => {
  }]
  }))
  ];
- await client.chat.update({
- channel: userId,
- ts: body.message.ts,
- text: 'Categories',
- blocks: catBlocks
- });
+ if (msgTs) {
+ await client.chat.update({ channel: channelId, ts: msgTs, text: 'Categories', blocks: catBlocks });
+ } else {
+ await client.chat.postMessage({ channel: userId, text: 'Categories', blocks: catBlocks });
+ }
  } catch (err) {
  console.error('dm_back_to_categories error:', err.message);
+ // Fallback: post fresh categories message
+ try {
+ await client.chat.postMessage({ channel: userId, text: 'Select category:', blocks: [
+ { type:'section', text:{ type:'mrkdwn', text:`_Apni IT problem category select karo:_` }},
+ { type:'divider' },
+ ...CATEGORIES.map(cat => ({
+ type: 'actions',
+ elements: [{ type:'button', text:{ type:'plain_text', text: cat.label, emoji:true }, style:'primary', action_id:`dm_cat_${cat.key}`, value: cat.key }]
+ }))
+ ]});
+ } catch {}
  }
  });
 
@@ -1278,6 +1290,8 @@ app.listen(PORT, async () => {
  slackApp.action(`dm_cat_${cat.key}`, async ({ body, ack, client }) => {
  await ack();
  const userId = body.user.id;
+ const channelId = body.channel?.id || userId;
+ const msgTs = body.message?.ts;
  try {
  const catBlocks = [
  { type:'section', text:{ type:'mrkdwn', text:`*${cat.label}* — select your issue:` }},
@@ -1306,14 +1320,13 @@ app.listen(PORT, async () => {
  });
 
  // UPDATE existing message instead of posting new one (prevents duplicates)
+ if (msgTs) {
  try {
- await client.chat.update({
- channel: userId,
- ts: body.message.ts,
- text: cat.label,
- blocks: catBlocks
- });
+ await client.chat.update({ channel: channelId, ts: msgTs, text: cat.label, blocks: catBlocks });
  } catch {
+ await client.chat.postMessage({ channel: userId, text: cat.label, blocks: catBlocks });
+ }
+ } else {
  await client.chat.postMessage({ channel: userId, text: cat.label, blocks: catBlocks });
  }
  } catch (err) {
