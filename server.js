@@ -1871,6 +1871,7 @@ app.listen(PORT, async () => {
  software_other: 'software issue', password_reset: 'forgot laptop password',
  account_locked: 'account locked', email_password: 'email password reset',
  otp_issue: '2FA OTP not received',
+ printer: 'printer not working', create_ticket: 'create ticket',
  };
 
  const btns = quickButtons[vagueMatch.type] || [];

@@ -284,8 +284,8 @@ const callGroq = async (systemPrompt, history) => {
   const completion = await groq.chat.completions.create({
     model      : 'llama-3.1-8b-instant',    // fastest Groq model
     messages   : [{ role: 'system', content: systemPrompt }, ...history],
-    temperature: 0.15,
-    max_tokens : 350   // shorter = faster response
+    temperature: 0.2,
+    max_tokens : 220   // short = fast response
   });
   const text = completion.choices?.[0]?.message?.content?.trim();
   if (!text) throw new Error('Empty response from Groq');
@@ -423,18 +423,18 @@ const getKBAnswer = (problem) => {
 
   // ── Identity questions ───────────────────────────────────────────────────
   if (/^(kise\s*hai|kise\s*ho|tum\s*kaun\s*ho|aap\s*kaun\s*ho|kaun\s*ho|kaun\s*hain|what\s*are\s*you|who\s*are\s*you|bot\s*hai\s*kya|kya\s*tum\s*bot|are\s*you\s*a\s*bot|introduce|apna\s*parichay)\s*\??$/i.test(p.trim())) {
-    return `Main hoon *WIOM IT Helpdesk Bot!* 🤖\nAapke laptop, WiFi, software — har IT problem mein help karta hoon.\nBatao kya problem hai, turant fix karunga! 😊`;
+    return `Hey! Main *Zivon* hoon ⚡ — WIOM ka smart IT helpdesk assistant! 🤖\nLaptop slow ho ya WiFi na chale, software issue ho ya password bhool gaye — sab mein help karta hoon.\nBatao kya problem hai, abhi fix karte hain! 😊`;
   }
 
   // ── Ticket status / ETA questions (typo-tolerant: tiket/tikket/ticket) ──
-  const pTicket = p.replace(/ti+ke+t/gi, 'ticket'); // normalize typos
+  const pTicket = p.replace(/ti+ke+t/gi, 'ticket');
   if (/ticket\s*(kab|kb|kab\s*tak|kab\s*solve|kab\s*hoga|kab\s*fix|status|update|progress|ho\s*gaya|hua\s*kya|abhi\s*tak|kyun\s*nahi|pending)/i.test(pTicket) ||
       /kab\s*tak\s*(hoga|milega|fix\s*hoga|solve\s*hoga|resolve)/i.test(pTicket) ||
       /mera\s*ticket\s*(kab|solve|fix|hoga|ho\s*ga)/i.test(pTicket)) {
-    return `Aapka ticket IT team ke paas hai! 📋\nTypically *same day ya 24h* mein resolve hota hai (priority ke hisaab se).\n\nStatus check karne ke liye type karo: *my tickets* 👀\nUrgent hai toh: *raise ticket* 🎫`;
+    return `Aapka ticket IT team ke paas hai! 📋 Usually same day resolve hota hai — priority ke hisaab se.\nStatus dekhne ke liye type karo: *my tickets* 👀\nUrgent hai toh batao, main priority mark kar deta hoon! 🎫`;
   }
 
-  // ── WiFi password — strict match only (not generic Hindi sentences) ──
+  // ── WiFi password — strict match only ───────────────────────────────────
   const isWifiPassword =
     /wifi\s*(ka|ke|ki)?\s*(password|pass|pwd|pasword|passward)/i.test(p) ||
     /password\s*(wifi|wi-fi|wiom|network)/i.test(p) ||
@@ -444,30 +444,79 @@ const getKBAnswer = (problem) => {
     /office\s*(wifi|network|wi-fi)\s*(password|pass)/i.test(p);
 
   if (isWifiPassword) {
-    return `WiFi Password 📶\n\n*Sab networks ka same password hai:*\n🔑 Password: \`spartans500\`\n\n*Available Networks:*\n• *Wiom office 5g-Test* — Ground floor\n• *Wiom office Guest* — Guest network\n• *Wiom office 3rd floor* — 3rd floor\n• *Wiomnet* — Saket office (Password: \`Password@12345\`)\n\nKaam aa gaya toh batao! ✅`;
+    return `WiFi Password! 📶\n\n🔑 *Password:* \`spartans500\` — sabhi networks ke liye same\n\n*Networks:*\n• Wiom office 5g-Test — Ground floor\n• Wiom office Guest\n• Wiom office 3rd floor\n• Wiomnet — Saket office *(Password: \`Password@12345\`)*\n\nHo gaya? Batao! 😊`;
   }
 
-  // Map of keywords → instant KB answers
+  // ── Instant KB answers — Zivon tone, no Step 1/2/3 ─────────────────────
   const quickAnswers = [
-    { keys: ['slow','speed','hang','freeze','sluggish'], ans: `Koi baat nahi! 🔧 Yeh try karo:\nStep 1: Ctrl+Shift+Esc → CPU column click → top process → End Task\nStep 2: Win+R → %temp% → Ctrl+A → Delete\nStep 3: Restart laptop\nThodi der mein fast ho jayega! ✅` },
-    { keys: ['wifi','internet','network','connection'], ans: `Arre WiFi ka issue! 📶 Yeh try karo:\n\nTaskbar WiFi icon OFF karo → 10 sec ruko → ON karo. Phir forget network karo aur dobara connect karo (password: \`spartans500\`)\n\nYa ye DNS fix command run karo — Win+R dabao, type karo:\n\`\`\`\nipconfig /flushdns\n\`\`\`\nPhir restart karo. Batana kaise gaya! 😊` },
-    { keys: ['blue screen','bsod','bluescreen'], ans: `BSOD aa gaya! 💙 Try karo:\nStep 1: Laptop restart karo (mostly fix ho jata hai)\nStep 2: Win+X → Device Manager → Display/Network → Update Driver\nStep 3: Agar baar baar aaye → ticket raise karo\nBatao kya hua! ✅` },
-    { keys: ['battery','charging','charge'], ans: `Battery issue! 🔋 Yeh dekho:\nStep 1: Charger plug nikalo → 30 sec wait → dobara lagao\nStep 2: Dusra power socket try karo\nStep 3: Agar nahi charga → ticket raise karo (hardware issue)\nBatao result! ✅` },
-    { keys: ['overheat','hot','fan','temperature'], ans: `Laptop garam ho raha hai! 🌡️\nStep 1: Saare tabs/apps band karo → laptop stand use karo\nStep 2: Ctrl+Shift+Esc → CPU → heavy apps End Task karo\nStep 3: Clean karo laptop vents (air blower se)\nBetter feel hoga! ✅` },
-    { keys: ['black screen','screen black','display'], ans: `Screen black! 🖥️ Try karo:\nStep 1: Power button 10 sec dabao → release → restart\nStep 2: Fn+F7 ya Fn+F8 (brightness keys)\nStep 3: External monitor lagao → agar dikhta hai toh screen issue → ticket\nBatao! ✅` },
-    { keys: ['keyboard not working','keyboard kaam nahi','keyboard issue','keyboard problem','keys not working'], ans: `Keyboard issue! ⌨️ Try karo:\nStep 1: Laptop restart karo\nStep 2: On-Screen Keyboard: Settings → Accessibility → Keyboard ON\nStep 3: Device Manager → Keyboards → Uninstall → Restart\nAgar physical damage hai → ticket raise karo! ✅` },
-    { keys: ['touchpad','mouse not working','cursor not moving','cursor stuck'], ans: `Touchpad/Mouse issue! 🖱️\nStep 1: Fn+F9 dabao (touchpad toggle)\nStep 2: Restart laptop\nStep 3: Device Manager → Mice → Uninstall → Restart\nBatao! ✅` },
-    { keys: ['teams','microsoft teams'], ans: `Teams issue! 📹 Try karo:\nStep 1: Teams puri tarah band karo (system tray se) → dobara open\nStep 2: Teams Settings → Clear Cache → restart\nStep 3: Agar nahi chala → ticket raise karo\nKaam aa jaye! ✅` },
-    { keys: ['outlook','email','mail'], ans: `Outlook problem! 📧 Try karo:\nStep 1: Ctrl+Shift+Esc → Outlook → End Task → dobara open\nStep 2: Win+R → outlook /safe → Enter (safe mode)\nStep 3: File → Account Settings → Repair\nBatao kya hua! ✅` },
-    { keys: ['password','forgot','reset'], ans: `Password reset chahiye! 🔑\nWindows password = Ticket raise karo (IT reset karega)\nEmail password = Ticket raise karo\nGoogle account = myaccount.google.com → Security → Password\nTicket banane ke liye type karo: *ha* ✅` },
-    { keys: ['shutdown','restart','stuck restarting','boot'], ans: `Stuck hai laptop! 🔄 Try karo:\nStep 1: Power button 10 sec dabao → force shutdown\nStep 2: Power on karo → F8 → Safe Mode → restart normally\nStep 3: Baar baar hota hai → ticket raise karo\nBatao result! ✅` },
-    { keys: ['sound','audio','speaker','no sound'], ans: `Sound nahi aa raha! 🔊 Try karo:\nStep 1: Taskbar speaker icon → volume check → unmute\nStep 2: Right-click speaker → Sound settings → Output device check\nStep 3: Win+R → mmsys.cpl → test speakers\nKaam aa jaye! ✅` },
-    { keys: ['camera','webcam'], ans: `Camera issue! 📷 Try karo:\nStep 1: Teams/Zoom Settings → Camera → sahi device select karo\nStep 2: Device Manager → Cameras → Disable → Enable\nStep 3: Privacy Settings → Camera → Apps ko allow karo\nBatao! ✅` },
-    { keys: ['storage','disk','full','space'], ans: `Storage full! 💾 Karo yeh:\nStep 1: Win+R → cleanmgr → C: → Clean system files\nStep 2: Win+R → %temp% → Ctrl+A → Delete\nStep 3: Recycle Bin empty karo\nFree space ho jayega! ✅` },
-    { keys: ['printer','print'], ans: `Printer issue! 🖨️ Try karo:\nStep 1: Printer OFF → ON karo, USB/WiFi check karo\nStep 2: Win+R → services.msc → Print Spooler → Restart\nStep 3: Agar nahi chala → ticket raise karo\nBatao! ✅` },
-    { keys: ['zoom','meet','video call','video conference'], ans: `Zoom/Meet issue! 🎥 Try karo:\nStep 1: Zoom/Meet band karo → dobara open\nStep 2: Internet check karo → browser mein try karo\nStep 3: Settings → Audio/Video → sahi device select karo\nBatao! ✅` },
-    { keys: ['excel','word','office','powerpoint'], ans: `MS Office issue! 📄 Try karo:\nStep 1: App puri tarah band karo → restart karo\nStep 2: Win+R → %appdata%\\Microsoft → delete temp files\nStep 3: File → Open & Repair option try karo\nNahi hua → ticket raise karo! ✅` },
-    { keys: ['vpn','remote','connect'], ans: `VPN/Remote access ke liye IT ticket raise karo — IT team setup karega.\nType karo: *ha* ✅` },
+    { keys: ['slow','speed','hang','freeze','sluggish'],
+      ans: `Arre laptop slow ho gaya! 💻 Tension nahi — Ctrl+Shift+Esc dabao, Task Manager mein jo sabse zyada CPU le raha ho usse End Task karo. Phir Win+R → \`%temp%\` → sab select → delete. Restart karo, fast ho jaayega! ✅\nBatana kaise raha 😊` },
+
+    { keys: ['wifi','internet','network','connection'],
+      ans: `WiFi ka jhanjhat! 📶 Pehle taskbar se WiFi OFF karo, 10 sec ruko, ON karo. Nahi hua toh network forget karo aur dobara connect karo — password: \`spartans500\`\n\nYa ye command try karo (Win+R mein type karo):\n\`ipconfig /flushdns\`\n\nBatana theek hua ya nahi! 😄` },
+
+    { keys: ['blue screen','bsod','bluescreen'],
+      ans: `Oops, blue screen! 💙 Ghabrao mat — usually restart se theek ho jaata hai. Restart karo aur dekho. Agar baar baar aa raha hai toh screen ka error code note karo aur batao — main ticket raise karta hoon! 📸` },
+
+    { keys: ['battery','charging','charge'],
+      ans: `Battery nahi charge ho rahi? 🔋 Pehle charger dono side se ek baar nikaal ke dubara lagao, dusra socket try karo. Phir bhi nahi? Laptop shut down karo, charger nikaalo, power button 30 sec hold karo, phir charger lagao. Nahi hua → ticket raise karte hain (hardware issue) 🎫` },
+
+    { keys: ['overheat','hot','fan','temperature'],
+      ans: `Laptop garam! 🌡️ Saare heavy apps band karo aur laptop hard surface pe rakho (bed/sofa pe mat rakho). Ctrl+Shift+Esc mein CPU wali apps End Task karo. Settings → Power → Balanced mode on karo. Thanda ho jaayega! Abhi bhi zyada ho toh batao 😊` },
+
+    { keys: ['black screen','screen black'],
+      ans: `Screen black ho gayi! 🖥️ Pehle Fn+F5 ya Fn+F8 dabao (brightness keys). Nahi hua toh power button 10 sec hold karo, force restart. Abhi bhi kuch nahi dikhta? External monitor lagao HDMI se — agar wahan dikhta hai toh screen replace ka ticket raise karte hain 🎫` },
+
+    { keys: ['keyboard not working','keyboard kaam nahi','keyboard issue','keyboard problem','keys not working'],
+      ans: `Keyboard kaam nahi kar raha! ⌨️ Pehle restart karo. Kaam nahi aya? Win+R → \`osk\` type karo — on-screen keyboard se kaam chala sakte ho temporarily. Device Manager → Keyboards → Uninstall → restart se reinstall ho jaata hai. Physical damage hai toh ticket raise karo! 🎫` },
+
+    { keys: ['touchpad','mouse not working','cursor not moving','cursor stuck'],
+      ans: `Mouse/Touchpad stuck! 🖱️ Fn+F9 dabao (touchpad toggle). Nahi hua toh restart karo. Phir bhi nahi? Device Manager → Mice → Uninstall → restart. Driver auto reinstall ho jaata hai! Batao kaise raha 😊` },
+
+    { keys: ['teams','microsoft teams'],
+      ans: `Teams act up kar raha hai! 📹 System tray (taskbar ke paas) se Teams completely close karo — phir dobara open karo. 90% cases mein theek ho jaata hai! Nahi hua toh Teams Settings → Clear Cache → restart. Batao! 😊` },
+
+    { keys: ['outlook','email','mail'],
+      ans: `Outlook nahi chal raha! 📧 Ctrl+Shift+Esc → Outlook → End Task karo. Phir Win+R → \`outlook /safe\` → Enter — safe mode mein khulega. Kaam kiya? Repair ke liye File → Account Settings → Repair. Batao kaise raha! 😊` },
+
+    { keys: ['password','forgot','reset'],
+      ans: `Password bhool gaye? 🔑 Koi baat nahi, hota hai!\n• Windows/email password → IT reset karega, type karo *ha* → ticket bhej deta hoon 🎫\n• Google account → khud reset kar sakte ho: myaccount.google.com → Security → Password\nBatao konsa wala! 😊` },
+
+    { keys: ['shutdown','restart','stuck restarting','boot'],
+      ans: `Laptop stuck hai! 🔄 Power button 10 sec hold karo — force shut down ho jaayega. Phir normal start karo. Baar baar ho raha hai? Boot pe F8 dabao → Safe Mode → Startup Repair. Nahi hua → ticket raise karte hain 🎫` },
+
+    { keys: ['sound','audio','speaker','no sound'],
+      ans: `Sound nahi aa raha! 🔊 Taskbar mein speaker icon check karo — mute toh nahi? Right-click → Sound settings → sahi output device select hai kya? Win+R → \`mmsys.cpl\` run karo, speakers test karo. Theek hua? Batao! 😄` },
+
+    { keys: ['camera','webcam'],
+      ans: `Camera kaam nahi kar raha! 📷 Teams/Zoom mein Settings → Video → sahi camera select hai? Device Manager → Cameras → Disable → Enable karo. Privacy Settings → Camera → Apps ko allow karo. Batao kaise raha! 😊` },
+
+    { keys: ['storage','disk','full','space'],
+      ans: `Storage full ho gayi! 💾 Win+R → \`cleanmgr\` → C: drive → Clean system files. Phir Win+R → \`%temp%\` → sab select → delete. Recycle Bin bhi empty karo. Bahut space free ho jaayega! Batao kitna free hua 😄` },
+
+    { keys: ['printer','print'],
+      ans: `Printer offline hai! 🖨️ Printer OFF karo → 10 sec → ON karo, USB/WiFi connection check karo. Phir Win+R → \`services.msc\` → Print Spooler → Restart karo. Abhi bhi nahi? Ticket raise karte hain 🎫 Batao! 😊` },
+
+    { keys: ['zoom','meet','video call','video conference'],
+      ans: `Zoom/Meet nahi chal raha! 🎥 Puri tarah band karo → dobara open. Internet theek hai? Browser se try karo (backup). Settings → Audio/Video → sahi camera/mic select hai? Batao kaise raha! 😊` },
+
+    { keys: ['excel','word','office','powerpoint'],
+      ans: `MS Office issue! 📄 App puri tarah band karo → restart. Specific file issue hai? File → Open & Repair try karo. Win+R → \`%appdata%\\Microsoft\` → temp files delete karo. Nahi hua → ticket raise karte hain! 🎫` },
+
+    { keys: ['vpn','remote','connect'],
+      ans: `VPN/Remote access ke liye IT setup karta hai — khud nahi hota! Type karo *ha*, main ticket bhej deta hoon — IT team turant help karegi 🎫` },
+
+    { keys: ['bluetooth'],
+      ans: `Bluetooth issue! 🔵 Settings → Bluetooth → toggle OFF → ON karo. Device dobara pair karo. Nahi hua? Device Manager → Bluetooth → Disable → Enable. Batao! 😊` },
+
+    { keys: ['chrome','browser','firefox','edge'],
+      ans: `Browser issue! 🌐 Puri tarah band karo → dobara open. Cache clear karo: Ctrl+Shift+Del → Clear data. Extension issue ho sakta hai — Incognito mode mein try karo (Ctrl+Shift+N). Theek hua? 😄` },
+
+    { keys: ['virus','malware','hack','suspicious'],
+      ans: `Suspicious activity! 🦠 Turant: Windows Security → Virus & threat protection → Quick Scan. Kuch mila? IT ko batao — ticket raise karo immediately. Internet disconnect karo agar serious lage. Main ticket bhej deta hoon — type karo *ha* 🎫` },
+
+    { keys: ['update','windows update'],
+      ans: `Windows update issue! 🔄 Settings → Windows Update → Check for updates. Stuck hai? Laptop restart karo aur dobara try karo. Baar baar fail ho raha hai → IT ticket raise karte hain 🎫 Batao! 😊` },
   ];
 
   for (const { keys, ans } of quickAnswers) {
