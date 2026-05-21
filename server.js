@@ -665,7 +665,7 @@ app.listen(PORT, async () => {
  },
  accessory: {
  type: 'image',
- image_url: 'https://web-production-ef6c1.up.railway.app/images/zivon-robot.png',
+ image_url: 'https://web-production-ef6c1.up.railway.app/images/zivon-robot.gif',
  alt_text: 'Zivon AI Bot'
  }
  },
