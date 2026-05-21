@@ -15,7 +15,9 @@ const SYSTEM_PROMPT = `You are WIOM IT Helpdesk AI — friendly, helpful, and cl
 
 SCOPE RULE - MOST IMPORTANT:
 - IT-related question (hardware, software, network, devices, accounts, security, apps, computers, phones, any tech) -> Answer it FULLY using all your IT knowledge, even if not in the knowledge base below.
-- NON-IT question (cricket, weather, cooking, finance, poetry, movies, general knowledge, personal topics) -> Reply ONLY: "Main sirf WIOM IT Helpdesk ke liye hoon! Laptop, WiFi, software ya koi bhi IT problem ho toh batao - turant help karunga!"
+- TICKET STATUS question ("mera ticket kab tak hoga", "ticket solve kab hoga", "ticket update", "ticket progress", "kab fix hoga") -> Reply: "Aapka ticket IT team ke paas hai! 📋 Typically same day ya 24h mein resolve hota hai depending on priority.\n\nStatus check karne ke liye type karo: *my tickets* 👀\nUrgent hai toh type karo: *raise ticket* 🎫"
+- IDENTITY question ("kise hai", "tum kaun ho", "what are you", "aap kaun ho", "bot hai kya") -> Reply: "Main hoon *WIOM IT Helpdesk Bot!* 🤖\nAapke laptop, WiFi, software — har IT problem mein help karta hoon.\nBatao kya problem hai, turant fix karunga! 😊"
+- NON-IT question (cricket, weather, cooking, finance, poetry, movies, general knowledge, personal topics) -> Reply ONLY: "Main sirf WIOM IT Helpdesk ke liye hoon! Laptop, WiFi, software ya koi bhi IT problem ho toh batao - turant help karunga! 😊"
 
 ━━━ REPLY FORMAT (follow exactly) ━━━
 Line 1 : ONE short friendly line with emoji. Example: "Koi baat nahi! 😊 Yeh try karo:"
@@ -474,6 +476,18 @@ const quickReply = async (userMessage, empName = 'Employee', laptop = null, lapt
 const getKBAnswer = (problem) => {
   if (!problem) return null;
   const p = problem.toLowerCase();
+
+  // ── Identity questions ───────────────────────────────────────────────────
+  if (/^(kise\s*hai|kise\s*ho|tum\s*kaun\s*ho|aap\s*kaun\s*ho|kaun\s*ho|kaun\s*hain|what\s*are\s*you|who\s*are\s*you|bot\s*hai\s*kya|kya\s*tum\s*bot|are\s*you\s*a\s*bot|introduce|apna\s*parichay)\s*\??$/i.test(p.trim())) {
+    return `Main hoon *WIOM IT Helpdesk Bot!* 🤖\nAapke laptop, WiFi, software — har IT problem mein help karta hoon.\nBatao kya problem hai, turant fix karunga! 😊`;
+  }
+
+  // ── Ticket status / ETA questions ───────────────────────────────────────
+  if (/ticket\s*(kab|kb|kab\s*tak|kab\s*solve|kab\s*hoga|kab\s*fix|status|update|progress|ka\s*kya|ho\s*gaya|hua\s*kya|abhi\s*tak|kyun\s*nahi|pending|lamba)/i.test(p) ||
+      /kab\s*tak\s*(hoga|milega|fix|solve|resolve)/i.test(p) ||
+      /mera\s*(ticket|kaam|issue|problem)\s*(kab|kb|solve|fix|hoga|ho\s*ga)/i.test(p)) {
+    return `Aapka ticket IT team ke paas hai! 📋\nTypically *same day ya 24h* mein resolve hota hai (priority ke hisaab se).\n\nStatus check karne ke liye type karo: *my tickets* 👀\nUrgent hai toh: *raise ticket* 🎫`;
+  }
 
   // ── Special multi-keyword checks FIRST (before single-keyword matches) ──
   const isWifiPassword = (p.includes('wifi') || p.includes('wi-fi') || p.includes('wiom') || p.includes('network')) &&
