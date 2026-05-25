@@ -49,23 +49,22 @@ Real IT support kaisa lagta hai:
 - English mein likhe → English mein jawab
 - Mix mat karo
 
-━━━ REAL COLLEAGUE TONE — EXAMPLES ━━━
+━━━ REAL COLLEAGUE TONE — RULES ━━━
 
-User: "laptop slow ho gaya"
-❌ Bot: "Laptop Slow Issue! Step 1: Ctrl+Shift+Esc dabao. Step 2: Heavy apps end karo."
-✅ Real: "Haan, Ctrl+Shift+Esc dabao — Task Manager mein jo sabse zyada CPU le raha ho usse End Task karo. Restart karo ek baar, fast ho jaayega. Karo batao! 😊"
+RULE 1 — Seedha fix pe aao, problem restate mat karo:
+WRONG style: "Laptop Slow Issue! Step 1: ..."
+RIGHT style: "Ctrl+Shift+Esc dabao — Task Manager mein heavy apps end karo. Restart karo. Karo batao!"
 
-User: "wifi nahi chal raha"
-❌ Bot: "WiFi issue! Pehle taskbar se WiFi off karo..."
-✅ Real: "Ek kaam karo — taskbar se WiFi off karo, 10 sec ruko, on karo. Nahi hua toh network bhool ke dobara connect karo, password spartans500 hai. Batao!"
+RULE 2 — User theek hone ki khabar de toh khush hoo:
+WRONG style: overheating steps dena jab user "fan normal hai" bole
+RIGHT style: "Acha, theek ho gaya! Koi aur cheez hai? 😊"
 
-User: "teams nahi chal raha"
-❌ Bot: "Teams act up kar raha hai! System tray se..."
-✅ Real: "System tray se Teams puri tarah close karo — dobara open karo. 90% baar isi se theek ho jaata hai. Karo aur batao!"
+RULE 3 — Ek do steps pehle, baaki baad mein:
+WRONG style: poori list ek saath
+RIGHT style: pehla step, phir "karo batao"
 
-User: "fan normal hai"
-❌ Bot: "Laptop garam ho raha hai! Step 1..."
-✅ Real: "Acha, sab theek ho gaya! Fan chal raha hai toh koi tension nahi 😊 Koi aur cheez hai?"
+RULE 4 — Natural closers — vary karo:
+kabhi: "Batao!" / kabhi: "Karo dekhte hain" / kabhi: "Ho gaya?" / kabhi kuch bhi nahi
 
 ━━━ SCOPE ━━━
 - IT problem → help karo poori
@@ -400,17 +399,28 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     if (reply.startsWith('{')) reply = getKBFallback(history.filter(m=>m.role==='user').pop()?.content||'');
   }
 
+  // ── CRITICAL: Detect system prompt leakage ───────────────────────────────
+  // Groq sometimes copies system prompt examples verbatim — catch and replace
+  const isLeaked =
+    /User:\s*[""“”]/i.test(reply) ||          // 'User: "...' pattern from examples
+    /❌\s*(Bot|Step)|✅\s*Real:/i.test(reply) ||         // example diff markers
+    /BANNED:|NEVER DO THIS|OFFICE-FRIENDLY TONE/i.test(reply) || // system prompt headings
+    /━━━|SABSE ZAROORI|TICKET RULES/i.test(reply);       // prompt section headers
+  if (isLeaked) {
+    console.warn('⚠️ System prompt leaked in AI response — replacing with fallback');
+    const lastUser = history.filter(m => m.role === 'user').pop()?.content || '';
+    reply = getKBFallback(lastUser);
+  }
+
   // ── Hard filter: remove informal/banned words no matter what AI says ────
-  // Groq ignores system prompt instructions — we fix it at code level
   reply = reply
     .replace(/\barre\s+yaar\b/gi, 'Haan')
     .replace(/\barre\s+bhai\b/gi, 'Haan')
     .replace(/\barre\b/gi, '')
     .replace(/\byaar\b/gi, '')
     .replace(/\bbhai\b/gi, '')
-    .replace(/\barre\s+nahi\b/gi, 'Nahi')
-    .replace(/\s{2,}/g, ' ')   // collapse double spaces left by removals
-    .replace(/^[\s,!]+/, '')   // clean leading punctuation
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^[\s,!]+/, '')
     .trim();
 
   // Strip robotic title lines before "Step 1:" (keep emoji openers)
@@ -609,6 +619,11 @@ const getKBAnswer = (problem) => {
 
   for (const { keys, ans } of quickAnswers) {
     if (keys.some(k => matchKey(p, k))) return ans;
+  }
+
+  // ── "steps DO / steps batao" follow-up ─────────────────────────────────
+  if (/^(steps?\s*(do|de|batao|dikhao|chahiye|dena|bata)|aur\s*steps?|next\s*steps?|aage\s*(kya|batao)|kya\s*karu(n)?|kuch\s*aur\s*(batao|karo)|more\s*steps?)\s*[?!।]*$/i.test(p.trim())) {
+    return `Batao exactly kya ho raha hai — kya error message aa raha hai? Ya screenshot bhejo 📸 Usse main exact steps de sakta hoon. Agar jaldi chahiye toh type karo *ha*, IT team ko bhej deta hoon 🎫`;
   }
 
   // "Still not working" — only short phrases (not full questions)
