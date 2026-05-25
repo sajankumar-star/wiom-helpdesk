@@ -272,8 +272,8 @@ const getKBFallback = (problem) => {
     return `Google account password reset ! 🔐\nStep 1: myaccount.google.com pe jaao\nStep 2: Security tab click karo\nStep 3: "How you sign in to Google" mein Password click karo\nStep 4: Current password enter karo (ya fingerprint/prompt se verify karo)\nStep 5: Naya password set karo\n\nAgar nahi hua: raise ticket — IT help karega 🎫`;
   if (p.includes('bluetooth'))
     return `Bluetooth fix! 🔵\nStep 1: Settings → Bluetooth → toggle OFF → ON karo.\nStep 2: Device dobara pair karo.\nStep 3: Device Manager → Bluetooth → Disable → Enable.\nClick the script button below! ⬇️`;
-  if (p.includes('camera') || p.includes('webcam'))
-    return `Camera fix! 📷\nStep 1: Settings → Privacy → Camera → ON karo.\nStep 2: Device Manager → Cameras → right-click → Enable.\nStep 3: Laptop restart karo.\nClick the script button below! ⬇️`;
+  if (p.includes('camera') || p.includes('camra') || p.includes('webcam') || /\bcam\b/.test(p))
+    return `Settings → Privacy → Camera → ON karo 📷 Teams/Zoom mein Settings → Video → sahi camera select hai? Device Manager → Cameras → Disable → Enable karo. Batao kaise raha!`;
   if (p.includes('mic') || p.includes('microphone'))
     return `Microphone fix! 🎤\nStep 1: Settings → Privacy → Microphone → ON karo.\nStep 2: Sound settings → Input → sahi mic select karo.\nStep 3: Teams: Settings → Devices → mic test karo.\nClick the script button below! ⬇️`;
   if (p.includes('usb') || p.includes('pendrive'))
@@ -292,8 +292,8 @@ const getKBFallback = (problem) => {
     return `Main *Zivon* hoon — WIOM ka IT helpdesk assistant ⚡\nLaptop, WiFi, software, password — kisi bhi IT problem mein help karta hoon.\nBatao kya issue hai! 😊`;
   if (p.includes('sajan') || p.includes('admin') || p.includes('it head') || p.includes('phone number') || p.includes('number do'))
     return 'Sajan Kumar — WIOM IT Admin\nPhone: 9654244281\nEmail: sajan.kumar@wiom.in\nTicket ke liye type karo: *raise ticket*';
-  // Generic fallback
-  return `Your issue has been noted! 🔧\nStep 1: First restart your laptop — this fixes most issues.\nStep 2: Neeche script button hai — ek click mein automatic fix try ! ⬇️\nStep 3: Still not working? Type your problem in DM for more help! 💬`;
+  // Generic fallback — restart covers 80% of issues
+  return `Pehle ek baar laptop restart karo 🔄 — zyada tar issues isse theek ho jaate hain. Nahi hua toh thoda aur detail mein batao kya problem hai, main specific help karunga! 😊`;
 };
 
 // ── Call Claude (Anthropic) ───────────────────────────────────────────────────
@@ -577,8 +577,8 @@ const getKBAnswer = (problem) => {
     { keys: ['bluetooth'],
       ans: `Settings → Bluetooth → OFF karo, 5 sec ruko, ON karo 🔵 Device dobara pair karo. Nahi hua? Device Manager → Bluetooth → Disable → Enable. Ho gaya?` },
 
-    { keys: ['camera not working','webcam not working','camera kaam nahi','camera issue','camera problem'],
-      ans: `Teams/Zoom Settings → Video → sahi camera select hai? 📷 Privacy Settings → Camera → Apps ko allow karo. Phir bhi nahi? Device Manager → Cameras → Disable → Enable karo. Batao!` },
+    { keys: ['camera','camra','webcam','cam'],
+      ans: `Settings → Privacy → Camera → ON hai? 📷 Teams/Zoom mein Settings → Video → sahi camera select karo. Phir bhi nahi? Device Manager → Cameras → Disable → Enable karo. Batao! 😊` },
 
     { keys: ['mic not working','microphone nahi','mic kaam nahi','sound input','awaaz nahi ja'],
       ans: `Settings → Privacy → Microphone → ON hai? 🎤 Sound settings → Input → sahi mic select karo. Teams mein ho toh Settings → Devices → test karo. Theek hua batana!` },
@@ -614,9 +614,9 @@ const getKBAnswer = (problem) => {
   // "Still not working" — only short phrases (not full questions)
   const words = p.trim().split(/\s+/);
   const isShortFailMessage = words.length <= 6 &&
-    /still\s*not\s*working|abhi\s*bhi\s*nahi\s*(chal|hua|ho)|nahi\s*chala|nahi\s*chal\s*raha|kaam\s*nahi\s*(kiya|kar\s*raha)|phir\s*bhi\s*nahi|same\s*problem/i.test(p);
+    /still\s*not\s*working|abhi\s*bhi\s*nahi\s*(chal|hua|ho)|nahi\s*(hu[ao]+|chala|chal\s*raha|ho\s*raha|hua)|kaam\s*nahi\s*(kiya|kar\s*raha)|phir\s*bhi\s*nahi|same\s*problem|nhi\s*hu[ao]|nahi\s*h[ou]|ho\s*hi\s*nahi|kuch\s*nahi\s*(hua|ho)/i.test(p);
   if (isShortFailMessage) {
-    return `Koi baat nahi! 😊 IT team se help lenge — woh turant dekh legi.\nType karo: *ha* aur ticket bhej deta hoon 🎫\n\nAgar ek *screenshot* le sako toh bhejo — IT team ko bahut help milegi! 📸`;
+    return `Koi baat nahi — alag steps try karte hain 😊 Thoda aur detail mein batao kya exactly ho raha hai, ya screenshot bhejo — main specific fix dunga! 📸\nPhir bhi nahi hua? Type karo *ha*, IT team ko bhej deta hoon 🎫`;
   }
 
   return null; // No match — let AI handle it
