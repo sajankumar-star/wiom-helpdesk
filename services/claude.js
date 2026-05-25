@@ -434,10 +434,10 @@ const getKBAnswer = (problem) => {
 
   // ── User saying issue is resolved / working fine now ───────────────────
   // STRICT: only if NO negative word present AND message is short status update
-  const hasNegative = /\b(not|nahi|nahin|nai|nhi|band|problem|issue|chal nahi|kaam nahi|nahi chal|nahi ho|ho nahi)\b/i.test(p);
-  const hasPositive = /\b(normal|noraml|norml|theek|thik|sahi|ho gaya|ho gya|fixed|resolved|kaam kar raha|solve ho|fix ho gaya|theek ho|thik ho|chal raha hai|chal rhi hai)\b/i.test(p);
-  if (hasPositive && !hasNegative && p.split(/\s+/).length <= 7) {
-    return `Great! Khushi hui ki issue resolve ho gaya 😊✅ Aur koi IT help chahiye toh zaroor batao!`;
+  const hasNegative = /\b(not|nahi|nahin|nai|nhi|band|kharab|problem|issue|chal nahi|kaam nahi|nahi chal|nahi ho|ho nahi|abhi bhi|still|phir bhi)\b/i.test(p);
+  const hasPositive = /\b(normal|noraml|norml|theek|thik|sahi|ho gaya|ho gya|fixed|resolved|kaam kar raha|solve ho|fix ho gaya|theek ho|thik ho|chal raha hai|chal rhi hai|chal gaya|chal gyi|on ho gaya|working|work kar raha|charged|charge ho|connected|connect ho gaya|sorted|done|complete|ho gayi|mil gaya|mil gayi)\b/i.test(p);
+  if (hasPositive && !hasNegative && p.split(/\s+/).length <= 8) {
+    return `Great! Khushi hui ki resolve ho gaya 😊✅ Aur koi IT help chahiye toh zaroor batao!`;
   }
 
   // ── Identity questions ───────────────────────────────────────────────────
@@ -467,20 +467,53 @@ const getKBAnswer = (problem) => {
   }
 
   // ── Instant KB answers — Zivon tone, no Step 1/2/3 ─────────────────────
+  // MATCHING RULES:
+  //   - Multi-word keys (contains space): exact substring match in p
+  //   - Single-word keys: anchored start match (prevents 'mail' matching 'email', etc.)
+  //     BUT suffix-flexible so 'charge' still matches 'charger'/'charging'
+  // ORDER: specific app/device entries FIRST, general hardware LAST
+  // Reason: "teams slow hai" should match 'teams' entry, not 'slow'
+  const matchKey = (text, key) => {
+    if (key.includes(' ')) return text.includes(key);
+    // Word-start boundary only — allows suffixes like charger/charging/charging
+    // but prevents mid-word matches like 'mail' inside 'email'
+    return new RegExp(`(?<![a-z])${key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`, 'i').test(text);
+  };
+
   const quickAnswers = [
-    { keys: ['slow','speed','hang','freeze','sluggish'],
-      ans: `Arre laptop slow ho gaya! 💻 Tension nahi — Ctrl+Shift+Esc dabao, Task Manager mein jo sabse zyada CPU le raha ho usse End Task karo. Phir Win+R → \`%temp%\` → sab select → delete. Restart karo, fast ho jaayega! ✅\nBatana kaise raha 😊` },
+    // ── Specific apps first (so "teams slow" → teams, not slow) ───────────
+    { keys: ['teams','microsoft teams'],
+      ans: `Teams act up kar raha hai! 📹 System tray (taskbar ke paas) se Teams completely close karo — phir dobara open karo. 90% cases mein theek ho jaata hai! Nahi hua toh Win+R → \`%appdata%\\Microsoft\\Teams\` → Cache folder delete karo. Batao! 😊` },
 
-    { keys: ['wifi','internet','network','connection'],
-      ans: `WiFi ka jhanjhat! 📶 Pehle taskbar se WiFi OFF karo, 10 sec ruko, ON karo. Nahi hua toh network forget karo aur dobara connect karo — password: \`spartans500\`\n\nYa ye command try karo (Win+R mein type karo):\n\`ipconfig /flushdns\`\n\nBatana theek hua ya nahi! 😄` },
+    { keys: ['outlook','email','mail'],
+      ans: `Outlook nahi chal raha! 📧 Ctrl+Shift+Esc → Outlook → End Task karo. Phir Win+R → \`outlook /safe\` → Enter — safe mode mein khulega. Kaam kiya? Repair ke liye File → Account Settings → Repair. Batao kaise raha! 😊` },
 
+    { keys: ['zoom','meet','video call','video conference'],
+      ans: `Zoom/Meet nahi chal raha! 🎥 Puri tarah band karo → dobara open. Internet theek hai? Browser se try karo (backup). Settings → Audio/Video → sahi camera/mic select hai? Batao kaise raha! 😊` },
+
+    { keys: ['excel','word','powerpoint','ms office','microsoft office'],
+      ans: `MS Office issue! 📄 App puri tarah band karo → restart. Specific file issue hai? File → Open & Repair try karo. License error aa raha hai? Type karo *ha* → ticket bhejte hain 🎫` },
+
+    { keys: ['chrome','browser','firefox','edge','incognito'],
+      ans: `Browser slow/crash ho raha hai! 🌐 Puri tarah band karo → dobara open. Cache clear karo: Ctrl+Shift+Del → All time → Clear data. Extension issue? Incognito mode mein try karo (Ctrl+Shift+N). Theek hua? 😄` },
+
+    { keys: ['virus','malware','hack','suspicious','ransomware'],
+      ans: `Suspicious activity! 🦠 Turant: Windows Security → Virus & threat protection → Quick Scan. Kuch mila toh internet disconnect karo aur type karo *ha* — IT ko immediately batate hain! 🎫` },
+
+    { keys: ['windows update','update stuck','update fail'],
+      ans: `Windows update issue! 🔄 Settings → Windows Update → Check for updates. Stuck hai? Laptop restart karo aur dobara try karo. Baar baar fail ho raha hai → type karo *ha* → ticket raise karte hain 🎫` },
+
+    { keys: ['vpn','remote access','remote desktop'],
+      ans: `VPN/Remote access ke liye IT setup karta hai — khud nahi hota! Type karo *ha*, main ticket bhej deta hoon — IT team turant help karegi 🎫` },
+
+    // ── Specific hardware / device issues ──────────────────────────────────
     { keys: ['blue screen','bsod','bluescreen'],
       ans: `Oops, blue screen! 💙 Ghabrao mat — usually restart se theek ho jaata hai. Restart karo aur dekho. Agar baar baar aa raha hai toh screen ka error code note karo aur batao — main ticket raise karta hoon! 📸` },
 
-    { keys: ['battery','charging','charge'],
-      ans: `Battery nahi charge ho rahi? 🔋 Pehle charger dono side se ek baar nikaal ke dubara lagao, dusra socket try karo. Phir bhi nahi? Laptop shut down karo, charger nikaalo, power button 30 sec hold karo, phir charger lagao. Nahi hua → ticket raise karte hain (hardware issue) 🎫` },
+    { keys: ['black screen','screen black','display black','screen nahi aa'],
+      ans: `Screen black ho gayi! 🖥️ Pehle Fn+F5 ya Fn+F8 dabao (brightness keys). Nahi hua toh power button 10 sec hold karo, force restart. Abhi bhi kuch nahi dikhta? External monitor lagao HDMI se — agar wahan dikhta hai toh screen replace ka ticket raise karte hain 🎫` },
 
-    { keys: ['overheat','garam ho','bahut garam','zyada garam','laptop hot','temperature high'],
+    { keys: ['overheat','garam ho raha','bahut garam','zyada garam','laptop hot','temperature high'],
       ans: `Laptop garam ho raha hai! 🌡️ Saare heavy apps band karo aur laptop hard surface pe rakho (bed/sofa pe mat rakho). Ctrl+Shift+Esc mein CPU wali apps End Task karo. Settings → Power → Balanced mode on karo. Thanda ho jaayega! Abhi bhi zyada ho toh batao 😊` },
 
     { keys: ['fan not working','fan nahi chal','fan band','fan chal nahi','fan kaam nahi'],
@@ -489,63 +522,57 @@ const getKBAnswer = (problem) => {
     { keys: ['fan noise','fan loud','fan ki awaaz','fan bahut','fan sound','fan shor'],
       ans: `Fan bahut awaaz kar raha hai? 🔊 Pehle heavy apps band karo (Ctrl+Shift+Esc → End Task). Laptop hard surface pe rakho — bed/sofa pe na rakho. Thodi der mein quieter ho jaata hai. Phir bhi awaaz aa rahi hai toh ticket raise karte hain 🎫` },
 
-    { keys: ['black screen','screen black'],
-      ans: `Screen black ho gayi! 🖥️ Pehle Fn+F5 ya Fn+F8 dabao (brightness keys). Nahi hua toh power button 10 sec hold karo, force restart. Abhi bhi kuch nahi dikhta? External monitor lagao HDMI se — agar wahan dikhta hai toh screen replace ka ticket raise karte hain 🎫` },
+    { keys: ['battery nahi','charging nahi','charge nahi','charger nahi','not charging','charge ho nahi'],
+      ans: `Battery nahi charge ho rahi? 🔋 Pehle charger dono side se ek baar nikaal ke dubara lagao, dusra socket try karo. Phir bhi nahi? Laptop shut down karo, charger nikaalo, power button 30 sec hold karo, phir charger lagao. Nahi hua → ticket raise karte hain (hardware issue) 🎫` },
 
-    { keys: ['keyboard not working','keyboard kaam nahi','keyboard issue','keyboard problem','keys not working'],
+    { keys: ['battery low','battery drain','battery khatam','battery backup'],
+      ans: `Battery jaldi khatam ho rahi hai? 🔋 Settings → Power → Balanced mode on karo. Taskbar brightness thodi kam karo. Heavy apps (Chrome, Teams) minimize karo. Phir bhi 1-2 ghante se kam hai → ticket raise karo (battery replace) 🎫` },
+
+    { keys: ['keyboard not working','keyboard kaam nahi','keyboard issue','keyboard problem','keys not working','key kaam nahi'],
       ans: `Keyboard kaam nahi kar raha! ⌨️ Pehle restart karo. Kaam nahi aya? Win+R → \`osk\` type karo — on-screen keyboard se kaam chala sakte ho temporarily. Device Manager → Keyboards → Uninstall → restart se reinstall ho jaata hai. Physical damage hai toh ticket raise karo! 🎫` },
 
-    { keys: ['touchpad','mouse not working','cursor not moving','cursor stuck'],
+    { keys: ['touchpad not working','mouse not working','cursor not moving','cursor stuck','touchpad kaam nahi','mouse kaam nahi'],
       ans: `Mouse/Touchpad stuck! 🖱️ Fn+F9 dabao (touchpad toggle). Nahi hua toh restart karo. Phir bhi nahi? Device Manager → Mice → Uninstall → restart. Driver auto reinstall ho jaata hai! Batao kaise raha 😊` },
 
-    { keys: ['teams','microsoft teams'],
-      ans: `Teams act up kar raha hai! 📹 System tray (taskbar ke paas) se Teams completely close karo — phir dobara open karo. 90% cases mein theek ho jaata hai! Nahi hua toh Teams Settings → Clear Cache → restart. Batao! 😊` },
-
-    { keys: ['outlook','email','mail'],
-      ans: `Outlook nahi chal raha! 📧 Ctrl+Shift+Esc → Outlook → End Task karo. Phir Win+R → \`outlook /safe\` → Enter — safe mode mein khulega. Kaam kiya? Repair ke liye File → Account Settings → Repair. Batao kaise raha! 😊` },
-
-    { keys: ['password','forgot','reset'],
-      ans: `Password bhool gaye? 🔑 Koi baat nahi, hota hai!\n• Windows/email password → IT reset karega, type karo *ha* → ticket bhej deta hoon 🎫\n• Google account → khud reset kar sakte ho: myaccount.google.com → Security → Password\nBatao konsa wala! 😊` },
-
-    { keys: ['shutdown','restart','stuck restarting','boot'],
-      ans: `Laptop stuck hai! 🔄 Power button 10 sec hold karo — force shut down ho jaayega. Phir normal start karo. Baar baar ho raha hai? Boot pe F8 dabao → Safe Mode → Startup Repair. Nahi hua → ticket raise karte hain 🎫` },
-
-    { keys: ['sound','audio','speaker','no sound'],
-      ans: `Sound nahi aa raha! 🔊 Taskbar mein speaker icon check karo — mute toh nahi? Right-click → Sound settings → sahi output device select hai kya? Win+R → \`mmsys.cpl\` run karo, speakers test karo. Theek hua? Batao! 😄` },
-
-    { keys: ['camera','webcam'],
-      ans: `Camera kaam nahi kar raha! 📷 Teams/Zoom mein Settings → Video → sahi camera select hai? Device Manager → Cameras → Disable → Enable karo. Privacy Settings → Camera → Apps ko allow karo. Batao kaise raha! 😊` },
-
-    { keys: ['storage','disk','full','space'],
-      ans: `Storage full ho gayi! 💾 Win+R → \`cleanmgr\` → C: drive → Clean system files. Phir Win+R → \`%temp%\` → sab select → delete. Recycle Bin bhi empty karo. Bahut space free ho jaayega! Batao kitna free hua 😄` },
-
-    { keys: ['printer','print'],
+    { keys: ['printer offline','printer nahi chal','printer kaam nahi','printer issue','printer problem','print nahi ho','print queue'],
       ans: `Printer offline hai! 🖨️ Printer OFF karo → 10 sec → ON karo, USB/WiFi connection check karo. Phir Win+R → \`services.msc\` → Print Spooler → Restart karo. Abhi bhi nahi? Ticket raise karte hain 🎫 Batao! 😊` },
-
-    { keys: ['zoom','meet','video call','video conference'],
-      ans: `Zoom/Meet nahi chal raha! 🎥 Puri tarah band karo → dobara open. Internet theek hai? Browser se try karo (backup). Settings → Audio/Video → sahi camera/mic select hai? Batao kaise raha! 😊` },
-
-    { keys: ['excel','word','office','powerpoint'],
-      ans: `MS Office issue! 📄 App puri tarah band karo → restart. Specific file issue hai? File → Open & Repair try karo. Win+R → \`%appdata%\\Microsoft\` → temp files delete karo. Nahi hua → ticket raise karte hain! 🎫` },
-
-    { keys: ['vpn','remote','connect'],
-      ans: `VPN/Remote access ke liye IT setup karta hai — khud nahi hota! Type karo *ha*, main ticket bhej deta hoon — IT team turant help karegi 🎫` },
 
     { keys: ['bluetooth'],
       ans: `Bluetooth issue! 🔵 Settings → Bluetooth → toggle OFF → ON karo. Device dobara pair karo. Nahi hua? Device Manager → Bluetooth → Disable → Enable. Batao! 😊` },
 
-    { keys: ['chrome','browser','firefox','edge'],
-      ans: `Browser issue! 🌐 Puri tarah band karo → dobara open. Cache clear karo: Ctrl+Shift+Del → Clear data. Extension issue ho sakta hai — Incognito mode mein try karo (Ctrl+Shift+N). Theek hua? 😄` },
+    { keys: ['camera not working','webcam not working','camera kaam nahi','camera issue','camera problem'],
+      ans: `Camera kaam nahi kar raha! 📷 Teams/Zoom mein Settings → Video → sahi camera select hai? Device Manager → Cameras → Disable → Enable karo. Privacy Settings → Camera → Apps ko allow karo. Batao kaise raha! 😊` },
 
-    { keys: ['virus','malware','hack','suspicious'],
-      ans: `Suspicious activity! 🦠 Turant: Windows Security → Virus & threat protection → Quick Scan. Kuch mila? IT ko batao — ticket raise karo immediately. Internet disconnect karo agar serious lage. Main ticket bhej deta hoon — type karo *ha* 🎫` },
+    { keys: ['mic not working','microphone nahi','mic kaam nahi','sound input','awaaz nahi ja'],
+      ans: `Mic kaam nahi kar raha! 🎤 Settings → Privacy → Microphone → ON karo. Sound settings → Input → sahi mic select hai? Teams: Settings → Devices → mic test karo. Batao kaise raha! 😊` },
 
-    { keys: ['update','windows update'],
-      ans: `Windows update issue! 🔄 Settings → Windows Update → Check for updates. Stuck hai? Laptop restart karo aur dobara try karo. Baar baar fail ho raha hai → IT ticket raise karte hain 🎫 Batao! 😊` },
+    { keys: ['usb not working','usb nahi','pendrive nahi','usb kaam nahi','device detect nahi'],
+      ans: `USB detect nahi ho raha! 🔌 Alag USB port mein try karo pehle. Nahi hua? Device Manager → Universal Serial Bus → right-click each → Uninstall → Action → Scan for hardware changes. Restart karo. Batao! 😊` },
+
+    // ── General hardware issues ────────────────────────────────────────────
+    { keys: ['sound nahi','audio nahi','speaker nahi','no sound','awaaz nahi','speaker kaam nahi','sound kaam nahi'],
+      ans: `Sound nahi aa raha! 🔊 Taskbar mein speaker icon check karo — mute toh nahi? Right-click → Sound settings → sahi output device select hai kya? Win+R → \`mmsys.cpl\` run karo, speakers test karo. Theek hua? Batao! 😄` },
+
+    { keys: ['disk full','storage full','storage kam','c drive full','memory full','space nahi','space khatam'],
+      ans: `Storage full ho gayi! 💾 Win+R → \`cleanmgr\` → C: drive → Clean system files. Phir Win+R → \`%temp%\` → sab select → delete. Recycle Bin bhi empty karo. Bahut space free ho jaayega! Batao kitna free hua 😄` },
+
+    // ── Network — after specific apps ─────────────────────────────────────
+    { keys: ['wifi nahi','internet nahi','network nahi','wifi connect nahi','internet slow','wifi slow','internet chal nahi','net nahi'],
+      ans: `WiFi ka jhanjhat! 📶 Pehle taskbar se WiFi OFF karo, 10 sec ruko, ON karo. Nahi hua toh network forget karo aur dobara connect karo — password: \`spartans500\`\n\nYa ye command try karo (Win+R mein type karo):\n\`netsh winsock reset\` → restart\n\nBatana theek hua ya nahi! 😄` },
+
+    { keys: ['password bhool','password forgot','password reset','password nahi pata','login nahi ho','login issue'],
+      ans: `Password bhool gaye? 🔑 Koi baat nahi, hota hai!\n• Windows/email password → IT reset karega, type karo *ha* → ticket bhej deta hoon 🎫\n• Google account → khud reset kar sakte ho: myaccount.google.com → Security → Password\nBatao konsa wala! 😊` },
+
+    { keys: ['laptop on nahi','laptop start nahi','turn on nahi','boot nahi','stuck restarting','restart loop','shutdown nahi'],
+      ans: `Laptop stuck hai! 🔄 Power button 10-15 sec hold karo — force shut down ho jaayega. Phir normal start karo. Baar baar ho raha hai? Boot pe F8 dabao → Safe Mode → Startup Repair. Nahi hua → type karo *ha* → ticket raise karte hain 🎫` },
+
+    // ── Most general — LAST (catch-all for slow/hang) ──────────────────────
+    { keys: ['slow','hang','freeze','sluggish','laptop kharab','bahut slow','alag slow'],
+      ans: `Laptop slow ho gaya! 💻 Tension nahi — Ctrl+Shift+Esc dabao, Task Manager mein jo sabse zyada CPU le raha ho usse End Task karo. Phir Win+R → \`%temp%\` → sab select → delete. Restart karo, fast ho jaayega! ✅\nBatana kaise raha 😊` },
   ];
 
   for (const { keys, ans } of quickAnswers) {
-    if (keys.some(k => p.includes(k))) return ans;
+    if (keys.some(k => matchKey(p, k))) return ans;
   }
 
   // "Still not working" — only short phrases (not full questions)
