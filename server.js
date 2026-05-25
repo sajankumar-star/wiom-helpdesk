@@ -2684,13 +2684,19 @@ app.listen(PORT, async () => {
 
  // ── Normal AI chat ────────────────────────────────────────────────
 
+ // Show "🤖 Checking issue..." immediately for ALL messages (KB + AI)
+ const thinkingMsg = await say({
+ text: '🤖 Checking issue...',
+ blocks: [{ type:'context', elements:[{ type:'mrkdwn', text:'🤖  _Checking issue..._' }] }]
+ });
+
  // ── SPEED: Try KB first — instant answer, no API call ─────────────
  const kbReply = claudeSvc.getKBAnswer ? claudeSvc.getKBAnswer(text) : null;
  if (kbReply) {
  const formattedKB = formatForSlack(kbReply);
  const kbBlocks = [{ type:'section', text:{ type:'mrkdwn', text: formattedKB }}];
  // Check if ticket suggestion needed
- if (/ticket|raise|help|IT team/i.test(kbReply)) {
+ if (/type karo \*ha\*|ticket|IT ko bhej/i.test(kbReply)) {
  kbBlocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`_Ticket banana hai? type karo: *ha*_ ✅` }]});
  pendingTickets.set(userId, {
  empId: emp.empId, empName: emp.empName, empEmail: emp.email,
@@ -2700,13 +2706,15 @@ app.listen(PORT, async () => {
  description: text, source: 'slack', slackUserId: userId
  });
  }
- await say({ text: kbReply, blocks: kbBlocks });
+ // Update "Checking..." → actual KB answer
+ try {
+ await client.chat.update({ channel: thinkingMsg.channel, ts: thinkingMsg.ts, text: kbReply, blocks: kbBlocks });
+ } catch { await say({ text: kbReply, blocks: kbBlocks }); }
  return;
  }
 
- // KB miss → start session load early, show thinking in parallel
+ // KB miss → AI call (thinkingMsg already showing)
  const convPromise = getSlackSession(userId, emp);
- const thinkingMsg = await say({ text: '⏳ Soch raha hoon...' });
 
  const conv = await convPromise;
  conv.messages.push({ role: 'user', content: text });
