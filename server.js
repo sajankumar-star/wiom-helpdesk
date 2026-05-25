@@ -639,6 +639,43 @@ app.listen(PORT, async () => {
  'home_quick_43': { file: 'fix-website-blocked.bat', label: 'Website Fix' },
  };
 
+ // ── DM Script detector: maps free-text issue → script file + label ────
+ const getScriptForText = (text) => {
+   if (!text) return null;
+   const t = text.toLowerCase();
+   if (/slow|hang|lagg|speed|fast|speed up|ram|memory|freeze|freez|stuck|chalta nahi|chalti nahi/.test(t)) return { file: 'fix-slow-laptop.bat', label: '⚡ Auto-Fix: Slow Laptop' };
+   if (/wifi|wi-fi|internet|network|connect|hotspot|broadband|ping|speed test/.test(t)) return { file: 'fix-wifi.bat', label: '📶 Auto-Fix: WiFi' };
+   if (/blue.?screen|bsod|bluescreen/.test(t)) return { file: 'fix-bluescreen.bat', label: '💙 Auto-Fix: Blue Screen' };
+   if (/black.?screen|no display|blank screen/.test(t)) return { file: 'fix-black-screen.bat', label: '🖥️ Auto-Fix: Black Screen' };
+   if (/overheat|garam|hot|temp|fan noise|fan baj/.test(t)) return { file: 'fix-overheating.bat', label: '🌡️ Auto-Fix: Overheating' };
+   if (/battery|charg|charger|plug/.test(t)) return { file: 'fix-battery.bat', label: '🔋 Auto-Fix: Battery' };
+   if (/sound|audio|speaker|awaaz/.test(t)) return { file: 'fix-sound.bat', label: '🔊 Auto-Fix: Sound' };
+   if (/mic|microphone|awaz nahi|voice nahi/.test(t)) return { file: 'fix-mic.bat', label: '🎤 Auto-Fix: Microphone' };
+   if (/camera|camra|webcam|\bcam\b/.test(t)) return { file: 'fix-camera.bat', label: '📷 Auto-Fix: Camera' };
+   if (/keyboard|keys|typing|type nahi/.test(t)) return { file: 'fix-keyboard.bat', label: '⌨️ Auto-Fix: Keyboard' };
+   if (/touchpad|mouse|cursor/.test(t)) return { file: 'fix-touchpad.bat', label: '🖱️ Auto-Fix: Touchpad' };
+   if (/bluetooth|bt\b/.test(t)) return { file: 'fix-bluetooth.bat', label: '🔵 Auto-Fix: Bluetooth' };
+   if (/printer|print/.test(t)) return { file: 'fix-printer.bat', label: '🖨️ Auto-Fix: Printer' };
+   if (/teams|team/.test(t)) return { file: 'fix-teams.bat', label: '📹 Auto-Fix: Teams' };
+   if (/zoom/.test(t)) return { file: 'fix-zoom.bat', label: '🎥 Auto-Fix: Zoom' };
+   if (/outlook|email|mail/.test(t)) return { file: 'fix-outlook.bat', label: '📧 Auto-Fix: Outlook' };
+   if (/chrome|browser|firefox|edge|safari/.test(t)) return { file: 'fix-browser.bat', label: '🌐 Auto-Fix: Browser' };
+   if (/onedrive|one drive|cloud sync/.test(t)) return { file: 'fix-onedrive.bat', label: '☁️ Auto-Fix: OneDrive' };
+   if (/usb|pendrive|pen drive|flash drive/.test(t)) return { file: 'fix-usb.bat', label: '🔌 Auto-Fix: USB' };
+   if (/storage|disk full|space|memory full|jagah nahi/.test(t)) return { file: 'fix-storage.bat', label: '💾 Auto-Fix: Storage Cleanup' };
+   if (/virus|malware|ransomware|hack/.test(t)) return { file: 'fix-virus-scan.bat', label: '🦠 Auto-Fix: Virus Scan' };
+   if (/hdmi|monitor|external screen|projector/.test(t)) return { file: 'fix-hdmi.bat', label: '🖥️ Auto-Fix: HDMI/Monitor' };
+   if (/headphone|earphone|earbuds/.test(t)) return { file: 'fix-headphone.bat', label: '🎧 Auto-Fix: Headphone' };
+   if (/word|excel|office|powerpoint/.test(t)) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
+   if (/pdf/.test(t)) return { file: 'fix-pdf.bat', label: '📄 Auto-Fix: PDF' };
+   if (/windows update|update/.test(t)) return { file: 'fix-windows-update.bat', label: '🔄 Auto-Fix: Windows Update' };
+   if (/crash|app crash|app band|application/.test(t)) return { file: 'fix-app-crash.bat', label: '💥 Auto-Fix: App Crash' };
+   if (/screen flicker|flicker|blink/.test(t)) return { file: 'fix-screen-flicker.bat', label: '📺 Auto-Fix: Screen Flicker' };
+   if (/sleep|wake|hibernate|suspend/.test(t)) return { file: 'fix-sleep-wake.bat', label: '💤 Auto-Fix: Sleep/Wake' };
+   if (/turn on|boot|start nahi|on nahi/.test(t)) return { file: 'fix-wont-turn-on.bat', label: '⚡ Auto-Fix: Won\'t Turn On' };
+   return null;
+ };
+
  // ── Build Home Tab blocks (with collapsible categories) ───────────────
  const buildHomeBlocks = (emp, myTickets, expandedSet) => {
  const name = emp?.name?.split(' ')[0] || 'Employee';
@@ -2706,6 +2743,19 @@ app.listen(PORT, async () => {
  description: text, source: 'slack', slackUserId: userId
  });
  }
+ // Add script download button if relevant
+ const kbScript = getScriptForText(text);
+ if (kbScript) {
+ kbBlocks.push({
+ type: 'actions',
+ elements: [{
+ type: 'button',
+ text: { type: 'plain_text', text: kbScript.label, emoji: true },
+ url: `${PORTAL}/scripts/${kbScript.file}`,
+ style: 'primary'
+ }]
+ });
+ }
  // Update "Checking..." → actual KB answer
  try {
  await client.chat.update({ channel: thinkingMsg.channel, ts: thinkingMsg.ts, text: kbReply, blocks: kbBlocks });
@@ -2737,6 +2787,21 @@ app.listen(PORT, async () => {
  const formattedReply = formatForSlack(reply);
 
  const blocks = [{ type:'section', text:{ type:'mrkdwn', text: formattedReply }}];
+
+ // ── Add script download button based on issue detected in conversation ─
+ const allConvText = conv.messages.filter(m=>m.role==='user').map(m=>m.content).join(' ');
+ const aiScript = getScriptForText(allConvText);
+ if (aiScript) {
+ blocks.push({
+ type: 'actions',
+ elements: [{
+ type: 'button',
+ text: { type: 'plain_text', text: aiScript.label, emoji: true },
+ url: `${PORTAL}/scripts/${aiScript.file}`,
+ style: 'primary'
+ }]
+ });
+ }
 
  // ── Auto-detect ticket context when AI suggests raising a ticket ──
  if (shouldCreateTicket) {
