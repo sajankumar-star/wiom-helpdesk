@@ -112,11 +112,13 @@ router.get('/stats', verifyAdmin, async (req, res) => {
 
     const [total, open, resolved, critical, todayCount, slaBreached] = await Promise.all([
       Ticket.countDocuments(),
-      Ticket.countDocuments({ status: 'Open' }),
-      Ticket.countDocuments({ status: 'Resolved' }),
-      Ticket.countDocuments({ priority: 'Critical', status: { $ne: 'Resolved' } }),
+      // Open = Open + In Progress + Waiting (all active tickets)
+      Ticket.countDocuments({ status: { $in: ['Open', 'In Progress', 'Waiting'] } }),
+      Ticket.countDocuments({ status: { $in: ['Resolved', 'Closed'] }, resolvedAt: { $gte: today } }),
+      Ticket.countDocuments({ priority: 'Critical', status: { $nin: ['Resolved', 'Closed'] } }),
       Ticket.countDocuments({ createdAt: { $gte: today } }),
-      Ticket.countDocuments({ slaBreached: true, status: { $ne: 'Resolved' } })
+      // SLA Breached = breached AND still active (not resolved OR closed)
+      Ticket.countDocuments({ slaBreached: true, status: { $nin: ['Resolved', 'Closed'] } })
     ]);
 
     // Category breakdown

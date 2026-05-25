@@ -802,15 +802,20 @@ async function loadDashboard() {
     const data = await apiGet('/api/tickets/stats');
     const stats = data.stats || data;
     document.getElementById('statTotal').textContent    = stats.total || 0;
-    document.getElementById('statOpen').textContent     = (stats.byStatus?.Open || 0) + (stats.byStatus?.['In Progress'] || 0);
-    document.getElementById('statResolved').textContent = stats.resolvedToday || stats.byStatus?.Resolved || 0;
-    document.getElementById('statSLA').textContent      = stats.slaBreached || 0;
+    // Open = active tickets (Open/In Progress/Waiting) + SLA Breached active ones
+    const openCount = stats.open || 0;
+    const slaCount  = stats.slaBreached || 0;
+    document.getElementById('statOpen').textContent     = openCount + slaCount;
+    document.getElementById('statResolved').textContent = stats.resolvedToday || stats.todayCount || 0;
+    document.getElementById('statSLA').textContent      = slaCount;
   } catch(e) {
     // If stats API fails, use ticket data
     document.getElementById('statTotal').textContent = allTickets.length;
-    document.getElementById('statOpen').textContent  = allTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
-    document.getElementById('statResolved').textContent = allTickets.filter(t => t.status === 'Resolved').length;
-    document.getElementById('statSLA').textContent = 0;
+    const fallbackOpen = allTickets.filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
+    const fallbackSLA  = allTickets.filter(t => t.slaBreached && !['Resolved','Closed'].includes(t.status)).length;
+    document.getElementById('statOpen').textContent  = fallbackOpen + fallbackSLA;
+    document.getElementById('statResolved').textContent = allTickets.filter(t => t.status === 'Resolved' || t.status === 'Closed').length;
+    document.getElementById('statSLA').textContent = fallbackSLA;
   }
   renderRecentTickets();
 }
@@ -901,8 +906,15 @@ function filterTickets() { renderAllTickets(); }
 
 // ── OPEN TICKETS ───────────────────────────────────────────────────────────
 function loadOpenTickets() {
-  const open = allTickets.filter(t => t.status === 'Open' || t.status === 'In Progress');
+  // Include: Open, In Progress, Waiting + SLA Breached that are not resolved/closed
+  const open = allTickets.filter(t =>
+    ['Open','In Progress','Waiting'].includes(t.status) ||
+    (t.slaBreached && !['Resolved','Closed'].includes(t.status))
+  );
   open.sort((a,b) => {
+    // SLA breached tickets go to TOP (highest urgency)
+    if (a.slaBreached && !b.slaBreached) return -1;
+    if (!a.slaBreached && b.slaBreached) return 1;
     const pri = {Critical:0,High:1,Medium:2,Low:3};
     return (pri[a.priority]||2) - (pri[b.priority]||2);
   });
@@ -913,14 +925,17 @@ function loadOpenTickets() {
     const created  = new Date(t.createdAt);
     const elapsed  = (Date.now() - created) / 3600000;
     const left     = Math.max(0, slaHours - elapsed).toFixed(1);
-    const slaStyle = left < 2 ? 'color:#f87171;font-weight:bold;' : left < 6 ? 'color:#fbbf24;' : 'color:#86efac;';
+    const slaStyle = t.slaBreached ? 'color:#f87171;font-weight:bold;' :
+                     left < 2 ? 'color:#f87171;font-weight:bold;' :
+                     left < 6 ? 'color:#fbbf24;' : 'color:#86efac;';
+    const slaBadge = t.slaBreached ? ' <span style="background:#f87171;color:#fff;padding:1px 5px;border-radius:3px;font-size:10px;margin-left:4px;">SLA ⚠️</span>' : '';
     return `
-      <tr>
-        <td><b style="cursor:pointer;color:#E8197D;" onclick="viewTicket('${t._id}')">${t.ticketId}</b></td>
+      <tr style="${t.slaBreached ? 'border-left:3px solid #f87171;' : ''}">
+        <td><b style="cursor:pointer;color:#E8197D;" onclick="viewTicket('${t._id}')">${t.ticketId}</b>${slaBadge}</td>
         <td style="cursor:pointer;" onclick="showEmpHistory('${t.empId}','${t.empName||t.empId}')">${t.empName||t.empId}</td>
         <td title="${t.description||''}">${(t.description||'').substring(0,40)}...</td>
         <td><span class="pri ${t.priority}">${t.priority}</span></td>
-        <td style="${slaStyle}">${left}h left</td>
+        <td style="${slaStyle}">${t.slaBreached ? '⚠️ Breached' : left+'h left'}</td>
         <td>${t.source || 'Web'}</td>
         <td>
           <button class="action-btn view" onclick="viewTicket('${t._id}')">👁 View</button>
