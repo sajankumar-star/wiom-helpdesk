@@ -462,7 +462,8 @@ const getKBAnswer = (problem) => {
 
   // ── User saying issue is resolved / working fine now ───────────────────
   // STRICT: only if NO negative word present AND message is short status update
-  const hasNegative = /\b(not|nahi|nahin|nai|nhi|mahi|nhi|mat|na\b|band|kharab|problem|issue|error|chal nahi|kaam nahi|nahi chal|nahi ho|ho nahi|abhi bhi|still|phir bhi|nahi chal|chal nahi|nai chal|mahi chal|ho nahi rha|nahi ho rha|nahi rha)\b/i.test(p);
+  // Fix 1: Added nhai/nha (common typos of nahi that users actually type)
+  const hasNegative = /\b(not|nahi|nahin|nai|nhi|mahi|nhai|nha|mat|na\b|band|kharab|problem|issue|error|chal nahi|kaam nahi|nahi chal|nahi ho|ho nahi|abhi bhi|still|phir bhi|chal nahi|nai chal|mahi chal|nhai chal|ho nahi rha|nahi ho rha|nahi rha)\b/i.test(p);
   // "chal raha hai" ONLY counts as positive if NOT preceded by nahi/mahi/na etc.
   const chalRahaPositive = /chal\s*raha\s*hai|chal\s*rhi\s*hai/.test(p) && !/(\bmahi\b|\bnahi\b|\bnai\b|\bnhi\b|\bnot\b).{0,15}chal/i.test(p);
   const hasPositive = chalRahaPositive || /\b(normal|noraml|norml|theek|thik|sahi|ho gaya|ho gya|fixed|resolved|kaam kar raha|solve ho|fix ho gaya|theek ho|thik ho|chal gaya|chal gyi|on ho gaya|working|work kar raha|charged|charge ho|connected|connect ho gaya|sorted|done|complete|ho gayi|mil gaya|mil gayi)\b/i.test(p);
@@ -514,8 +515,10 @@ const getKBAnswer = (problem) => {
   };
 
   // ── Only EXACT FACTS in KB — everything else → Claude asks follow-up ────
+  // NOTE: Resolved check above runs FIRST — so "fan normal hai" won't hit fan noise handler
 
   // Fan noise/sound (fan IS running but making noise — NOT an emergency)
+  // This only runs if hasPositive check above did NOT return (i.e., user is NOT saying "fixed")
   if (/fan\s*(sound|awaaz|baj|noise|shor|loud|kar\s*rha|chal\s*rha|aa\s*rhi)/i.test(p) ||
       /\bfan\s+(kar|chal|baj|sound)/i.test(p)) {
     return `Fan ki awaaz aa rahi hai — usually heavy apps se hota hai 🔊\nCtrl+Shift+Esc dabao → CPU column sort karo → koi heavy app End Task karo.\nLaptop hard surface pe rakhho (table pe, bed/sofa pe nahi).\nThodi der mein band ho jaaye toh theek hai. Agar bahut tez awaaz ho ya nahi ruki toh batao 🎫`;

@@ -324,7 +324,8 @@ app.listen(PORT, async () => {
  });
 
  // ── In-memory store for pending ticket confirmations (short-lived) ─────
- const pendingTickets = new Map(); // slackUserId -> ticketData
+ const pendingTickets = new Map(); // slackUserId -> ticketData (with createdAt)
+ const processingUsers = new Set(); // Fix 8: per-user lock — prevents race conditions
  const expandedHomeMap = new Map(); // slackUserId -> Set<categoryKey>
 
  // ── Brand detection helpers ───────────────────────────────────────────
@@ -1471,11 +1472,12 @@ app.listen(PORT, async () => {
  else if (/laptop|screen|keyboard|battery|hardware|slow|hang|freeze|blue screen/i.test(allUserText)) autoCategory = 'Hardware';
  else if (/password|account|locked|login/i.test(allUserText)) autoCategory = 'Account';
  pendingTickets.set(userId, {
- empId: emp.empId, empName: emp.empName, empEmail: emp.email,
+ empId: emp.empId, empName: emp.empName, empEmail: emp.email || 'unknown@wiom.in',
  empDept: emp.dept, empFloor: emp.floor,
  laptop: emp.laptop, laptopSN: emp.laptopSN,
  category: autoCategory, priority: 'Medium',
- description: problem, source: 'slack', slackUserId: userId
+ description: problem, source: 'slack', slackUserId: userId,
+ createdAt: Date.now()
  });
  blocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`_Ticket banana hai? *"ha"* ya *"nahi"* type karo_` }]});
  }
@@ -2438,6 +2440,10 @@ app.listen(PORT, async () => {
  const text = message.text?.trim();
  if (!text) return;
 
+ // Fix 8: Per-user lock — if a message is already being processed, skip duplicate
+ if (processingUsers.has(userId)) return;
+ processingUsers.add(userId);
+
  try {
  const emp = await lookupEmployee(userId, client);
 
@@ -2690,13 +2696,19 @@ app.listen(PORT, async () => {
  }
 
  // ── Pending ticket confirmation check ─────────────────────────────
- const pending = pendingTickets.get(userId);
+ let pending = pendingTickets.get(userId);
+ // Fix 3: Auto-expire pendingTickets after 30 minutes (in-memory TTL)
+ if (pending && (Date.now() - (pending.createdAt || 0) > 30 * 60 * 1000)) {
+   pendingTickets.delete(userId);
+   pending = null;
+ }
  if (pending) {
  // IMPORTANT: Must be exact short responses "NAHI HUAA" must NOT trigger isNo
  // "nahi huaa", "nahi chala", "kaam nahi kiya" = failed attempt → goes to AI
  // "nahi", "na", "no" alone = user declining ticket → isNo
- const isYes = /^(ha|haan|haa|han|yes|bilkul|ok|bana do|create|kar do|ho jaye)\s*[!।.,]?\s*$/i.test(text.trim());
- const isNo = /^(nahi|na|no|nope|mat|chodo|rehne do|band karo)\s*[!।.,]?\s*$/i.test(text.trim());
+ const isYes = /^(ha|haan|haa|han|hna|yes|bilkul|ok|okay|bana do|create|kar do|ho jaye|done)\s*[!।.,]?\s*$/i.test(text.trim());
+ // Fix 4: Added nhai/nha (real user typos for "nahi") to isNo
+ const isNo = /^(nahi|nhai|nha|na|no|nope|mat|chodo|rehne do|band karo|mt)\s*[!।.,]?\s*$/i.test(text.trim());
 
  if (isYes) {
  pendingTickets.delete(userId);
@@ -2809,11 +2821,12 @@ app.listen(PORT, async () => {
  if (/type karo \*ha\*|ticket|IT ko bhej/i.test(kbReply)) {
  kbBlocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`_Ticket banana hai? type karo: *ha*_ ✅` }]});
  pendingTickets.set(userId, {
- empId: emp.empId, empName: emp.empName, empEmail: emp.email,
+ empId: emp.empId, empName: emp.empName, empEmail: emp.email || 'unknown@wiom.in',
  empDept: emp.dept, empFloor: emp.floor,
  laptop: emp.laptop, laptopSN: emp.laptopSN,
  category: 'Other', priority: 'Medium',
- description: text, source: 'slack', slackUserId: userId
+ description: text, source: 'slack', slackUserId: userId,
+ createdAt: Date.now()
  });
  }
  // Add script download button if relevant
@@ -2837,6 +2850,13 @@ app.listen(PORT, async () => {
  try {
  await client.chat.update({ channel: thinkingMsg.channel, ts: thinkingMsg.ts, text: kbReply, blocks: kbBlocks });
  } catch { await say({ text: kbReply, blocks: kbBlocks }); }
+ // Fix 2: Save KB reply into conv history so AI doesn't repeat same steps next message
+ getSlackSession(userId, emp).then(kbConv => {
+   kbConv.messages.push({ role: 'user', content: text });
+   kbConv.messages.push({ role: 'assistant', content: kbReply });
+   if (kbConv.messages.length > 20) kbConv.messages = kbConv.messages.slice(-20);
+   kbConv.save().catch(e => console.error('KB conv save error:', e.message));
+ }).catch(e => console.error('KB session get error:', e.message));
  return;
  }
 
@@ -2848,7 +2868,8 @@ app.listen(PORT, async () => {
  if (conv.messages.length > 20) conv.messages = conv.messages.slice(-20);
 
  // Run DB save and AI call in parallel for speed
- const [, { reply, shouldCreateTicket, ticketData }] = await Promise.all([
+ // Fix 5: Use allSettled so conv.save() failure doesn't silently kill the AI response
+ const [saveResult, chatResult] = await Promise.allSettled([
  conv.save(),
  claudeSvc.chat(
  conv.messages,
@@ -2856,6 +2877,9 @@ app.listen(PORT, async () => {
  laptop: emp.laptop, laptopSN: emp.laptopSN, dept: emp.dept, floor: emp.floor }
  )
  ]);
+ if (saveResult.status === 'rejected') console.error('⚠️ conv.save() failed:', saveResult.reason?.message);
+ if (chatResult.status === 'rejected') throw chatResult.reason;
+ const { reply, shouldCreateTicket, ticketData } = chatResult.value;
 
  conv.messages.push({ role: 'assistant', content: reply });
  await conv.save();
@@ -2902,13 +2926,14 @@ app.listen(PORT, async () => {
  const lastUserMsg = conv.messages.filter(m=>m.role==='user').slice(-3).map(m=>m.content).join('; ');
 
  pendingTickets.set(userId, {
- empId: emp.empId, empName: emp.empName, empEmail: emp.email,
+ empId: emp.empId, empName: emp.empName, empEmail: emp.email || 'unknown@wiom.in',
  empDept: emp.dept, empFloor: emp.floor,
  laptop: emp.laptop, laptopSN: emp.laptopSN,
  category: ticketData?.category || autoCategory,
  priority: ticketData?.priority || autoPriority,
  description: ticketData?.description || lastUserMsg || text,
- source: 'slack', slackUserId: userId
+ source: 'slack', slackUserId: userId,
+ createdAt: Date.now()
  });
  blocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`_Ticket banana hai? *"Ha"* ya *"Nahi"* type karo_ ` }]});
  }
@@ -2932,6 +2957,9 @@ app.listen(PORT, async () => {
  } catch (sayErr) {
  console.error('❌ Could not send error message:', sayErr.message);
  }
+ } finally {
+ // Fix 8: Always release lock when processing finishes
+ processingUsers.delete(userId);
  }
  });
 
