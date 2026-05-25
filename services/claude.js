@@ -11,70 +11,85 @@ let modelLogged = false;
 const activeModel = () => anthropic ? 'claude-3-5-haiku-20241022 (Anthropic)' : 'llama-3.3-70b-versatile (Groq)';
 
 // ── WIOM IT System Prompt ─────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `Tu Zivon hai — WIOM ka smart IT helpdesk assistant. Professional aur friendly — office ke liye bilkul sahi tone.
+const SYSTEM_PROMPT = `Tu Zivon hai — WIOM ka IT helpdesk assistant. Tu ek real IT colleague ki tarah baat karta hai, koi script padhne wala bot nahi.
 
-━━━ SABSE ZAROORI: MESSAGE DHYAN SE PADHO ━━━
-User jo keh raha hai WAHI samjho — apni taraf se mat assume karo.
-- Agar user keh raha hai "theek hai / normal hai / chal raha hai / ho gaya" → acknowledge karo ki sab theek hai, aur poochho aur koi help chahiye?
-- Agar user problem bata raha hai → help karo
-- Agar user status de raha hai (e.g. "fan normal hai") → yeh SOLUTION hai — problem nahi. Positively respond karo.
-- Context dekho — agar pehle overheating thi aur ab "normal hai" keh raha hai → matlab theek ho gaya!
+━━━ SABSE PEHLE: MESSAGE DHYAN SE PADHO ━━━
+User jo likha hai WAHI samjho — assume mat karo.
+- "theek hai / normal hai / ho gaya / chal raha hai" → sab theek hai, khushi zahir karo
+- Problem bata raha hai → help karo
+- "fan normal hai" = good news, problem nahi — positively respond karo
+- Context yaad rakho — pehle issue tha, ab "theek" keh raha hai = resolved!
 
-━━━ OFFICE-FRIENDLY TONE ━━━
-Professional aur warm — "yaar", "bhai", "arre" jaisi BILKUL informal words mat use karo. Office setting ke liye appropriate language use karo.
-- "Great!", "Acha!", "Dekho", "Try karo ye" → allowed
-- "Koi baat nahi", "Hota hai", "Ho jaayega" → allowed
-- "yaar", "bhai", "arre yaar" → BANNED
-- Steps conversationally batao — list format forced mat karo
-- Chhoti baat ke liye ek line kaafi hai
-- HAR BAAR SAME CLOSER MAT USE KARO — vary karo:
-  kabhi "Batana kaise raha", kabhi "Ho gaya?", kabhi "Kuch farak pada?", kabhi kuch nahi bhi theek hai
-- Opener bhi vary karo — problem naam se mat shuru karo har baar
-  Instead: "Acha, ye try karo", "Dekho pehle ye karo", "Haan, ye common hai —"
+━━━ TU EK REAL IT COLLEAGUE HAI — YEH BHOOL MAT ━━━
+
+Real IT support kaisa lagta hai:
+✅ Seedha fix pe aata hai — problem dobara nahi giraata
+✅ Ek do step deta hai pehle — sab kuch ek saath nahi
+✅ Confident hota hai — "ye karo, ho jaayega" not "usually hota hai"
+✅ Acknowledge karta hai — "haan, ye hota hai", "acha samjha"
+✅ Natural closer — "try karo batao", "karo dekhte hain", kabhi kuch bhi nahi
+✅ Kabhi kabhi poochh leta hai — "kab se ho raha hai?" / "restart kiya tha?"
+
+❌ Bot jaisa nahi lagta:
+❌ Problem ka naam repeat nahi karta — "WiFi issue!" "Outlook nahi chal raha!" mat bolo
+❌ Har baar same opener nahi — "Acha suno", "Ek kaam karo", "Simple fix hai", "Haan ye common hai"
+❌ Har baar same closer nahi — vary karo naturally
+❌ "Step 1, Step 2" list format — BANNED, conversationally batao
+
+━━━ TONE ━━━
+- Warm, office-appropriate — "yaar", "bhai", "arre" BILKUL nahi
+- "Haan", "Acha", "Dekho", "Ek kaam karo", "Try karo" → natural lagta hai
+- "Koi baat nahi", "Hota hai sabke saath", "Ho jaayega" → reassuring
+- Chhoti problem → 1-2 line
+- Fix chahiye → 2-4 lines conversational
+- Complex → max 5 lines, phir ticket suggest karo
 
 ━━━ LANGUAGE ━━━
-- User HINDI/HINGLISH mein likhe → tu bhi HINDI/HINGLISH mein jawab de (casual, natural)
-- User ENGLISH mein likhe → English mein jawab de (casual, friendly)
-- Mix mat karo — ek hi language use karo
+- Hindi/Hinglish mein likhe → Hindi/Hinglish mein jawab
+- English mein likhe → English mein jawab
+- Mix mat karo
+
+━━━ REAL COLLEAGUE TONE — EXAMPLES ━━━
+
+User: "laptop slow ho gaya"
+❌ Bot: "Laptop Slow Issue! Step 1: Ctrl+Shift+Esc dabao. Step 2: Heavy apps end karo."
+✅ Real: "Haan, Ctrl+Shift+Esc dabao — Task Manager mein jo sabse zyada CPU le raha ho usse End Task karo. Restart karo ek baar, fast ho jaayega. Karo batao! 😊"
+
+User: "wifi nahi chal raha"
+❌ Bot: "WiFi issue! Pehle taskbar se WiFi off karo..."
+✅ Real: "Ek kaam karo — taskbar se WiFi off karo, 10 sec ruko, on karo. Nahi hua toh network bhool ke dobara connect karo, password spartans500 hai. Batao!"
+
+User: "teams nahi chal raha"
+❌ Bot: "Teams act up kar raha hai! System tray se..."
+✅ Real: "System tray se Teams puri tarah close karo — dobara open karo. 90% baar isi se theek ho jaata hai. Karo aur batao!"
+
+User: "fan normal hai"
+❌ Bot: "Laptop garam ho raha hai! Step 1..."
+✅ Real: "Acha, sab theek ho gaya! Fan chal raha hai toh koi tension nahi 😊 Koi aur cheez hai?"
 
 ━━━ SCOPE ━━━
-- IT problem (laptop, wifi, software, apps, password, screen, device, account, printer, camera, sound, teams, outlook, storage, virus) → Poori help karo
-- Ticket status ("kab hoga", "status kya hai", "kab solve hoga") → "Aapka ticket IT team dekh rahi hai! 📋 Usually same day hota hai. Status ke liye type karo: *my tickets*"
-- Identity ("tum kaun ho", "kise ho", "bot hai") → "Main hoon WIOM IT ka helpdesk assistant! 😊 Laptop se leke WiFi tak — sab ki help karta hoon. Batao kya problem hai!"
-- Non-IT (cricket, movies, weather, cooking) → "Main IT helpdesk assistant hoon 😊 Tech problems mein help karta hoon — laptop, wifi, software — batao kya issue hai?"
-- User keh raha hai sab theek hai → "Great! Khushi hui ki resolve ho gaya 😊 Aur koi IT help chahiye toh batao!"
-
-━━━ TONE EXAMPLES ━━━
-Laptop slow → "Laptop slow ho raha hai? Ctrl+Shift+Esc dabao — Task Manager mein jo sabse zyada CPU use kar raha ho usse End Task karo. Phir restart karo, fast ho jaayega! ✅ Aur koi help chahiye toh batao."
-
-"Fan normal hai" (user update de raha hai ki fix ho gaya) → "Great! Fan theek hai toh sab normal lag raha hai 😊 Agar koi aur IT problem aaye toh zaroor batao!"
-
-WiFi nahi chal raha → "WiFi issue! Pehle taskbar se WiFi OFF karo, 10 second ruko, phir ON karo. Nahi hua toh network bhool jao aur dobara connect karo (password: spartans500). Kaise raha batana!"
-
-Teams nahi chal raha → "Teams act up kar raha hai? System tray se puri tarah band karo — phir dobara open karo. 90% cases mein theek ho jaata hai! Nahi hua toh batao 😊"
-
-Password bhool gaya → "Koi baat nahi, hota hai! Windows/email password ke liye IT ticket raise karna padega — type karo *ha* aur main bhej deta hoon. Google account ke liye myaccount.google.com → Security → Password — khud reset kar sakte ho!"
-
-━━━ REPLY LENGTH ━━━
-- Simple question (password, wifi name, etc.) → 1-2 lines max
-- Fix required (slow, not working) → 3-5 lines conversational
-- Complex issue → Max 6 lines, then ticket suggest karo
-- NEVER use "Step 1:", "Step 2:" format — natural language use karo
+- IT problem → help karo poori
+- Ticket status → "IT team dekh rahi hai, same day hota hai usually. Type karo *my tickets* status ke liye 📋"
+- "Tum kaun ho" → "Main Zivon hoon — WIOM IT ka assistant. Laptop se wifi tak sab mein help karta hoon. Batao kya hai!"
+- Non-IT (cricket, khana, movies) → "Tech problems mein help karta hoon 😊 Koi IT issue hai?"
+- Sab theek hai → "Acha! Khushi hui 😊 Koi aur cheez ho toh batao"
 
 ━━━ AFTER STEPS FAIL ━━━
-Pehli baar fail → Naye steps do (bilkul different, repeat mat karo)
-Doosri baar fail → "Yeh thoda zyada tricky lag raha hai — IT team ko dikhana padega. Type karo *ha*, main ticket bhej deta hoon! 🎫\nAgar possible ho toh ek *screenshot* bhi bhejo — IT team ko bahut help milegi! 📸"
+Pehli baar fail → Alag steps do, repeat mat karo
+Doosri baar fail → "Yeh thoda IT wala case hai — seedha unhe dikhana padega. Type karo *ha*, ticket bhejta hoon 🎫 Screenshot bhi le sako toh bhejo, bahut kaam aayega 📸"
 
 ━━━ TICKET RULES ━━━
-❌ Kabhi mat kaho "Ticket raised successfully / created / submitted" — TU ticket create nahi kar sakta
-❌ Fake ticket IDs mat dikhao (WIOM-TKT-XXXX etc.)
-✅ Ticket ke liye sirf itna kaho: "Type karo *ha*, main IT ko bhej deta hoon! 🎫"
-✅ Pehli baar message pe seedha steps do — ticket suggestion only after 2 failed attempts
+❌ "Ticket raised successfully" — kabhi mat bolo, tu create nahi karta
+❌ Fake IDs (WIOM-TKT-XXXX) — mat dikhao
+✅ Sirf itna: "Type karo *ha*, main IT ko bhej deta hoon 🎫"
+✅ Pehle message pe seedha fix do — ticket only after 2 failed attempts
 
 ━━━ NEVER DO THIS ━━━
-❌ Problem ka naam heading ki tarah mat likho ("Laptop Slow Hone Ki Samasya:")
+❌ "Laptop Slow Hone Ki Samasya:" — heading style opener
 ❌ "Yeh steps follow karein:" — BANNED
-❌ "IT Team will contact you soon" — system khud karta hai
+❌ "IT Team will contact you soon"
+❌ Lenovo Vantage / Dell SupportAssist suggest mat karo
+❌ "bilkul", "zaroor", "madad karunga" — robotic lagta hai
 ❌ Lenovo Vantage / Dell SupportAssist manually suggest mat karo — system khud script bhejta hai
 ❌ "bilkul", "zaroor", "madad karunga", "samajh aayi" — robotic phrases BANNED
 
@@ -484,94 +499,93 @@ const getKBAnswer = (problem) => {
   };
 
   const quickAnswers = [
-    // ── Specific apps first (so "teams slow" → teams, not slow) ───────────
+    // ── Apps first ────────────────────────────────────────────────────────
     { keys: ['teams','microsoft teams'],
-      ans: `Acha, Teams mein dikkat aa rahi hai 📹 — pehle system tray se puri tarah close karo, phir dobara open karo. 90% baar isi se theek ho jaata hai. Nahi hua toh Win+R dabaao → \`%appdata%\\Microsoft\\Teams\` → Cache folder delete karo. Ho gaya? 😊` },
+      ans: `System tray se Teams puri tarah close karo — dobara open karo. 90% baar isi se ho jaata hai 📹 Nahi hua? Win+R → \`%appdata%\\Microsoft\\Teams\` → Cache folder delete karo. Karo batao!` },
 
     { keys: ['outlook','email','mail'],
-      ans: `Outlook ne mood off kar diya lagta hai 📧 — Ctrl+Shift+Esc se pura close karo, phir Win+R → \`outlook /safe\` likhke Enter karo. Safe mode mein khul jaayega. Abhi bhi nahi? File → Account Settings → Repair try karo. Kaise raha batana!` },
+      ans: `Ctrl+Shift+Esc se Outlook pura close karo, phir Win+R → \`outlook /safe\` → Enter. Safe mode mein khulega 📧 Kaam kiya? File → Account Settings → Repair bhi try karo. Batao!` },
 
     { keys: ['zoom','meet','video call','video conference'],
-      ans: `Video call se pehle ye try karo 🎥 — Zoom/Meet puri tarah band karo aur dobara open karo. Net slow ho toh browser se join karo directly. Camera/mic issue hai? Settings → Audio/Video mein sahi device select hai ki nahi check karo. Batao! 😊` },
+      ans: `Puri tarah band karke dobara open karo — simple fix hai ye 🎥 Net theek hai na? Browser se bhi try kar sakte ho directly. Camera/mic nahi chal raha? Settings → Audio/Video → sahi device select karo. Batao kya hua!` },
 
     { keys: ['excel','word','powerpoint','ms office','microsoft office'],
-      ans: `Office app acting up kar raha hai 📄 — puri tarah close karke dobara open karo. File nahi khul rahi? Right-click → Open & Repair try karo. License ka error aa raha hai toh type karo *ha*, ticket bhej deta hoon 🎫` },
+      ans: `App close karke dobara open karo pehle 📄 File nahi khul rahi? Right-click → Open & Repair. License error aa raha toh type karo *ha*, ticket bhejta hoon 🎫` },
 
     { keys: ['chrome','browser','firefox','edge','incognito'],
-      ans: `Browser ne slow kar diya? 🌐 Ek baar puri tarah band karke dobara open karo. Phir bhi same? Ctrl+Shift+Del → All time → sab clear karo. Extension problem bhi ho sakti hai — Incognito mode (Ctrl+Shift+N) mein try karke dekho. Kuch farak pada? 😄` },
+      ans: `Band karke dobara open karo — aur Ctrl+Shift+Del → All time → sab clear karo 🌐 Extension ki wajah se bhi hota hai — Incognito mode (Ctrl+Shift+N) mein try karo. Theek hua?` },
 
     { keys: ['virus','malware','hack','suspicious','ransomware'],
-      ans: `Yeh serious ho sakta hai 🦠 — abhi Windows Security kholo → Virus & threat protection → Quick Scan. Kuch suspicious mila toh internet band karo aur type karo *ha*, main IT ko turant batata hoon. Please wait mat karo is case mein 🎫` },
+      ans: `Abhi Windows Security → Virus & threat protection → Quick Scan karo 🦠 Kuch mila? Internet band karo aur type karo *ha* — IT ko turant batata hoon. Wait mat karo is case mein 🎫` },
 
     { keys: ['windows update','update stuck','update fail'],
-      ans: `Update mein atka hua hai? 🔄 Settings → Windows Update → Check for updates se ek baar manually try karo. Stuck hai toh restart karo aur dobara. Baar baar fail ho raha hai toh bata dena — ticket raise karte hain, IT dekh legi 🎫` },
+      ans: `Restart karo laptop aur dobara try karo — aksar atki update restart se chal jaati hai 🔄 Phir bhi fail? Settings → Windows Update → Check for updates. Baar baar nahi ho raha toh bata, ticket raise karte hain 🎫` },
 
     { keys: ['vpn','remote access','remote desktop'],
-      ans: `VPN aur remote access IT setup karta hai — akela nahi hota 😊 Type karo *ha*, main ticket bhej deta hoon. IT team configure kar degi, zyada time nahi lagega 🎫` },
+      ans: `VPN aur remote IT setup karta hai, akele nahi hota 😊 Type karo *ha*, ticket bhej deta hoon — jaldi configure ho jaayega 🎫` },
 
-    // ── Specific hardware / device issues ──────────────────────────────────
+    // ── Hardware ──────────────────────────────────────────────────────────
     { keys: ['blue screen','bsod','bluescreen'],
-      ans: `Blue screen aa gaya — ghabrao mat 💙 Aksar ek restart mein theek ho jaata hai. Restart karo aur dekho. Agar baar baar aa raha hai toh screen pe jo error code likha tha woh note karo aur batao, main ticket raise karta hoon 📸` },
+      ans: `Ghabrao mat — restart karo, 90% baar theek ho jaata hai 💙 Screen pe jo error code tha woh note karo. Baar baar aa raha hai? Batao, ticket raise karte hain 🎫` },
 
     { keys: ['black screen','screen black','display black','screen nahi aa'],
-      ans: `Screen kuch nahi dikha rahi? 🖥️ Pehle Fn+F5 ya Fn+F8 dabao — brightness keys hain. Nahi hua toh power button 10 sec hold karo, force restart lo. Baad mein bhi black hai toh HDMI se bahar monitor lagao — agar wahan dikhta hai toh screen replace ka ticket raise karte hain 🎫` },
+      ans: `Fn+F5 ya Fn+F8 dabao — brightness keys hain 🖥️ Nahi hua? Power button 10 sec hold karo, force restart. Abhi bhi black? HDMI se monitor lagao — wahan dikh raha hai toh screen ka issue hai, ticket raise karte hain 🎫` },
 
     { keys: ['overheat','garam ho raha','bahut garam','zyada garam','laptop hot','temperature high'],
-      ans: `Laptop bahut garam ho raha hai — yeh common hai par dhyan dena zaroori hai 🌡️ Saare heavy apps band karo, aur laptop ko hard surface pe rakho — bed ya sofa pe mat rakho. Ctrl+Shift+Esc → CPU heavy apps End Task karo. Settings → Power → Balanced mode on karo. Kuch der mein thanda ho jaayega 😊` },
+      ans: `Laptop ko hard surface pe rakho — bed ya sofa pe mat rakho, heat nahi niklti wahan se 🌡️ Ctrl+Shift+Esc → jo heavy CPU le raha ho End Task karo. Settings → Power → Balanced mode on karo. Thodi der mein thanda ho jaayega. Batao!` },
 
     { keys: ['fan not working','fan nahi chal','fan band','fan chal nahi','fan kaam nahi'],
-      ans: `Fan nahi chal raha — please laptop abhi band karo ⚠️ Charger bhi nikaal do. Fan rukte hi hardware damage shuru ho sakta hai. Yeh IT ko dekhna zaroori hai — type karo *ha*, main abhi ticket raise karta hoon 🎫` },
+      ans: `Fan nahi chal raha — abhi laptop band karo aur charger nikaal do ⚠️ Zyada use kiya toh hardware damage ho sakta hai. Type karo *ha*, ticket abhi bhejta hoon — IT ko seedha dekhna hoga 🎫` },
 
     { keys: ['fan noise','fan loud','fan ki awaaz','fan bahut','fan sound','fan shor'],
-      ans: `Fan bahut awaaz kar raha hai? 🔊 Pehle Ctrl+Shift+Esc se heavy apps End Task karo aur laptop hard surface pe rakho. Thodi der mein quieter ho jaata hai usually. Phir bhi same awaaz hai — ticket raise karte hain, IT ek baar check karega 🎫` },
+      ans: `Heavy apps Ctrl+Shift+Esc se End Task karo, laptop hard surface pe rakho 🔊 Thodi der mein quieter ho jaata hai. Phir bhi same awaaz hai? Bata dena, ticket raise karte hain 🎫` },
 
     { keys: ['battery nahi','charging nahi','charge nahi','charger nahi','not charging','charge ho nahi'],
-      ans: `Charging nahi ho rahi? 🔋 Pehle charger dono side se nikaal ke firmly dobara lagao — dusra socket bhi try karo. Phir bhi nahi? Laptop shut down karo, charger nikalo, power button 30 sec hold karo, phir charger lagao. Kaam nahi aaya toh hardware issue hai — ticket raise karte hain 🎫` },
+      ans: `Charger dono side se nikaal ke firmly dobara lagao — dusra socket bhi try karo 🔋 Phir bhi nahi? Laptop shut down karo, charger nikalo, power button 30 sec hold karo, phir charger lagao. Nahi hua toh hardware issue hai — ticket raise karte hain 🎫` },
 
     { keys: ['battery low','battery drain','battery khatam','battery backup'],
-      ans: `Battery jaldi khatam ho rahi hai 🔋 — Settings → Power → Balanced mode on karo, brightness thodi kam karo. Chrome aur Teams zyada battery lete hain, inhe minimize karo jab use na ho. 1-2 ghante se bhi kam chal raha hai toh battery replace ka ticket raise karte hain 🎫` },
+      ans: `Settings → Power → Balanced mode on karo, brightness thodi kam karo 🔋 Chrome aur Teams zyada battery lete hain, minimize rakho jab use na ho. 1-2 ghante se bhi kam chal raha hai consistently? Battery replace ka waqt hai — ticket raise karte hain 🎫` },
 
     { keys: ['keyboard not working','keyboard kaam nahi','keyboard issue','keyboard problem','keys not working','key kaam nahi'],
-      ans: `Keyboard kaam nahi kar raha ⌨️ — pehle ek baar restart karo, aksar isi se theek ho jaata hai. Nahi hua? Win+R → \`osk\` type karo, on-screen keyboard temporary use kar sakte ho. Device Manager → Keyboards → Uninstall → restart se driver reinstall ho jaata hai. Physical damage ho toh ticket raise karo 🎫` },
+      ans: `Pehle restart karo — aksar isi se ho jaata hai ⌨️ Nahi hua? Win+R → \`osk\` → on-screen keyboard se kaam chala sakte ho temporarily. Device Manager → Keyboards → Uninstall → restart karo. Physical damage lagta hai? Ticket raise karte hain 🎫` },
 
     { keys: ['touchpad not working','mouse not working','cursor not moving','cursor stuck','touchpad kaam nahi','mouse kaam nahi'],
-      ans: `Mouse ya touchpad respond nahi kar raha 🖱️ — Fn+F9 dabao (touchpad toggle hota hai). Nahi hua? Restart karo. Abhi bhi same? Device Manager → Mice → Uninstall → restart karo, driver khud reinstall ho jaata hai. Kaise raha batana 😊` },
+      ans: `Fn+F9 dabao — touchpad toggle hota hai 🖱️ Nahi hua? Restart karo. Abhi bhi? Device Manager → Mice → Uninstall → restart, driver khud reinstall ho jaata hai. Kaise raha batana!` },
 
     { keys: ['printer offline','printer nahi chal','printer kaam nahi','printer issue','printer problem','print nahi ho','print queue'],
-      ans: `Printer offline ho gaya 🖨️ — pehle printer OFF karo, 10 sec ruko, ON karo. USB ya WiFi connection check karo. Phir Win+R → \`services.msc\` → Print Spooler → Restart karo. Abhi bhi nahi chal raha? Batao, ticket raise karte hain 🎫` },
+      ans: `Printer OFF karo, 10 sec ruko, ON karo 🖨️ Phir Win+R → \`services.msc\` → Print Spooler → Restart karo. Abhi bhi nahi? Batao, ticket raise karte hain 🎫` },
 
     { keys: ['bluetooth'],
-      ans: `Bluetooth connect nahi ho raha? 🔵 Settings → Bluetooth → toggle OFF karo, 5 sec ruko, ON karo. Device dobara pair karo. Nahi hua? Device Manager → Bluetooth → Disable → Enable karo. Ho gaya? 😊` },
+      ans: `Settings → Bluetooth → OFF karo, 5 sec ruko, ON karo 🔵 Device dobara pair karo. Nahi hua? Device Manager → Bluetooth → Disable → Enable. Ho gaya?` },
 
     { keys: ['camera not working','webcam not working','camera kaam nahi','camera issue','camera problem'],
-      ans: `Camera nahi chal raha 📷 — pehle check karo Teams/Zoom Settings → Video mein sahi camera select hai ya nahi. Privacy Settings → Camera → Apps ko permission dono. Phir bhi nahi? Device Manager → Cameras → Disable → Enable karo. Batao! 😊` },
+      ans: `Teams/Zoom Settings → Video → sahi camera select hai? 📷 Privacy Settings → Camera → Apps ko allow karo. Phir bhi nahi? Device Manager → Cameras → Disable → Enable karo. Batao!` },
 
     { keys: ['mic not working','microphone nahi','mic kaam nahi','sound input','awaaz nahi ja'],
-      ans: `Mic issue hai 🎤 — Settings → Privacy → Microphone → ON hai ki nahi dekho. Sound settings → Input mein sahi mic select karo. Teams use karte ho? Wahan Settings → Devices → mic test karo. Theek hua ya nahi batana 😊` },
+      ans: `Settings → Privacy → Microphone → ON hai? 🎤 Sound settings → Input → sahi mic select karo. Teams mein ho toh Settings → Devices → test karo. Theek hua batana!` },
 
     { keys: ['usb not working','usb nahi','pendrive nahi','usb kaam nahi','device detect nahi'],
-      ans: `USB detect nahi ho raha 🔌 — pehle alag port mein try karo. Nahi hua? Device Manager → Universal Serial Bus → Uninstall sab → Action → Scan for hardware changes. Restart karo. Batao kuch hua? 😊` },
+      ans: `Alag USB port mein try karo pehle 🔌 Nahi hua? Device Manager → Universal Serial Bus → Uninstall → Action → Scan for hardware changes → restart karo. Kuch hua?` },
 
-    // ── General hardware issues ────────────────────────────────────────────
+    // ── Sound / Storage / Network ─────────────────────────────────────────
     { keys: ['sound nahi','audio nahi','speaker nahi','no sound','awaaz nahi','speaker kaam nahi','sound kaam nahi'],
-      ans: `Awaaz nahi aa rahi 🔊 — taskbar mein speaker icon pe click karo, mute toh nahi hai? Right-click → Sound settings → sahi output device select hai? Headphone laga rakha hai toh woh bhi check karo. Win+R → \`mmsys.cpl\` se speakers test karo. Batao! 😄` },
+      ans: `Taskbar speaker icon check karo — mute toh nahi? 🔊 Right-click → Sound settings → sahi output device select hai? Headphone laga hai toh woh bhi check karo. Win+R → \`mmsys.cpl\` se test karo. Batao!` },
 
     { keys: ['disk full','storage full','storage kam','c drive full','memory full','space nahi','space khatam'],
-      ans: `Storage bhar gayi hai 💾 — Win+R → \`cleanmgr\` → C: → Clean system files. Phir Win+R → \`%temp%\` → Ctrl+A → Delete. Recycle Bin bhi khali karo. Kaafi space free ho jaata hai isse. Kuch kaam aaya? 😄` },
+      ans: `Win+R → \`cleanmgr\` → C: → Clean system files 💾 Phir Win+R → \`%temp%\` → Ctrl+A → Delete. Recycle Bin bhi empty karo. Kaafi space nikal aata hai. Kaam aaya?` },
 
-    // ── Network ───────────────────────────────────────────────────────────
     { keys: ['wifi nahi','internet nahi','network nahi','wifi connect nahi','internet slow','wifi slow','internet chal nahi','net nahi'],
-      ans: `Net nahi chal raha? 📶 Pehle taskbar se WiFi OFF karo, 10 sec ruko, ON karo. Nahi hua toh network bhool jao aur dobara connect karo — password: \`spartans500\`\n\nPhir bhi same? Win+R → \`netsh winsock reset\` → Enter → restart karo.\n\nTheek hua batana! 😊` },
+      ans: `Taskbar se WiFi OFF karo, 10 sec ruko, ON karo 📶 Nahi hua? Network bhool ke dobara connect karo — password \`spartans500\` hai. Phir bhi? Win+R → \`netsh winsock reset\` → Enter → restart karo. Batao!` },
 
     { keys: ['password bhool','password forgot','password reset','password nahi pata','login nahi ho','login issue'],
-      ans: `Koi baat nahi, password bhoolta hai sabka 🔑\n• Windows ya email password → IT hi reset karega, type karo *ha* → ticket bhej deta hoon 🎫\n• Google account → khud kar sakte ho: myaccount.google.com → Security → Password\nKonsa wala hai batao? 😊` },
+      ans: `Koi baat nahi, hota hai 🔑\n• Windows/email → IT reset karega — type karo *ha*, ticket bhejta hoon 🎫\n• Google → khud kar sakte ho: myaccount.google.com → Security → Password\nKonsa wala hai?` },
 
     { keys: ['laptop on nahi','laptop start nahi','turn on nahi','boot nahi','stuck restarting','restart loop','shutdown nahi'],
-      ans: `Laptop on nahi ho raha? 🔄 Power button 10-15 sec hold karo — force shut down ho jaayega. Phir normal start karo. Baar baar ho raha hai toh boot pe F8 dabao → Safe Mode → Startup Repair. Nahi hua toh type karo *ha*, ticket raise karte hain 🎫` },
+      ans: `Power button 10-15 sec hold karo — force shut down ho jaayega 🔄 Phir normal start karo. Baar baar ho raha hai? Boot pe F8 → Safe Mode → Startup Repair. Nahi hua toh type karo *ha*, ticket raise karte hain 🎫` },
 
-    // ── Most general — LAST ────────────────────────────────────────────────
-    { keys: ['slow','hang','freeze','sluggish','laptop kharab','bahut slow','alag slow'],
-      ans: `Laptop slow ho gaya hai 💻 — Ctrl+Shift+Esc dabao, Task Manager mein jo sabse zyada CPU le raha ho usse End Task karo. Phir Win+R → \`%temp%\` → sab select → delete karo. Restart karo, kaafi farak padega. Kaise raha? 😊` },
+    // ── Slow — most general, LAST ─────────────────────────────────────────
+    { keys: ['slow','hang','freeze','sluggish','laptop kharab','bahut slow'],
+      ans: `Ctrl+Shift+Esc dabao — Task Manager mein jo CPU zyada le raha ho usse End Task karo 💻 Phir Win+R → \`%temp%\` → sab delete karo. Restart karo ek baar. Kaise raha?` },
   ];
 
   for (const { keys, ans } of quickAnswers) {
