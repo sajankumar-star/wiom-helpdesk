@@ -2817,6 +2817,9 @@ app.listen(PORT, async () => {
  });
  }
  // Add script download button if relevant
+ // Script button ONLY for troubleshooting answers — NOT for password/identity/resolved/thanks
+ const isInfoOnlyReply = /password|spartans|kaun\s*hoon|Zivon|IT Admin|sajan kumar|khushi hui|resolve ho gaya|koi baat nahi|theek hoon|IT problems mein help/i.test(kbReply);
+ if (!isInfoOnlyReply) {
  const kbScript = getScriptForText(text);
  if (kbScript) {
  kbBlocks.push({
@@ -2828,6 +2831,7 @@ app.listen(PORT, async () => {
  style: 'primary'
  }]
  });
+ }
  }
  // Update "Checking..." → actual KB answer
  try {
@@ -2861,8 +2865,9 @@ app.listen(PORT, async () => {
 
  const blocks = [{ type:'section', text:{ type:'mrkdwn', text: formattedReply }}];
 
- // ── Add script download button — use last 2 user msgs only (not full history) ─
- // Using full history caused "slow laptop" from old messages to override current issue
+ // ── Script button: ONLY for troubleshooting replies, NOT info/resolved/ticket/greeting ─
+ const isInfoReply = /password|spartans|Zivon|IT Admin|resolve ho gaya|khushi hui|theek hoon|koi baat nahi|ticket.*ha.*type|type.*ha.*ticket|IT problems mein|aur koi.*help/i.test(reply);
+ if (!isInfoReply && !shouldCreateTicket) {
  const recentUserText = conv.messages.filter(m=>m.role==='user').slice(-2).map(m=>m.content).join(' ');
  const aiScript = getScriptForText(recentUserText);
  if (aiScript) {
@@ -2875,6 +2880,7 @@ app.listen(PORT, async () => {
  style: 'primary'
  }]
  });
+ }
  }
 
  // ── Auto-detect ticket context when AI suggests raising a ticket ──

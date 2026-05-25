@@ -8,7 +8,7 @@ const anthropic = process.env.ANTHROPIC_API_KEY
 
 // ── Active model display (logged on first call) ──────────────────────────────
 let modelLogged = false;
-const activeModel = () => anthropic ? 'claude-3-5-haiku-20241022 (Anthropic)' : 'llama-3.3-70b-versatile (Groq)';
+const activeModel = () => anthropic ? 'claude-3-5-sonnet-20241022 (Anthropic)' : 'llama-3.3-70b-versatile (Groq)';
 
 // ── WIOM IT System Prompt ─────────────────────────────────────────────────────
 const SYSTEM_PROMPT = `You are Zivon — WIOM's IT helpdesk assistant on Slack. You talk like a smart, warm IT colleague — NOT a bot reading a script.
@@ -162,16 +162,32 @@ const detectIntent = (messages) => {
 };
 
 // ── Extract steps already tried (to prevent repeats) ─────────────────────────
+// System prompt bans "Step 1:" format, so we track key action commands instead
 const extractTriedSteps = (messages) => {
   const assistantMsgs = messages.filter(m => m.role === 'assistant');
   if (assistantMsgs.length === 0) return '';
-  const steps = [];
-  assistantMsgs.forEach(msg => {
-    const matches = msg.content.match(/Step \d+:[^\n]+/g);
-    if (matches) steps.push(...matches.map(s => s.trim()));
+  const tried = [];
+  const actionPatterns = [
+    /restart\s*karo/gi,
+    /Ctrl\+Shift\+Esc/gi,
+    /Device Manager/gi,
+    /Settings\s*→\s*[^\n.]+/gi,
+    /Win\+R[^\n]*/gi,
+    /netsh\s+\w+[^\n]*/gi,
+    /Toggle\s*(OFF|ON)/gi,
+    /%appdata%[^\n]*/gi,
+    /cleanmgr/gi,
+    /services\.msc/gi,
+  ];
+  assistantMsgs.slice(-4).forEach(msg => {
+    actionPatterns.forEach(pat => {
+      const found = msg.content.match(pat);
+      if (found) tried.push(...found.map(s => s.trim()));
+    });
   });
-  if (steps.length === 0) return '';
-  return `\n\n⚠️ STEPS ALREADY TRIED IN THIS CONVERSATION (DO NOT REPEAT ANY OF THESE):\n${steps.join('\n')}\nGive completely different steps from the above.`;
+  const unique = [...new Set(tried)];
+  if (unique.length === 0) return '';
+  return `\n\n⚠️ ALREADY SUGGESTED (DO NOT REPEAT): ${unique.join(' | ')}\nGive a DIFFERENT approach.`;
 };
 
 
@@ -250,7 +266,7 @@ const callGroq = async (systemPrompt, history) => {
   const completion = await groq.chat.completions.create({
     model      : 'llama-3.3-70b-versatile',  // upgraded: much smarter fallback
     messages   : [{ role: 'system', content: systemPrompt }, ...history],
-    temperature: 0.4,   // slightly more natural/varied responses
+    temperature: 0.3,   // lower = more stable, less random answers
     max_tokens : 300
   });
   const text = completion.choices?.[0]?.message?.content?.trim();
