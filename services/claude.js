@@ -11,59 +11,68 @@ let modelLogged = false;
 const activeModel = () => anthropic ? 'claude-3-5-sonnet-20241022 (Anthropic)' : 'llama-3.3-70b-versatile (Groq)';
 
 // ── WIOM IT System Prompt ─────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are Zivon — WIOM's IT helpdesk assistant on Slack. You talk like a smart, warm IT colleague — NOT a bot reading a script.
+const SYSTEM_PROMPT = `You are Zivon — WIOM's friendly IT support assistant. Talk like a real, warm colleague — not a robot script.
 
-━━━ YOUR PERSONALITY ━━━
-Think of yourself as the friendly IT person in the office who actually knows their stuff.
-- You're patient, never condescending
-- You ask ONE follow-up question when you need more info — not five
-- You remember what was said earlier in the conversation (check history!)
-- You give ONE step at a time, wait for response, then give next
-- When something is fixed, you genuinely feel happy
-- When something is serious, you're honest and calm
+━━━ PERSONALITY ━━━
+Smart, warm, patient IT person who genuinely wants to help.
+- Short replies — 2-3 lines max usually
+- Natural Hinglish with Hindi users, English with English users
+- Confident: "ye karo, ho jaayega" not "aap try kar sakte hain"
+- Reassuring: "Hota hai", "No worries 👍", "Simple fix hai"
+- "yaar", "bhai", "arre" BANNED always
 
-━━━ CONVERSATION STYLE — MOST IMPORTANT ━━━
+━━━ #1 GOLDEN RULE — DIAGNOSE BEFORE SOLVING ━━━
+⚡ ALWAYS ask ONE smart question before giving any solution. Always. No exceptions.
 
-RULE 1 — ASK BEFORE YOU ASSUME
-If problem is vague → ask ONE smart question first:
-"Laptop slow hai? Kab se ho raha hai — aaj se ya kuch dino se?"
-"WiFi nahi chal raha? Connected dikh raha hai taskbar mein?"
-"Camera nahi chal raha? Kaunsa app mein — Teams, Zoom, ya sab mein?"
+WHY: Without knowing the exact symptom, wrong solution will waste their time.
 
-RULE 2 — ONE STEP AT A TIME
-Give 1-2 steps → wait for response → then next step
-"Ctrl+Shift+Esc dabao — Task Manager khulega. Jo sabse zyada CPU le raha ho usse End Task karo. Karo batao!"
-NOT: a wall of 5 steps at once
+CORRECT FIRST RESPONSES:
+✅ "net nahi chal raha" → "WiFi icon taskbar mein dikh raha hai? Connected hai ya 'No Internet' likh raha hai?"
+✅ "laptop slow hai" → "Kab se ho raha hai? Koi specific app mein ya poora laptop slow hai?"
+✅ "screen nahi dikh raha" → "Laptop on hai (power LED dikh raha)? Ya screen bilkul black hai?"
+✅ "password bhool gaya" → "Windows ka password hai ya kisi app ka — Gmail, Outlook?"
+✅ "camera nahi chal raha" → "Kaunsa app mein — Teams, Zoom, ya sab mein nahi?"
+✅ "outlook nahi khul raha" → "Error message kya aa raha hai? Ya bas loading reh jaata hai?"
 
-RULE 3 — USE CONVERSATION HISTORY
-If user said "nahi hua" / "nahi chala" / "same problem" → you KNOW what issue they have from history.
-Don't ask again — give next specific step for THAT problem.
-"Acha, task manager wala nahi hua? Tab startup apps band karte hain — Settings → Apps → Startup → sab off karo → restart."
+WRONG FIRST RESPONSES (NEVER DO THIS):
+❌ "Laptop restart karo" — as first answer to network/wifi issues
+❌ Long list of 3+ steps before asking anything
+❌ "Step 1:", "Step 2:" format — ever
+❌ Assuming what the problem is without asking
 
-RULE 4 — NATURAL LANGUAGE
-Hindi/Hinglish user → same language back
-English user → English back
-Vary your openers: "Acha", "Haan", "Got it", "Dekho", "Try karo ye"
-Vary your closers: "Karo batao!", "Ho gaya?", "Batao!", sometimes nothing
-NEVER: "Step 1:", "Step 2:", "Yeh steps follow karein:"
+━━━ CONVERSATION RULES ━━━
 
-RULE 5 — WHEN ISSUE IS RESOLVED
-User says "ho gaya" / "theek hai" / "chal gaya" → celebrate briefly, ask if anything else
-"Acha! Sahi hua 😊 Koi aur cheez hai?"
-DON'T give more steps when user says it's fixed!
+RULE 1: ONE STEP AT A TIME
+Give 1 step → wait for reply → give next
+"WiFi toggle OFF karo → ON karo → try karo. Hua batao!"
+NOT: 5 steps dumped at once.
 
-━━━ TONE ━━━
-- Office-appropriate, warm — "yaar", "bhai", "arre" BANNED always
-- Short replies — max 3-4 lines usually
-- Be confident: "ye karo, ho jaayega" not "aap try kar sakte hain"
-- Reassuring: "Hota hai", "Koi baat nahi", "Simple fix hai"
+RULE 2: USE HISTORY — NEVER REPEAT
+If user said "nahi hua" → look at history, know what was tried, give NEXT different step.
+"Acha toggle se nahi hua? Device Manager kholo → Network Adapters → WiFi → Disable → Enable."
 
-━━━ FOLLOW-UP QUESTION EXAMPLES ━━━
-"Internet nahi chal raha" → "WiFi icon taskbar mein dikh raha hai connected? Ya disconnected?"
-"Laptop slow hai" → "Kab se ho raha hai? Aur koi specific app mein ya poora laptop?"
-"Camera nahi chal raha" → "Kaunsa app mein — Teams/Zoom, ya sab mein nahi?"
-"Password bhool gaya" → "Windows ka password ya kisi aur account ka — Gmail, email?"
-"Screen black hai" → "Laptop on hai (power LED dikh raha hai)? Ya puri tarah band lagta hai?"
+RULE 3: NATURAL LANGUAGE
+Vary openers: "Acha", "Haan", "Got it", "Dekho", "Oh 😅", "No worries 👍"
+Vary closers: "Karo batao!", "Ho gaya?", "Try karo!", sometimes just end naturally.
+
+RULE 4: WHEN FIXED
+"ho gaya" / "chal gaya" / "theek hai" → celebrate shortly, ask if anything else
+"Nice! Sahi hua 😊 Koi aur cheez?"
+DO NOT give more steps when fixed!
+
+RULE 5: STAY ON TOPIC
+Network issue → network fix only. Never suggest laptop restart for wifi issues.
+The category hint below tells you exactly what kind of issue this is — follow it strictly.
+
+━━━ TONE EXAMPLES ━━━
+Instead of: "Issue resolved successfully. Please follow these steps:"
+Say: "Ho gaya! 🎉 Koi aur cheez?"
+
+Instead of: "I have created a ticket for your issue."
+Say: "Theek hai, IT team bhejte hain. Type karo ha! 🎫"
+
+Instead of: "Please restart your laptop to resolve this issue."
+Say: "Ek kaam karo — WiFi taskbar se OFF karo phir ON. Try karo!"
 
 ━━━ WIOM SPECIFIC FACTS ━━━
 WiFi password: spartans500 (all networks)
@@ -125,40 +134,51 @@ const detectIntent = (messages) => {
     .join(' ')
     .toLowerCase();
 
-  if (/\bnet\b|wifi|wi-fi|internet|network|connect(ion)?|hotspot|broadband|no internet|nahi chal|chal nahi/.test(recentText))
-    return { category: 'NETWORK', hint: 'User has a WiFi/Internet issue. First ask: "WiFi icon taskbar mein dikh raha hai? Connected hai ya disconnected?" — DO NOT suggest restart as first step for network issues.' };
+  // NETWORK — most important: catch all Hinglish variants
+  if (/\bnet\b|\bwifi\b|wi-fi|internet|network|connect(ion)?|hotspot|broadband|no internet|nahi chal raha|chal nahi|nahi chal|net band|data nahi|signal nahi|connection nahi/.test(recentText))
+    return { category: 'NETWORK', hint: 'NETWORK ISSUE. Your FIRST message MUST be: "WiFi icon taskbar mein dikh raha hai? Connected hai ya \'No Internet\' likh raha?" — ABSOLUTELY DO NOT say restart laptop. Ask this exact question first, then wait.' };
 
-  if (/slow|hang|lagg|freez|speed|fast karo|ram|cpu|processor|heavy|battery drain/.test(recentText))
-    return { category: 'PERFORMANCE', hint: 'User has a slow/performance issue. First ask: "Kab se ho raha hai? Koi specific app mein ya poora laptop?" — then Ctrl+Shift+Esc → Task Manager.' };
+  // PERFORMANCE — slow, hang, freeze
+  if (/slow|hang\b|lagg|freez|speed|fast karo|\bram\b|\bcpu\b|processor|heavy|battery drain|alag hai|dheema|dheere|aahista/.test(recentText))
+    return { category: 'PERFORMANCE', hint: 'PERFORMANCE ISSUE. First ask: "Kab se ho raha hai? Koi specific app mein ya poora laptop slow hai?" — then give Task Manager step.' };
 
-  if (/screen|display|black screen|blue screen|bsod|flicker|bright|dim|resolution|monitor|hdmi/.test(recentText))
-    return { category: 'DISPLAY', hint: 'User has a screen/display issue. Ask: "Laptop on hai (power LED on)? Ya screen completely black?" — never suggest network steps.' };
+  // DISPLAY — screen, black, blue screen
+  if (/screen|display|black screen|nahi dikh|dikhna band|blue screen|bsod|flicker|bright|dim|resolution|monitor|hdmi|kala ho gaya|screen kali/.test(recentText))
+    return { category: 'DISPLAY', hint: 'DISPLAY ISSUE. First ask: "Laptop on hai (power LED dikh raha)? Ya screen bilkul black hai?" — never suggest network steps for display.' };
 
-  if (/camera|camra|webcam|\bcam\b/.test(recentText))
-    return { category: 'CAMERA', hint: 'Camera issue. Ask: "Kaunsa app mein nahi chal raha — Teams, Zoom, ya sab mein?" — then Settings→Privacy→Camera.' };
+  // CAMERA
+  if (/camera|camra|webcam|\bcam\b|video nahi|camera band/.test(recentText))
+    return { category: 'CAMERA', hint: 'CAMERA ISSUE. First ask: "Kaunsa app mein nahi chal raha — Teams, Zoom, ya sab mein?" — then Settings→Privacy→Camera.' };
 
-  if (/sound|audio|speaker|headphone|mic|microphone|awaaz/.test(recentText))
-    return { category: 'AUDIO', hint: 'Audio issue. Ask: "Headphone lagaya hai? Taskbar pe speaker icon mein X toh nahi?" — check output device.' };
+  // AUDIO
+  if (/sound|audio|speaker|headphone|\bmic\b|microphone|awaaz|awaaz nahi|volume|sunai nahi/.test(recentText))
+    return { category: 'AUDIO', hint: 'AUDIO ISSUE. First ask: "Headphone laga hai? Taskbar pe speaker icon mein X toh nahi?" — check output device.' };
 
-  if (/teams|zoom|outlook|email|browser|chrome|office|word|excel|onedrive|pdf|app/.test(recentText))
-    return { category: 'SOFTWARE', hint: 'Software/app issue. Ask which specific app and what error — give app-specific fix only.' };
+  // SOFTWARE
+  if (/teams|zoom|outlook|email|\bchrome\b|\boffice\b|\bword\b|\bexcel\b|onedrive|pdf|app nahi|software|install|crash|error aa raha|error aa rahi/.test(recentText))
+    return { category: 'SOFTWARE', hint: 'SOFTWARE/APP ISSUE. First ask: "Kya exact error message aa raha hai? Screen pe kya likh raha hai?" — give app-specific fix only.' };
 
-  if (/keyboard|keys|typing|touchpad|mouse|cursor|trackpad/.test(recentText))
-    return { category: 'PERIPHERAL', hint: 'Keyboard/touchpad issue. Ask: "Restart ke baad bhi same hai? Ya sirf koi specific key?" — hardware-specific steps only.' };
+  // PERIPHERAL — keyboard, mouse
+  if (/keyboard|\bkeys\b|typing|touchpad|\bmouse\b|cursor|trackpad|key nahi|type nahi/.test(recentText))
+    return { category: 'PERIPHERAL', hint: 'KEYBOARD/TOUCHPAD ISSUE. First ask: "Restart ke baad bhi same hai? Ya sirf koi specific key kaam nahi kar rahi?" — hardware steps only.' };
 
-  if (/printer|print/.test(recentText))
-    return { category: 'PRINTER', hint: 'Printer issue. Ask: "Printer ON hai? Koi error message dikh raha?" — Print Spooler restart.' };
+  // PRINTER
+  if (/printer|print|printing/.test(recentText))
+    return { category: 'PRINTER', hint: 'PRINTER ISSUE. First ask: "Printer ON hai aur connected hai? Koi error message dikh raha screen pe?" — Print Spooler restart.' };
 
-  if (/password|login|locked|account|access/.test(recentText))
-    return { category: 'ACCOUNT', hint: 'Account/password issue. Windows/email password = ticket only. Google password = myaccount.google.com self-service.' };
+  // ACCOUNT / PASSWORD
+  if (/password|login|locked|account|access|sign in|signin|password bhool|bhool gaya password/.test(recentText))
+    return { category: 'ACCOUNT', hint: 'ACCOUNT/PASSWORD ISSUE. First ask: "Windows ka password hai ya kisi app ka — Gmail, Outlook?" — Windows/email = ticket only. Google = self-service.' };
 
-  if (/virus|malware|hack|ransomware/.test(recentText))
-    return { category: 'SECURITY', hint: 'Security issue. Urgent — Windows Security Quick Scan first, disconnect internet if serious.' };
+  // SECURITY
+  if (/virus|malware|hack|ransomware|suspicious|phishing/.test(recentText))
+    return { category: 'SECURITY', hint: 'SECURITY ISSUE. Urgent — say "Windows Security → Quick Scan karo, aur internet disconnect karo agar serious lage." Then ticket.' };
 
-  if (/battery|charg|charger/.test(recentText))
-    return { category: 'BATTERY', hint: 'Battery/charging issue. Ask: "Charger LED on hai? Alag socket try kiya?" — replug both ends first.' };
+  // BATTERY / CHARGING
+  if (/battery|charg|charger|charging nahi|plug|power/.test(recentText))
+    return { category: 'BATTERY', hint: 'BATTERY/CHARGING ISSUE. First ask: "Charger ka LED on hai? Alag socket try kiya?" — replug both ends first.' };
 
-  return { category: 'GENERAL', hint: 'Issue unclear — ask ONE specific question to identify the problem before giving any solution.' };
+  return { category: 'GENERAL', hint: 'ISSUE UNCLEAR. Ask ONE specific diagnostic question: "Thoda aur batao — exactly kya ho raha hai? Koi error message aaya kya?" — do NOT give any solution before they answer.' };
 };
 
 // ── Extract steps already tried (to prevent repeats) ─────────────────────────
@@ -194,10 +214,12 @@ const extractTriedSteps = (messages) => {
 // ── Static KB Fallback (when both AI providers fail) ─────────────────────────
 const getKBFallback = (problem) => {
   const p = problem.toLowerCase();
-  if (p.includes('slow') || p.includes('hang') || p.includes('freez'))
-    return `Laptop slow/hang fix! 🔧\nStep 1: Ctrl+Shift+Esc → CPU column sort karo → heavy app Right-click → End Task.\nStep 2: Win+R → type temp → Ctrl+A → Delete karo.\nStep 3: Laptop restart karo.\nScript button neeche hai — ek click mein automatic fix! ⬇️`;
-  if (p.includes('wifi') || p.includes('internet') || p.includes('network'))
-    return `WiFi fix! 📶\nStep 1: Taskbar WiFi click → OFF karo → ON karo.\nStep 2: Apna network select karo:\n   Ground floor: "Wiom office 5g-Test" → Password: spartans500\n   Guest: "Wiom office Guest" → Password: spartans500\n   3rd floor: "Wiom office 3rd floor" → Password: spartans500\n   Saket office: "Wiomnet" → Password: Password@12345\nStep 3: Kaam nahi hua toh laptop restart karo.\nClick the script button below! ⬇️`;
+  if (p.includes('slow') || p.includes('hang') || p.includes('freez') || p.includes('dheema'))
+    return `Acha, laptop slow/hang hai? 🔧\nPehle ye karo: Ctrl+Shift+Esc dabao → Task Manager mein jo process sabse zyada CPU le raha ho → End Task karo.\nKaro batao ho gaya ya nahi!`;
+  if (p.includes('wifi') || p.includes('internet') || p.includes('network') ||
+      /\bnet\b/.test(p) || p.includes('nahi chal') || p.includes('chal nahi') ||
+      p.includes('net band') || p.includes('signal nahi') || p.includes('no internet'))
+    return `Net/WiFi issue hai? 📶 Pehle batao — taskbar mein WiFi icon dikh raha hai connected? Ya "No Internet" aa raha hai?\n\nAgar disconnected hai → taskbar WiFi click → "Wiom office 5g-Test" select → Password: spartans500\nAgar connected par net nahi → WiFi toggle OFF → ON karo → try karo!\nKaro batao!`;
   if (p.includes('sound') || p.includes('audio') || p.includes('speaker') || p.includes('headphone'))
     return `Sound fix! 🔊\nStep 1: Taskbar speaker icon Right-click → Sound settings.\nStep 2: Output device → sahi device select karo.\nStep 3: Volume 0% nahi honi chahiye — check karo.\nClick the script button below! ⬇️`;
   if (p.includes('blue screen') || p.includes('bsod'))
@@ -242,8 +264,8 @@ const getKBFallback = (problem) => {
     return `Main *Zivon* hoon — WIOM ka IT helpdesk assistant ⚡\nLaptop, WiFi, software, password — kisi bhi IT problem mein help karta hoon.\nBatao kya issue hai! 😊`;
   if (p.includes('sajan') || p.includes('admin') || p.includes('it head') || p.includes('phone number') || p.includes('number do'))
     return 'Sajan Kumar — WIOM IT Admin\nPhone: 9654244281\nEmail: sajan.kumar@wiom.in\nTicket ke liye type karo: *raise ticket*';
-  // Generic fallback — restart covers 80% of issues
-  return `Pehle ek baar laptop restart karo 🔄 — zyada tar issues isse theek ho jaate hain. Nahi hua toh thoda aur detail mein batao kya problem hai, main specific help karunga! 😊`;
+  // Generic fallback — ask first, don't assume
+  return `Haan batao! 😊 Thoda detail mein bolo — exactly kya ho raha hai? Koi error message aa raha kya screen pe? Jitna detail doge, utni jaldi fix karunga!`;
 };
 
 // ── Call Claude (Anthropic) ───────────────────────────────────────────────────
