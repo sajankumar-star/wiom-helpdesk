@@ -3,211 +3,414 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>WIOM IT Helpdesk</title>
+<title>WIOM IT Helpdesk · Zivon AI</title>
 <link rel="icon" href="/wiom-logo.webp" type="image/webp"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"/>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --pink:#E8197D; --pink-dark:#c0146a; --pink-light:#ff4da6;
-  --pink-glow:rgba(232,25,125,0.18); --pink-soft:rgba(232,25,125,0.08);
-  --bg:#0d0608; --surface:#130a0d; --surface2:#1a0d12; --border:rgba(232,25,125,0.12);
-  --border2:rgba(232,25,125,0.25); --text:#f5e8ee; --muted:#8a6b76;
-  --success:#34d399; --danger:#f87171; --warning:#fbbf24;
+  --pink-glow:rgba(232,25,125,0.2); --pink-soft:rgba(232,25,125,0.08);
+  --bg:#080408; --surface:#110810; --surface2:#1a0d14; --surface3:#200f18;
+  --border:rgba(232,25,125,0.1); --border2:rgba(232,25,125,0.22);
+  --text:#f0e0ea; --muted:#7a5f6e; --muted2:#a07888;
+  --success:#2dd4a0; --danger:#f87171; --warning:#fbbf24; --info:#60a5fa;
   --font:'Inter',sans-serif;
+  --sidebar:280px;
+  --radius:16px;
+  --transition:.22s cubic-bezier(.4,0,.2,1);
 }
-body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;
-  background-image:radial-gradient(rgba(232,25,125,0.07) 1px,transparent 1px);
-  background-size:28px 28px;}
 
-/* ── LOGIN ── */
-#loginPage{display:flex;justify-content:center;align-items:center;min-height:100vh;padding:20px;
-  background:radial-gradient(ellipse 80% 60% at 50% 0%,rgba(232,25,125,0.12),transparent 70%);}
-.login-card{background:rgba(19,10,13,0.95);border:1px solid var(--border2);border-radius:24px;
-  width:100%;max-width:400px;padding:40px 36px;
-  box-shadow:0 0 60px rgba(232,25,125,0.15),0 30px 60px rgba(0,0,0,0.6);
-  backdrop-filter:blur(20px);}
-.login-logo{text-align:center;margin-bottom:28px;}
-.login-logo img{width:56px;height:56px;border-radius:14px;
-  box-shadow:0 0 24px rgba(232,25,125,0.5);}
-.login-logo .brand-name{font-size:22px;font-weight:700;color:#fff;margin-top:12px;letter-spacing:-0.5px;}
-.login-logo .brand-name span{color:var(--pink);}
-.login-logo .brand-sub{font-size:12px;color:var(--muted);margin-top:4px;}
-.login-card h2{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;}
-.login-card p{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
-.inp-wrap{position:relative;margin-bottom:12px;}
-.inp-wrap .inp-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.5;}
-input{width:100%;padding:13px 14px 13px 42px;background:rgba(255,255,255,0.04);
-  border:1px solid var(--border2);border-radius:12px;color:var(--text);
-  font-size:14px;font-family:var(--font);outline:none;transition:all .2s;}
-input:focus{border-color:var(--pink);background:rgba(232,25,125,0.06);
-  box-shadow:0 0 0 3px rgba(232,25,125,0.1);}
-input::placeholder{color:var(--muted);}
-.btn-login{width:100%;padding:14px;margin-top:4px;
+body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;overflow:hidden;}
+
+/* ══ LOGIN ══ */
+#loginPage{
+  position:fixed;inset:0;display:flex;justify-content:center;align-items:center;
+  background:radial-gradient(ellipse 90% 70% at 50% 0%,rgba(232,25,125,0.13),transparent 65%);
+  z-index:100;transition:opacity .4s,transform .4s;
+}
+#loginPage.hide{opacity:0;transform:scale(.97);pointer-events:none;}
+
+.login-card{
+  background:rgba(17,8,16,0.97);border:1px solid var(--border2);
+  border-radius:24px;width:100%;max-width:400px;padding:40px 36px;
+  box-shadow:0 0 80px rgba(232,25,125,0.12),0 40px 80px rgba(0,0,0,0.7);
+  backdrop-filter:blur(24px);animation:loginIn .5s ease both;
+}
+@keyframes loginIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo .logo-ring{
+  width:68px;height:68px;border-radius:20px;margin:0 auto 14px;
   background:linear-gradient(135deg,var(--pink),var(--pink-dark));
-  border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:600;
-  font-family:var(--font);cursor:pointer;transition:all .2s;
-  box-shadow:0 4px 20px rgba(232,25,125,0.4);}
-.btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(232,25,125,0.5);}
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 32px rgba(232,25,125,0.5),0 0 0 1px rgba(232,25,125,0.3);
+  animation:pulse-ring 2s ease infinite;
+}
+@keyframes pulse-ring{0%,100%{box-shadow:0 0 32px rgba(232,25,125,0.5),0 0 0 1px rgba(232,25,125,0.3);}
+  50%{box-shadow:0 0 48px rgba(232,25,125,0.7),0 0 0 4px rgba(232,25,125,0.15);}}
+.login-logo .logo-ring img{width:44px;height:44px;border-radius:12px;object-fit:cover;}
+.brand-name{font-size:22px;font-weight:800;color:#fff;letter-spacing:-0.5px;}
+.brand-name span{color:var(--pink);}
+.brand-sub{font-size:12px;color:var(--muted2);margin-top:3px;}
+
+.login-card h2{font-size:16px;font-weight:700;margin-bottom:5px;}
+.login-card .sub{font-size:13px;color:var(--muted2);margin-bottom:24px;line-height:1.5;}
+
+.inp-wrap{position:relative;margin-bottom:12px;}
+.inp-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:15px;opacity:.45;}
+.inp-wrap input{
+  width:100%;padding:13px 14px 13px 42px;
+  background:rgba(255,255,255,0.04);border:1px solid var(--border2);
+  border-radius:12px;color:var(--text);font-size:14px;font-family:var(--font);
+  outline:none;transition:all var(--transition);
+}
+.inp-wrap input:focus{border-color:var(--pink);background:rgba(232,25,125,0.05);box-shadow:0 0 0 3px rgba(232,25,125,0.1);}
+.inp-wrap input::placeholder{color:var(--muted);}
+
+.btn-login{
+  width:100%;padding:14px;margin-top:6px;
+  background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;
+  font-family:var(--font);cursor:pointer;transition:all var(--transition);
+  box-shadow:0 4px 24px rgba(232,25,125,0.4);letter-spacing:.3px;
+}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 32px rgba(232,25,125,0.55);}
 .btn-login:active{transform:translateY(0);}
-.err{color:var(--danger);font-size:13px;margin-top:10px;text-align:center;display:none;padding:10px;
-  background:rgba(248,113,113,0.1);border-radius:8px;border:1px solid rgba(248,113,113,0.2);}
+
+.err{color:var(--danger);font-size:12.5px;margin-top:10px;text-align:center;display:none;
+  padding:10px;background:rgba(248,113,113,0.08);border-radius:10px;border:1px solid rgba(248,113,113,0.2);}
 .login-footer{text-align:center;margin-top:20px;font-size:11px;color:var(--muted);}
 
-/* ── MAIN ── */
-#mainPage{display:none;min-height:100vh;max-width:860px;margin:0 auto;padding:16px;}
+/* ══ APP SHELL ══ */
+#app{display:none;height:100vh;flex-direction:column;}
+#app.show{display:flex;animation:appIn .4s ease both;}
+@keyframes appIn{from{opacity:0;}to{opacity:1;}}
 
-/* ── HEADER ── */
-.header{display:flex;justify-content:space-between;align-items:center;
-  padding:14px 20px;margin-bottom:16px;
-  background:rgba(19,10,13,0.9);border:1px solid var(--border2);border-radius:16px;
-  backdrop-filter:blur(12px);
-  box-shadow:0 0 0 1px rgba(232,25,125,0.05),0 4px 20px rgba(0,0,0,0.4);}
-.header-left{display:flex;align-items:center;gap:12px;}
-.header-logo img{width:36px;height:36px;border-radius:10px;
-  box-shadow:0 0 14px rgba(232,25,125,0.4);}
-.header-info h2{font-size:14px;font-weight:700;color:#fff;}
-.header-info h2 span{color:var(--pink);}
-.header-info p{font-size:11px;color:var(--muted);margin-top:1px;}
-.online-dot{display:flex;align-items:center;gap:5px;font-size:11px;
-  color:var(--success);background:rgba(52,211,153,0.08);
-  border:1px solid rgba(52,211,153,0.2);padding:4px 10px;border-radius:20px;}
-.online-dot::before{content:'';width:6px;height:6px;background:var(--success);
-  border-radius:50%;box-shadow:0 0 6px var(--success);
-  animation:blink 2s infinite;}
+/* ══ TOP BAR ══ */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 20px;border-bottom:1px solid var(--border);
+  background:rgba(11,5,10,0.95);backdrop-filter:blur(16px);
+  flex-shrink:0;z-index:10;min-height:56px;
+}
+.tb-left{display:flex;align-items:center;gap:12px;}
+.tb-logo{width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 16px rgba(232,25,125,0.4);}
+.tb-logo img{width:26px;height:26px;border-radius:7px;object-fit:cover;}
+.tb-title{font-size:15px;font-weight:700;color:#fff;letter-spacing:-.3px;}
+.tb-title span{color:var(--pink);}
+.tb-sub{font-size:11px;color:var(--muted2);margin-top:1px;}
+
+.ai-badge{
+  display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;
+  color:var(--success);background:rgba(45,212,160,0.08);
+  border:1px solid rgba(45,212,160,0.2);padding:4px 10px;border-radius:20px;
+}
+.ai-badge::before{content:'';width:6px;height:6px;background:var(--success);border-radius:50%;
+  box-shadow:0 0 6px var(--success);animation:blink 2s infinite;}
 @keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
-.header-right{display:flex;align-items:center;gap:8px;}
-.emp-pill{background:var(--pink-soft);border:1px solid var(--border2);
-  padding:5px 12px;border-radius:20px;font-size:12px;color:var(--pink);font-weight:500;}
-.logout-btn{background:transparent;border:1px solid rgba(255,255,255,0.1);
-  color:var(--muted);padding:6px 12px;border-radius:8px;cursor:pointer;font-size:12px;
-  font-family:var(--font);transition:all .2s;}
-.logout-btn:hover{border-color:var(--danger);color:var(--danger);}
 
-/* ── TABS ── */
-.tabs{display:flex;gap:4px;margin-bottom:16px;
-  background:rgba(19,10,13,0.8);padding:6px;border-radius:14px;
-  border:1px solid var(--border);}
-.tab-btn{flex:1;padding:10px;border:none;border-radius:10px;
-  background:transparent;color:var(--muted);font-size:13px;
-  cursor:pointer;font-weight:500;font-family:var(--font);transition:all .2s;}
-.tab-btn.active{background:linear-gradient(135deg,var(--pink),var(--pink-dark));
-  color:#fff;box-shadow:0 2px 12px rgba(232,25,125,0.35);}
+.tb-right{display:flex;align-items:center;gap:8px;}
+.emp-chip{background:var(--pink-soft);border:1px solid var(--border2);
+  padding:5px 12px;border-radius:20px;font-size:12px;color:var(--pink);font-weight:600;}
+.btn-sm{padding:6px 12px;background:transparent;border:1px solid rgba(255,255,255,0.08);
+  color:var(--muted2);border-radius:8px;cursor:pointer;font-size:12px;
+  font-family:var(--font);transition:all var(--transition);}
+.btn-sm:hover{border-color:rgba(248,113,113,0.3);color:var(--danger);}
 
-/* ── CHAT ── */
-.chat-card{background:rgba(19,10,13,0.9);border:1px solid var(--border);
-  border-radius:16px;overflow:hidden;
-  box-shadow:0 4px 24px rgba(0,0,0,0.4);}
-.chat-messages{height:440px;overflow-y:auto;padding:20px;
-  display:flex;flex-direction:column;gap:14px;}
+/* ══ BODY ROW ══ */
+.body-row{display:flex;flex:1;overflow:hidden;}
+
+/* ══ SIDEBAR ══ */
+.sidebar{
+  width:var(--sidebar);min-width:var(--sidebar);
+  background:rgba(11,5,10,0.98);border-right:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;
+  transition:transform var(--transition);
+}
+
+.sb-section{padding:14px 14px 10px;}
+.sb-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;
+  text-transform:uppercase;margin-bottom:8px;padding:0 2px;}
+
+/* Employee card */
+.emp-card{
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:14px;padding:14px;margin:12px 12px 0;
+  transition:border-color var(--transition);
+}
+.emp-card:hover{border-color:var(--border2);}
+.emp-card-top{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.emp-avatar{width:40px;height:40px;border-radius:12px;
+  background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;
+  color:#fff;flex-shrink:0;box-shadow:0 0 16px rgba(232,25,125,0.3);}
+.emp-name{font-size:13px;font-weight:700;color:#fff;line-height:1.2;}
+.emp-id{font-size:11px;color:var(--muted2);}
+.emp-meta{display:flex;flex-direction:column;gap:4px;}
+.emp-meta-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);}
+.emp-meta-row span:first-child{font-size:12px;}
+
+/* Quick actions */
+.qa-grid{display:flex;flex-direction:column;gap:5px;}
+.qa-btn{
+  display:flex;align-items:center;gap:10px;padding:9px 12px;
+  background:transparent;border:1px solid transparent;border-radius:10px;
+  color:var(--muted2);font-size:12.5px;font-family:var(--font);
+  cursor:pointer;transition:all var(--transition);text-align:left;width:100%;
+}
+.qa-btn:hover{background:var(--surface2);border-color:var(--border);color:var(--text);}
+.qa-btn.active{background:var(--pink-soft);border-color:var(--border2);color:var(--pink);}
+.qa-icon{font-size:15px;width:20px;text-align:center;flex-shrink:0;}
+
+/* Tickets list in sidebar */
+.tkt-mini-list{display:flex;flex-direction:column;gap:6px;max-height:200px;overflow-y:auto;padding-right:2px;}
+.tkt-mini-list::-webkit-scrollbar{width:3px;}
+.tkt-mini-list::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.tkt-mini{
+  padding:10px 12px;background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;cursor:default;transition:border-color var(--transition);
+}
+.tkt-mini:hover{border-color:var(--border2);}
+.tkt-mini-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.tkt-mini-id{font-size:11px;font-weight:700;color:var(--pink);}
+.tkt-mini-desc{font-size:11px;color:var(--muted2);line-height:1.4;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;}
+
+.badge{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;}
+.b-Open{background:rgba(232,25,125,0.1);color:var(--pink);}
+.b-In-Progress,.b-InProgress{background:rgba(167,139,250,0.1);color:#a78bfa;}
+.b-Resolved{background:rgba(45,212,160,0.1);color:var(--success);}
+.b-Closed{background:rgba(100,116,139,0.1);color:#64748b;}
+.b-Critical{background:rgba(248,113,113,0.12);color:#f87171;}
+.b-High{background:rgba(251,146,60,0.12);color:#fb923c;}
+.b-Medium{background:rgba(251,191,36,0.12);color:#fbbf24;}
+.b-Low{background:rgba(45,212,160,0.12);color:var(--success);}
+
+.sb-footer{
+  margin-top:auto;padding:12px 14px;border-top:1px solid var(--border);
+  font-size:11px;color:var(--muted);text-align:center;line-height:1.6;
+}
+
+/* ══ CHAT AREA ══ */
+.chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+
+/* Messages */
+.chat-messages{
+  flex:1;overflow-y:auto;padding:24px 28px;
+  display:flex;flex-direction:column;gap:18px;
+  scroll-behavior:smooth;
+}
 .chat-messages::-webkit-scrollbar{width:4px;}
 .chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
 
-.msg-row{display:flex;gap:10px;align-items:flex-start;}
+/* Message rows */
+.msg-row{display:flex;gap:10px;align-items:flex-end;animation:msgIn .3s ease both;}
 .msg-row.user{flex-direction:row-reverse;}
-.bot-avatar{width:32px;height:32px;border-radius:10px;flex-shrink:0;
+@keyframes msgIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+
+.bot-ava{
+  width:34px;height:34px;border-radius:11px;flex-shrink:0;
   background:linear-gradient(135deg,var(--pink),var(--pink-dark));
-  display:flex;align-items:center;justify-content:center;font-size:16px;
-  box-shadow:0 0 12px rgba(232,25,125,0.4);}
-.bot-avatar img{width:28px;height:28px;border-radius:8px;object-fit:cover;}
-.user-avatar{width:32px;height:32px;border-radius:10px;flex-shrink:0;
-  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);
-  display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:600;
-  color:var(--text);}
-.msg-bubble{max-width:80%;padding:12px 16px;border-radius:14px;
-  font-size:13.5px;line-height:1.6;}
-.msg-bubble.bot{background:rgba(26,13,18,0.95);border:1px solid var(--border2);
-  border-top-left-radius:4px;color:var(--text);}
-.msg-bubble.user{background:linear-gradient(135deg,var(--pink),var(--pink-dark));
-  color:#fff;border-top-right-radius:4px;
-  box-shadow:0 2px 12px rgba(232,25,125,0.3);}
-.msg-bubble.system{background:rgba(232,25,125,0.06);border:1px solid var(--border);
-  color:var(--muted);font-size:12px;text-align:center;border-radius:20px;
-  padding:6px 16px;align-self:center;margin:0 auto;}
-.ticket-banner{margin-top:10px;padding:10px 14px;
-  background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.25);
-  border-radius:10px;font-size:12px;color:var(--success);}
-.typing-row{display:flex;gap:10px;align-items:center;}
-.typing-dots{display:flex;gap:4px;padding:12px 16px;
-  background:rgba(26,13,18,0.95);border:1px solid var(--border2);
-  border-radius:14px;border-top-left-radius:4px;}
-.typing-dots span{width:6px;height:6px;background:var(--pink);border-radius:50%;
-  animation:typing .8s infinite;}
-.typing-dots span:nth-child(2){animation-delay:.15s;}
-.typing-dots span:nth-child(3){animation-delay:.3s;}
-@keyframes typing{0%,60%,100%{transform:translateY(0);opacity:.4;}
-  30%{transform:translateY(-6px);opacity:1;}}
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 0 14px rgba(232,25,125,0.4);margin-bottom:2px;
+}
+.bot-ava img{width:24px;height:24px;border-radius:7px;object-fit:cover;}
+.user-ava{
+  width:34px;height:34px;border-radius:11px;flex-shrink:0;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;color:#fff;margin-bottom:2px;
+}
+
+.msg-col{display:flex;flex-direction:column;gap:4px;max-width:72%;}
+.msg-row.user .msg-col{align-items:flex-end;}
+
+.msg-meta{font-size:10px;color:var(--muted);padding:0 4px;}
+
+.bubble{
+  padding:13px 16px;border-radius:18px;font-size:13.5px;line-height:1.65;
+  word-break:break-word;
+}
+.bubble.bot{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-bottom-left-radius:4px;color:var(--text);
+}
+.bubble.user{
+  background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  color:#fff;border-bottom-right-radius:4px;
+  box-shadow:0 4px 16px rgba(232,25,125,0.3);
+}
+.bubble.system{
+  background:rgba(232,25,125,0.05);border:1px solid var(--border);
+  color:var(--muted2);font-size:11.5px;text-align:center;border-radius:20px;
+  padding:6px 18px;align-self:center;margin:0 auto;
+}
+
+/* Ticket result card inside bubble */
+.tkt-result{
+  margin-top:10px;padding:12px 14px;
+  background:rgba(45,212,160,0.06);border:1px solid rgba(45,212,160,0.2);
+  border-radius:12px;font-size:12.5px;color:var(--success);
+}
+.tkt-confirm-box{
+  margin-top:10px;padding:14px;
+  background:rgba(232,25,125,0.06);border:1px solid rgba(232,25,125,0.2);
+  border-radius:12px;
+}
+.tkt-confirm-q{font-size:13px;color:var(--text);margin-bottom:10px;font-weight:500;}
+.tkt-confirm-btns{display:flex;gap:8px;}
+.tkt-yes{flex:1;padding:10px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;
+  cursor:pointer;font-family:var(--font);transition:all var(--transition);}
+.tkt-yes:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(232,25,125,0.4);}
+.tkt-no{flex:1;padding:10px;background:transparent;
+  border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:var(--muted2);
+  font-size:13px;cursor:pointer;font-family:var(--font);transition:all var(--transition);}
+.tkt-no:hover{border-color:rgba(248,113,113,0.3);color:var(--danger);}
+
+/* Typing indicator */
+.typing-row{display:flex;gap:10px;align-items:flex-end;animation:msgIn .25s ease both;}
+.typing-bubble{
+  padding:13px 18px;background:var(--surface2);border:1px solid var(--border2);
+  border-radius:18px;border-bottom-left-radius:4px;
+  display:flex;align-items:center;gap:5px;
+}
+.typing-dot{width:7px;height:7px;background:var(--pink);border-radius:50%;opacity:.6;
+  animation:tdot .9s ease infinite;}
+.typing-dot:nth-child(2){animation-delay:.18s;}
+.typing-dot:nth-child(3){animation-delay:.36s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.4;}
+  30%{transform:translateY(-7px);opacity:1;}}
 
 /* ── QUICK CHIPS ── */
-.quick-wrap{padding:12px 16px;border-top:1px solid var(--border);
-  display:flex;flex-wrap:wrap;gap:6px;background:rgba(13,6,8,0.6);}
-.quick-label{font-size:11px;color:var(--muted);width:100%;margin-bottom:2px;}
-.chip{padding:6px 14px;background:rgba(232,25,125,0.07);
-  border:1px solid rgba(232,25,125,0.2);border-radius:20px;
-  font-size:11.5px;color:var(--pink);cursor:pointer;
-  font-family:var(--font);transition:all .2s;font-weight:500;}
-.chip:hover{background:rgba(232,25,125,0.2);border-color:var(--pink);
-  transform:translateY(-1px);}
+.chips-bar{
+  padding:10px 20px 8px;border-top:1px solid var(--border);
+  display:flex;flex-wrap:wrap;gap:6px;
+  background:rgba(8,4,8,0.7);
+}
+.chips-label{font-size:10.5px;color:var(--muted);width:100%;margin-bottom:2px;font-weight:500;}
+.chip{
+  padding:5px 13px;background:rgba(232,25,125,0.06);
+  border:1px solid rgba(232,25,125,0.18);border-radius:20px;
+  font-size:11.5px;color:var(--pink);cursor:pointer;font-family:var(--font);
+  font-weight:500;transition:all var(--transition);
+}
+.chip:hover{background:rgba(232,25,125,0.18);border-color:var(--pink);transform:translateY(-1px);}
+.chip:active{transform:translateY(0);}
 
-/* ── INPUT ── */
-.chat-input-row{display:flex;gap:8px;padding:12px 14px;
-  border-top:1px solid var(--border);background:var(--bg);}
-.chat-input{flex:1;padding:12px 16px;background:rgba(26,13,18,0.8);
-  border:1px solid var(--border2);border-radius:12px;color:var(--text);
-  font-size:14px;font-family:var(--font);outline:none;transition:all .2s;}
+/* ── INPUT ROW ── */
+.input-row{
+  padding:12px 20px 14px;border-top:1px solid var(--border);
+  background:rgba(8,4,8,0.95);display:flex;gap:8px;align-items:flex-end;
+}
+.chat-input{
+  flex:1;padding:13px 16px;background:var(--surface2);
+  border:1px solid var(--border2);border-radius:14px;color:var(--text);
+  font-size:14px;font-family:var(--font);outline:none;resize:none;
+  transition:all var(--transition);line-height:1.5;max-height:120px;min-height:48px;
+  scrollbar-width:none;
+}
 .chat-input:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(232,25,125,0.08);}
 .chat-input::placeholder{color:var(--muted);}
-.send-btn{padding:12px 20px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));
-  border:none;border-radius:12px;color:#fff;font-size:14px;
-  cursor:pointer;font-weight:600;font-family:var(--font);transition:all .2s;
-  box-shadow:0 2px 12px rgba(232,25,125,0.35);}
-.send-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(232,25,125,0.5);}
+.chat-input::-webkit-scrollbar{display:none;}
+
+.send-btn{
+  padding:0;width:48px;height:48px;flex-shrink:0;
+  background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  border:none;border-radius:14px;color:#fff;font-size:18px;
+  cursor:pointer;transition:all var(--transition);
+  box-shadow:0 4px 16px rgba(232,25,125,0.4);
+  display:flex;align-items:center;justify-content:center;
+}
+.send-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(232,25,125,0.55);}
 .send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.send-btn.loading{animation:spin .6s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
 
-/* ── TICKETS ── */
-.ticket-card{background:rgba(19,10,13,0.9);border:1px solid var(--border);
-  border-radius:14px;padding:16px;margin-bottom:10px;
-  transition:border-color .2s;}
-.ticket-card:hover{border-color:var(--border2);}
-.tkt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
-.tkt-id{font-size:13px;font-weight:700;color:var(--pink);}
-.tkt-desc{font-size:13px;color:var(--text);margin:6px 0;line-height:1.5;}
-.tkt-meta{font-size:11px;color:var(--muted);}
-.badge-s{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
-.p-Critical{background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.2);}
-.p-High{background:rgba(251,146,60,0.12);color:#fb923c;border:1px solid rgba(251,146,60,0.2);}
-.p-Medium{background:rgba(251,191,36,0.12);color:#fbbf24;border:1px solid rgba(251,191,36,0.2);}
-.p-Low{background:rgba(52,211,153,0.12);color:#34d399;border:1px solid rgba(52,211,153,0.2);}
-.s-Open{background:rgba(232,25,125,0.1);color:var(--pink);border:1px solid rgba(232,25,125,0.2);}
-.s-In-Progress{background:rgba(167,139,250,0.1);color:#a78bfa;border:1px solid rgba(167,139,250,0.2);}
-.s-Resolved{background:rgba(52,211,153,0.1);color:#34d399;border:1px solid rgba(52,211,153,0.2);}
-.s-Closed{background:rgba(100,116,139,0.1);color:#64748b;border:1px solid rgba(100,116,139,0.2);}
+/* ── CONTEXT COUNTER ── */
+.ctx-bar{
+  padding:5px 20px;background:rgba(8,4,8,0.6);border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.ctx-info{font-size:10.5px;color:var(--muted);display:flex;align-items:center;gap:6px;}
+.ctx-dot{width:5px;height:5px;border-radius:50%;background:var(--success);
+  box-shadow:0 0 5px var(--success);}
+.ctx-clear{font-size:10.5px;color:var(--muted);background:none;border:none;
+  cursor:pointer;font-family:var(--font);padding:2px 6px;border-radius:5px;
+  transition:color var(--transition);}
+.ctx-clear:hover{color:var(--danger);}
 
-.empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
-.empty-state .e-icon{font-size:44px;margin-bottom:12px;filter:grayscale(.5);}
-.empty-state p{font-size:14px;}
+/* ── EMPTY STATE ── */
+.empty-chat{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:40px 30px;gap:16px;text-align:center;
+}
+.empty-icon{
+  width:72px;height:72px;border-radius:22px;
+  background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  display:flex;align-items:center;justify-content:center;font-size:32px;
+  box-shadow:0 0 40px rgba(232,25,125,0.4);
+  animation:float 3s ease infinite;
+}
+@keyframes float{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+.empty-title{font-size:18px;font-weight:700;color:#fff;}
+.empty-sub{font-size:13px;color:var(--muted2);line-height:1.6;max-width:320px;}
+.empty-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px;}
 
-/* Scrollbar */
-::-webkit-scrollbar{width:4px;}
+/* ── TICKET FULL VIEW ── */
+.ticket-full-card{
+  background:var(--surface2);border:1px solid var(--border);border-radius:14px;
+  padding:16px;margin-bottom:10px;transition:border-color var(--transition);
+}
+.ticket-full-card:hover{border-color:var(--border2);}
+.tfc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.tfc-id{font-size:13px;font-weight:700;color:var(--pink);}
+.tfc-badges{display:flex;gap:5px;}
+.tfc-desc{font-size:13px;color:var(--text);margin:6px 0;line-height:1.5;}
+.tfc-meta{font-size:11px;color:var(--muted2);}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
 
-/* ── DIAGNOSTIC BANNER ── */
-.diag-banner{background:rgba(232,25,125,0.07);border:1px solid rgba(232,25,125,0.25);
-  border-radius:14px;padding:14px 16px;margin-bottom:12px;display:flex;
-  align-items:center;justify-content:space-between;gap:12px;
-  box-shadow:0 2px 16px rgba(232,25,125,0.08);}
-.diag-banner-left{display:flex;align-items:center;gap:10px;}
-.diag-icon{font-size:22px;}
-.diag-info{flex:1;}
-.diag-title{font-size:13px;font-weight:600;color:#fff;}
-.diag-sub{font-size:11px;color:var(--muted);margin-top:2px;}
-.diag-btn{padding:8px 16px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));
-  border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:600;
-  cursor:pointer;font-family:var(--font);white-space:nowrap;
-  box-shadow:0 2px 10px rgba(232,25,125,0.4);transition:all .2s;text-decoration:none;
-  display:inline-block;}
-.diag-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(232,25,125,0.55);}
+/* ── MOBILE ── */
+@media(max-width:680px){
+  :root{--sidebar:0px;}
+  .sidebar{display:none;}
+  .chat-messages{padding:16px;}
+  .msg-col{max-width:88%;}
+  .chips-bar{padding:8px 14px 6px;}
+  .input-row{padding:10px 14px 12px;}
+}
+
+/* ── DIAG BANNER ── */
+.diag-banner{
+  margin:0 20px 14px;padding:12px 16px;
+  background:rgba(232,25,125,0.06);border:1px solid rgba(232,25,125,0.2);
+  border-radius:12px;display:flex;align-items:center;justify-content:space-between;gap:12px;
+  animation:msgIn .3s ease both;
+}
+.diag-left{display:flex;align-items:center;gap:10px;}
+.diag-title{font-size:12.5px;font-weight:600;color:#fff;}
+.diag-sub{font-size:11px;color:var(--muted2);}
+.diag-btn{padding:7px 14px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));
+  border:none;border-radius:9px;color:#fff;font-size:12px;font-weight:600;
+  cursor:pointer;font-family:var(--font);white-space:nowrap;text-decoration:none;display:inline-block;
+  box-shadow:0 2px 12px rgba(232,25,125,0.35);transition:all var(--transition);}
+.diag-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(232,25,125,0.5);}
+
+/* ── SIDEBAR TOGGLE (mobile) ── */
+.sb-toggle{display:none;background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;padding:4px 8px;}
+@media(max-width:680px){.sb-toggle{display:block;}}
+
+/* Overflow ellipsis for long text */
+.ellipsis{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:160px;}
 </style>
 </head>
 <body>
@@ -216,429 +419,619 @@ input::placeholder{color:var(--muted);}
 <div id="loginPage">
   <div class="login-card">
     <div class="login-logo">
-      <img src="/wiom-logo.webp" alt="WIOM" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
-      <div style="display:none;font-size:44px;">🛠️</div>
-      <div class="brand-name"><span>W</span>IOM IT Helpdesk</div>
-      <div class="brand-sub">Ghar Ka Net — Gurgaon Office Support</div>
+      <div class="logo-ring">
+        <img src="/wiom-logo.webp" alt="WIOM" onerror="this.outerHTML='<span style=\'font-size:28px\'>🛠️</span>'"/>
+      </div>
+      <div class="brand-name"><span>Z</span>ivon AI</div>
+      <div class="brand-sub">WIOM IT Helpdesk · Gurgaon Office</div>
     </div>
     <h2>Employee Login</h2>
-    <p>Apni Employee ID daalo — AI turant madad karega! 🤖</p>
+    <p class="sub">Apni Employee ID daalo — Zivon turant madad karega! ⚡</p>
     <div class="inp-wrap">
       <span class="inp-icon">🪪</span>
-      <input type="text" id="empIdInput" placeholder="Employee ID (jaise: 1234567)" maxlength="10"/>
+      <input type="text" id="empIdInput" placeholder="Employee ID  (e.g. 1234567)" maxlength="10" autocomplete="off"/>
     </div>
     <div class="inp-wrap">
       <span class="inp-icon">👤</span>
-      <input type="text" id="empNameInput" placeholder="Aapka Naam"/>
+      <input type="text" id="empNameInput" placeholder="Aapka Naam (agar pehli baar)"/>
     </div>
-    <button class="btn-login" onclick="doLogin()">🚀 Helpdesk Shuru Karo</button>
-    <div class="err" id="loginErr">❌ Kuch problem aa gayi. Dubara try karo.</div>
-    <div class="login-footer">WIOM Internet Services · IT Department · Helpdesk: 9654244281</div>
+    <button class="btn-login" onclick="doLogin()">⚡ Login &amp; Start</button>
+    <div class="err" id="loginErr"></div>
+    <div class="login-footer">WIOM Internet Services · IT Support: 9654244281</div>
   </div>
 </div>
 
-<!-- ══ MAIN ══ -->
-<div id="mainPage">
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <div class="header-logo">
-        <img src="/wiom-logo.webp" alt="WIOM" onerror="this.outerHTML='<div style=\'width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#E8197D,#c0146a);display:flex;align-items:center;justify-content:center;font-size:18px;\'>🛠️</div>'"/>
+<!-- ══ APP ══ -->
+<div id="app">
+
+  <!-- Top bar -->
+  <div class="topbar">
+    <div class="tb-left">
+      <button class="sb-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="tb-logo">
+        <img src="/wiom-logo.webp" alt="WIOM" onerror="this.outerHTML='🛠️'"/>
       </div>
-      <div class="header-info">
-        <h2><span>W</span>IOM IT Helpdesk</h2>
-        <p id="empInfoBar">Loading...</p>
+      <div>
+        <div class="tb-title"><span>Z</span>ivon AI Helpdesk</div>
+        <div class="tb-sub" id="empInfoBar">WIOM IT Support</div>
       </div>
     </div>
-    <div class="header-right">
-      <div class="online-dot">AI Online</div>
-      <div class="emp-pill" id="empPill">—</div>
-      <button class="logout-btn" onclick="doLogout()">← Logout</button>
+    <div class="tb-right">
+      <div class="ai-badge">AI Online</div>
+      <div class="emp-chip" id="empChip">—</div>
+      <button class="btn-sm" onclick="doLogout()">Logout</button>
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('chat',this)">💬 AI Help Chat</button>
-    <button class="tab-btn" onclick="switchTab('tickets',this)">🎫 Mere Tickets</button>
-  </div>
+  <!-- Body -->
+  <div class="body-row">
 
-  <!-- Diagnostic Banner (shown only when laptop detected) -->
-  <div id="diagBanner" style="display:none;"></div>
+    <!-- ── Sidebar ── -->
+    <div class="sidebar" id="sidebar">
 
-  <!-- Chat Tab -->
-  <div id="tab-chat">
-    <div class="chat-card">
-      <div class="chat-messages" id="chatMessages"></div>
-      <div class="quick-wrap">
-        <div class="quick-label">⚡ Quick Problems:</div>
-        <span class="chip" onclick="quickSend('Laptop slow hai')">💻 Laptop Slow</span>
-        <span class="chip" onclick="quickSend('WiFi nahi chal raha')">📶 WiFi Issue</span>
-        <span class="chip" onclick="quickSend('Outlook nahi khul raha')">📧 Outlook</span>
-        <span class="chip" onclick="quickSend('Teams call drop ho raha hai')">📹 Teams</span>
-        <span class="chip" onclick="quickSend('Password bhool gaya')">🔑 Password</span>
-        <span class="chip" onclick="quickSend('Printer nahi chal raha')">🖨️ Printer</span>
-        <span class="chip" onclick="quickSend('Naya laptop chahiye')">🛒 New Laptop</span>
-        <span class="chip" onclick="quickSend('Blue screen aa raha hai')">💙 BSOD</span>
-        <span class="chip" onclick="quickSend('Mic nahi chal raha Teams mein')">🎤 Mic</span>
-        <span class="chip" onclick="quickSend('Screen flickering hai')">🖥️ Monitor</span>
-        <span class="chip" id="diagChip" onclick="openDiagnostics()" style="display:none;background:rgba(52,211,153,0.07);border-color:rgba(52,211,153,0.3);color:#34d399;">🔍 Run Diagnostics</span>
-        <span class="chip" onclick="requestRemoteHelp()" style="background:rgba(167,139,250,0.07);border-color:rgba(167,139,250,0.3);color:#a78bfa;">🖥️ Remote Help</span>
+      <!-- Employee Card -->
+      <div class="emp-card" id="sbEmpCard">
+        <div class="emp-card-top">
+          <div class="emp-avatar" id="sbAvatar">?</div>
+          <div>
+            <div class="emp-name" id="sbName">—</div>
+            <div class="emp-id" id="sbId">—</div>
+          </div>
+        </div>
+        <div class="emp-meta" id="sbMeta"></div>
       </div>
-      <!-- Quick Ticket Templates -->
-      <div style="padding:10px 16px;border-top:1px solid var(--border);background:rgba(13,6,8,0.4);">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">🎫 Seedha Ticket Banao:</div>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;">
-          <button onclick="quickTicket('Hardware','High','Laptop screen kharab ho gayi hai — display nahi aa raha')" style="padding:5px 12px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.2);border-radius:16px;color:#f87171;font-size:11px;cursor:pointer;font-family:var(--font);">🔴 Screen Kharab</button>
-          <button onclick="quickTicket('Network','High','VPN connect nahi ho raha — kaam nahi ho pa raha')" style="padding:5px 12px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:16px;color:#fbbf24;font-size:11px;cursor:pointer;font-family:var(--font);">🟡 VPN Issue</button>
-          <button onclick="quickTicket('Account','High','Email ya password reset karna hai')" style="padding:5px 12px;background:rgba(96,165,250,0.08);border:1px solid rgba(96,165,250,0.2);border-radius:16px;color:#60a5fa;font-size:11px;cursor:pointer;font-family:var(--font);">🔵 Password Reset</button>
-          <button onclick="quickTicket('Hardware','Medium','Naya hardware/accessory chahiye — mouse/keyboard/headset')" style="padding:5px 12px;background:rgba(52,211,153,0.08);border:1px solid rgba(52,211,153,0.2);border-radius:16px;color:#34d399;font-size:11px;cursor:pointer;font-family:var(--font);">🟢 New Hardware</button>
-          <button onclick="quickTicket('Software','Critical','Laptop nahi chal raha — bilkul band ho gaya')" style="padding:5px 12px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);border-radius:16px;color:#f87171;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);">🆘 Laptop Dead</button>
+
+      <!-- Quick Actions -->
+      <div class="sb-section" style="margin-top:14px;">
+        <div class="sb-label">⚡ Quick Actions</div>
+        <div class="qa-grid">
+          <button class="qa-btn active" onclick="switchView('chat',this)"><span class="qa-icon">💬</span> AI Chat</button>
+          <button class="qa-btn" onclick="switchView('tickets',this)"><span class="qa-icon">🎫</span> Mere Tickets <span id="sbTktBadge" style="margin-left:auto;background:rgba(232,25,125,0.12);color:var(--pink);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;"></span></button>
+          <button class="qa-btn" onclick="quickSend('Laptop slow hai')"><span class="qa-icon">💻</span> Laptop Slow</button>
+          <button class="qa-btn" onclick="quickSend('WiFi nahi chal raha')"><span class="qa-icon">📶</span> WiFi Issue</button>
+          <button class="qa-btn" onclick="quickSend('Password bhool gaya')"><span class="qa-icon">🔑</span> Password Reset</button>
+          <button class="qa-btn" onclick="quickSend('Teams call drop ho raha hai')"><span class="qa-icon">📹</span> Teams Issue</button>
+          <button class="qa-btn" onclick="quickSend('Outlook nahi khul raha')"><span class="qa-icon">📧</span> Outlook</button>
+          <button class="qa-btn" onclick="quickSend('Blue screen aa raha hai')"><span class="qa-icon">💙</span> BSOD</button>
+          <button class="qa-btn" onclick="requestSOS()" style="color:#f87171;"><span class="qa-icon">🆘</span> SOS Emergency</button>
         </div>
       </div>
-      <div class="chat-input-row">
-        <input class="chat-input" id="chatInput" placeholder="Apni problem likho — Hindi ya English dono chalega..." onkeypress="if(event.key==='Enter')sendMsg()"/>
-        <button class="send-btn" id="sendBtn" onclick="sendMsg()">Send ➤</button>
+
+      <!-- Recent Tickets -->
+      <div class="sb-section" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
+        <div class="sb-label">🎫 Recent Tickets</div>
+        <div class="tkt-mini-list" id="sbTickets">
+          <div style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0;">Loading...</div>
+        </div>
+      </div>
+
+      <div class="sb-footer">
+        WIOM IT Helpdesk<br/>
+        📞 9654244281 · sajan.kumar@wiom.in
       </div>
     </div>
-  </div>
 
-  <!-- Tickets Tab -->
-  <div id="tab-tickets" style="display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-      <span style="font-size:13px;color:var(--muted);" id="ticketCount"></span>
-      <button onclick="loadMyTickets()" style="padding:6px 14px;background:var(--pink-soft);border:1px solid var(--border2);border-radius:8px;color:var(--pink);font-size:12px;cursor:pointer;font-family:var(--font);">🔄 Refresh</button>
+    <!-- ── Chat Area ── -->
+    <div class="chat-area" id="chatView">
+
+      <!-- Diag banner -->
+      <div id="diagBannerWrap" style="display:none;padding-top:14px;">
+        <div id="diagBanner"></div>
+      </div>
+
+      <!-- Empty state (shown before first message) -->
+      <div class="empty-chat" id="emptyState">
+        <div class="empty-icon">⚡</div>
+        <div class="empty-title">Main Zivon hoon!</div>
+        <div class="empty-sub">Koi bhi IT samasya batao — laptop, WiFi, password, software — main turant help karunga.</div>
+        <div class="empty-chips">
+          <span class="chip" onclick="quickSend('Laptop bahut slow ho gaya hai')">💻 Laptop Slow</span>
+          <span class="chip" onclick="quickSend('WiFi nahi chal raha bilkul bhi')">📶 WiFi Band</span>
+          <span class="chip" onclick="quickSend('Password bhool gaya account lock ho gaya')">🔑 Password</span>
+          <span class="chip" onclick="quickSend('Teams me audio nahi aa raha')">📹 Teams</span>
+          <span class="chip" onclick="quickSend('Laptop screen black ho gayi hai')">🖥️ Screen</span>
+          <span class="chip" onclick="quickSend('Laptop ki battery bahut jaldi khatam ho jati hai')">🔋 Battery</span>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-messages" id="chatMessages" style="display:none;"></div>
+
+      <!-- Chips bar -->
+      <div class="chips-bar" id="chipsBar" style="display:none;">
+        <div class="chips-label">⚡ Jaldi select karo:</div>
+        <span class="chip" onclick="quickSend('Nahi hua abhi bhi same problem hai')">❌ Fix nahi hua</span>
+        <span class="chip" onclick="quickSend('Ho gaya shukriya')">✅ Ho gaya!</span>
+        <span class="chip" onclick="quickSend('Ticket banana hai')">🎫 Ticket Banao</span>
+        <span class="chip" onclick="quickSend('Kuch aur steps batao')">🔄 Aur steps?</span>
+      </div>
+
+      <!-- Context bar -->
+      <div class="ctx-bar" id="ctxBar" style="display:none;">
+        <div class="ctx-info">
+          <div class="ctx-dot"></div>
+          <span id="ctxText">0 messages — Zivon yaad rakh raha hai</span>
+        </div>
+        <button class="ctx-clear" onclick="clearChat()" title="Nayi baat shuru karo">🔄 Reset</button>
+      </div>
+
+      <!-- Input -->
+      <div class="input-row">
+        <textarea class="chat-input" id="chatInput"
+          placeholder="Apni problem likho — Hindi ya English dono chalega... (Enter to send)"
+          rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <button class="send-btn" id="sendBtn" onclick="sendMsg()" title="Send">➤</button>
+      </div>
     </div>
-    <div id="myTicketsList"><div class="empty-state"><div class="e-icon">⏳</div><p>Loading...</p></div></div>
-  </div>
-</div>
+
+    <!-- ── Tickets View ── -->
+    <div class="chat-area" id="ticketsView" style="display:none;overflow-y:auto;padding:20px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <div style="font-size:16px;font-weight:700;">🎫 Mere Tickets</div>
+        <button onclick="loadMyTickets()" style="padding:7px 14px;background:var(--pink-soft);border:1px solid var(--border2);border-radius:9px;color:var(--pink);font-size:12px;cursor:pointer;font-family:var(--font);">🔄 Refresh</button>
+      </div>
+      <div id="ticketsList">
+        <div style="text-align:center;padding:40px;color:var(--muted);">⏳ Loading...</div>
+      </div>
+    </div>
+
+  </div><!-- /body-row -->
+</div><!-- /app -->
 
 <script>
 const API = '';
 let empData = {}, chatHistory = [], myTickets = [];
+let _diagUrl = '';
 
-// ── LOGIN ──
+// ══ LOGIN ══
+document.getElementById('empIdInput').addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('empNameInput').focus(); });
+document.getElementById('empNameInput').addEventListener('keypress', e => { if(e.key==='Enter') doLogin(); });
+
 async function doLogin() {
   const empId = document.getElementById('empIdInput').value.trim().toUpperCase();
   const name  = document.getElementById('empNameInput').value.trim();
   if (!empId) { showErr('Employee ID daalo!'); return; }
+
+  const btn = document.querySelector('.btn-login');
+  btn.textContent = '⏳ Login ho raha hai...';
+  btn.disabled = true;
+
   try {
-    // Try employee login with auth token
     const loginRes = await fetch(`${API}/api/auth/employee-login`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ empId })
-    }).catch(()=>null);
+    }).catch(() => null);
+
     if (loginRes && loginRes.ok) {
       const d = await loginRes.json();
-      empData = { empId:d.empId, name:d.name||name, dept:d.dept, floor:d.floor, email:d.email, laptop:d.laptop, laptopSN:d.laptopSN, token:d.token };
+      empData = { empId:d.empId, name:d.name||name, dept:d.dept, floor:d.floor,
+                  email:d.email, laptop:d.laptop, laptopSN:d.laptopSN, token:d.token };
     } else {
-      if (!name) { showErr('Employee ID nahi mila. Naam bhi daalo.'); return; }
+      if (!name) { showErr('Employee ID nahi mila. Naam bhi daalo.'); btn.textContent='⚡ Login & Start'; btn.disabled=false; return; }
       empData = { empId, name, dept:'WIOM', floor:'', email:'', laptop:'', laptopSN:'', token:'' };
     }
-    document.getElementById('loginPage').style.display = 'none';
-    document.getElementById('mainPage').style.display  = 'block';
-    const initial = empData.name.split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2);
-    document.getElementById('empPill').textContent = initial + ' ' + empData.name.split(' ')[0];
-    document.getElementById('empInfoBar').textContent = [empData.dept, empData.floor, empData.laptop].filter(Boolean).join(' · ');
-    addWelcome();
+
+    // Animate out login
+    document.getElementById('loginPage').classList.add('hide');
+    setTimeout(() => { document.getElementById('loginPage').style.display='none'; }, 400);
+
+    // Show app
+    document.getElementById('app').classList.add('show');
+    populateSidebar();
     showDiagBanner();
-  } catch(e) { showErr('Server error. IT Helpdesk: 9654244281'); }
-}
-function showErr(msg) {
-  const el = document.getElementById('loginErr');
-  el.textContent = '❌ ' + msg; el.style.display = 'block';
-}
-function doLogout() {
-  empData={}; chatHistory=[]; _diagUrl='';
-  document.getElementById('chatMessages').innerHTML='';
-  document.getElementById('diagBanner').style.display='none';
-  document.getElementById('diagBanner').innerHTML='';
-  document.getElementById('diagChip').style.display='none';
-  document.getElementById('mainPage').style.display='none';
-  document.getElementById('loginPage').style.display='flex';
-  document.getElementById('loginErr').style.display='none';
+    loadMyTickets();
+    addWelcome();
+
+  } catch(e) {
+    showErr('Server error. IT Helpdesk: 9654244281');
+    btn.textContent='⚡ Login & Start'; btn.disabled=false;
+  }
 }
 
-// ── WELCOME ──
+function showErr(msg) {
+  const el = document.getElementById('loginErr');
+  el.textContent = '❌ ' + msg; el.style.display='block';
+}
+
+function doLogout() {
+  empData={}; chatHistory=[]; myTickets=[]; _diagUrl='';
+  document.getElementById('chatMessages').innerHTML='';
+  document.getElementById('emptyState').style.display='flex';
+  document.getElementById('chatMessages').style.display='none';
+  document.getElementById('chipsBar').style.display='none';
+  document.getElementById('ctxBar').style.display='none';
+  document.getElementById('diagBannerWrap').style.display='none';
+  document.getElementById('loginPage').style.display='flex';
+  document.getElementById('loginPage').classList.remove('hide');
+  document.getElementById('app').classList.remove('show');
+  document.getElementById('app').style.display='none';
+  document.getElementById('empIdInput').value='';
+  document.getElementById('empNameInput').value='';
+  document.getElementById('loginErr').style.display='none';
+  const btn = document.querySelector('.btn-login');
+  btn.textContent='⚡ Login & Start'; btn.disabled=false;
+  setTimeout(() => { document.getElementById('app').style.display=''; }, 10);
+}
+
+// ══ SIDEBAR ══
+function populateSidebar() {
+  const initial = (empData.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2);
+  document.getElementById('sbAvatar').textContent = initial;
+  document.getElementById('sbName').textContent = empData.name || '—';
+  document.getElementById('sbId').textContent = empData.empId || '—';
+  document.getElementById('empChip').textContent = initial + ' ' + (empData.name||'').split(' ')[0];
+
+  const metaRows = [];
+  if (empData.dept)     metaRows.push(`<div class="emp-meta-row"><span>🏢</span>${empData.dept}</div>`);
+  if (empData.floor)    metaRows.push(`<div class="emp-meta-row"><span>📍</span>Floor ${empData.floor}</div>`);
+  if (empData.laptop)   metaRows.push(`<div class="emp-meta-row"><span>💻</span><span class="ellipsis">${empData.laptop}</span></div>`);
+  if (empData.laptopSN) metaRows.push(`<div class="emp-meta-row"><span>🔢</span><span style="font-family:monospace;font-size:10px;">${empData.laptopSN}</span></div>`);
+  document.getElementById('sbMeta').innerHTML = metaRows.join('');
+
+  document.getElementById('empInfoBar').textContent = [empData.dept, empData.floor ? 'Floor '+empData.floor : '', empData.laptop].filter(Boolean).join(' · ');
+}
+
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.style.display = sb.style.display === 'none' ? 'flex' : 'none';
+}
+
+// ══ VIEW SWITCH ══
+function switchView(view, btn) {
+  document.querySelectorAll('.qa-btn').forEach(b => b.classList.remove('active'));
+  btn?.classList.add('active');
+  document.getElementById('chatView').style.display    = view==='chat'    ? 'flex' : 'none';
+  document.getElementById('ticketsView').style.display = view==='tickets' ? 'flex' : 'none';
+  if (view==='tickets') loadMyTickets();
+}
+
+// ══ WELCOME MESSAGE ══
 function addWelcome() {
   const firstName = empData.name.split(' ')[0];
+  const hour = new Date().getHours();
+  const greet = hour<12 ? 'Good Morning' : hour<17 ? 'Good Afternoon' : 'Good Evening';
   const laptopLine = empData.laptop
-    ? `\n\n🖥️ <b>Aapka Laptop:</b> ${empData.laptop}` +
-      (empData.laptopSN ? `\n🔢 <b>Serial Number:</b> ${empData.laptopSN}` : '')
+    ? `\n\n💻 <b>Aapka Laptop:</b> ${empData.laptop}${empData.laptopSN ? ` <span style="color:var(--muted2);font-size:12px;">(S/N: ${empData.laptopSN})</span>` : ''}`
     : '';
+
   addBotMsg(
-    `Namaste <b>${firstName}</b> ji! 👋\n\n` +
-    `Aapka swagat hai WIOM IT Helpdesk mein.` +
-    laptopLine +
-    `\n\nAapki kisi bhi IT samasya mein sahayata ke liye main yahan hoon. 🛠️`
+    `${greet}! 👋 Main <b>Zivon</b> hoon — aapka WIOM IT Assistant!\n\n` +
+    `<b>${firstName} ji</b>, aaj kaisi problem aa rahi hai? Koi bhi cheez batao — laptop, WiFi, software, password — main yahan hoon! 😊` +
+    laptopLine
   );
 }
 
-// ── TABS ──
-function switchTab(tab, btn) {
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('tab-chat').style.display    = tab==='chat'    ? 'block':'none';
-  document.getElementById('tab-tickets').style.display = tab==='tickets' ? 'block':'none';
-  if (tab==='tickets') loadMyTickets();
+// ══ CHAT ══
+function now() {
+  return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
 }
 
-// ── CHAT ──
-function addBotMsg(html, ticketInfo, dupMsg, pendingTicketData, origText) {
+function addBotMsg(html, pendingTicketData, origText, dupMsg, ticketInfo) {
+  showChatArea();
   const wrap = document.getElementById('chatMessages');
-  const row = document.createElement('div'); row.className='msg-row';
+  const row = document.createElement('div'); row.className = 'msg-row';
+
   let extra = '';
   if (dupMsg) {
-    extra = `<div class="ticket-banner" style="background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.3);color:#fbbf24;">⚠️ ${dupMsg}</div>`;
+    extra = `<div class="tkt-result" style="background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.25);color:#fbbf24;">⚠️ ${dupMsg}</div>`;
   } else if (ticketInfo) {
-    extra = `<div class="ticket-banner">✅ <b>${ticketInfo.ticketId}</b> create ho gaya! Priority: <b>${ticketInfo.priority}</b><br/>IT team jald resolve karegi. 👍</div>`;
+    extra = `<div class="tkt-result">✅ <b>${ticketInfo.ticketId}</b> create ho gaya! Priority: <b>${ticketInfo.priority}</b><br/>IT team jald resolve karegi. 👍</div>`;
   } else if (pendingTicketData) {
-    const btnId = 'tktBtn_' + Date.now();
-    extra = `<div class="ticket-banner" style="background:rgba(232,25,125,0.08);border-color:rgba(232,25,125,0.25);">
-      <div style="margin-bottom:10px;font-size:13px;color:#f5e8ee;">🎫 Kya support ticket banana chahoge?</div>
-      <div style="display:flex;gap:8px;">
-        <button id="${btnId}_yes" onclick="confirmTicket('${btnId}',true)" style="flex:1;padding:9px;background:linear-gradient(135deg,#E8197D,#c0146a);border:none;border-radius:10px;color:#fff;font-size:13px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;">✅ Ha, ticket bana do</button>
-        <button id="${btnId}_no"  onclick="confirmTicket('${btnId}',false)" style="flex:1;padding:9px;background:rgba(255,255,255,0.06);border:1px solid rgba(232,25,125,0.2);border-radius:10px;color:#8a6b76;font-size:13px;cursor:pointer;font-family:'Inter',sans-serif;">❌ Nahi, try karte hain</button>
+    const btnId = 'tb_' + Date.now();
+    extra = `<div class="tkt-confirm-box">
+      <div class="tkt-confirm-q">🎫 Kya IT support ticket banana chahoge?</div>
+      <div class="tkt-confirm-btns">
+        <button class="tkt-yes" id="${btnId}_y" onclick="confirmTicket('${btnId}',true)">✅ Ha, banao</button>
+        <button class="tkt-no"  id="${btnId}_n" onclick="confirmTicket('${btnId}',false)">Nahi, try karta hoon</button>
       </div>
     </div>`;
-    row._pendingTicketData = pendingTicketData;
-    row._origText = origText;
+    row._ptd = pendingTicketData;
+    row._orig = origText;
     row.id = btnId + '_row';
   }
+
   row.innerHTML = `
-    <div class="bot-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='🤖'"/></div>
-    <div class="msg-bubble bot">${html.replace(/\n/g,'<br/>')}${extra}</div>`;
-  if (pendingTicketData) {
-    // re-attach data after innerHTML set (closures)
-    row._pendingTicketData = pendingTicketData;
-    row._origText = origText;
-  }
-  wrap.appendChild(row); wrap.scrollTop=wrap.scrollHeight;
+    <div class="bot-ava"><img src="/wiom-logo.webp" onerror="this.outerHTML='⚡'"/></div>
+    <div class="msg-col">
+      <div class="msg-meta">Zivon · ${now()}</div>
+      <div class="bubble bot">${html.replace(/\n/g,'<br/>')}${extra}</div>
+    </div>`;
+
+  if (pendingTicketData) { row._ptd = pendingTicketData; row._orig = origText; }
+  wrap.appendChild(row); wrap.scrollTop = wrap.scrollHeight;
+  updateCtx();
 }
 
-// ── Ticket confirm / reject from portal ──────────────────────────────────────
+function addUserMsg(text) {
+  showChatArea();
+  const wrap = document.getElementById('chatMessages');
+  const initial = (empData.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2);
+  const row = document.createElement('div'); row.className = 'msg-row user';
+  row.innerHTML = `
+    <div class="user-ava">${initial}</div>
+    <div class="msg-col">
+      <div class="msg-meta" style="text-align:right;">${empData.name.split(' ')[0]} · ${now()}</div>
+      <div class="bubble user">${text}</div>
+    </div>`;
+  wrap.appendChild(row); wrap.scrollTop = wrap.scrollHeight;
+}
+
+function addSystemMsg(text) {
+  showChatArea();
+  const wrap = document.getElementById('chatMessages');
+  const d = document.createElement('div'); d.className = 'bubble system';
+  d.textContent = text; wrap.appendChild(d); wrap.scrollTop = wrap.scrollHeight;
+}
+
+function showChatArea() {
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('chatMessages').style.display = 'flex';
+  document.getElementById('chipsBar').style.display = 'flex';
+  document.getElementById('ctxBar').style.display = 'flex';
+}
+
+function updateCtx() {
+  const count = chatHistory.length;
+  document.getElementById('ctxText').textContent =
+    count > 0 ? `${count} messages — Zivon context yaad rakh raha hai 🧠` : 'Zivon ready hai — kuch bhi pucho!';
+}
+
+function showTyping() {
+  const wrap = document.getElementById('chatMessages');
+  const row = document.createElement('div'); row.className='typing-row'; row.id='typRow';
+  row.innerHTML = `<div class="bot-ava"><img src="/wiom-logo.webp" onerror="this.outerHTML='⚡'"/></div>
+    <div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  wrap.appendChild(row); wrap.scrollTop = wrap.scrollHeight;
+}
+function hideTyping() { document.getElementById('typRow')?.remove(); }
+
+function clearChat() {
+  chatHistory = [];
+  document.getElementById('chatMessages').innerHTML = '';
+  document.getElementById('emptyState').style.display = 'flex';
+  document.getElementById('chatMessages').style.display = 'none';
+  document.getElementById('chipsBar').style.display = 'none';
+  document.getElementById('ctxBar').style.display = 'none';
+  updateCtx();
+  addSystemMsg('Nayi baat shuru ho gayi! 🔄');
+  showChatArea();
+}
+
+// ══ TICKET CONFIRM ══
 async function confirmTicket(btnId, confirmed) {
   const row = document.getElementById(btnId + '_row');
-  const td  = row?._pendingTicketData;
-  const orig= row?._origText || '';
-  const yesBtn = document.getElementById(btnId + '_yes');
-  const noBtn  = document.getElementById(btnId + '_no');
-  if (yesBtn) yesBtn.disabled = noBtn.disabled = true;
+  const td  = row?._ptd;
+  const orig= row?._orig || '';
+  const yBtn = document.getElementById(btnId+'_y');
+  const nBtn = document.getElementById(btnId+'_n');
+  if (yBtn) yBtn.disabled = nBtn.disabled = true;
 
   if (!confirmed) {
-    if (noBtn) noBtn.parentElement.parentElement.innerHTML = '<span style="color:#8a6b76;font-size:13px;">👍 Theek hai! Koi aur problem ho toh batao.</span>';
+    if (nBtn) nBtn.closest('.tkt-confirm-box').innerHTML =
+      `<span style="font-size:13px;color:var(--muted2);">👍 Theek hai! Koi aur problem ho toh batao.</span>`;
     return;
   }
-
-  if (yesBtn) yesBtn.textContent = '⏳ Ban raha hai...';
+  if (yBtn) yBtn.textContent = '⏳ Ban raha hai...';
   const ticket = await createTicket(td, orig);
   if (ticket && !ticket._duplicate) {
     myTickets.unshift(ticket);
-    if (noBtn) noBtn.parentElement.parentElement.innerHTML =
-      `<div class="ticket-banner">✅ <b>${ticket.ticketId}</b> create ho gaya! Priority: <b>${ticket.priority}</b><br/>IT team jald resolve karegi. 👍</div>`;
-    document.getElementById('ticketCount').textContent = `Aapke ${myTickets.length} ticket(s)`;
+    refreshSbTickets();
+    if (nBtn) nBtn.closest('.tkt-confirm-box').outerHTML =
+      `<div class="tkt-result">✅ <b>${ticket.ticketId}</b> create ho gaya! Priority: <b>${ticket.priority}</b><br/>IT team jald aayegi. 🚀</div>`;
   } else if (ticket?._duplicate) {
-    if (noBtn) noBtn.parentElement.parentElement.innerHTML =
-      `<div class="ticket-banner" style="background:rgba(251,191,36,0.12);border-color:rgba(251,191,36,0.3);color:#fbbf24;">⚠️ ${ticket._dupMsg}</div>`;
+    if (nBtn) nBtn.closest('.tkt-confirm-box').outerHTML =
+      `<div class="tkt-result" style="background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.25);color:#fbbf24;">⚠️ ${ticket._dupMsg}</div>`;
   }
 }
-function addUserMsg(text) {
-  const wrap = document.getElementById('chatMessages');
-  const initial = (empData.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2);
-  const row = document.createElement('div'); row.className='msg-row user';
-  row.innerHTML = `<div class="user-avatar">${initial}</div><div class="msg-bubble user">${text}</div>`;
-  wrap.appendChild(row); wrap.scrollTop=wrap.scrollHeight;
+
+// ══ SEND MESSAGE ══
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); }
 }
-function addSystemMsg(text) {
-  const wrap = document.getElementById('chatMessages');
-  const div = document.createElement('div'); div.className='msg-bubble system';
-  div.textContent=text; wrap.appendChild(div); wrap.scrollTop=wrap.scrollHeight;
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
 }
-function showTyping() {
-  const wrap = document.getElementById('chatMessages');
-  const row = document.createElement('div'); row.className='msg-row'; row.id='typingRow';
-  row.innerHTML = `<div class="bot-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='🤖'"/></div><div class="typing-dots"><span></span><span></span><span></span></div>`;
-  wrap.appendChild(row); wrap.scrollTop=wrap.scrollHeight;
+function quickSend(t) {
+  document.getElementById('chatInput').value = t;
+  autoResize(document.getElementById('chatInput'));
+  sendMsg();
 }
-function hideTyping() { document.getElementById('typingRow')?.remove(); }
-function quickSend(t) { document.getElementById('chatInput').value=t; sendMsg(); }
 
 async function sendMsg() {
   const input = document.getElementById('chatInput');
-  const text = input.value.trim(); if (!text) return;
-  input.value='';
-  document.getElementById('sendBtn').disabled=true;
+  const text  = input.value.trim(); if (!text) return;
+  input.value = ''; autoResize(input);
+  const sendBtn = document.getElementById('sendBtn');
+  sendBtn.disabled = true;
+
   addUserMsg(text);
   chatHistory.push({ role:'user', content:text });
   showTyping();
+
   try {
     const res = await fetch(`${API}/api/ai/chat`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ message:text, messages:chatHistory, empId:empData.empId, empName:empData.name, source:'web', laptop:empData.laptop, laptopSN:empData.laptopSN, dept:empData.dept, floor:empData.floor })
+      body: JSON.stringify({
+        message:text, messages:chatHistory,
+        empId:empData.empId, empName:empData.name,
+        source:'web', laptop:empData.laptop,
+        laptopSN:empData.laptopSN, dept:empData.dept, floor:empData.floor
+      })
     });
-    const data = await res.json(); hideTyping();
+    const data = await res.json();
+    hideTyping();
+
     const reply = data.reply || 'Kuch error aa gaya. IT Helpdesk: 9654244281';
     chatHistory.push({ role:'assistant', content:reply });
 
-    // ── Ticket confirmation — show buttons, don't auto-create ─────────────────
     if (data.shouldCreateTicket && data.ticketData) {
-      addBotMsg(reply, null, null, data.ticketData, text);
-      document.getElementById('sendBtn').disabled = false;
-      document.getElementById('chatInput').focus();
-      return;
+      addBotMsg(reply, data.ticketData, text);
+    } else {
+      addBotMsg(reply);
     }
-    addBotMsg(reply);
-  } catch(e) { hideTyping(); addBotMsg('❌ Server se connect nahi ho pa raha. IT Helpdesk se contact karein: 📞 <b>9654244281</b>'); }
-  document.getElementById('sendBtn').disabled=false;
-  document.getElementById('chatInput').focus();
+  } catch(e) {
+    hideTyping();
+    addBotMsg('❌ Server se connect nahi ho pa raha.\n\n📞 IT Helpdesk: <b>9654244281</b>');
+  }
+
+  sendBtn.disabled = false;
+  input.focus();
+  updateCtx();
 }
 
 async function createTicket(td, orig) {
   try {
     const res = await fetch(`${API}/api/tickets`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ empId:empData.empId, empName:empData.name, empEmail:empData.email,
+      body: JSON.stringify({
+        empId:empData.empId, empName:empData.name, empEmail:empData.email,
         empDept:empData.dept, empFloor:empData.floor, laptop:empData.laptop,
         category:td.category||'Other', priority:td.priority||'Medium',
-        description:td.description||orig, source:'web', aiTried:true, aiSteps:td.steps||[] })
+        description:td.description||orig, source:'web', aiTried:true, aiSteps:td.steps||[]
+      })
     });
     const json = await res.json();
-    // Duplicate ticket — return existing ticket with flag
-    if (res.status === 409) return { ...json.ticket, _duplicate: true, _dupMsg: json.message };
+    if (res.status===409) return { ...json.ticket, _duplicate:true, _dupMsg:json.message };
     return json.ticket || null;
   } catch { return null; }
 }
 
-// ── MY TICKETS ──
+// ══ MY TICKETS ══
 async function loadMyTickets() {
-  document.getElementById('myTicketsList').innerHTML='<div class="empty-state"><div class="e-icon">⏳</div><p>Loading...</p></div>';
+  document.getElementById('sbTickets').innerHTML =
+    '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px 0;">Loading...</div>';
+  document.getElementById('ticketsList').innerHTML =
+    '<div style="text-align:center;padding:40px;color:var(--muted);">⏳ Loading...</div>';
+
   try {
-    const res  = await fetch(`${API}/api/tickets/my`, {
+    const res = await fetch(`${API}/api/tickets/my`, {
       headers: empData.token ? { 'Authorization': `Bearer ${empData.token}` } : {}
     });
     const data = await res.json();
-    const tickets = data.tickets || [];
-    document.getElementById('ticketCount').textContent = `Aapke ${tickets.length} ticket(s)`;
-    if (!tickets.length) {
-      document.getElementById('myTicketsList').innerHTML='<div class="empty-state"><div class="e-icon">🎉</div><p>Koi ticket nahi! Sab theek chal raha hai.</p></div>'; return;
-    }
-    document.getElementById('myTicketsList').innerHTML = tickets.map(t=>`
-      <div class="ticket-card">
-        <div class="tkt-header">
-          <span class="tkt-id">${t.ticketId}</span>
-          <div style="display:flex;gap:6px;">
-            <span class="badge-s p-${t.priority}">${t.priority}</span>
-            <span class="badge-s s-${(t.status||'Open').replace(' ','-')}">${t.status}</span>
-          </div>
+    myTickets = data.tickets || [];
+    refreshSbTickets();
+    renderFullTickets();
+  } catch {
+    document.getElementById('ticketsList').innerHTML =
+      '<div style="text-align:center;padding:40px;color:var(--danger);">❌ Load nahi hua. Refresh karo.</div>';
+  }
+}
+
+function refreshSbTickets() {
+  const el = document.getElementById('sbTickets');
+  const badge = document.getElementById('sbTktBadge');
+  const open = myTickets.filter(t => ['Open','In Progress'].includes(t.status));
+  badge.textContent = open.length || '';
+
+  if (!myTickets.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px 0;">Koi ticket nahi 🎉</div>';
+    return;
+  }
+  el.innerHTML = myTickets.slice(0,5).map(t => `
+    <div class="tkt-mini">
+      <div class="tkt-mini-top">
+        <span class="tkt-mini-id">${t.ticketId}</span>
+        <div style="display:flex;gap:4px;">
+          <span class="badge b-${(t.status||'').replace(' ','-')}">${t.status||'Open'}</span>
         </div>
-        <div class="tkt-desc">${t.description||'—'}</div>
-        <div class="tkt-meta">📂 ${t.category||'Other'} &nbsp;·&nbsp; 🕐 ${timeAgo(t.createdAt)}${t.resolution?`<br/>✅ ${t.resolution}`:''}</div>
-      </div>`).join('');
-  } catch { document.getElementById('myTicketsList').innerHTML='<div class="empty-state"><div class="e-icon">❌</div><p>Load failed. Refresh karo.</p></div>'; }
+      </div>
+      <div class="tkt-mini-desc">${t.description||'—'}</div>
+    </div>`).join('');
+}
+
+function renderFullTickets() {
+  const el = document.getElementById('ticketsList');
+  if (!myTickets.length) {
+    el.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--muted);">
+      <div style="font-size:44px;margin-bottom:12px;">🎉</div>
+      <div style="font-size:15px;font-weight:600;color:var(--text);">Koi open ticket nahi!</div>
+      <div style="font-size:13px;margin-top:6px;">Sab theek chal raha hai.</div>
+    </div>`;
+    return;
+  }
+  el.innerHTML = myTickets.map(t => `
+    <div class="ticket-full-card">
+      <div class="tfc-top">
+        <span class="tfc-id">${t.ticketId}</span>
+        <div class="tfc-badges">
+          <span class="badge b-${t.priority}">${t.priority}</span>
+          <span class="badge b-${(t.status||'Open').replace(' ','-')}">${t.status}</span>
+        </div>
+      </div>
+      <div class="tfc-desc">${t.description||'—'}</div>
+      <div class="tfc-meta">📂 ${t.category||'Other'} &nbsp;·&nbsp; 🕐 ${timeAgo(t.createdAt)}${t.resolution ? `<br/>✅ Resolution: ${t.resolution}` : ''}</div>
+    </div>`).join('');
 }
 
 function timeAgo(d) {
-  const s=(Date.now()-new Date(d))/1000;
-  if(s<60) return 'abhi abhi';
-  if(s<3600) return Math.floor(s/60)+'m pehle';
-  if(s<86400) return Math.floor(s/3600)+'h pehle';
-  return Math.floor(s/86400)+'d pehle';
+  const s = (Date.now() - new Date(d)) / 1000;
+  if (s < 60)    return 'abhi abhi';
+  if (s < 3600)  return Math.floor(s/60) + 'm pehle';
+  if (s < 86400) return Math.floor(s/3600) + 'h pehle';
+  return Math.floor(s/86400) + 'd pehle';
 }
-document.getElementById('empNameInput').addEventListener('keypress',e=>{if(e.key==='Enter')doLogin();});
 
-// ── DIAGNOSTICS ──────────────────────────────────────────────────────────────
+// ══ DIAGNOSTICS ══
 const DIAG_MAP = [
-  { brand:'lenovo',  icon:'🔵', name:'Lenovo Vantage',       step:'Start menu → "Lenovo Vantage" → Device → System Health → Run Diagnostics', url:'https://apps.microsoft.com/detail/9WZDNCRFJ4MV' },
-  { brand:'dell',    icon:'🔵', name:'Dell SupportAssist',   step:'Start menu → "Dell SupportAssist" → Run Diagnostics', url:'https://www.dell.com/support/home/en-in/products/laptop' },
-  { brand:'hp',      icon:'🔵', name:'HP Support Assistant', step:'Start menu → "HP Support Assistant" → My Devices → Run Diagnostics', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
-  { brand:'hewlett', icon:'🔵', name:'HP Support Assistant', step:'Start menu → "HP Support Assistant" → My Devices → Run Diagnostics', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
-  { brand:'asus',    icon:'🔵', name:'MyASUS',               step:'Start menu → "MyASUS" → Customer Support → Diagnostics', url:'https://www.asus.com/in/support/myasus/' },
-  { brand:'apple',   icon:'🍎', name:'Apple Diagnostics',    step:'Restart karo → Power on karte waqt D key hold karo → Diagnostics chalega', url:'https://support.apple.com/en-in/102514' },
-  { brand:'macbook', icon:'🍎', name:'Apple Diagnostics',    step:'Restart karo → Power on karte waqt D key hold karo → Diagnostics chalega', url:'https://support.apple.com/en-in/102514' },
-  { brand:'acer',    icon:'🔵', name:'Acer Care Center',     step:'Start menu → "Acer Care Center" → Diagnostics', url:'https://www.acer.com/in-en/support' },
-  { brand:'msi',     icon:'🔵', name:'MSI Center',           step:'Start menu → "MSI Center" → Tools → Diagnostics', url:'https://www.msi.com/Landing/msi-center' },
-  { brand:'samsung', icon:'🔵', name:'Samsung Settings',     step:'Start menu → "Samsung Settings" → Performance → Diagnostics', url:'https://www.samsung.com/in/support/' },
+  { brand:'lenovo',  icon:'🔵', name:'Lenovo Vantage',       url:'https://apps.microsoft.com/detail/9WZDNCRFJ4MV' },
+  { brand:'dell',    icon:'🔵', name:'Dell SupportAssist',   url:'https://www.dell.com/support/home' },
+  { brand:'hp',      icon:'🔵', name:'HP Support Assistant', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
+  { brand:'hewlett', icon:'🔵', name:'HP Support Assistant', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
+  { brand:'asus',    icon:'🔵', name:'MyASUS Diagnostics',   url:'https://www.asus.com/in/support/myasus/' },
+  { brand:'apple',   icon:'🍎', name:'Apple Diagnostics',    url:'https://support.apple.com/en-in/102514' },
+  { brand:'macbook', icon:'🍎', name:'Apple Diagnostics',    url:'https://support.apple.com/en-in/102514' },
+  { brand:'acer',    icon:'🔵', name:'Acer Care Center',     url:'https://www.acer.com/in-en/support' },
 ];
-let _diagUrl = '';
-
-function getDiagInfo(laptop) {
-  if (!laptop) return null;
-  const l = laptop.toLowerCase();
-  return DIAG_MAP.find(d => l.includes(d.brand)) || null;
-}
 
 function showDiagBanner() {
-  const diag = getDiagInfo(empData.laptop);
+  if (!empData.laptop) return;
+  const l = empData.laptop.toLowerCase();
+  const diag = DIAG_MAP.find(d => l.includes(d.brand));
   if (!diag) return;
   _diagUrl = diag.url;
-  const banner = document.getElementById('diagBanner');
-  const chip   = document.getElementById('diagChip');
-  banner.style.display = 'block';
-  chip.style.display   = 'inline-flex';
-  banner.innerHTML = `
+  document.getElementById('diagBannerWrap').style.display = 'block';
+  document.getElementById('diagBanner').innerHTML = `
     <div class="diag-banner">
-      <div class="diag-banner-left">
-        <div class="diag-icon">${diag.icon}</div>
-        <div class="diag-info">
+      <div class="diag-left">
+        <span style="font-size:20px;">${diag.icon}</span>
+        <div>
           <div class="diag-title">🔍 ${diag.name} — Laptop Diagnostics</div>
-          <div class="diag-sub">Laptop model: <b style="color:var(--pink)">${empData.laptop}</b> &nbsp;·&nbsp; ${diag.step}</div>
+          <div class="diag-sub">Laptop: <b style="color:var(--pink)">${empData.laptop}</b> — Ek click mein hardware check karo</div>
         </div>
       </div>
       <a href="${diag.url}" target="_blank" class="diag-btn">▶ Run Diagnostics</a>
     </div>`;
 }
 
-function openDiagnostics() {
-  if (_diagUrl) window.open(_diagUrl, '_blank');
-  const diag = getDiagInfo(empData.laptop);
-  if (diag) quickSend(`Mera ${empData.laptop} hai. ${diag.name} se diagnostic run karna chahta hoon.`);
-}
-
-// ── QUICK TICKET TEMPLATE ─────────────────────────────────────────────────────
-async function quickTicket(category, priority, description) {
-  const btn = event.currentTarget;
-  btn.disabled = true;
-  btn.textContent = '⏳ Ban raha hai...';
-  try {
-    const res = await fetch(`${API}/api/tickets`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        empId: empData.empId, empName: empData.name, empEmail: empData.email,
-        empDept: empData.dept, empFloor: empData.floor, laptop: empData.laptop,
-        category, priority, description, source: 'web', aiTried: false
-      })
-    });
-    const data = await res.json();
-    if (res.status === 409) {
-      addBotMsg(`⚠️ Is problem ka ticket pehle se hai: <b>${data.ticket?.ticketId||''}</b>`);
-    } else if (data.ticket) {
-      myTickets.unshift(data.ticket);
-      addBotMsg(`🎫 Ticket ban gaya! <b>${data.ticket.ticketId}</b> — Priority: <b>${data.ticket.priority}</b>\n\nIT team jald aapke paas aayegi. 🚀`);
-    }
-  } catch(e) {
-    addBotMsg('❌ Ticket create nahi ho paya. IT Helpdesk: 9654244281');
-  }
-  btn.disabled = false;
-  btn.textContent = btn.textContent.replace('⏳ Ban raha hai...', btn.getAttribute('data-orig') || description.substring(0,15) + '...');
-}
-
-// ── REMOTE HELP REQUEST ───────────────────────────────────────────────────────
-async function requestRemoteHelp() {
-  const msg = `🖥️ Remote Help Request\n\nEmployee: ${empData.name} (${empData.empId})\nLaptop: ${empData.laptop || 'N/A'} — SN: ${empData.laptopSN || 'N/A'}\nDept: ${empData.dept || 'N/A'} | Floor: ${empData.floor || 'N/A'}`;
-  addUserMsg('Mujhe remote help chahiye — IT team mera screen dekhe');
-  addBotMsg(`🖥️ <b>Remote Help Request bheja ja raha hai...</b>\n\nIT team aapko jaldi Slack/call pe contact karegi.\n\n📞 Urgent ho to: <b>9654244281</b>`);
+// ══ SOS ══
+async function requestSOS() {
+  const issue = prompt('SOS Emergency! Kya hua hai? (Brief mein batao):');
+  if (!issue) return;
+  addUserMsg('🆘 SOS: ' + issue);
+  chatHistory.push({ role:'user', content:'SOS EMERGENCY: ' + issue });
+  addSystemMsg('🆘 SOS raise ho raha hai — IT Admin ko turant alert ja raha hai!');
   try {
     await fetch(`${API}/api/tickets`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
-        empId: empData.empId, empName: empData.name, empEmail: empData.email,
-        empDept: empData.dept, empFloor: empData.floor, laptop: empData.laptop,
-        category: 'Remote Support', priority: 'High',
-        description: `Remote help request — Employee needs screen share/remote access assistance. Laptop: ${empData.laptop||'N/A'} SN: ${empData.laptopSN||'N/A'}`,
-        source: 'web', aiTried: false
+        empId:empData.empId, empName:empData.name, empEmail:empData.email,
+        empDept:empData.dept, empFloor:empData.floor, laptop:empData.laptop,
+        category:'Hardware', priority:'Critical',
+        description:`🆘 SOS EMERGENCY: ${issue}`,
+        source:'web-sos', aiTried:false
       })
     });
-  } catch(e) { console.error('Remote help ticket failed:', e); }
+    addBotMsg(
+      `🆘 <b>SOS Register Ho Gaya!</b>\n\n` +
+      `IT Admin ko <b>turant</b> alert bhej diya gaya hai!\n\n` +
+      `📞 <b>Direct Call:</b> 9654244281\n` +
+      `📧 sajan.kumar@wiom.in\n\n` +
+      `_Kuch minute mein IT team aapke paas aayegi._`
+    );
+  } catch {
+    addBotMsg(`🆘 SOS bhejne mein problem aayi.\n\n📞 <b>Abhi call karo: 9654244281</b>`);
+  }
 }
 </script>
 </body>
