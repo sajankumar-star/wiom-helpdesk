@@ -64,6 +64,20 @@ RULE 5: STAY ON TOPIC
 Network issue → network fix only. Never suggest laptop restart for wifi issues.
 The category hint below tells you exactly what kind of issue this is — follow it strictly.
 
+RULE 6: EXCEPTION — SKIP QUESTION WHEN SYMPTOM IS ALREADY GIVEN
+If the user message ALREADY contains the symptom (what is happening), skip the diagnostic question and give numbered steps directly.
+
+Examples of "symptom already given" → give steps directly:
+✅ "wifi connected hai but internet nahi chal raha" → user told us: connected=yes, internet=no → give steps NOW
+✅ "laptop ON hai but screen black hai" → symptom clear → give steps NOW
+✅ "outlook khul raha hai but crash ho jata hai" → symptom clear → give steps NOW
+✅ "password bhool gaya windows ka" → clear case → ticket NOW
+
+Examples of "vague, no symptom" → ask question first:
+❓ "net nahi chal raha" → don't know if connected or not → ask
+❓ "laptop slow hai" → don't know when/which app → ask
+❓ "problem hai" → completely vague → ask
+
 ━━━ TONE EXAMPLES ━━━
 Instead of: "Issue resolved successfully. Please follow these steps:"
 Say: "Ho gaya! 🎉 Koi aur cheez?"
@@ -134,7 +148,29 @@ const detectIntent = (messages) => {
     .join(' ')
     .toLowerCase();
 
-  // NETWORK — most important: catch all Hinglish variants
+  // ── SPECIFIC SYMPTOMS FIRST (user already gave detail → skip diagnostic question) ──
+
+  // WiFi connected but no internet
+  if (/connect(ed)?.*(nahi chal|work nahi|internet nahi|chal nahi|nahi work|not working)|wifi.*(connected|chal raha).*(internet nahi|nahi chal|no internet)|(no internet|internet nahi).*(connected|chal raha)|wifi connected.*but|but.*wifi connected/.test(recentText))
+    return { category: 'NETWORK_CONNECTED', hint: 'User ALREADY SAID WiFi is connected but internet not working. SKIP the diagnostic question — they gave you the symptom. Give numbered steps directly:\n1. WiFi icon click → Disconnect → reconnect → Password: spartans500\n2. Win+R → cmd → type: ipconfig /flushdns → Enter\n3. type: netsh winsock reset → Enter → laptop restart karo\n4. Agar ab bhi nahi hua → type *ha* — ticket raise karta hoon 🎫\nNO QUESTIONS. Give these steps now.' };
+
+  // Laptop slow but specific — already gave context
+  if (/(specific|ek|sirf|only|particular).*(app|game|software).*(slow|hang)|(slow|hang).*(specific|ek|sirf)/.test(recentText))
+    return { category: 'PERFORMANCE_SPECIFIC', hint: 'User gave specific detail about slow app. Ask which app name, then give: End Task in Task Manager → clear cache for that app → reinstall if needed.' };
+
+  // Screen black but laptop is on
+  if (/(black|kali|blank).*(screen|display).*(on|chal|power)|(on|chal|power).*(black|kali|blank).*(screen|display)/.test(recentText))
+    return { category: 'DISPLAY_BLACK_ON', hint: 'User says screen is black but laptop is ON. SKIP question — give steps: 1. Fn+F5 ya Fn+F8 (brightness keys) dabao 2. Win+P dabao → "Extend" select karo 3. Power button 10sec hold → restart. No questions.' };
+
+  // Password forgot — specific type
+  if (/(windows|laptop|login|pc).*(password|bhool|forgot)|(password|bhool|forgot).*(windows|laptop|login|pc)/.test(recentText))
+    return { category: 'ACCOUNT_WINDOWS', hint: 'Windows login password issue. SKIP question. Say directly: "Windows password sirf IT reset kar sakta hai — type karo *ha*, main IT ko bhej deta hoon 🎫"' };
+
+  // Outlook/Teams specific error
+  if (/(outlook|teams).*(nahi khul|not opening|crash|band ho|error|loading)/.test(recentText))
+    return { category: 'SOFTWARE_SPECIFIC', hint: 'User gave specific app + error detail. SKIP question. Give app-specific fix: Outlook: outlook /safe → repair. Teams: system tray quit → reopen → cache clear.' };
+
+  // ── GENERAL NETWORK — ask diagnostic question ──
   if (/\bnet\b|\bwifi\b|wi-fi|internet|network|connect(ion)?|hotspot|broadband|no internet|nahi chal raha|chal nahi|nahi chal|net band|data nahi|signal nahi|connection nahi/.test(recentText))
     return { category: 'NETWORK', hint: 'NETWORK ISSUE. Your FIRST message MUST be: "WiFi icon taskbar mein dikh raha hai? Connected hai ya \'No Internet\' likh raha?" — ABSOLUTELY DO NOT say restart laptop. Ask this exact question first, then wait.' };
 
@@ -214,46 +250,53 @@ const extractTriedSteps = (messages) => {
 // ── Static KB Fallback (when both AI providers fail) ─────────────────────────
 const getKBFallback = (problem) => {
   const p = problem.toLowerCase();
+
+  // ── SPECIFIC SYMPTOMS — full steps, no question ─────────────────────────────
+
+  // WiFi connected but no internet — most common scenario
+  if (/connect(ed)?.*(nahi chal|work nahi|internet nahi|nahi work)|wifi.*(connected|chal).*(internet nahi|nahi chal)|(no internet|internet nahi).*(connected|connect)/.test(p))
+    return `WiFi connected hai par internet nahi chal raha — ye steps karo:\n\n1. Taskbar WiFi click karo → Disconnect karo → "Wiom office 5g-Test" select karo → Password: spartans500\n2. Win+R dabao → cmd likho → Enter → phir type karo: ipconfig /flushdns → Enter\n3. Phir type karo: netsh winsock reset → Enter → laptop restart karo\n\nAgar nahi hua → IT ticket banao 🎫`;
+
   if (p.includes('slow') || p.includes('hang') || p.includes('freez') || p.includes('dheema'))
     return `Acha, laptop slow/hang hai? 🔧\nPehle ye karo: Ctrl+Shift+Esc dabao → Task Manager mein jo process sabse zyada CPU le raha ho → End Task karo.\nKaro batao ho gaya ya nahi!`;
   if (p.includes('wifi') || p.includes('internet') || p.includes('network') ||
       /\bnet\b/.test(p) || p.includes('nahi chal') || p.includes('chal nahi') ||
       p.includes('net band') || p.includes('signal nahi') || p.includes('no internet'))
-    return `Net/WiFi issue hai? 📶 Pehle batao — taskbar mein WiFi icon dikh raha hai connected? Ya "No Internet" aa raha hai?\n\nAgar disconnected hai → taskbar WiFi click → "Wiom office 5g-Test" select → Password: spartans500\nAgar connected par net nahi → WiFi toggle OFF → ON karo → try karo!\nKaro batao!`;
+    return `WiFi/Net issue — ye steps try karo:\n\n1. Taskbar WiFi click → OFF karo → ON karo → try karo\n2. "Wiom office 5g-Test" select karo → Password: spartans500\n3. Win+R → cmd → netsh winsock reset → Enter → restart karo\n\nAgar nahi hua → IT ticket banao 🎫`;
   if (p.includes('sound') || p.includes('audio') || p.includes('speaker') || p.includes('headphone'))
-    return `Sound fix! 🔊\nStep 1: Taskbar speaker icon Right-click → Sound settings.\nStep 2: Output device → sahi device select karo.\nStep 3: Volume 0% nahi honi chahiye — check karo.\nClick the script button below! ⬇️`;
+    return `Sound fix! 🔊\n1. Taskbar speaker icon Right-click → Sound settings.\n2. Output device → sahi device select karo.\n3. Volume 0% nahi honi chahiye — check karo.\nClick the script button below! ⬇️`;
   if (p.includes('blue screen') || p.includes('bsod'))
-    return `Blue Screen fix! 💙\nStep 1: Error code note karo jo screen par tha.\nStep 2: Laptop restart karo — akbar mein theek ho jata hai.\nStep 3: 3 baar se zyada hua toh ticket raise karo.\nClick the script button below! ⬇️`;
+    return `Blue Screen fix! 💙\n1. Error code note karo jo screen par tha.\n2. Laptop restart karo — akbar mein theek ho jata hai.\n3. 3 baar se zyada hua toh ticket raise karo.\nClick the script button below! ⬇️`;
   if (p.includes('battery') || p.includes('charg'))
-    return `Battery fix! 🔋\nStep 1: Charger dono taraf firmly lagao.\nStep 2: Alag power socket try karo.\nStep 3: Laptop band karo → charger lagao → 30 sec wait → on karo.\nClick the script button below! ⬇️`;
+    return `Battery fix! 🔋\n1. Charger dono taraf firmly lagao.\n2. Alag power socket try karo.\n3. Laptop band karo → charger lagao → 30 sec wait → on karo.\nClick the script button below! ⬇️`;
   if (p.includes('black screen') || p.includes('no display'))
-    return `Black screen fix! 🖥️\nStep 1: Fn+F5 ya Fn+F8 (brightness keys) dabao.\nStep 2: Koi change nahi → power button 10sec hold → restart.\nStep 3: Baad mein bhi kuch nahi → ticket raise karo.\nClick the script button below! ⬇️`;
+    return `Black screen fix! 🖥️\n1. Fn+F5 ya Fn+F8 (brightness keys) dabao.\n2. Koi change nahi → power button 10sec hold → restart.\n3. Baad mein bhi kuch nahi → ticket raise karo.\nClick the script button below! ⬇️`;
   if (p.includes('keyboard') || p.includes('keys'))
-    return `Keyboard fix! ⌨️\nStep 1: Laptop restart karo.\nStep 2: Win+R → osk → on-screen keyboard se kaam chalao.\nStep 3: Device Manager → Keyboards → Update driver.\nClick the script button below! ⬇️`;
+    return `Keyboard fix! ⌨️\n1. Laptop restart karo.\n2. Win+R → osk → on-screen keyboard se kaam chalao.\n3. Device Manager → Keyboards → Update driver.\nClick the script button below! ⬇️`;
   if (p.includes('touchpad') || p.includes('mouse'))
-    return `Touchpad fix! 🖱️\nStep 1: Fn + touchpad key (lock icon wali) dabao.\nStep 2: Settings → Bluetooth & devices → Touchpad → ON.\nStep 3: Laptop restart karo.\nClick the script button below! ⬇️`;
+    return `Touchpad fix! 🖱️\n1. Fn + touchpad key (lock icon wali) dabao.\n2. Settings → Bluetooth & devices → Touchpad → ON.\n3. Laptop restart karo.\nClick the script button below! ⬇️`;
   if (p.includes('printer'))
-    return `Printer fix! 🖨️\nStep 1: Settings → Bluetooth & devices → Printers → right-click → Set as default.\nStep 2: Win+R → services.msc → Print Spooler → Restart.\nStep 3: Dubara print karo.\nClick the script button below! ⬇️`;
+    return `Printer fix! 🖨️\n1. Settings → Bluetooth & devices → Printers → right-click → Set as default.\n2. Win+R → services.msc → Print Spooler → Restart.\n3. Dubara print karo.\nClick the script button below! ⬇️`;
   if (p.includes('teams'))
-    return `Teams fix! 📹\nStep 1: System tray → Teams icon right-click → Quit → reopen.\nStep 2: Win+R → %appdata%\\Microsoft\\Teams → Cache folder delete karo.\nStep 3: teams.microsoft.com browser mein kholo (web fallback).\nClick the script button below! ⬇️`;
+    return `Teams fix! 📹\n1. System tray → Teams icon right-click → Quit → reopen.\n2. Win+R → %appdata%\\Microsoft\\Teams → Cache folder delete karo.\n3. teams.microsoft.com browser mein kholo (web fallback).\nClick the script button below! ⬇️`;
   if (p.includes('zoom'))
-    return `Zoom fix! 🎥\nStep 1: Zoom band karo → dobara kholo.\nStep 2: Internet check karo → zoom.us/wc/join browser mein try karo.\nStep 3: Zoom Settings → Audio/Video → sahi device select karo.\nClick the script button below! ⬇️`;
+    return `Zoom fix! 🎥\n1. Zoom band karo → dobara kholo.\n2. Internet check karo → zoom.us/wc/join browser mein try karo.\n3. Zoom Settings → Audio/Video → sahi device select karo.\nClick the script button below! ⬇️`;
   if (p.includes('outlook') || p.includes('email'))
-    return `Outlook fix! 📧\nStep 1: Ctrl+Shift+Esc → Outlook process end karo.\nStep 2: Win+R → outlook /safe → Enter.\nStep 3: outlook.office365.com browser mein try karo.\nClick the script button below! ⬇️`;
+    return `Outlook fix! 📧\n1. Ctrl+Shift+Esc → Outlook process end karo.\n2. Win+R → outlook /safe → Enter.\n3. outlook.office365.com browser mein try karo.\nClick the script button below! ⬇️`;
   if (p.includes('password') || p.includes('locked') || p.includes('login'))
-    return `Google account password reset ! 🔐\nStep 1: myaccount.google.com pe jaao\nStep 2: Security tab click karo\nStep 3: "How you sign in to Google" mein Password click karo\nStep 4: Current password enter karo (ya fingerprint/prompt se verify karo)\nStep 5: Naya password set karo\n\nAgar nahi hua: raise ticket — IT help karega 🎫`;
+    return `Google account password reset ! 🔐\n1. myaccount.google.com pe jaao\n2. Security tab click karo\n3. "How you sign in to Google" mein Password click karo\n4. Current password enter karo (ya fingerprint/prompt se verify karo)\n5. Naya password set karo\n\nAgar nahi hua: raise ticket — IT help karega 🎫`;
   if (p.includes('bluetooth'))
-    return `Bluetooth fix! 🔵\nStep 1: Settings → Bluetooth → toggle OFF → ON karo.\nStep 2: Device dobara pair karo.\nStep 3: Device Manager → Bluetooth → Disable → Enable.\nClick the script button below! ⬇️`;
+    return `Bluetooth fix! 🔵\n1. Settings → Bluetooth → toggle OFF → ON karo.\n2. Device dobara pair karo.\n3. Device Manager → Bluetooth → Disable → Enable.\nClick the script button below! ⬇️`;
   if (p.includes('camera') || p.includes('camra') || p.includes('webcam') || /\bcam\b/.test(p))
     return `Settings → Privacy → Camera → ON karo 📷 Teams/Zoom mein Settings → Video → sahi camera select hai? Device Manager → Cameras → Disable → Enable karo. Batao kaise raha!`;
   if (p.includes('mic') || p.includes('microphone'))
-    return `Microphone fix! 🎤\nStep 1: Settings → Privacy → Microphone → ON karo.\nStep 2: Sound settings → Input → sahi mic select karo.\nStep 3: Teams: Settings → Devices → mic test karo.\nClick the script button below! ⬇️`;
+    return `Microphone fix! 🎤\n1. Settings → Privacy → Microphone → ON karo.\n2. Sound settings → Input → sahi mic select karo.\n3. Teams: Settings → Devices → mic test karo.\nClick the script button below! ⬇️`;
   if (p.includes('usb') || p.includes('pendrive'))
-    return `USB fix! 🔌\nStep 1: Alag USB port mein try karo.\nStep 2: Device Manager → Universal Serial Bus → Uninstall → Scan for hardware changes.\nStep 3: Laptop restart karo.\nClick the script button below! ⬇️`;
+    return `USB fix! 🔌\n1. Alag USB port mein try karo.\n2. Device Manager → Universal Serial Bus → Uninstall → Scan for hardware changes.\n3. Laptop restart karo.\nClick the script button below! ⬇️`;
   if (p.includes('storage') || p.includes('disk full'))
-    return `Storage cleanup ! 💾\nStep 1: Win+R → cleanmgr → C: → Clean system files.\nStep 2: Win+R → %temp% → Ctrl+A → Delete.\nStep 3: Recycle Bin empty karo.\nClick the script button below! ⬇️`;
+    return `Storage cleanup ! 💾\n1. Win+R → cleanmgr → C: → Clean system files.\n2. Win+R → %temp% → Ctrl+A → Delete.\n3. Recycle Bin empty karo.\nClick the script button below! ⬇️`;
   if (p.includes('virus') || p.includes('malware') || p.includes('antivirus'))
-    return `Virus scan ! 🦠\nStep 1: Windows Security kholo → Virus & threat protection.\nStep 2: Quick Scan karo → wait karo.\nStep 3: Serious lag raha → raise a ticket: type *raise ticket* 🎫\nClick the script button below! ⬇️`;
+    return `Virus scan ! 🦠\n1. Windows Security kholo → Virus & threat protection.\n2. Quick Scan karo → wait karo.\n3. Serious lag raha → raise a ticket: type *raise ticket* 🎫\nClick the script button below! ⬇️`;
   if (p.includes('kaise ho') || p.includes('kaisa hai') || p.includes('how are you') || p.includes('kya haal'))
     return 'Theek hoon! Batao kya IT problem hai, help karta hoon 😊';
   if (p.includes('thanks') || p.includes('shukriya') || p.includes('thank you') || p.includes('dhanyawad'))
