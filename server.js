@@ -697,197 +697,216 @@ app.listen(PORT, async () => {
    return null;
  };
 
- // ── Build Home Tab blocks — Dashboard style matching web portal ────────
+ // ── Build Home Tab blocks (with collapsible categories) ───────────────
  const buildHomeBlocks = (emp, myTickets, expandedSet) => {
-   const name = (emp?.empName || emp?.name || 'there').split(' ')[0];
-   const laptop    = emp?.laptop   || null;
-   const laptopSN  = emp?.laptopSN || null;
-   const dept      = emp?.dept || emp?.department || null;
-   const openCnt   = myTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
-   const statEmoji = { 'Open':'🔴', 'In Progress':'🟡', 'Resolved':'✅', 'Closed':'⚫' };
-   const priEmoji2 = { 'Critical':'🔴', 'High':'🟠', 'Medium':'🟡', 'Low':'🟢' };
+ const name = emp?.name?.split(' ')[0] || 'Employee';
+ const laptop = emp?.laptop || null;
+ const laptopSN = emp?.laptopSN || null;
+ const dept = emp?.department || null;
+ const openCnt = myTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
 
-   const blocks = [
+ const statEmoji = { 'Open':'🔴', 'In Progress':'🟡', 'Resolved':'✅', 'Closed':'⚫' };
+ const priEmoji2 = { 'Critical':'🔴', 'High':'🟠', 'Medium':'🟡', 'Low':'🟢' };
 
-     // ── HEADER ────────────────────────────────────────────────────────────
-     {
-       type: 'header',
-       text: { type: 'plain_text', text: `👋  Hello ${name}!`, emoji: true }
-     },
-     {
-       type: 'section',
-       text: {
-         type: 'mrkdwn',
-         text: `*How can we help you today?*\n🟢 *Zivon is Online* — Instant IT support, 24/7${openCnt > 0 ? `   |   🔔 *${openCnt} Open Ticket${openCnt > 1 ? 's' : ''}*` : '   |   ✅ No open tickets'}`
-       },
-       accessory: {
-         type: 'image',
-         image_url: 'https://web-production-ef6c1.up.railway.app/images/zivon-robot.gif',
-         alt_text: 'Zivon AI'
-       }
-     },
+ const _now = new Date();
+ const istHour = Math.floor((_now.getUTCHours() * 60 + _now.getUTCMinutes() + 330) / 60) % 24;
+ const greeting = istHour < 12 ? 'Good Morning' : istHour < 17 ? 'Good Afternoon' : 'Good Evening';
 
-     { type: 'divider' },
+ const blocks = [
 
-     // ── SELECT A CATEGORY ─────────────────────────────────────────────────
-     {
-       type: 'section',
-       text: { type: 'mrkdwn', text: '*📂   Select a Category*' }
-     },
+ // ── HERO: Robot GIF + Greeting ─────────────────────────────────────────
+ {
+ type: 'section',
+ text: {
+ type: 'mrkdwn',
+ text: `*Hello ${name}! 👋 Main Zivon hoon — aapki kya help karu?* 😊\n\n_Main WIOM ka smart IT assistant hoon!_\n\n⚡ Fast   😊 Friendly   🧠 Smart`
+ },
+ accessory: {
+ type: 'image',
+ image_url: 'https://web-production-ef6c1.up.railway.app/images/zivon-robot.gif',
+ alt_text: 'Zivon AI'
+ }
+ },
+ {
+ type: 'context',
+ elements: [{ type: 'mrkdwn', text: '🟢 *Zivon is Online* — Ready to help you 24/7' }]
+ },
 
-     // Card row 1: Laptop & Display | Network & Internet
-     {
-       type: 'section',
-       fields: [
-         { type: 'mrkdwn', text: '*💻  Laptop & Display*\n_Screen, Battery, Keyboard and more_' },
-         { type: 'mrkdwn', text: '*🌐  Network & Internet*\n_Wi-Fi, LAN, VPN and connectivity_' }
-       ]
-     },
-     {
-       type: 'actions',
-       elements: [
-         { type: 'button', text: { type: 'plain_text', text: '💻  Laptop & Display  →', emoji: true }, action_id: 'cat_toggle_laptop',      value: 'laptop',      style: 'primary' },
-         { type: 'button', text: { type: 'plain_text', text: '🌐  Network & Internet  →', emoji: true }, action_id: 'cat_toggle_network',   value: 'network',     style: 'primary' }
-       ]
-     },
+ { type: 'divider' },
 
-     // Card row 2: Software, Apps & Account | Replacement / Upgrade
-     {
-       type: 'section',
-       fields: [
-         { type: 'mrkdwn', text: '*⚙️  Software, Apps & Account*\n_Install, Update, Login and more_' },
-         { type: 'mrkdwn', text: '*🔄  Replacement / Upgrade*\n_Hardware replacement and upgrade_' }
-       ]
-     },
-     {
-       type: 'actions',
-       elements: [
-         { type: 'button', text: { type: 'plain_text', text: '⚙️  Software, Apps & Account  →', emoji: true }, action_id: 'cat_toggle_software',     value: 'software',     style: 'primary' },
-         { type: 'button', text: { type: 'plain_text', text: '🔄  Replacement / Upgrade  →', emoji: true },    action_id: 'cat_toggle_replacement',  value: 'replacement' }
-       ]
-     },
+ // ── QUICK ACTIONS ──────────────────────────────────────────────────────
+ { type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Actions*' } },
+ {
+ type: 'actions',
+ elements: [
+ {
+ type: 'button',
+ text: { type: 'plain_text', text: '📶 Internet Fix', emoji: true },
+ action_id: 'home_quick_11',
+ value: 'WiFi not working no internet connection',
+ style: 'primary'
+ },
+ {
+ type: 'button',
+ text: { type: 'plain_text', text: '🔐 Password Reset', emoji: true },
+ action_id: 'home_quick_14',
+ value: 'Forgot password need to reset it'
+ },
+ {
+ type: 'button',
+ text: { type: 'plain_text', text: '🧹 Quick Cleanup', emoji: true },
+ action_id: 'home_quick_1',
+ value: 'My laptop is very slow what should I do'
+ },
+ {
+ type: 'button',
+ text: { type: 'plain_text', text: '📞 Contact IT', emoji: true },
+ action_id: 'home_contact_it',
+ value: 'contact_it',
+ style: 'danger'
+ }
+ ]
+ },
 
-     // Card row 3: Access & Permissions | Printer & Peripheral
-     {
-       type: 'section',
-       fields: [
-         { type: 'mrkdwn', text: '*🔒  Access & Permissions*\n_System access and permissions_' },
-         { type: 'mrkdwn', text: '*🖨️  Printer & Peripheral*\n_Printer, Scanner and other devices_' }
-       ]
-     },
-     {
-       type: 'actions',
-       elements: [
-         { type: 'button', text: { type: 'plain_text', text: '🔒  Access & Permissions  →', emoji: true }, action_id: 'cat_toggle_access',   value: 'access' },
-         { type: 'button', text: { type: 'plain_text', text: '🖨️  Printer & Peripheral  →', emoji: true }, action_id: 'cat_toggle_printer',  value: 'printer' }
-       ]
-     },
+ { type: 'divider' },
 
-     { type: 'divider' },
+ // ── MAIN CATEGORIES (2-column grid) ────────────────────────────────────
+ { type: 'section', text: { type: 'mrkdwn', text: '*📂 Main Categories*' } },
 
-     // ── POPULAR ISSUES ────────────────────────────────────────────────────
-     {
-       type: 'section',
-       text: { type: 'mrkdwn', text: '*🔥   Popular Issues in Laptop & Display*' }
-     },
+ ];
 
-     // Popular row 1 — 5 issues
-     {
-       type: 'actions',
-       elements: [
-         { type: 'button', text: { type: 'plain_text', text: '⚡ Laptop Slow',    emoji: true }, action_id: 'home_quick_1',  value: 'My laptop is very slow what should I do' },
-         { type: 'button', text: { type: 'plain_text', text: "🔴 Won't Turn On", emoji: true }, action_id: 'home_quick_2',  value: 'My laptop is not turning on at all', style: 'danger' },
-         { type: 'button', text: { type: 'plain_text', text: '💙 Blue Screen',   emoji: true }, action_id: 'home_quick_3',  value: 'Getting blue screen of death BSOD error', style: 'danger' },
-         { type: 'button', text: { type: 'plain_text', text: '🌡️ Overheating',  emoji: true }, action_id: 'home_quick_4',  value: 'My laptop is overheating getting very hot' },
-         { type: 'button', text: { type: 'plain_text', text: '🔋 Battery Issue', emoji: true }, action_id: 'home_quick_5',  value: 'Laptop battery drains quickly or not charging at all' }
-       ]
-     },
+ // Build category grid: 2 per row (3 rows × 2 = 6 categories)
+ const catEmojis = {
+ laptop: '💻', network: '🌐', software: '⚙️',
+ replacement: '📦', access: '🔒', printer: '🖨️'
+ };
+ const catDescs = {
+ laptop: 'Screen, Performance, Battery, Hardware issues',
+ network: 'WiFi, VPN, LAN, Internet connection issues',
+ software: 'Software, Installation, Email, Login issues',
+ replacement: 'Hardware/Software request, Upgrade, New setup',
+ access: 'System access, App access, Permission requests',
+ printer: 'Printer, Mouse, Keyboard, Peripheral issues'
+ };
 
-     // Popular row 2 — 5 issues
-     {
-       type: 'actions',
-       elements: [
-         { type: 'button', text: { type: 'plain_text', text: '🖥️ Screen Black',      emoji: true }, action_id: 'home_quick_6',  value: 'Laptop screen is black cannot see anything', style: 'danger' },
-         { type: 'button', text: { type: 'plain_text', text: '⌨️ Keyboard Issue',   emoji: true }, action_id: 'home_quick_7',  value: 'Laptop keyboard not working some keys not responding' },
-         { type: 'button', text: { type: 'plain_text', text: '🖱️ Touchpad Issue',  emoji: true }, action_id: 'home_quick_8',  value: 'Mouse or touchpad is not working not responding' },
-         { type: 'button', text: { type: 'plain_text', text: '❄️ Freezing/Hanging', emoji: true }, action_id: 'home_quick_21', value: 'Laptop is hanging freezing not responding at all', style: 'danger' },
-         { type: 'button', text: { type: 'plain_text', text: '⚡ Sudden Shutdown',  emoji: true }, action_id: 'home_quick_30', value: 'Laptop shuts down suddenly without any warning', style: 'danger' }
-       ]
-     },
+ for (let i = 0; i < CATEGORIES.length; i += 2) {
+ const cat1 = CATEGORIES[i];
+ const cat2 = CATEGORIES[i + 1];
+ const isExp1 = expandedSet.has(cat1.key);
+ const isExp2 = cat2 && expandedSet.has(cat2.key);
 
-     { type: 'divider' },
+ const rowBtns = [
+ {
+ type: 'button',
+ text: { type: 'plain_text', text: `${catEmojis[cat1.key] || '📁'} ${cat1.label} ${isExp1 ? '▼' : '→'}`, emoji: true },
+ action_id: `cat_toggle_${cat1.key}`,
+ value: cat1.key,
+ style: 'primary'
+ }
+ ];
+ if (cat2) {
+ rowBtns.push({
+ type: 'button',
+ text: { type: 'plain_text', text: `${catEmojis[cat2.key] || '📁'} ${cat2.label} ${isExp2 ? '▼' : '→'}`, emoji: true },
+ action_id: `cat_toggle_${cat2.key}`,
+ value: cat2.key,
+ style: 'primary'
+ });
+ }
+ blocks.push({ type: 'actions', elements: rowBtns });
 
-   ];
+ // Expanded sub-items for cat1
+ if (isExp1) {
+ blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: `_${catDescs[cat1.key] || cat1.desc}_` }] });
+ for (const row of cat1.rows) {
+ blocks.push({
+ type: 'actions',
+ elements: row.map(btn => ({
+ type: 'button',
+ text: { type: 'plain_text', text: btn.text, emoji: true },
+ value: btn.value,
+ action_id: btn.id
+ }))
+ });
+ }
+ blocks.push({
+ type: 'actions',
+ elements: [{
+ type: 'button',
+ text: { type: 'plain_text', text: '▲ Close', emoji: true },
+ action_id: `cat_toggle_${cat1.key}`,
+ value: cat1.key
+ }]
+ });
+ blocks.push({ type: 'divider' });
+ }
 
-   // ── MY TICKETS ───────────────────────────────────────────────────────────
-   if (myTickets.length > 0) {
-     blocks.push({
-       type: 'section',
-       text: { type: 'mrkdwn', text: `*🎫   My Tickets*${openCnt > 0 ? ` — *${openCnt} Open*` : ''}` }
-     });
-     for (const t of myTickets.slice(0, 3)) {
-       const hrs = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
-       blocks.push({
-         type: 'section',
-         text: {
-           type: 'mrkdwn',
-           text: `${statEmoji[t.status] || '🔵'} \`${t.ticketId}\`  ${priEmoji2[t.priority] || '🟡'} *${t.priority}*  —  ${(t.description || '').substring(0, 55)}...\n_${t.category || 'Other'} · ${hrs}h ago · ${t.status}${t.resolution ? ' · ✅ Resolved' : ''}_`
-         }
-       });
-     }
-     if (myTickets.length > 3) {
-       blocks.push({
-         type: 'context',
-         elements: [{ type: 'mrkdwn', text: `_+${myTickets.length - 3} more tickets — type *my tickets* to see all_` }]
-       });
-     }
-     blocks.push({ type: 'divider' });
-   }
+ // Expanded sub-items for cat2
+ if (cat2 && isExp2) {
+ blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: `_${catDescs[cat2.key] || cat2.desc}_` }] });
+ for (const row of cat2.rows) {
+ blocks.push({
+ type: 'actions',
+ elements: row.map(btn => ({
+ type: 'button',
+ text: { type: 'plain_text', text: btn.text, emoji: true },
+ value: btn.value,
+ action_id: btn.id
+ }))
+ });
+ }
+ blocks.push({
+ type: 'actions',
+ elements: [{
+ type: 'button',
+ text: { type: 'plain_text', text: '▲ Close', emoji: true },
+ action_id: `cat_toggle_${cat2.key}`,
+ value: cat2.key
+ }]
+ });
+ blocks.push({ type: 'divider' });
+ }
+ }
 
-   // ── BOTTOM CTAs ──────────────────────────────────────────────────────────
-   blocks.push({
-     type: 'section',
-     fields: [
-       { type: 'mrkdwn', text: "*🤖  Can't find your issue?*\n_Describe your problem to our AI assistant_" },
-       { type: 'mrkdwn', text: '*🎧  Need Urgent Help?*\n_Contact IT Support Team directly_' }
-     ]
-   });
-   blocks.push({
-     type: 'actions',
-     elements: [
-       {
-         type: 'button',
-         text: { type: 'plain_text', text: '✨  Chat with AI Assistant', emoji: true },
-         action_id: 'home_chat_ai',
-         value: 'chat_ai',
-         style: 'primary'
-       },
-       {
-         type: 'button',
-         text: { type: 'plain_text', text: '🎧  Contact IT Support', emoji: true },
-         action_id: 'home_contact_it',
-         value: 'contact_it',
-         style: 'danger'
-       }
-     ]
-   });
 
-   // ── EMPLOYEE FOOTER ───────────────────────────────────────────────────────
-   if (emp) {
-     blocks.push({ type: 'divider' });
-     blocks.push({
-       type: 'context',
-       elements: [
-         { type: 'mrkdwn', text: `👤 *${emp.empName || emp.empId}*  |  🏢 ${dept || '—'}  |  💻 ${laptop || '—'}  |  🏷️ \`${laptopSN || '—'}\`` }
-       ]
-     });
-   }
-   blocks.push({
-     type: 'context',
-     elements: [{ type: 'mrkdwn', text: '_Made with ❤️ by WIOM IT Team  |  Powered by Zivon AI_' }]
-   });
+ // ── MY TICKETS ─────────────────────────────────────────────────────────
+ if (myTickets.length > 0) {
+ blocks.push({ type: 'divider' });
+ blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*🎫 My Tickets*' } });
+ for (const t of myTickets.slice(0, 3)) {
+ blocks.push({
+ type: 'section',
+ text: {
+ type: 'mrkdwn',
+ text: `${statEmoji[t.status] || '🔵'} \`${t.ticketId}\` — ${(t.description || '').substring(0, 55)}...\n${priEmoji2[t.priority] || '🟡'} ${t.priority} | ${t.category || 'Other'} | _${Math.floor((Date.now() - new Date(t.createdAt)) / 3600000)}h ago_${t.resolution ? '\n✅ *Resolved:* ' + t.resolution.substring(0, 60) : ''}`
+ }
+ });
+ }
+ }
 
-   return blocks;
+ // ── DEVICE INFO ────────────────────────────────────────────────────────
+ if (emp) {
+ blocks.push({ type: 'divider' });
+ blocks.push({
+ type: 'section',
+ fields: [
+ { type: 'mrkdwn', text: `*👤 Emp ID:* \`${emp.empId}\`` },
+ { type: 'mrkdwn', text: `*🏢 Dept:* ${dept || '-'}` },
+ { type: 'mrkdwn', text: `*💻 Laptop:* ${laptop || '-'}` },
+ { type: 'mrkdwn', text: `*🔖 S/N:* \`${laptopSN || '-'}\`` },
+ { type: 'mrkdwn', text: openCnt > 0 ? `*🎫 Open Tickets:* *${openCnt}* ⚠️` : `*🎫 Tickets:* ✅ None open` }
+ ]
+ });
+ }
+
+ // ── FOOTER ─────────────────────────────────────────────────────────────
+ blocks.push({ type: 'divider' });
+ blocks.push({
+ type: 'context',
+ elements: [{ type: 'mrkdwn', text: `_Can't find your issue? Type your problem in DM. I'll help you out! 😊_ &nbsp;&nbsp;|&nbsp;&nbsp; _Made with ❤️ by WIOM IT Team_` }]
+ });
+
+ return blocks;
  };
 
  // ── FEATURE 5: Office hours check (IST = UTC+5:30) ────────────────────
@@ -1725,30 +1744,6 @@ app.listen(PORT, async () => {
  } catch (err) {
  console.error('home_contact_it error:', err.message);
  }
- });
-
- // ── "Chat with AI Assistant" button on Home Tab ─────────────────────
- slackApp.action('home_chat_ai', async ({ body, ack, client }) => {
-   await ack();
-   const userId = body.user.id;
-   try {
-     await client.chat.postMessage({
-       channel: userId,
-       text: 'Hey! Kya problem hai — batao, abhi help karta hoon 😊',
-       blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: `*Hey! 👋 Kya problem hai?*\n_Seedha apna issue type karo — Zivon turant help karega!_` }},
-         { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '💻 Laptop Issue', emoji: true }, action_id: 'vague_pick_laptop_other', value: 'laptop hardware issue' },
-           { type: 'button', text: { type: 'plain_text', text: '📶 WiFi / Internet', emoji: true }, action_id: 'vague_pick_wifi_not_connect', value: 'wifi not connecting' },
-           { type: 'button', text: { type: 'plain_text', text: '🔑 Password / Login', emoji: true }, action_id: 'vague_pick_password_reset', value: 'forgot laptop password' },
-           { type: 'button', text: { type: 'plain_text', text: '💿 Software / App', emoji: true }, action_id: 'vague_pick_software_other', value: 'software issue' }
-         ]},
-         { type: 'context', elements: [{ type: 'mrkdwn', text: '_Ya seedha apna issue type karo — main samjhunga! 😊_' }]}
-       ]
-     });
-   } catch (err) {
-     console.error('home_chat_ai error:', err.message);
-   }
  });
 
  // ── SOS Issue selected → DM employee + alert admin + auto-ticket ─────
