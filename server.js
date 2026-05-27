@@ -883,13 +883,7 @@ app.listen(PORT, async () => {
        },
        {
          type: 'button',
-         text: { type: 'plain_text', text: '❌  Nahi hua', emoji: true },
-         action_id: 'not_resolved_btn',
-         value: (problemText && problemText.length > 5 ? problemText : urgency).substring(0, 100)
-       },
-       {
-         type: 'button',
-         text: { type: 'plain_text', text: '🎫  IT Ticket', emoji: true },
+         text: { type: 'plain_text', text: '🎫  IT Ticket Banao', emoji: true },
          action_id: 'quick_ticket_btn',
          style: 'danger',
          value: urgency,
@@ -2808,10 +2802,17 @@ app.listen(PORT, async () => {
  if (kbReply) {
    const formattedKB = formatForSlack(kbReply);
 
-   // Only set pendingTickets for non-info replies (avoid stale ticket context for greetings/facts)
+   // isInfoOnly = informational reply, no troubleshooting → NO buttons shown
    // IMPORTANT: if KB reply says "type karo *ha*" it needs pendingTickets → NOT info-only
    const kbHasTicketAsk = /type\s*karo[:\s]*\*?ha(an|a|n)?\*?/i.test(kbReply);
-   const isInfoOnly = !kbHasTicketAsk && /spartans|kaun\s*hoon|Zivon|IT Admin|sajan kumar|khushi hui|koi baat nahi|theek hoon|IT problems mein help/i.test(kbReply);
+   const isInfoOnly = !kbHasTicketAsk && (
+     // Greetings, identity, thanks
+     /spartans|kaun\s*hoon|Zivon|IT Admin|sajan kumar|khushi hui|koi baat nahi|theek hoon|IT problems mein help|Hello.*Kya IT|Theek hoon/i.test(kbReply) ||
+     // Ticket status replies — no buttons needed, user just wanted info
+     /IT team ke paas hai|my tickets|Status dekhne|ticket.*resolve|same day resolve|priority mark/i.test(kbReply) ||
+     // Resolved confirm
+     /Khushi hui.*resolve|resolve ho gaya|Great.*resolve/i.test(kbReply)
+   );
    if (!isInfoOnly) {
      pendingTickets.set(userId, {
        empId: emp.empId, empName: emp.empName, empEmail: emp.email || 'unknown@wiom.in',
@@ -2891,9 +2892,16 @@ app.listen(PORT, async () => {
 
  // Build blocks: script FIRST → answer → ticket button ALWAYS
  // Use current message (text) for script detection — NOT recentUserText (avoids old WiFi context bleeding in)
- // Info-only = purely informational, user doesn't need to act (greeting, resolved confirm, identity)
- // NEVER info-only if shouldCreateTicket = true — user needs to type "ha" to confirm
- const isInfoOnly = !shouldCreateTicket && /khushi hui|koi baat nahi|theek hoon|aur koi.*IT help|IT problems mein help|Main Zivon|Zivon hoon|koi aur cheez/i.test(reply);
+ // Info-only = informational, no troubleshooting → NO buttons
+ // NEVER info-only if shouldCreateTicket = true (user must confirm with "ha")
+ const isInfoOnly = !shouldCreateTicket && (
+   // Greeting / identity / thanks
+   /khushi hui|koi baat nahi|theek hoon|aur koi.*IT help|IT problems mein help|Main Zivon|Zivon hoon|koi aur cheez|Kya IT problem/i.test(reply) ||
+   // Ticket status / info queries
+   /IT team ke paas|my tickets|Status dekhne|ticket.*resolve|same day|priority mark/i.test(reply) ||
+   // Resolved celebrations
+   /resolve ho gaya|Great.*resolve|sahi ho gaya.*Koi aur/i.test(reply)
+ );
 
  // Only set pendingTickets for actionable replies (avoid stale ticket context for greetings/facts)
  if (!isInfoOnly) {
