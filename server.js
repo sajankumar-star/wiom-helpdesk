@@ -846,42 +846,59 @@ app.listen(PORT, async () => {
      .trim();
  };
 
- // ── Build DM response blocks — ChatGPT-style: clean answer + script + action row ──
- const buildDMBlocks = (problemText, formattedAnswer, urgency = 'Medium') => {
+ // ── Detect reply mode — decides which buttons (if any) to show ───────────────
+ // 'question' → AI asked a diagnostic question, no buttons needed yet
+ // 'ticket'   → AI wants user to confirm ticket with "ha"
+ // 'steps'    → AI gave actual fix steps, show Ho gaya + Ticket
+ const detectReplyMode = (reply, shouldCreateTicket) => {
+   if (shouldCreateTicket) return 'ticket';
+   const lines = reply.trim().split('\n').filter(l => l.trim());
+   const hasNumberedSteps = /^\d+[\.\)]\s/m.test(reply);
+   const hasBullets = /^[•\-\*]\s/m.test(reply);
+   const hasSteps = hasNumberedSteps || hasBullets || lines.length >= 4;
+   // Question mode: short reply, ends with ?, no steps
+   const isQuestion = !hasSteps && /\?/.test(reply) && lines.length <= 3;
+   return isQuestion ? 'question' : 'steps';
+ };
+
+ // ── Build DM response blocks — smart: no buttons for questions, buttons for steps ──
+ const buildDMBlocks = (problemText, formattedAnswer, urgency = 'Medium', mode = 'steps') => {
    const blocks = [];
 
-   // 1️⃣ ANSWER TEXT — clean, like ChatGPT's response bubble
+   // 1️⃣ ANSWER TEXT
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: formattedAnswer } });
 
-   // 2️⃣ SCRIPT BUTTON — shown below answer if available (one-click fix)
-   const script = getScriptForText(problemText);
-   if (script) {
+   // 2️⃣ SCRIPT BUTTON — only for steps mode (not for questions or ticket confirms)
+   if (mode === 'steps') {
+     const script = getScriptForText(problemText);
+     if (script) {
+       blocks.push({
+         type: 'actions',
+         elements: [{
+           type: 'button',
+           text: { type: 'plain_text', text: `⬇️ ${script.label}`, emoji: true },
+           url: `${PORTAL}/scripts/${script.file}`,
+           action_id: 'script_download_btn',
+           style: 'primary',
+           value: (problemText || '').substring(0, 100)
+         }]
+       });
+     }
+   }
+
+   // 3️⃣ ACTION BUTTONS — based on mode
+   if (mode === 'question') {
+     // AI is asking a diagnostic question — no buttons, wait for user reply
+     return blocks;
+   }
+
+   blocks.push({ type: 'divider' });
+
+   if (mode === 'ticket') {
+     // Only ticket confirm button
      blocks.push({
        type: 'actions',
        elements: [{
-         type: 'button',
-         text: { type: 'plain_text', text: `⬇️ ${script.label}`, emoji: true },
-         url: `${PORTAL}/scripts/${script.file}`,
-         action_id: 'script_download_btn',
-         style: 'primary',
-         value: (problemText || '').substring(0, 100)
-       }]
-     });
-   }
-
-   // 3️⃣ FEEDBACK ROW — clean like ChatGPT's thumbs up/down row
-   blocks.push({ type: 'divider' });
-   blocks.push({
-     type: 'actions',
-     elements: [
-       {
-         type: 'button',
-         text: { type: 'plain_text', text: '✅  Ho gaya!', emoji: true },
-         action_id: 'resolved_yes_btn',
-         style: 'primary',
-         value: urgency
-       },
-       {
          type: 'button',
          text: { type: 'plain_text', text: '🎫  IT Ticket Banao', emoji: true },
          action_id: 'quick_ticket_btn',
@@ -889,13 +906,40 @@ app.listen(PORT, async () => {
          value: urgency,
          confirm: {
            title: { type: 'plain_text', text: 'Ticket Create Karein?' },
-           text: { type: 'mrkdwn', text: '_IT team ko alert bheja jayega — woh directly aapke paas aayegi._' },
+           text: { type: 'mrkdwn', text: '_IT team ko alert bheja jayega — woh directly fix karegi._' },
            confirm: { type: 'plain_text', text: '✅ Ha, Banao!' },
            deny: { type: 'plain_text', text: 'Ruko' }
          }
-       }
-     ]
-   });
+       }]
+     });
+   } else {
+     // Steps mode — Ho gaya + Ticket
+     blocks.push({
+       type: 'actions',
+       elements: [
+         {
+           type: 'button',
+           text: { type: 'plain_text', text: '✅  Ho gaya!', emoji: true },
+           action_id: 'resolved_yes_btn',
+           style: 'primary',
+           value: urgency
+         },
+         {
+           type: 'button',
+           text: { type: 'plain_text', text: '🎫  IT Ticket Banao', emoji: true },
+           action_id: 'quick_ticket_btn',
+           style: 'danger',
+           value: urgency,
+           confirm: {
+             title: { type: 'plain_text', text: 'Ticket Create Karein?' },
+             text: { type: 'mrkdwn', text: '_IT team ko alert bheja jayega — woh directly fix karegi._' },
+             confirm: { type: 'plain_text', text: '✅ Ha, Banao!' },
+             deny: { type: 'plain_text', text: 'Ruko' }
+           }
+         }
+       ]
+     });
+   }
 
    return blocks;
  };
@@ -2575,92 +2619,160 @@ app.listen(PORT, async () => {
  }
  }
 
- // ── Vague laptop/wifi/problem message → show quick-select buttons ──
+ // ── Vague message → show issue sub-category picker ──────────────────────────
  const vaguePatterns = [
- { regex: /^(laptop\s*(not\s*working|kharab|kaam\s*nahi|issue|problem|hang|slow|band|on\s*nahi|nahi\s*chal|theek\s*nahi|kuch\s*ho\s*gaya|bhot\s*slow|dead|crash)|laptop$)/i,
- type: 'laptop' },
- { regex: /^(wifi\s*(nahi|not|issue|problem|kharab|kaam\s*nahi|nahi\s*chal|disconnect)|internet\s*(nahi|not|slow|issue|kharab)|network\s*(issue|problem|nahi))/i,
- type: 'wifi' },
- { regex: /^(software\s*(issue|problem|nahi|not)|app\s*(crash|not|nahi|issue)|teams\s*(nahi|not|issue)|outlook\s*(nahi|not|issue)|windows\s*(issue|problem))/i,
- type: 'software' },
- { regex: /^(password\s*(bhool|forgot|reset|issue|nahi\s*pata)|account\s*(locked|issue|nahi)|login\s*(nahi|issue|problem))/i,
- type: 'account' },
+   // Screen / Display issues — catches blinking, biling (typo), flickering, black etc.
+   { regex: /screen\s*(biling|blink|flicker|jhal|kaamp|vibrat|problem|issue|nahi|black|kali|dim|dark|line)|display\s*(problem|issue|nahi|flicker|blink)|monitor\s*(issue|problem|nahi)/i, type: 'screen' },
+   // Laptop general
+   { regex: /^(laptop\s*(not\s*working|kharab|kaam\s*nahi|issue|problem|hang|slow|band|on\s*nahi|nahi\s*chal|theek\s*nahi|kuch\s*ho\s*gaya|bhot\s*slow|dead|crash)|laptop$)/i, type: 'laptop' },
+   // WiFi / Internet
+   { regex: /^(wifi\s*(nahi|not|issue|problem|kharab|kaam\s*nahi|nahi\s*chal|disconnect)|internet\s*(nahi|not|slow|issue|kharab)|network\s*(issue|problem|nahi))/i, type: 'wifi' },
+   // Audio / Sound
+   { regex: /sound\s*(nahi|not|issue|band|kaam\s*nahi)|audio\s*(nahi|not|issue)|speaker\s*(nahi|issue|problem)|awaaz\s*(nahi|band|problem)|headphone\s*(nahi|issue)/i, type: 'audio' },
+   // Battery / Charging
+   { regex: /batter[yi]?\s*(nahi|not|issue|drain|low|khatam|problem)|charg\s*(nahi|not|issue|stuck)|laptop\s*(charg|battery)/i, type: 'battery' },
+   // Keyboard / Mouse
+   { regex: /keyboard\s*(nahi|not|issue|kaam\s*nahi)|keys?\s*(nahi|stuck|issue)|typing\s*(nahi|issue)|mouse\s*(nahi|not|issue|stuck)|touchpad\s*(nahi|issue)/i, type: 'keyboard' },
+   // Software / Apps
+   { regex: /^(software\s*(issue|problem|nahi|not)|app\s*(crash|not|nahi|issue)|teams\s*(nahi|not|issue)|outlook\s*(nahi|not|issue)|windows\s*(issue|problem))/i, type: 'software' },
+   // Account / Password
+   { regex: /^(password\s*(bhool|forgot|reset|issue|nahi\s*pata)|account\s*(locked|issue|nahi)|login\s*(nahi|issue|problem))/i, type: 'account' },
  ];
 
  const vagueMatch = vaguePatterns.find(p => p.regex.test(text.trim()));
 
  if (vagueMatch) {
- const quickButtons = {
- laptop: [
- { text: "Won't Turn On", val: 'wont_turn_on' },
- { text: 'Very Slow', val: 'laptop_slow' },
- { text: 'Screen Black', val: 'screen_black' },
- { text: 'Blue Screen', val: 'blue_screen' },
- { text: 'Freezing/Hanging', val: 'freezing' },
- { text: 'Battery Issue', val: 'battery' },
- { text: 'Overheating', val: 'overheat' },
- { text: 'Something Else', val: 'laptop_other' },
- ],
- wifi: [
- { text: 'WiFi Not Connecting', val: 'wifi_not_connect' },
- { text: 'Very Slow Internet', val: 'internet_slow' },
- { text: 'WiFi Keeps Dropping', val: 'wifi_drop' },
- { text: 'Website Not Opening', val: 'website_blocked' },
- ],
- software: [
- { text: 'Teams Not Working', val: 'teams_issue' },
- { text: 'Outlook Issue', val: 'outlook_issue' },
- { text: 'App Crashing', val: 'app_crash' },
- { text: 'Windows Update Stuck', val: 'windows_update' },
- { text: 'Something Else', val: 'software_other' },
- ],
- account: [
- { text: 'Forgot Password', val: 'password_reset' },
- { text: 'Account Locked', val: 'account_locked' },
- { text: 'Email Password', val: 'email_password' },
- { text: '2FA / OTP Issue', val: 'otp_issue' },
- ],
- };
+   const quickButtons = {
+     screen: [
+       { text: '📺 Screen Black', val: 'screen_black' },
+       { text: '💫 Blinking/Flickering', val: 'screen_flicker' },
+       { text: '🔆 Too Dark/Dim', val: 'screen_dim' },
+       { text: '🌈 Color/Lines Issue', val: 'screen_color' },
+       { text: '🖥️ No Display at All', val: 'screen_no_display' },
+       { text: '💙 Blue Screen Error', val: 'blue_screen' },
+     ],
+     laptop: [
+       { text: "💀 Won't Turn On", val: 'wont_turn_on' },
+       { text: '🐢 Very Slow', val: 'laptop_slow' },
+       { text: '📺 Screen Black', val: 'screen_black' },
+       { text: '💙 Blue Screen', val: 'blue_screen' },
+       { text: '🧊 Freezing/Hanging', val: 'freezing' },
+       { text: '🔋 Battery Issue', val: 'battery_issue' },
+       { text: '🌡️ Overheating', val: 'overheat' },
+       { text: '❓ Something Else', val: 'laptop_other' },
+     ],
+     wifi: [
+       { text: '📵 Not Connecting', val: 'wifi_not_connect' },
+       { text: '🐌 Very Slow', val: 'internet_slow' },
+       { text: '🔄 Keeps Dropping', val: 'wifi_drop' },
+       { text: '🔒 Website Blocked', val: 'website_blocked' },
+     ],
+     audio: [
+       { text: '🔇 No Sound at All', val: 'sound_none' },
+       { text: '🎧 Headphone Issue', val: 'sound_headphone' },
+       { text: '🎤 Mic Not Working', val: 'mic_issue' },
+       { text: '📢 Sound Distorted', val: 'sound_distorted' },
+     ],
+     battery: [
+       { text: '🔌 Not Charging', val: 'battery_not_charging' },
+       { text: '⚡ Draining Fast', val: 'battery_drain' },
+       { text: '0️⃣ Stuck at 0%', val: 'battery_stuck' },
+       { text: '🔋 Battery Dead', val: 'battery_dead' },
+     ],
+     keyboard: [
+       { text: '⌨️ Keys Not Working', val: 'keys_not_working' },
+       { text: '🔠 Wrong Characters', val: 'keys_wrong' },
+       { text: '🖱️ Mouse/Touchpad Issue', val: 'touchpad_issue' },
+       { text: '🔢 NumLock Issue', val: 'numlock_issue' },
+     ],
+     software: [
+       { text: '📹 Teams Not Working', val: 'teams_issue' },
+       { text: '📧 Outlook Issue', val: 'outlook_issue' },
+       { text: '💥 App Crashing', val: 'app_crash' },
+       { text: '🔄 Windows Update', val: 'windows_update' },
+       { text: '❓ Something Else', val: 'software_other' },
+     ],
+     account: [
+       { text: '🔑 Forgot Password', val: 'password_reset' },
+       { text: '🔒 Account Locked', val: 'account_locked' },
+       { text: '📧 Email Password', val: 'email_password' },
+       { text: '📱 2FA / OTP Issue', val: 'otp_issue' },
+     ],
+   };
 
- const vagueAIMap = {
- wont_turn_on: "laptop won't turn on", laptop_slow: 'laptop very slow',
- screen_black: 'laptop screen black', blue_screen: 'laptop blue screen error',
- freezing: 'laptop freezing and hanging', battery: 'laptop battery not charging',
- overheat: 'laptop overheating', laptop_other: 'laptop hardware issue',
- wifi_not_connect: 'wifi not connecting', internet_slow: 'internet very slow',
- wifi_drop: 'wifi keeps disconnecting', website_blocked: 'website not opening',
- teams_issue: 'Microsoft Teams not working', outlook_issue: 'Outlook not working',
- app_crash: 'app crashing', windows_update: 'windows update stuck',
- software_other: 'software issue', password_reset: 'forgot laptop password',
- account_locked: 'account locked', email_password: 'email password reset',
- otp_issue: '2FA OTP not received',
- printer: 'printer not working', create_ticket: 'create ticket',
- };
+   const vagueAIMap = {
+     screen_black: 'laptop screen completely black not showing anything',
+     screen_flicker: 'screen blinking flickering constantly',
+     screen_dim: 'screen too dark dim cannot see properly',
+     screen_color: 'screen showing wrong colors or lines',
+     screen_no_display: 'screen shows nothing no display at all',
+     wont_turn_on: "laptop won't turn on at all",
+     laptop_slow: 'laptop very slow hanging',
+     blue_screen: 'laptop blue screen BSOD error',
+     freezing: 'laptop freezing and hanging',
+     battery_issue: 'laptop battery or charging issue',
+     battery_not_charging: 'laptop battery not charging at all',
+     battery_drain: 'laptop battery draining too fast backup very low',
+     battery_stuck: 'laptop battery stuck at 0 percent not charging',
+     battery_dead: 'laptop battery completely dead not working',
+     overheat: 'laptop overheating getting very hot',
+     laptop_other: 'laptop hardware issue not specified',
+     wifi_not_connect: 'wifi not connecting at all',
+     internet_slow: 'internet very slow speed problem',
+     wifi_drop: 'wifi keeps disconnecting dropping frequently',
+     website_blocked: 'website not opening blocked',
+     sound_none: 'no sound at all from speakers',
+     sound_headphone: 'headphone not working no audio in headphone',
+     mic_issue: 'microphone not working in Teams Zoom',
+     sound_distorted: 'sound is distorted crackling bad quality',
+     keys_not_working: 'keyboard keys not working not typing',
+     keys_wrong: 'keyboard typing wrong characters',
+     touchpad_issue: 'mouse touchpad not working cursor stuck',
+     numlock_issue: 'numlock numpad not working',
+     teams_issue: 'Microsoft Teams not working crashing',
+     outlook_issue: 'Outlook not working email issue',
+     app_crash: 'app crashing not opening',
+     windows_update: 'windows update stuck failing',
+     software_other: 'software app issue not specified',
+     password_reset: 'forgot laptop Windows password',
+     account_locked: 'account locked cannot login',
+     email_password: 'email Google account password reset',
+     otp_issue: '2FA OTP not received',
+   };
 
- const btns = quickButtons[vagueMatch.type] || [];
- // Split into rows of 4
- const rows = [];
- for (let i = 0; i < btns.length; i += 4) rows.push(btns.slice(i, i + 4));
+   const categoryLabels = {
+     screen: '🖥️ Screen/Display',
+     laptop: '💻 Laptop',
+     wifi: '📶 WiFi / Internet',
+     audio: '🔊 Sound / Audio',
+     battery: '🔋 Battery / Charging',
+     keyboard: '⌨️ Keyboard / Mouse',
+     software: '⚙️ Software / App',
+     account: '🔑 Account / Password',
+   };
 
- const blocks = [
- { type: 'section', text: { type: 'mrkdwn', text: `*🤔 Kya problem aa rahi hai exactly?* Select karo — Zivon turant help karega:` }},
- ];
- rows.forEach(row => {
- blocks.push({
- type: 'actions',
- elements: row.map(b => ({
- type: 'button',
- text: { type: 'plain_text', text: b.text, emoji: true },
- action_id: `vague_pick_${b.val}`,
- value: vagueAIMap[b.val] || b.text,
- }))
- });
- });
+   const btns = quickButtons[vagueMatch.type] || [];
+   const rows = [];
+   for (let i = 0; i < btns.length; i += 4) rows.push(btns.slice(i, i + 4));
 
- await say({ text: 'Zivon: Kya problem hai? Select karo:', blocks });
+   const label = categoryLabels[vagueMatch.type] || 'Issue';
+   const blocks = [
+     { type: 'section', text: { type: 'mrkdwn', text: `*${label} — exact problem select karo:*\n_Zivon directly fix + script dega 👇_` } },
+   ];
+   rows.forEach(row => {
+     blocks.push({
+       type: 'actions',
+       elements: row.map(b => ({
+         type: 'button',
+         text: { type: 'plain_text', text: b.text, emoji: true },
+         action_id: `vague_pick_${b.val}`,
+         value: vagueAIMap[b.val] || b.text,
+       }))
+     });
+   });
 
- // Register handlers for these vague-pick actions (once per server start — use regex)
- return;
+   await say({ text: `${label} — exact problem batao:`, blocks });
+   return;
  }
 
  // ── Catch-all: completely vague short messages → show category buttons ──
@@ -2879,9 +2991,10 @@ app.listen(PORT, async () => {
    }
 
    // Build blocks: script FIRST → answer → ticket button ALWAYS
+   const kbMode = detectReplyMode(kbReply, kbHasTicketAsk);
    const kbBlocks = isInfoOnly
      ? [{ type:'section', text:{ type:'mrkdwn', text: formattedKB }}]
-     : buildDMBlocks(text, formattedKB);
+     : buildDMBlocks(text, formattedKB, 'Medium', kbMode);
 
    // Update "Checking..." → actual KB answer (delete first if update fails to avoid double message)
    try {
@@ -2970,9 +3083,10 @@ app.listen(PORT, async () => {
      createdAt: Date.now()
    });
  }
+ const replyMode = detectReplyMode(reply, shouldCreateTicket);
  const blocks = isInfoOnly
    ? [{ type:'section', text:{ type:'mrkdwn', text: formattedReply }}]
-   : buildDMBlocks(text, formattedReply, ticketData?.priority || autoPriority);
+   : buildDMBlocks(text, formattedReply, ticketData?.priority || autoPriority, replyMode);
 
  // Replace "Checking issue..." with actual reply (delete first if update fails to avoid double message)
  try {
