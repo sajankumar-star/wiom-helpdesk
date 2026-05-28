@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>WIOM IT Helpdesk · Zivon AI</title>
+<title>WIOM IT Helpdesk Â· Zivon AI</title>
 <link rel="icon" href="/wiom-logo.webp" type="image/webp"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"/>
@@ -28,7 +28,7 @@
 
 body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh;overflow:hidden;}
 
-/* ══ LOGIN ══ */
+/* â•â• LOGIN â•â• */
 #loginPage{
   position:fixed;inset:0;display:flex;justify-content:center;align-items:center;
   background:radial-gradient(ellipse 90% 70% at 50% 0%,rgba(232,25,125,0.13),transparent 65%);
@@ -87,12 +87,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   padding:10px;background:rgba(248,113,113,0.08);border-radius:10px;border:1px solid rgba(248,113,113,0.2);}
 .login-footer{text-align:center;margin-top:20px;font-size:11px;color:var(--muted);}
 
-/* ══ APP SHELL ══ */
+/* â•â• APP SHELL â•â• */
 #app{display:none;height:100vh;flex-direction:column;}
 #app.show{display:flex;animation:appIn .4s ease both;}
 @keyframes appIn{from{opacity:0;}to{opacity:1;}}
 
-/* ══ TOP BAR ══ */
+/* â•â• TOP BAR â•â• */
 .topbar{
   display:flex;align-items:center;justify-content:space-between;
   padding:10px 20px;border-bottom:1px solid rgba(232,25,125,0.08);
@@ -127,10 +127,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   font-family:var(--font);transition:all var(--transition);}
 .btn-sm:hover{border-color:rgba(248,113,113,0.3);color:var(--danger);}
 
-/* ══ BODY ROW ══ */
+/* â•â• BODY ROW â•â• */
 .body-row{display:flex;flex:1;overflow:hidden;}
 
-/* ══ SIDEBAR ══ */
+/* â•â• SIDEBAR â•â• */
 .sidebar{
   width:var(--sidebar);min-width:var(--sidebar);
   background:rgba(8,2,8,0.75);
@@ -215,10 +215,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   font-size:11px;color:var(--muted);text-align:center;line-height:1.6;
 }
 
-/* ══ CHAT AREA ══ */
+/* â•â• CHAT AREA â•â• */
 .chat-area{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
 
-/* ── ChatGPT-style Messages Container ── */
+/* â”€â”€ ChatGPT-style Messages Container â”€â”€ */
 .chat-messages{
   flex:1;overflow-y:auto;
   padding:24px 0;
@@ -229,10 +229,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .chat-messages::-webkit-scrollbar{width:4px;}
 .chat-messages::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:4px;}
 
-/* ── ChatGPT-style message rows ── */
+/* â”€â”€ ChatGPT-style message rows â”€â”€ */
 @keyframes msgIn{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 
-/* Bot message row — full width, no bubble bg */
+/* Bot message row â€” full width, no bubble bg */
 .msg-row.gpt-bot{
   width:100%;
   padding:12px 0;
@@ -269,7 +269,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .gpt-text em{font-style:italic;color:var(--muted2);}
 .gpt-text code{background:rgba(255,255,255,0.1);padding:1px 6px;border-radius:4px;font-family:monospace;font-size:13px;}
 
-/* User message row — right aligned bubble */
+/* User message row â€” right aligned bubble */
 .msg-row.gpt-user{
   width:100%;
   padding:12px 0;
@@ -289,7 +289,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   word-break:break-word;
 }
 
-/* System message — centered */
+/* System message â€” centered */
 .msg-row.gpt-system{
   width:100%;
   padding:4px 0;
@@ -304,7 +304,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   border-radius:20px;padding:5px 18px;
 }
 
-/* ── Streaming cursor ── */
+/* â”€â”€ Streaming cursor â”€â”€ */
 .stream-cursor{
   display:inline-block;width:2px;height:1.1em;
   background:var(--bot-text);border-radius:1px;
@@ -313,7 +313,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 }
 @keyframes cursor-blink{0%,100%{opacity:1;}50%{opacity:0;}}
 
-/* ── Typing indicator ── */
+/* â”€â”€ Typing indicator â”€â”€ */
 .typing-row{
   width:100%;
   padding:12px 0;
@@ -357,7 +357,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   font-size:13px;cursor:pointer;font-family:var(--font);transition:all var(--transition);}
 .tkt-no:hover{border-color:rgba(248,113,113,0.3);color:var(--danger);}
 
-/* ── QUICK CHIPS ── */
+/* â”€â”€ QUICK CHIPS â”€â”€ */
 .chips-bar{
   padding:10px 20px 8px;border-top:1px solid rgba(255,255,255,0.06);
   display:flex;flex-wrap:wrap;gap:6px;
@@ -373,7 +373,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .chip:hover{background:rgba(232,25,125,0.12);border-color:rgba(232,25,125,0.35);color:var(--pink);transform:translateY(-1px);}
 .chip:active{transform:translateY(0);}
 
-/* ── CONTEXT BAR ── */
+/* â”€â”€ CONTEXT BAR â”€â”€ */
 .ctx-bar{
   padding:5px 20px;background:var(--chat-bg);border-top:1px solid rgba(255,255,255,0.06);
   display:flex;align-items:center;justify-content:space-between;
@@ -386,7 +386,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   transition:color var(--transition);}
 .ctx-clear:hover{color:var(--danger);}
 
-/* ── EMPTY STATE — ChatGPT style ── */
+/* â”€â”€ EMPTY STATE â€” ChatGPT style â”€â”€ */
 .empty-chat{
   flex:1;display:flex;flex-direction:column;align-items:center;
   justify-content:center;padding:40px 30px;gap:20px;text-align:center;
@@ -405,7 +405,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .empty-chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:4px;}
 .empty-chips .chip{font-size:13px;padding:8px 16px;border-radius:12px;}
 
-/* ── INPUT BAR — ChatGPT style ── */
+/* â”€â”€ INPUT BAR â€” ChatGPT style â”€â”€ */
 .input-row{
   padding:12px 24px 16px;
   background:var(--chat-bg);
@@ -457,7 +457,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .send-btn.loading{animation:spin .6s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
-/* ── TICKET FULL VIEW ── */
+/* â”€â”€ TICKET FULL VIEW â”€â”€ */
 .ticket-full-card{
   background:linear-gradient(145deg,rgba(26,13,20,0.7),rgba(17,8,16,0.8));
   border:1px solid rgba(232,25,125,0.1);border-radius:14px;
@@ -484,7 +484,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   display:flex;align-items:center;gap:4px;
 }
 
-/* ── TALK TO HUMAN ── */
+/* â”€â”€ TALK TO HUMAN â”€â”€ */
 .human-btn{
   padding:6px 12px;border-radius:9px;border:1px solid rgba(251,191,36,0.35);
   background:rgba(251,191,36,0.08);color:#fbbf24;font-size:12px;font-weight:600;
@@ -510,7 +510,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 .human-escalate-btn:hover{transform:translateY(-1px);box-shadow:0 4px 16px rgba(251,191,36,0.35);}
 .human-escalate-btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
 
-/* ── SEARCH BAR ── */
+/* â”€â”€ SEARCH BAR â”€â”€ */
 .search-wrap{
   display:flex;align-items:center;gap:8px;
   background:var(--surface2);border:1px solid var(--border);border-radius:11px;
@@ -544,12 +544,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 #lightbox.open{display:flex;}
 #lightbox img{max-width:90vw;max-height:90vh;border-radius:12px;box-shadow:0 0 80px rgba(0,0,0,0.8);}
 
-/* ── SCROLLBAR ── */
+/* â”€â”€ SCROLLBAR â”€â”€ */
 ::-webkit-scrollbar{width:4px;height:4px;}
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:4px;}
 
-/* ── DIAG BANNER ── */
+/* â”€â”€ DIAG BANNER â”€â”€ */
 .diag-banner{
   margin:0 20px 14px;padding:12px 16px;
   background:rgba(232,25,125,0.06);border:1px solid rgba(232,25,125,0.2);
@@ -565,14 +565,14 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   box-shadow:0 2px 12px rgba(232,25,125,0.35);transition:all var(--transition);}
 .diag-btn:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(232,25,125,0.5);}
 
-/* ── SIDEBAR TOGGLE (mobile) ── */
+/* â”€â”€ SIDEBAR TOGGLE (mobile) â”€â”€ */
 .sb-toggle{display:none;background:none;border:none;color:var(--muted2);font-size:18px;cursor:pointer;padding:4px 8px;}
 @media(max-width:680px){.sb-toggle{display:block;}}
 
 /* Overflow ellipsis */
 .ellipsis{overflow:hidden;white-space:nowrap;text-overflow:ellipsis;max-width:160px;}
 
-/* ── CATEGORY CARDS ── */
+/* â”€â”€ CATEGORY CARDS â”€â”€ */
 .cat-card{
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:5px;padding:10px 6px;border-radius:12px;cursor:pointer;font-family:var(--font);
@@ -593,7 +593,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   transition:color var(--transition);}
 .cat-card:hover .cat-label{color:var(--text);}
 
-/* ── SLACK-STYLE BUTTONS ── */
+/* â”€â”€ SLACK-STYLE BUTTONS â”€â”€ */
 .slack-btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
 .slack-cat-btn{
   padding:8px 16px;border-radius:6px;border:1px solid rgba(255,255,255,0.2);
@@ -629,7 +629,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 }
 .slack-back-btn:hover{border-color:rgba(255,255,255,0.25);color:var(--text);}
 
-/* ── MOBILE ── */
+/* â”€â”€ MOBILE â”€â”€ */
 @media(max-width:680px){
   :root{--sidebar:0px;}
   .sidebar{display:none;}
@@ -641,41 +641,41 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
+<!-- â•â• LOGIN â•â• -->
 <div id="loginPage">
   <div class="login-card">
     <div class="login-logo">
       <div class="logo-ring">
-        <img src="/wiom-logo.webp" alt="WIOM" onerror="this.outerHTML='<span style=\'font-size:28px\'>🛠️</span>'"/>
+        <img src="/wiom-logo.webp" alt="WIOM" onerror="this.outerHTML='<span style=\'font-size:28px\'>ðŸ› ï¸</span>'"/>
       </div>
       <div class="brand-name"><span>Z</span>ivon AI</div>
-      <div class="brand-sub">WIOM IT Helpdesk · Gurgaon Office</div>
+      <div class="brand-sub">WIOM IT Helpdesk Â· Gurgaon Office</div>
     </div>
     <h2>Employee Login</h2>
-    <p class="sub">Apni Employee ID daalo — Zivon turant madad karega! ⚡</p>
+    <p class="sub">Apni Employee ID daalo â€” Zivon turant madad karega! âš¡</p>
     <div class="inp-wrap">
-      <span class="inp-icon">🪪</span>
+      <span class="inp-icon">ðŸªª</span>
       <input type="text" id="empIdInput" placeholder="Employee ID  (e.g. 1234567)" maxlength="10" autocomplete="off"/>
     </div>
     <div class="inp-wrap">
-      <span class="inp-icon">👤</span>
+      <span class="inp-icon">ðŸ‘¤</span>
       <input type="text" id="empNameInput" placeholder="Aapka Naam (agar pehli baar)"/>
     </div>
-    <button class="btn-login" onclick="doLogin()">⚡ Login &amp; Start</button>
+    <button class="btn-login" onclick="doLogin()">âš¡ Login &amp; Start</button>
     <div class="err" id="loginErr"></div>
-    <div class="login-footer">WIOM Internet Services · IT Support: 9654244281</div>
+    <div class="login-footer">WIOM Internet Services Â· IT Support: 9654244281</div>
   </div>
 </div>
 
-<!-- ══ APP ══ -->
+<!-- â•â• APP â•â• -->
 <div id="app">
 
   <!-- Top bar -->
   <div class="topbar">
     <div class="tb-left">
-      <button class="sb-toggle" onclick="toggleSidebar()">☰</button>
+      <button class="sb-toggle" onclick="toggleSidebar()">â˜°</button>
       <div class="tb-logo">
-        <img src="/wiom-logo.webp" alt="WIOM" onerror="this.outerHTML='🛠️'"/>
+        <img src="/wiom-logo.webp" alt="WIOM" onerror="this.outerHTML='ðŸ› ï¸'"/>
       </div>
       <div>
         <div class="tb-title"><span>Z</span>ivon AI Helpdesk</div>
@@ -684,7 +684,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
     </div>
     <div class="tb-right">
       <div class="ai-badge">AI Online</div>
-      <div class="emp-chip" id="empChip">—</div>
+      <div class="emp-chip" id="empChip">â€”</div>
       <button class="btn-sm" onclick="doLogout()">Logout</button>
     </div>
   </div>
@@ -692,7 +692,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
   <!-- Body -->
   <div class="body-row">
 
-    <!-- ── Sidebar ── -->
+    <!-- â”€â”€ Sidebar â”€â”€ -->
     <div class="sidebar" id="sidebar">
 
       <!-- Employee Card -->
@@ -700,8 +700,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
         <div class="emp-card-top">
           <div class="emp-avatar" id="sbAvatar">?</div>
           <div>
-            <div class="emp-name" id="sbName">—</div>
-            <div class="emp-id" id="sbId">—</div>
+            <div class="emp-name" id="sbName">â€”</div>
+            <div class="emp-id" id="sbId">â€”</div>
           </div>
         </div>
         <div class="emp-meta" id="sbMeta"></div>
@@ -712,10 +712,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
         <div class="sb-label">Navigation</div>
         <div class="qa-grid">
           <button class="qa-btn active" id="navChat" onclick="switchView('chat',this)">
-            <span class="qa-icon">💬</span> AI Chat
+            <span class="qa-icon">ðŸ’¬</span> AI Chat
           </button>
           <button class="qa-btn" id="navTickets" onclick="switchView('tickets',this)">
-            <span class="qa-icon">🎫</span> Mere Tickets
+            <span class="qa-icon">ðŸŽ«</span> Mere Tickets
             <span id="sbTktBadge" style="margin-left:auto;background:rgba(232,25,125,0.15);color:var(--pink);padding:1px 8px;border-radius:10px;font-size:10px;font-weight:700;"></span>
           </button>
         </div>
@@ -723,32 +723,32 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 
       <!-- Categories -->
       <div class="sb-section" style="margin-top:4px;">
-        <div class="sb-label">📂 Categories</div>
+        <div class="sb-label">ðŸ“‚ Categories</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;">
           <button class="cat-card" onclick="selectCategory('laptop')">
-            <span class="cat-icon">💻</span><span class="cat-label">Laptop</span>
+            <span class="cat-icon">ðŸ’»</span><span class="cat-label">Laptop</span>
           </button>
           <button class="cat-card" onclick="selectCategory('wifi')">
-            <span class="cat-icon">🌐</span><span class="cat-label">WiFi/Net</span>
+            <span class="cat-icon">ðŸŒ</span><span class="cat-label">WiFi/Net</span>
           </button>
           <button class="cat-card" onclick="selectCategory('software')">
-            <span class="cat-icon">⚙️</span><span class="cat-label">Software</span>
+            <span class="cat-icon">âš™ï¸</span><span class="cat-label">Software</span>
           </button>
           <button class="cat-card" onclick="selectCategory('password')">
-            <span class="cat-icon">🔑</span><span class="cat-label">Password</span>
+            <span class="cat-icon">ðŸ”‘</span><span class="cat-label">Password</span>
           </button>
           <button class="cat-card" onclick="selectCategory('screen')">
-            <span class="cat-icon">🖥️</span><span class="cat-label">Screen</span>
+            <span class="cat-icon">ðŸ–¥ï¸</span><span class="cat-label">Screen</span>
           </button>
           <button class="cat-card" onclick="selectCategory('battery')">
-            <span class="cat-icon">🔋</span><span class="cat-label">Battery</span>
+            <span class="cat-icon">ðŸ”‹</span><span class="cat-label">Battery</span>
           </button>
         </div>
       </div>
 
       <!-- Recent Tickets -->
       <div class="sb-section" style="flex:1;overflow:hidden;display:flex;flex-direction:column;">
-        <div class="sb-label">🎫 Recent Tickets</div>
+        <div class="sb-label">ðŸŽ« Recent Tickets</div>
         <div class="tkt-mini-list" id="sbTickets">
           <div style="font-size:12px;color:var(--muted);text-align:center;padding:16px 0;">Loading...</div>
         </div>
@@ -756,24 +756,24 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 
       <div class="sb-footer">
         WIOM IT Helpdesk<br/>
-        📞 9654244281 · sajan.kumar@wiom.in
+        ðŸ“ž 9654244281 Â· sajan.kumar@wiom.in
       </div>
     </div>
 
-    <!-- ── Chat Area ── -->
+    <!-- â”€â”€ Chat Area â”€â”€ -->
     <div class="chat-area" id="chatView">
-      <!-- Messages only — no input bar -->
+      <!-- Messages only â€” no input bar -->
       <div class="chat-messages" id="chatMessages"></div>
     </div>
 
-    <!-- ── Tickets View ── -->
+    <!-- â”€â”€ Tickets View â”€â”€ -->
     <div class="chat-area" id="ticketsView" style="display:none;overflow-y:auto;padding:20px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <div style="font-size:16px;font-weight:700;">🎫 Mere Tickets</div>
-        <button onclick="loadMyTickets()" style="padding:7px 14px;background:var(--pink-soft);border:1px solid var(--border2);border-radius:9px;color:var(--pink);font-size:12px;cursor:pointer;font-family:var(--font);">🔄 Refresh</button>
+        <div style="font-size:16px;font-weight:700;">ðŸŽ« Mere Tickets</div>
+        <button onclick="loadMyTickets()" style="padding:7px 14px;background:var(--pink-soft);border:1px solid var(--border2);border-radius:9px;color:var(--pink);font-size:12px;cursor:pointer;font-family:var(--font);">ðŸ”„ Refresh</button>
       </div>
       <div id="ticketsList">
-        <div style="text-align:center;padding:40px;color:var(--muted);">⏳ Loading...</div>
+        <div style="text-align:center;padding:40px;color:var(--muted);">â³ Loading...</div>
       </div>
     </div>
 
@@ -789,7 +789,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);height:100vh
 let empData = {}, chatHistory = [], myTickets = [];
 let pendingScreenshot = null;
 
-// ── Markdown renderer ──
+// â”€â”€ Markdown renderer â”€â”€
 function renderMarkdown(text) {
   return text
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -801,7 +801,7 @@ function renderMarkdown(text) {
     .replace(/\n/g, '<br/>');
 }
 
-// ══ LOGIN ══
+// â•â• LOGIN â•â•
 document.getElementById('empIdInput').addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('empNameInput').focus(); });
 document.getElementById('empNameInput').addEventListener('keypress', e => { if(e.key==='Enter') doLogin(); });
 
@@ -811,11 +811,11 @@ async function doLogin() {
   if (!empId) { showErr('Employee ID daalo!'); return; }
 
   const btn = document.querySelector('.btn-login');
-  btn.textContent = '⏳ Login ho raha hai...';
+  btn.textContent = 'â³ Login ho raha hai...';
   btn.disabled = true;
 
   try {
-    const loginRes = await fetch(`${API}/api/auth/employee-login`, {
+    const loginRes = await fetch(`/api/auth/employee-login`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ empId })
     }).catch(() => null);
@@ -825,7 +825,7 @@ async function doLogin() {
       empData = { empId:d.empId, name:d.name||name, dept:d.dept, floor:d.floor,
                   email:d.email, laptop:d.laptop, laptopSN:d.laptopSN, token:d.token };
     } else {
-      if (!name) { showErr('Employee ID nahi mila. Naam bhi daalo.'); btn.textContent='⚡ Login & Start'; btn.disabled=false; return; }
+      if (!name) { showErr('Employee ID nahi mila. Naam bhi daalo.'); btn.textContent='âš¡ Login & Start'; btn.disabled=false; return; }
       empData = { empId, name, dept:'WIOM', floor:'', email:'', laptop:'', laptopSN:'', token:'' };
     }
 
@@ -839,13 +839,13 @@ async function doLogin() {
 
   } catch(e) {
     showErr('Server error. IT Helpdesk: 9654244281');
-    btn.textContent='⚡ Login & Start'; btn.disabled=false;
+    btn.textContent='âš¡ Login & Start'; btn.disabled=false;
   }
 }
 
 function showErr(msg) {
   const el = document.getElementById('loginErr');
-  el.textContent = '❌ ' + msg; el.style.display='block';
+  el.textContent = 'âŒ ' + msg; el.style.display='block';
 }
 
 function doLogout() {
@@ -859,26 +859,26 @@ function doLogout() {
   document.getElementById('empNameInput').value='';
   document.getElementById('loginErr').style.display='none';
   const btn = document.querySelector('.btn-login');
-  btn.textContent='⚡ Login & Start'; btn.disabled=false;
+  btn.textContent='âš¡ Login & Start'; btn.disabled=false;
   setTimeout(() => { document.getElementById('app').style.display=''; }, 10);
 }
 
-// ══ SIDEBAR ══
+// â•â• SIDEBAR â•â•
 function populateSidebar() {
   const initial = (empData.name||'U').split(' ').map(w=>w[0]).join('').toUpperCase().substring(0,2);
   document.getElementById('sbAvatar').textContent = initial;
-  document.getElementById('sbName').textContent = empData.name || '—';
-  document.getElementById('sbId').textContent = empData.empId || '—';
+  document.getElementById('sbName').textContent = empData.name || 'â€”';
+  document.getElementById('sbId').textContent = empData.empId || 'â€”';
   document.getElementById('empChip').textContent = initial + ' ' + (empData.name||'').split(' ')[0];
 
   const metaRows = [];
-  if (empData.dept)     metaRows.push(`<div class="emp-meta-row"><span>🏢</span>${empData.dept}</div>`);
-  if (empData.floor)    metaRows.push(`<div class="emp-meta-row"><span>📍</span>Floor ${empData.floor}</div>`);
-  if (empData.laptop)   metaRows.push(`<div class="emp-meta-row"><span>💻</span><span class="ellipsis">${empData.laptop}</span></div>`);
-  if (empData.laptopSN) metaRows.push(`<div class="emp-meta-row"><span>🔢</span><span style="font-family:monospace;font-size:10px;">${empData.laptopSN}</span></div>`);
+  if (empData.dept)     metaRows.push(`<div class="emp-meta-row"><span>ðŸ¢</span>${empData.dept}</div>`);
+  if (empData.floor)    metaRows.push(`<div class="emp-meta-row"><span>ðŸ“</span>Floor ${empData.floor}</div>`);
+  if (empData.laptop)   metaRows.push(`<div class="emp-meta-row"><span>ðŸ’»</span><span class="ellipsis">${empData.laptop}</span></div>`);
+  if (empData.laptopSN) metaRows.push(`<div class="emp-meta-row"><span>ðŸ”¢</span><span style="font-family:monospace;font-size:10px;">${empData.laptopSN}</span></div>`);
   document.getElementById('sbMeta').innerHTML = metaRows.join('');
 
-  document.getElementById('empInfoBar').textContent = [empData.dept, empData.floor ? 'Floor '+empData.floor : '', empData.laptop].filter(Boolean).join(' · ');
+  document.getElementById('empInfoBar').textContent = [empData.dept, empData.floor ? 'Floor '+empData.floor : '', empData.laptop].filter(Boolean).join(' Â· ');
 }
 
 function toggleSidebar() {
@@ -886,7 +886,7 @@ function toggleSidebar() {
   sb.style.display = sb.style.display === 'none' ? 'flex' : 'none';
 }
 
-// ══ VIEW SWITCH ══
+// â•â• VIEW SWITCH â•â•
 function switchView(view, btn) {
   ['navChat','navTickets'].forEach(id => document.getElementById(id)?.classList.remove('active'));
   if (btn && (btn.id === 'navChat' || btn.id === 'navTickets')) btn.classList.add('active');
@@ -898,7 +898,7 @@ function switchView(view, btn) {
   if (view==='tickets') loadMyTickets();
 }
 
-// ══ WELCOME / HOME ══
+// â•â• WELCOME / HOME â•â•
 function addWelcome() {
   showHome();
 }
@@ -908,78 +908,78 @@ const PORTAL = '';
 // Sub-categories map
 const SUB_CATS = {
   laptop: [
-    ['💻 Laptop Slow/Hang', 'Laptop bahut slow hai, hang ho raha hai, freeze ho jaata hai'],
-    ['🖥️ Screen Problem', 'Laptop ki screen mein problem hai'],
-    ['🔋 Battery Issue', 'Laptop battery nahi chal rahi ya jaldi khatam ho jaati hai'],
-    ['📷 Camera Nahi Chal Raha', 'Camera work nahi kar raha — Teams ya Zoom mein nahi aa raha pura setup bata do'],
-    ['🔊 Audio/Sound Nahi', 'Sound nahi aa raha, audio band hai, speaker kaam nahi kar raha'],
-    ['⌨️ Keyboard/Mouse', 'Keyboard ya mouse kaam nahi kar raha'],
-    ['⚡ Laptop On Nahi Ho Raha', 'Laptop start nahi ho raha, on nahi ho raha'],
-    ['🌡️ Laptop Garam Ho Raha', 'Laptop bahut garam ho raha hai, overheating hai'],
-    ['💙 Blue Screen Error', 'Blue screen aa raha hai, BSOD error'],
-    ['🖥️ Black Screen', 'Screen black ho gayi hai, display nahi aa rahi'],
+    ['ðŸ’» Laptop Slow/Hang', 'Laptop bahut slow hai, hang ho raha hai, freeze ho jaata hai'],
+    ['ðŸ–¥ï¸ Screen Problem', 'Laptop ki screen mein problem hai'],
+    ['ðŸ”‹ Battery Issue', 'Laptop battery nahi chal rahi ya jaldi khatam ho jaati hai'],
+    ['ðŸ“· Camera Nahi Chal Raha', 'Camera work nahi kar raha â€” Teams ya Zoom mein nahi aa raha pura setup bata do'],
+    ['ðŸ”Š Audio/Sound Nahi', 'Sound nahi aa raha, audio band hai, speaker kaam nahi kar raha'],
+    ['âŒ¨ï¸ Keyboard/Mouse', 'Keyboard ya mouse kaam nahi kar raha'],
+    ['âš¡ Laptop On Nahi Ho Raha', 'Laptop start nahi ho raha, on nahi ho raha'],
+    ['ðŸŒ¡ï¸ Laptop Garam Ho Raha', 'Laptop bahut garam ho raha hai, overheating hai'],
+    ['ðŸ’™ Blue Screen Error', 'Blue screen aa raha hai, BSOD error'],
+    ['ðŸ–¥ï¸ Black Screen', 'Screen black ho gayi hai, display nahi aa rahi'],
   ],
   wifi: [
-    ['📶 WiFi Nahi Chal Raha', 'WiFi nahi chal raha bilkul bhi, internet band hai'],
-    ['🐌 Internet Slow', 'Internet bahut slow chal raha hai'],
-    ['🔗 WiFi Connect Nahi Ho Raha', 'WiFi se connect nahi ho raha, password sahi hai par nahi lag raha'],
-    ['🌐 Website Open Nahi Ho Rahi', 'Website open nahi ho rahi, block ho rahi hai'],
-    ['🔑 WiFi Password Chahiye', 'WiFi ka password chahiye'],
+    ['ðŸ“¶ WiFi Nahi Chal Raha', 'WiFi nahi chal raha bilkul bhi, internet band hai'],
+    ['ðŸŒ Internet Slow', 'Internet bahut slow chal raha hai'],
+    ['ðŸ”— WiFi Connect Nahi Ho Raha', 'WiFi se connect nahi ho raha, password sahi hai par nahi lag raha'],
+    ['ðŸŒ Website Open Nahi Ho Rahi', 'Website open nahi ho rahi, block ho rahi hai'],
+    ['ðŸ”‘ WiFi Password Chahiye', 'WiFi ka password chahiye'],
   ],
   software: [
-    ['📹 Teams Problem', 'Microsoft Teams mein problem hai, nahi khul raha ya crash ho raha hai'],
-    ['📧 Outlook Problem', 'Outlook nahi khul raha ya email nahi aa rahi'],
-    ['💥 App Crash Ho Raha', 'Application crash ho rahi hai, band ho jaati hai'],
-    ['🦠 Virus/Malware', 'Laptop mein virus hai ya malware attack hua hai'],
-    ['💾 Storage Full', 'Laptop ki storage full ho gayi hai, jagah nahi hai'],
-    ['🔄 Windows Update Issue', 'Windows update mein problem aa rahi hai'],
-    ['📄 Word/Excel Problem', 'Microsoft Word ya Excel kaam nahi kar raha'],
-    ['🌐 Browser Problem', 'Chrome ya Edge theek se nahi chal raha'],
+    ['ðŸ“¹ Teams Problem', 'Microsoft Teams mein problem hai, nahi khul raha ya crash ho raha hai'],
+    ['ðŸ“§ Outlook Problem', 'Outlook nahi khul raha ya email nahi aa rahi'],
+    ['ðŸ’¥ App Crash Ho Raha', 'Application crash ho rahi hai, band ho jaati hai'],
+    ['ðŸ¦  Virus/Malware', 'Laptop mein virus hai ya malware attack hua hai'],
+    ['ðŸ’¾ Storage Full', 'Laptop ki storage full ho gayi hai, jagah nahi hai'],
+    ['ðŸ”„ Windows Update Issue', 'Windows update mein problem aa rahi hai'],
+    ['ðŸ“„ Word/Excel Problem', 'Microsoft Word ya Excel kaam nahi kar raha'],
+    ['ðŸŒ Browser Problem', 'Chrome ya Edge theek se nahi chal raha'],
   ],
   password: [
-    ['🔑 Windows Password Bhool Gaya', 'Windows ka login password bhool gaya, reset karna hai'],
-    ['📧 Email Password Reset', 'Email ka password bhool gaya ya reset karna hai'],
-    ['🔒 Account Lock Ho Gaya', 'Account lock ho gaya, login nahi ho pa raha'],
-    ['🔐 Google Account Issue', 'Google account mein problem hai, password ya access issue'],
+    ['ðŸ”‘ Windows Password Bhool Gaya', 'Windows ka login password bhool gaya, reset karna hai'],
+    ['ðŸ“§ Email Password Reset', 'Email ka password bhool gaya ya reset karna hai'],
+    ['ðŸ”’ Account Lock Ho Gaya', 'Account lock ho gaya, login nahi ho pa raha'],
+    ['ðŸ” Google Account Issue', 'Google account mein problem hai, password ya access issue'],
   ],
   screen: [
-    ['🖥️ Screen Black', 'Screen bilkul black ho gayi hai, kuch nahi dikh raha'],
-    ['💫 Screen Blinking/Flickering', 'Screen blink kar rahi hai ya flicker kar rahi hai'],
-    ['🔆 Screen Dark/Dim', 'Screen bahut dark ya dim hai, brightness kam hai'],
-    ['🌈 Color ya Lines Problem', 'Screen mein lines aa rahi hain ya color issue hai'],
-    ['💙 Blue Screen Error', 'Blue screen aa raha hai BSOD error'],
-    ['🖥️ Display Nahi Aa Raha', 'Screen par kuch bhi display nahi ho raha'],
+    ['ðŸ–¥ï¸ Screen Black', 'Screen bilkul black ho gayi hai, kuch nahi dikh raha'],
+    ['ðŸ’« Screen Blinking/Flickering', 'Screen blink kar rahi hai ya flicker kar rahi hai'],
+    ['ðŸ”† Screen Dark/Dim', 'Screen bahut dark ya dim hai, brightness kam hai'],
+    ['ðŸŒˆ Color ya Lines Problem', 'Screen mein lines aa rahi hain ya color issue hai'],
+    ['ðŸ’™ Blue Screen Error', 'Blue screen aa raha hai BSOD error'],
+    ['ðŸ–¥ï¸ Display Nahi Aa Raha', 'Screen par kuch bhi display nahi ho raha'],
   ],
   audio: [
-    ['🔇 Sound Bilkul Nahi', 'Sound/audio bilkul nahi aa raha'],
-    ['🎤 Mic Kaam Nahi Kar Raha', 'Microphone kaam nahi kar raha, awaz nahi ja rahi'],
-    ['🎧 Headphone Issue', 'Headphone/earphone detect nahi ho raha'],
-    ['📢 Speaker Problem', 'Laptop speaker kaam nahi kar raha ya distorted hai'],
+    ['ðŸ”‡ Sound Bilkul Nahi', 'Sound/audio bilkul nahi aa raha'],
+    ['ðŸŽ¤ Mic Kaam Nahi Kar Raha', 'Microphone kaam nahi kar raha, awaz nahi ja rahi'],
+    ['ðŸŽ§ Headphone Issue', 'Headphone/earphone detect nahi ho raha'],
+    ['ðŸ“¢ Speaker Problem', 'Laptop speaker kaam nahi kar raha ya distorted hai'],
   ],
   battery: [
-    ['🔋 Battery Charge Nahi Ho Rahi', 'Laptop battery charge nahi ho rahi, plug karne par bhi nahi'],
-    ['⚡ Battery Jaldi Khatam Hoti', 'Battery bahut jaldi drain ho jaati hai'],
-    ['🔌 Charger Problem', 'Charger kaam nahi kar raha ya detect nahi ho raha'],
+    ['ðŸ”‹ Battery Charge Nahi Ho Rahi', 'Laptop battery charge nahi ho rahi, plug karne par bhi nahi'],
+    ['âš¡ Battery Jaldi Khatam Hoti', 'Battery bahut jaldi drain ho jaati hai'],
+    ['ðŸ”Œ Charger Problem', 'Charger kaam nahi kar raha ya detect nahi ho raha'],
   ],
   keyboard: [
-    ['⌨️ Keyboard Kaam Nahi Kar Raha', 'Keyboard par type nahi ho raha, keys respond nahi kar rahi'],
-    ['🖱️ Mouse/Touchpad Problem', 'Mouse ya touchpad kaam nahi kar raha'],
-    ['🔤 Keys Galat Type Ho Rahi', 'Wrong characters type ho rahe hain keyboard se'],
+    ['âŒ¨ï¸ Keyboard Kaam Nahi Kar Raha', 'Keyboard par type nahi ho raha, keys respond nahi kar rahi'],
+    ['ðŸ–±ï¸ Mouse/Touchpad Problem', 'Mouse ya touchpad kaam nahi kar raha'],
+    ['ðŸ”¤ Keys Galat Type Ho Rahi', 'Wrong characters type ho rahe hain keyboard se'],
   ],
   replacement: [
-    ['💻 Laptop Replacement Chahiye', 'Naya laptop chahiye, purana kharab ho gaya hai'],
-    ['🖱️ Mouse Replacement', 'Naya mouse chahiye'],
-    ['⌨️ Keyboard Replacement', 'Naya keyboard chahiye'],
-    ['🖥️ Monitor/Screen Replacement', 'External monitor ya screen replace karni hai'],
-    ['🔌 Charger Replacement', 'Naya laptop charger chahiye'],
-    ['🎧 Headset Replacement', 'Naya headset chahiye'],
+    ['ðŸ’» Laptop Replacement Chahiye', 'Naya laptop chahiye, purana kharab ho gaya hai'],
+    ['ðŸ–±ï¸ Mouse Replacement', 'Naya mouse chahiye'],
+    ['âŒ¨ï¸ Keyboard Replacement', 'Naya keyboard chahiye'],
+    ['ðŸ–¥ï¸ Monitor/Screen Replacement', 'External monitor ya screen replace karni hai'],
+    ['ðŸ”Œ Charger Replacement', 'Naya laptop charger chahiye'],
+    ['ðŸŽ§ Headset Replacement', 'Naya headset chahiye'],
   ],
 };
 
 const CAT_LABELS = {
-  laptop:'💻 Laptop', wifi:'🌐 WiFi / Net', software:'⚙️ Software',
-  password:'🔑 Password', screen:'🖥️ Screen', audio:'🔊 Audio',
-  battery:'🔋 Battery', keyboard:'⌨️ Keyboard', replacement:'🔄 Replacement',
+  laptop:'ðŸ’» Laptop', wifi:'ðŸŒ WiFi / Net', software:'âš™ï¸ Software',
+  password:'ðŸ”‘ Password', screen:'ðŸ–¥ï¸ Screen', audio:'ðŸ”Š Audio',
+  battery:'ðŸ”‹ Battery', keyboard:'âŒ¨ï¸ Keyboard', replacement:'ðŸ”„ Replacement',
 };
 
 function showHome() {
@@ -994,28 +994,28 @@ function showHome() {
     <div class="gpt-content">
       <div class="gpt-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='Z'"/></div>
       <div class="gpt-text">
-        <p><strong>Hey ${firstName}! 👋</strong></p>
-        <p>Main <strong>Zivon</strong> hoon — WIOM ka IT assistant.<br/>
-        Laptop, WiFi, software, password — koi bhi problem batao, abhi fix karunga!</p>
-        <p><em>Category choose karo 👇</em></p>
+        <p><strong>Hey ${firstName}! ðŸ‘‹</strong></p>
+        <p>Main <strong>Zivon</strong> hoon â€” WIOM ka IT assistant.<br/>
+        Laptop, WiFi, software, password â€” koi bhi problem batao, abhi fix karunga!</p>
+        <p><em>Category choose karo ðŸ‘‡</em></p>
         <div class="slack-btn-row">
-          <button class="slack-cat-btn" onclick="selectCategory('laptop')">💻 Laptop</button>
-          <button class="slack-cat-btn" onclick="selectCategory('wifi')">🌐 WiFi / Net</button>
-          <button class="slack-cat-btn" onclick="selectCategory('software')">⚙️ Software</button>
-          <button class="slack-cat-btn" onclick="selectCategory('password')">🔑 Password</button>
+          <button class="slack-cat-btn" onclick="selectCategory('laptop')">ðŸ’» Laptop</button>
+          <button class="slack-cat-btn" onclick="selectCategory('wifi')">ðŸŒ WiFi / Net</button>
+          <button class="slack-cat-btn" onclick="selectCategory('software')">âš™ï¸ Software</button>
+          <button class="slack-cat-btn" onclick="selectCategory('password')">ðŸ”‘ Password</button>
         </div>
         <div class="slack-btn-row">
-          <button class="slack-cat-btn" onclick="selectCategory('screen')">🖥️ Screen</button>
-          <button class="slack-cat-btn" onclick="selectCategory('audio')">🔊 Audio</button>
-          <button class="slack-cat-btn" onclick="selectCategory('battery')">🔋 Battery</button>
-          <button class="slack-cat-btn" onclick="selectCategory('keyboard')">⌨️ Keyboard</button>
-          <button class="slack-cat-btn" onclick="selectCategory('replacement')">🔄 Replacement</button>
+          <button class="slack-cat-btn" onclick="selectCategory('screen')">ðŸ–¥ï¸ Screen</button>
+          <button class="slack-cat-btn" onclick="selectCategory('audio')">ðŸ”Š Audio</button>
+          <button class="slack-cat-btn" onclick="selectCategory('battery')">ðŸ”‹ Battery</button>
+          <button class="slack-cat-btn" onclick="selectCategory('keyboard')">âŒ¨ï¸ Keyboard</button>
+          <button class="slack-cat-btn" onclick="selectCategory('replacement')">ðŸ”„ Replacement</button>
         </div>
         <div class="slack-btn-row">
-          <button class="slack-cat-btn primary" onclick="viewMyTicketsInline()">📋 My Tickets</button>
-          <button class="slack-cat-btn danger" onclick="contactIT()">📞 Contact IT</button>
+          <button class="slack-cat-btn primary" onclick="viewMyTicketsInline()">ðŸ“‹ My Tickets</button>
+          <button class="slack-cat-btn danger" onclick="contactIT()">ðŸ“ž Contact IT</button>
         </div>
-        <div style="margin-top:10px;font-size:11px;color:var(--muted2);">✦ Anytime, Anywhere</div>
+        <div style="margin-top:10px;font-size:11px;color:var(--muted2);">âœ¦ Anytime, Anywhere</div>
       </div>
     </div>`;
   msgEl.appendChild(row);
@@ -1040,9 +1040,9 @@ function selectCategory(cat) {
     <div class="gpt-content">
       <div class="gpt-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='Z'"/></div>
       <div class="gpt-text">
-        <p><strong>${label}</strong> — exact problem select karo:</p>
+        <p><strong>${label}</strong> â€” exact problem select karo:</p>
         <div class="slack-btn-row">${btnHtml}</div>
-        <div class="slack-btn-row"><button class="slack-back-btn" onclick="showHome()">← Wapas</button></div>
+        <div class="slack-btn-row"><button class="slack-back-btn" onclick="showHome()">â† Wapas</button></div>
       </div>
     </div>`;
   const msgEl = document.getElementById('chatMessages');
@@ -1102,20 +1102,20 @@ async function runAI(text) {
     if (shouldCreateTicket) {
       actionHtml = `
         <div class="slack-divider"></div>
-        ${scriptInfo ? `<div class="slack-btn-row"><a class="slack-script-btn" href="${scriptInfo.url}" target="_blank" download>⬇️ ${scriptInfo.label}</a></div>` : ''}
+        ${scriptInfo ? `<div class="slack-btn-row"><a class="slack-script-btn" href="${scriptInfo.url}" target="_blank" download>â¬‡ï¸ ${scriptInfo.label}</a></div>` : ''}
         <div class="slack-btn-row">
-          <button class="slack-cat-btn ticket-btn" onclick="confirmTicketInline('${btnId}',this)">🎫 IT Ticket Banao</button>
+          <button class="slack-cat-btn ticket-btn" onclick="confirmTicketInline('${btnId}',this)">ðŸŽ« IT Ticket Banao</button>
         </div>`;
     } else {
       actionHtml = `
         <div class="slack-divider"></div>
-        ${scriptInfo ? `<div class="slack-btn-row"><a class="slack-script-btn" href="${scriptInfo.url}" target="_blank" download>⬇️ ${scriptInfo.label}</a></div>` : ''}
+        ${scriptInfo ? `<div class="slack-btn-row"><a class="slack-script-btn" href="${scriptInfo.url}" target="_blank" download>â¬‡ï¸ ${scriptInfo.label}</a></div>` : ''}
         <div class="slack-btn-row">
-          <button class="slack-cat-btn success" onclick="markResolved('${btnId}',this)">✅ Ho gaya!</button>
-          <button class="slack-cat-btn ticket-btn" onclick="confirmTicketInline('${btnId}',this)">🎫 IT Ticket Banao</button>
+          <button class="slack-cat-btn success" onclick="markResolved('${btnId}',this)">âœ… Ho gaya!</button>
+          <button class="slack-cat-btn ticket-btn" onclick="confirmTicketInline('${btnId}',this)">ðŸŽ« IT Ticket Banao</button>
         </div>`;
     }
-    actionHtml += `<div class="slack-btn-row"><button class="slack-back-btn" onclick="showHome()">🏠 Home</button></div>`;
+    actionHtml += `<div class="slack-btn-row"><button class="slack-back-btn" onclick="showHome()">ðŸ  Home</button></div>`;
 
     streamText.innerHTML = '<p>' + renderMarkdown(finalText) + '</p>' + actionHtml;
     wrap.scrollTop = wrap.scrollHeight;
@@ -1123,7 +1123,7 @@ async function runAI(text) {
   }
 
   try {
-    const res = await fetch(`${PORTAL}/api/ai/stream`, {
+    const res = await fetch(`/api/ai/stream`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         message:text, messages:chatHistory,
@@ -1149,7 +1149,7 @@ async function runAI(text) {
           const ev = JSON.parse(line.slice(6));
           if (ev.chunk !== undefined) appendChunk(ev.chunk);
           if (ev.done || ev.error) {
-            const ft = ev.finalText || streamedText || (ev.error ? `❌ ${ev.error}` : '');
+            const ft = ev.finalText || streamedText || (ev.error ? `âŒ ${ev.error}` : '');
             finalizeRow(ft, ev.shouldCreateTicket, ev.ticketData);
           }
         } catch {}
@@ -1157,7 +1157,7 @@ async function runAI(text) {
     }
   } catch(e) {
     hideTyping();
-    finalizeRow('❌ Server se connect nahi ho pa raha.\n\n📞 IT Helpdesk: **9654244281**', false, null);
+    finalizeRow('âŒ Server se connect nahi ho pa raha.\n\nðŸ“ž IT Helpdesk: **9654244281**', false, null);
   }
 }
 
@@ -1166,34 +1166,34 @@ function getScriptInfo(text) {
   if (!text) return null;
   const t = text.toLowerCase();
   const BASE = '/scripts/';
-  if (/\bfan\b/.test(t)) return { file:'fix-fan-noise.bat', label:'🌬️ Auto-Fix: Fan Noise', url: BASE+'fix-fan-noise.bat' };
-  if (/blue.?screen|bsod/.test(t)) return { file:'fix-bluescreen.bat', label:'💙 Auto-Fix: Blue Screen', url: BASE+'fix-bluescreen.bat' };
-  if (/black.?screen|no display|blank screen/.test(t)) return { file:'fix-black-screen.bat', label:'🖥️ Auto-Fix: Black Screen', url: BASE+'fix-black-screen.bat' };
-  if (/flicker|blink/.test(t)) return { file:'fix-screen-flicker.bat', label:'📺 Auto-Fix: Screen Flicker', url: BASE+'fix-screen-flicker.bat' };
-  if (/overheat|garam/.test(t)) return { file:'fix-overheating.bat', label:'🌡️ Auto-Fix: Overheating', url: BASE+'fix-overheating.bat' };
-  if (/camera|camra|webcam|\bcam\b/.test(t)) return { file:'fix-camera.bat', label:'📷 Auto-Fix: Camera', url: BASE+'fix-camera.bat' };
-  if (/mic|microphone/.test(t)) return { file:'fix-mic.bat', label:'🎤 Auto-Fix: Microphone', url: BASE+'fix-mic.bat' };
-  if (/headphone|earphone/.test(t)) return { file:'fix-headphone.bat', label:'🎧 Auto-Fix: Headphone', url: BASE+'fix-headphone.bat' };
-  if (/sound|audio|speaker|awaaz/.test(t)) return { file:'fix-sound.bat', label:'🔊 Auto-Fix: Sound', url: BASE+'fix-sound.bat' };
-  if (/keyboard|keys/.test(t)) return { file:'fix-keyboard.bat', label:'⌨️ Auto-Fix: Keyboard', url: BASE+'fix-keyboard.bat' };
-  if (/touchpad|trackpad|cursor/.test(t)) return { file:'fix-touchpad.bat', label:'🖱️ Auto-Fix: Touchpad', url: BASE+'fix-touchpad.bat' };
-  if (/bluetooth/.test(t)) return { file:'fix-bluetooth.bat', label:'🔵 Auto-Fix: Bluetooth', url: BASE+'fix-bluetooth.bat' };
-  if (/batter[yi]?|charg/.test(t)) return { file:'fix-battery.bat', label:'🔋 Auto-Fix: Battery', url: BASE+'fix-battery.bat' };
-  if (/\bteams\b/.test(t)) return { file:'fix-teams.bat', label:'📹 Auto-Fix: Teams', url: BASE+'fix-teams.bat' };
-  if (/\bzoom\b/.test(t)) return { file:'fix-zoom.bat', label:'🎥 Auto-Fix: Zoom', url: BASE+'fix-zoom.bat' };
-  if (/outlook/.test(t)) return { file:'fix-outlook.bat', label:'📧 Auto-Fix: Outlook', url: BASE+'fix-outlook.bat' };
-  if (/wifi|wi-fi|internet|\bnet\b/.test(t)) return { file:'fix-wifi.bat', label:'📶 Auto-Fix: WiFi', url: BASE+'fix-wifi.bat' };
-  if (/word|excel|office/.test(t)) return { file:'fix-word-excel.bat', label:'📄 Auto-Fix: Word/Excel', url: BASE+'fix-word-excel.bat' };
-  if (/chrome|browser|edge/.test(t)) return { file:'fix-browser.bat', label:'🌐 Auto-Fix: Browser', url: BASE+'fix-browser.bat' };
-  if (/storage|disk full|space/.test(t)) return { file:'fix-storage.bat', label:'💾 Auto-Fix: Storage', url: BASE+'fix-storage.bat' };
-  if (/slow|hang|lagg|freez/.test(t)) return { file:'fix-slow-laptop.bat', label:'⚡ Auto-Fix: Slow Laptop', url: BASE+'fix-slow-laptop.bat' };
+  if (/\bfan\b/.test(t)) return { file:'fix-fan-noise.bat', label:'ðŸŒ¬ï¸ Auto-Fix: Fan Noise', url: BASE+'fix-fan-noise.bat' };
+  if (/blue.?screen|bsod/.test(t)) return { file:'fix-bluescreen.bat', label:'ðŸ’™ Auto-Fix: Blue Screen', url: BASE+'fix-bluescreen.bat' };
+  if (/black.?screen|no display|blank screen/.test(t)) return { file:'fix-black-screen.bat', label:'ðŸ–¥ï¸ Auto-Fix: Black Screen', url: BASE+'fix-black-screen.bat' };
+  if (/flicker|blink/.test(t)) return { file:'fix-screen-flicker.bat', label:'ðŸ“º Auto-Fix: Screen Flicker', url: BASE+'fix-screen-flicker.bat' };
+  if (/overheat|garam/.test(t)) return { file:'fix-overheating.bat', label:'ðŸŒ¡ï¸ Auto-Fix: Overheating', url: BASE+'fix-overheating.bat' };
+  if (/camera|camra|webcam|\bcam\b/.test(t)) return { file:'fix-camera.bat', label:'ðŸ“· Auto-Fix: Camera', url: BASE+'fix-camera.bat' };
+  if (/mic|microphone/.test(t)) return { file:'fix-mic.bat', label:'ðŸŽ¤ Auto-Fix: Microphone', url: BASE+'fix-mic.bat' };
+  if (/headphone|earphone/.test(t)) return { file:'fix-headphone.bat', label:'ðŸŽ§ Auto-Fix: Headphone', url: BASE+'fix-headphone.bat' };
+  if (/sound|audio|speaker|awaaz/.test(t)) return { file:'fix-sound.bat', label:'ðŸ”Š Auto-Fix: Sound', url: BASE+'fix-sound.bat' };
+  if (/keyboard|keys/.test(t)) return { file:'fix-keyboard.bat', label:'âŒ¨ï¸ Auto-Fix: Keyboard', url: BASE+'fix-keyboard.bat' };
+  if (/touchpad|trackpad|cursor/.test(t)) return { file:'fix-touchpad.bat', label:'ðŸ–±ï¸ Auto-Fix: Touchpad', url: BASE+'fix-touchpad.bat' };
+  if (/bluetooth/.test(t)) return { file:'fix-bluetooth.bat', label:'ðŸ”µ Auto-Fix: Bluetooth', url: BASE+'fix-bluetooth.bat' };
+  if (/batter[yi]?|charg/.test(t)) return { file:'fix-battery.bat', label:'ðŸ”‹ Auto-Fix: Battery', url: BASE+'fix-battery.bat' };
+  if (/\bteams\b/.test(t)) return { file:'fix-teams.bat', label:'ðŸ“¹ Auto-Fix: Teams', url: BASE+'fix-teams.bat' };
+  if (/\bzoom\b/.test(t)) return { file:'fix-zoom.bat', label:'ðŸŽ¥ Auto-Fix: Zoom', url: BASE+'fix-zoom.bat' };
+  if (/outlook/.test(t)) return { file:'fix-outlook.bat', label:'ðŸ“§ Auto-Fix: Outlook', url: BASE+'fix-outlook.bat' };
+  if (/wifi|wi-fi|internet|\bnet\b/.test(t)) return { file:'fix-wifi.bat', label:'ðŸ“¶ Auto-Fix: WiFi', url: BASE+'fix-wifi.bat' };
+  if (/word|excel|office/.test(t)) return { file:'fix-word-excel.bat', label:'ðŸ“„ Auto-Fix: Word/Excel', url: BASE+'fix-word-excel.bat' };
+  if (/chrome|browser|edge/.test(t)) return { file:'fix-browser.bat', label:'ðŸŒ Auto-Fix: Browser', url: BASE+'fix-browser.bat' };
+  if (/storage|disk full|space/.test(t)) return { file:'fix-storage.bat', label:'ðŸ’¾ Auto-Fix: Storage', url: BASE+'fix-storage.bat' };
+  if (/slow|hang|lagg|freez/.test(t)) return { file:'fix-slow-laptop.bat', label:'âš¡ Auto-Fix: Slow Laptop', url: BASE+'fix-slow-laptop.bat' };
   return null;
 }
 
 function markResolved(btnId, btn) {
   const row = document.getElementById(btnId + '_row');
   if (btn) btn.closest('.gpt-text').querySelectorAll('.slack-cat-btn,.slack-script-btn').forEach(b => { b.disabled=true; b.classList.add('disabled'); });
-  addSystemMsg('✅ Great! Problem solve ho gayi!');
+  addSystemMsg('âœ… Great! Problem solve ho gayi!');
   const wrap = document.getElementById('chatMessages');
   const thanksRow = document.createElement('div');
   thanksRow.className = 'msg-row gpt-bot';
@@ -1201,9 +1201,9 @@ function markResolved(btnId, btn) {
     <div class="gpt-content">
       <div class="gpt-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='Z'"/></div>
       <div class="gpt-text">
-        <p>🎉 <strong>Sahi hua!</strong> Khushi hui madad karne mein 😊</p>
+        <p>ðŸŽ‰ <strong>Sahi hua!</strong> Khushi hui madad karne mein ðŸ˜Š</p>
         <p><em>Koi aur IT problem ho toh batao!</em></p>
-        <div class="slack-btn-row"><button class="slack-cat-btn primary" onclick="showHome()">🏠 Home Par Wapas Jao</button></div>
+        <div class="slack-btn-row"><button class="slack-cat-btn primary" onclick="showHome()">ðŸ  Home Par Wapas Jao</button></div>
       </div>
     </div>`;
   wrap.appendChild(thanksRow); wrap.scrollTop = wrap.scrollHeight;
@@ -1213,7 +1213,7 @@ async function confirmTicketInline(btnId, btn) {
   const row = document.getElementById(btnId + '_row');
   const td = row?._ptd;
   const orig = row?._orig || '';
-  if (btn) { btn.disabled = true; btn.classList.add('disabled'); btn.textContent = '⏳ Ban raha hai...'; }
+  if (btn) { btn.disabled = true; btn.classList.add('disabled'); btn.textContent = 'â³ Ban raha hai...'; }
 
   const ticket = await createTicket(td, orig);
   const wrap = document.getElementById('chatMessages');
@@ -1227,10 +1227,10 @@ async function confirmTicketInline(btnId, btn) {
       <div class="gpt-content">
         <div class="gpt-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='Z'"/></div>
         <div class="gpt-text">
-          <div class="tkt-result">✅ <b>${ticket.ticketId}</b> create ho gaya!<br/>Priority: <b>${ticket.priority}</b> — IT team jald aayegi 🚀</div>
+          <div class="tkt-result">âœ… <b>${ticket.ticketId}</b> create ho gaya!<br/>Priority: <b>${ticket.priority}</b> â€” IT team jald aayegi ðŸš€</div>
           <div class="slack-btn-row" style="margin-top:10px;">
-            <button class="slack-cat-btn" onclick="switchView('tickets',null)">📋 My Tickets Dekho</button>
-            <button class="slack-cat-btn primary" onclick="showHome()">🏠 Home</button>
+            <button class="slack-cat-btn" onclick="switchView('tickets',null)">ðŸ“‹ My Tickets Dekho</button>
+            <button class="slack-cat-btn primary" onclick="showHome()">ðŸ  Home</button>
           </div>
         </div>
       </div>`;
@@ -1239,8 +1239,8 @@ async function confirmTicketInline(btnId, btn) {
       <div class="gpt-content">
         <div class="gpt-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='Z'"/></div>
         <div class="gpt-text">
-          <div class="tkt-result" style="background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.25);color:#fbbf24;">⚠️ ${ticket._dupMsg}</div>
-          <div class="slack-btn-row" style="margin-top:10px;"><button class="slack-cat-btn primary" onclick="showHome()">🏠 Home</button></div>
+          <div class="tkt-result" style="background:rgba(251,191,36,0.08);border-color:rgba(251,191,36,0.25);color:#fbbf24;">âš ï¸ ${ticket._dupMsg}</div>
+          <div class="slack-btn-row" style="margin-top:10px;"><button class="slack-cat-btn primary" onclick="showHome()">ðŸ  Home</button></div>
         </div>
       </div>`;
   } else {
@@ -1248,8 +1248,8 @@ async function confirmTicketInline(btnId, btn) {
       <div class="gpt-content">
         <div class="gpt-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='Z'"/></div>
         <div class="gpt-text">
-          <p>❌ Ticket nahi ban paya. Direct call karo: <strong>9654244281</strong></p>
-          <div class="slack-btn-row"><button class="slack-cat-btn primary" onclick="showHome()">🏠 Home</button></div>
+          <p>âŒ Ticket nahi ban paya. Direct call karo: <strong>9654244281</strong></p>
+          <div class="slack-btn-row"><button class="slack-cat-btn primary" onclick="showHome()">ðŸ  Home</button></div>
         </div>
       </div>`;
   }
@@ -1257,10 +1257,10 @@ async function confirmTicketInline(btnId, btn) {
 }
 
 async function viewMyTicketsInline() {
-  addUserMsg('📋 My Tickets');
+  addUserMsg('ðŸ“‹ My Tickets');
   showTyping();
   try {
-    const res = await fetch(`${PORTAL}/api/tickets/my`, {
+    const res = await fetch(`/api/tickets/my`, {
       headers: empData.token ? { 'Authorization': `Bearer ${empData.token}` } : {}
     });
     const data = await res.json();
@@ -1277,22 +1277,22 @@ async function viewMyTicketsInline() {
         <div class="gpt-content">
           <div class="gpt-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='Z'"/></div>
           <div class="gpt-text">
-            <p>🎉 <strong>Koi pending ticket nahi hai!</strong><br/>Sab theek chal raha hai.</p>
-            <div class="slack-btn-row"><button class="slack-back-btn" onclick="showHome()">🏠 Home</button></div>
+            <p>ðŸŽ‰ <strong>Koi pending ticket nahi hai!</strong><br/>Sab theek chal raha hai.</p>
+            <div class="slack-btn-row"><button class="slack-back-btn" onclick="showHome()">ðŸ  Home</button></div>
           </div>
         </div>`;
     } else {
-      const priEmoji = {Critical:'🔴',High:'🟠',Medium:'🟡',Low:'🟢'};
-      const statEmoji = {Open:'⏳','In Progress':'🔧',Pending:'⏸️',Resolved:'✅'};
+      const priEmoji = {Critical:'ðŸ”´',High:'ðŸŸ ',Medium:'ðŸŸ¡',Low:'ðŸŸ¢'};
+      const statEmoji = {Open:'â³','In Progress':'ðŸ”§',Pending:'â¸ï¸',Resolved:'âœ…'};
       const ticketHtml = open.slice(0,5).map(t => {
         const age = timeAgo(t.createdAt);
         return `<div style="padding:10px;background:rgba(255,255,255,0.04);border-radius:8px;border:1px solid rgba(255,255,255,0.1);margin-bottom:6px;">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
             <span style="color:var(--pink);font-weight:700;font-size:12px;">${t.ticketId}</span>
-            <span style="font-size:11px;">${priEmoji[t.priority]||'🟡'} ${t.priority} &nbsp; ${statEmoji[t.status]||'⏳'} ${t.status}</span>
+            <span style="font-size:11px;">${priEmoji[t.priority]||'ðŸŸ¡'} ${t.priority} &nbsp; ${statEmoji[t.status]||'â³'} ${t.status}</span>
           </div>
-          <div style="font-size:12px;color:var(--muted2);">${t.description||'—'}</div>
-          <div style="font-size:11px;color:var(--muted);margin-top:4px;">🕐 ${age}</div>
+          <div style="font-size:12px;color:var(--muted2);">${t.description||'â€”'}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;">ðŸ• ${age}</div>
         </div>`;
       }).join('');
       const isUrgent = open.some(t => ['Critical','High'].includes(t.priority));
@@ -1300,11 +1300,11 @@ async function viewMyTicketsInline() {
         <div class="gpt-content">
           <div class="gpt-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='Z'"/></div>
           <div class="gpt-text">
-            <p><strong>${open.length} pending ticket${open.length>1?'s':''}</strong> ${isUrgent ? '— <span style="color:#f87171;">IT jaldi resolve karegi!</span>' : '— IT team par hai 👍'}</p>
+            <p><strong>${open.length} pending ticket${open.length>1?'s':''}</strong> ${isUrgent ? 'â€” <span style="color:#f87171;">IT jaldi resolve karegi!</span>' : 'â€” IT team par hai ðŸ‘'}</p>
             ${ticketHtml}
             <div class="slack-btn-row">
-              <button class="slack-cat-btn" onclick="switchView('tickets',null)">📋 Saare Tickets Dekho</button>
-              <button class="slack-back-btn" onclick="showHome()">🏠 Home</button>
+              <button class="slack-cat-btn" onclick="switchView('tickets',null)">ðŸ“‹ Saare Tickets Dekho</button>
+              <button class="slack-back-btn" onclick="showHome()">ðŸ  Home</button>
             </div>
           </div>
         </div>`;
@@ -1312,7 +1312,7 @@ async function viewMyTicketsInline() {
     wrap.appendChild(row); wrap.scrollTop = wrap.scrollHeight;
   } catch {
     hideTyping();
-    addBotMsg('❌ Tickets load nahi ho sake. Refresh karo.');
+    addBotMsg('âŒ Tickets load nahi ho sake. Refresh karo.');
   }
 }
 
@@ -1325,21 +1325,21 @@ function contactIT() {
       <div class="gpt-avatar"><img src="/wiom-logo.webp" onerror="this.outerHTML='Z'"/></div>
       <div class="gpt-text">
         <div class="human-card">
-          <div class="human-card-title">👨‍💻 WIOM IT Team — Direct Contact</div>
+          <div class="human-card-title">ðŸ‘¨â€ðŸ’» WIOM IT Team â€” Direct Contact</div>
           <div class="human-card-info">
-            <div class="human-info-row">📞 <a href="tel:9654244281">9654244281</a> — Sajan Kumar (IT Admin)</div>
-            <div class="human-info-row">📧 <a href="mailto:sajan.kumar@wiom.in">sajan.kumar@wiom.in</a></div>
-            <div class="human-info-row">💬 Slack: <b>@sajan.kumar</b> pe DM karo</div>
-            <div class="human-info-row">🕐 Available: Mon–Sat, 9AM–7PM</div>
+            <div class="human-info-row">ðŸ“ž <a href="tel:9654244281">9654244281</a> â€” Sajan Kumar (IT Admin)</div>
+            <div class="human-info-row">ðŸ“§ <a href="mailto:sajan.kumar@wiom.in">sajan.kumar@wiom.in</a></div>
+            <div class="human-info-row">ðŸ’¬ Slack: <b>@sajan.kumar</b> pe DM karo</div>
+            <div class="human-info-row">ðŸ• Available: Monâ€“Sat, 9AMâ€“7PM</div>
           </div>
         </div>
-        <div class="slack-btn-row" style="margin-top:10px;"><button class="slack-back-btn" onclick="showHome()">🏠 Home</button></div>
+        <div class="slack-btn-row" style="margin-top:10px;"><button class="slack-back-btn" onclick="showHome()">ðŸ  Home</button></div>
       </div>
     </div>`;
   wrap.appendChild(row); wrap.scrollTop = wrap.scrollHeight;
 }
 
-// ══ CHAT HELPERS ══
+// â•â• CHAT HELPERS â•â•
 function addBotMsg(text) {
   const wrap = document.getElementById('chatMessages');
   const row = document.createElement('div');
@@ -1387,7 +1387,7 @@ function hideTyping() { document.getElementById('typRow')?.remove(); }
 async function createTicket(td, orig) {
   try {
     const screenshots = pendingScreenshot ? [pendingScreenshot] : [];
-    const res = await fetch(`${API}/api/tickets`, {
+    const res = await fetch(`/api/tickets`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         empId:empData.empId, empName:empData.name, empEmail:empData.email,
@@ -1405,15 +1405,15 @@ async function createTicket(td, orig) {
   } catch { return null; }
 }
 
-// ══ MY TICKETS ══
+// â•â• MY TICKETS â•â•
 async function loadMyTickets() {
   document.getElementById('sbTickets').innerHTML =
     '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px 0;">Loading...</div>';
   document.getElementById('ticketsList').innerHTML =
-    '<div style="text-align:center;padding:40px;color:var(--muted);">⏳ Loading...</div>';
+    '<div style="text-align:center;padding:40px;color:var(--muted);">â³ Loading...</div>';
 
   try {
-    const res = await fetch(`${API}/api/tickets/my`, {
+    const res = await fetch(`/api/tickets/my`, {
       headers: empData.token ? { 'Authorization': `Bearer ${empData.token}` } : {}
     });
     const data = await res.json();
@@ -1422,7 +1422,7 @@ async function loadMyTickets() {
     renderFullTickets();
   } catch {
     document.getElementById('ticketsList').innerHTML =
-      '<div style="text-align:center;padding:40px;color:var(--danger);">❌ Load nahi hua. Refresh karo.</div>';
+      '<div style="text-align:center;padding:40px;color:var(--danger);">âŒ Load nahi hua. Refresh karo.</div>';
   }
 }
 
@@ -1433,7 +1433,7 @@ function refreshSbTickets() {
   badge.textContent = open.length || '';
 
   if (!myTickets.length) {
-    el.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px 0;">Koi ticket nahi 🎉</div>';
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);text-align:center;padding:12px 0;">Koi ticket nahi ðŸŽ‰</div>';
     return;
   }
   el.innerHTML = myTickets.slice(0,5).map(t => `
@@ -1444,7 +1444,7 @@ function refreshSbTickets() {
           <span class="badge b-${(t.status||'').replace(' ','-')}">${t.status||'Open'}</span>
         </div>
       </div>
-      <div class="tkt-mini-desc">${t.description||'—'}</div>
+      <div class="tkt-mini-desc">${t.description||'â€”'}</div>
     </div>`).join('');
 }
 
@@ -1454,7 +1454,7 @@ function renderFullTickets(list, searchQ) {
 
   if (!myTickets.length) {
     el.innerHTML = `<div style="text-align:center;padding:60px 20px;color:var(--muted);">
-      <div style="font-size:44px;margin-bottom:12px;">🎉</div>
+      <div style="font-size:44px;margin-bottom:12px;">ðŸŽ‰</div>
       <div style="font-size:15px;font-weight:600;color:var(--text);">Koi open ticket nahi!</div>
       <div style="font-size:13px;margin-top:6px;">Sab theek chal raha hai.</div>
     </div>`;
@@ -1462,12 +1462,12 @@ function renderFullTickets(list, searchQ) {
   }
 
   if (!tickets.length && searchQ) {
-    el.innerHTML = `<div class="no-results"><div>🔍</div><div style="font-size:14px;color:var(--text);">Koi result nahi mila</div><div style="font-size:12px;margin-top:6px;">"${searchQ}" se koi ticket match nahi hua</div></div>`;
+    el.innerHTML = `<div class="no-results"><div>ðŸ”</div><div style="font-size:14px;color:var(--text);">Koi result nahi mila</div><div style="font-size:12px;margin-top:6px;">"${searchQ}" se koi ticket match nahi hua</div></div>`;
     return;
   }
 
   const hl = (txt) => {
-    if (!searchQ || !txt) return txt || '—';
+    if (!searchQ || !txt) return txt || 'â€”';
     const rx = new RegExp(`(${searchQ.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
     return txt.replace(rx, '<mark style="background:rgba(232,25,125,0.25);color:var(--pink);border-radius:3px;padding:0 2px;">$1</mark>');
   };
@@ -1486,8 +1486,8 @@ function renderFullTickets(list, searchQ) {
           <span class="badge b-${(t.status||'Open').replace(' ','-')}">${t.status}</span>
         </div>
       </div>
-      <div class="tfc-desc">${hl(t.description||'—')}</div>
-      <div class="tfc-meta">📂 ${hl(t.category||'Other')} &nbsp;·&nbsp; 🕐 ${timeAgo(t.createdAt)}${t.resolution ? `<br/>✅ Resolution: ${t.resolution}` : ''}</div>
+      <div class="tfc-desc">${hl(t.description||'â€”')}</div>
+      <div class="tfc-meta">ðŸ“‚ ${hl(t.category||'Other')} &nbsp;Â·&nbsp; ðŸ• ${timeAgo(t.createdAt)}${t.resolution ? `<br/>âœ… Resolution: ${t.resolution}` : ''}</div>
       ${screenHtml}
     </div>`;
   }).join('');
@@ -1501,16 +1501,16 @@ function timeAgo(d) {
   return Math.floor(s/86400) + 'd pehle';
 }
 
-// ══ DIAGNOSTICS (sidebar banner only) ══
+// â•â• DIAGNOSTICS (sidebar banner only) â•â•
 const DIAG_MAP = [
-  { brand:'lenovo',  icon:'🔵', name:'Lenovo Vantage',       url:'https://apps.microsoft.com/detail/9WZDNCRFJ4MV' },
-  { brand:'dell',    icon:'🔵', name:'Dell SupportAssist',   url:'https://www.dell.com/support/home' },
-  { brand:'hp',      icon:'🔵', name:'HP Support Assistant', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
-  { brand:'hewlett', icon:'🔵', name:'HP Support Assistant', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
-  { brand:'asus',    icon:'🔵', name:'MyASUS Diagnostics',   url:'https://www.asus.com/in/support/myasus/' },
-  { brand:'apple',   icon:'🍎', name:'Apple Diagnostics',    url:'https://support.apple.com/en-in/102514' },
-  { brand:'macbook', icon:'🍎', name:'Apple Diagnostics',    url:'https://support.apple.com/en-in/102514' },
-  { brand:'acer',    icon:'🔵', name:'Acer Care Center',     url:'https://www.acer.com/in-en/support' },
+  { brand:'lenovo',  icon:'ðŸ”µ', name:'Lenovo Vantage',       url:'https://apps.microsoft.com/detail/9WZDNCRFJ4MV' },
+  { brand:'dell',    icon:'ðŸ”µ', name:'Dell SupportAssist',   url:'https://www.dell.com/support/home' },
+  { brand:'hp',      icon:'ðŸ”µ', name:'HP Support Assistant', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
+  { brand:'hewlett', icon:'ðŸ”µ', name:'HP Support Assistant', url:'https://support.hp.com/in-en/help/hp-support-assistant' },
+  { brand:'asus',    icon:'ðŸ”µ', name:'MyASUS Diagnostics',   url:'https://www.asus.com/in/support/myasus/' },
+  { brand:'apple',   icon:'ðŸŽ', name:'Apple Diagnostics',    url:'https://support.apple.com/en-in/102514' },
+  { brand:'macbook', icon:'ðŸŽ', name:'Apple Diagnostics',    url:'https://support.apple.com/en-in/102514' },
+  { brand:'acer',    icon:'ðŸ”µ', name:'Acer Care Center',     url:'https://www.acer.com/in-en/support' },
 ];
 
 function showDiagBanner() { /* No banner in button-only portal */ }
