@@ -768,15 +768,6 @@ app.listen(PORT, async () => {
    blocks.push({ type: 'divider' });
  }
 
- // ── BOTTOM CTAs ──────────────────────────────────────────────────────────
- blocks.push({
-   type: 'actions',
-   elements: [
-     { type: 'button', text: { type: 'plain_text', text: '✨  Chat with AI Assistant', emoji: true }, action_id: 'home_chat_ai', value: 'chat_ai', style: 'primary' },
-     { type: 'button', text: { type: 'plain_text', text: '🎧  Contact IT Support', emoji: true }, action_id: 'home_contact_it', value: 'contact_it', style: 'danger' }
-   ]
- });
-
  // ── EMPLOYEE FOOTER ───────────────────────────────────────────────────────
  if (emp?.empId) {
    blocks.push({
