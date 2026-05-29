@@ -91,6 +91,12 @@ Yeh try karo — ek ek step ke baad check karo connect hua kya:
 
 Agar ab bhi nahi hua → type karo *ha* 🎫
 
+━━━ 🔧 PHYSICAL DAMAGE — IMMEDIATE TICKET ━━━
+Agar user bole "damage ho gya", "toot gaya", "crack aa gaya", "phoot gaya", "gir gaya" — yeh HARDWARE damage hai.
+Software steps, scripts, Auto-Fix — KUCH KAAM NAHI KAREGA.
+Seedha bolna: "Physical damage hai — software se fix nahi hoga. Type karo *ha*, IT team physically replace karegi 🎫"
+KABHI numbered steps mat do physical damage ke liye.
+
 ━━━ 🚨 THEFT / LOSS — EMERGENCY ━━━
 "chori ho gya", "gum ho gya", "laptop missing" → NEVER troubleshoot, NEVER say "resolved"
 Immediately: "🚨 Yeh serious hai — ABHI Sajan Kumar ko call karo: 9654244281. HR ko bhi batao. Type karo *ha* — HIGH PRIORITY ticket raise karta hoon."
@@ -635,6 +641,21 @@ const getKBAnswer = (problem) => {
   if (/\b(tv|television|telly|ac\b|air\s*condition|fan\b|ceiling\s*fan|light\b|bulb|electricity|current\s*nahi|power\s*cut|generator|geyser|water|pantry|canteen|chair|table|desk|furniture|lift|elevator|ac\s*nahi|ac\s*band)\b/i.test(p) &&
       !/\b(laptop|wifi|internet|software|password|teams|outlook|chrome|window|screen|monitor|keyboard|mouse|bluetooth|usb)\b/i.test(p)) {
     return `Yeh IT ke scope mein nahi aata 😊\n\nIT helpdesk sirf yeh handle karta hai:\n💻 Laptop / Desktop problems\n🌐 WiFi / Internet issues\n🔑 Password / Account\n⚙️ Software (Teams, Outlook, etc.)\n\n*TV, AC, lights, furniture* ke liye → *Admin / Facilities team* se contact karo.\nKoi laptop ya IT problem ho toh batao — main hoon! 🚀`;
+  }
+
+  // ── 🔧 PHYSICAL DAMAGE — hardware broken, no software fix possible ────────
+  // "damage", "toot gaya", "crack", "phoot gaya" → ticket immediately, NO steps
+  if (/\b(damage|damag|damagd|toot|tuti|tuta|phoot|foota|crack|cracked|broken|tod|toda|tod\s*di|giir|gir\s*gaya|gir\s*gayi|physically|physical)\b/i.test(p)) {
+    // Identify which part is damaged
+    const part =
+      /touchpad|trackpad/.test(p) ? 'Touchpad' :
+      /screen|display|monitor/.test(p) ? 'Screen/Display' :
+      /keyboard/.test(p) ? 'Keyboard' :
+      /laptop/.test(p) ? 'Laptop' :
+      /battery/.test(p) ? 'Battery' :
+      /charger|charging/.test(p) ? 'Charger' :
+      /mouse/.test(p) ? 'Mouse' : 'Hardware';
+    return `🔧 *${part} physically damage hai* — software se yeh fix nahi hoga.\n\nIT team ko bhejte hain, woh physically check karke replace karenge.\nType karo *ha* — main abhi HIGH PRIORITY ticket raise karta hoon 🎫`;
   }
 
   // ── 🚨 THEFT / LOSS — HIGHEST PRIORITY — check BEFORE anything else ────

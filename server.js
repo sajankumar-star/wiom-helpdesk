@@ -652,8 +652,10 @@ app.listen(PORT, async () => {
    if (!text) return null;
    const t = text.toLowerCase();
 
+   // ── GUARD: Physical damage → NO Auto-Fix (script can't fix broken hardware) ──
+   if (/\b(damage|damag|toot|tuti|tuta|phoot|foota|crack|cracked|broken|tod|toda|physically)\b/.test(t)) return null;
+
    // ── GUARD: Non-laptop devices / out-of-scope → NO Auto-Fix ever ────────
-   // phone/mobile charging, office equipment, conference room hardware
    const isPhone    = /\b(phone|mobile|samsung|iphone|android|charger\s*nahi|mobile\s*charg)\b/.test(t);
    const isOfficeEq = /\b(conference\s*room|meeting\s*room|projector\s*room|reception|hall)\b/.test(t) &&
                       !/\b(laptop|my\s*laptop|mera\s*laptop)\b/.test(t);
