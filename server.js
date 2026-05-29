@@ -188,7 +188,7 @@ cron.schedule('30 * * * *', async () => {
  const unreminded = await Ticket.find({
  status : { $in: ['Open', 'In Progress'] },
  createdAt : { $lte: fourHoursAgo },
- reminderSent : false,
+ empReminderSent: false,
  slackUserId : { $exists: true, $ne: null }
  });
 
@@ -212,7 +212,7 @@ cron.schedule('30 * * * *', async () => {
  }]}
  ]
  });
- t.reminderSent = true;
+ t.empReminderSent = true;
  await t.save();
  console.log(` Reminder sent to ${t.slackUserId} for ticket ${t.ticketId} (${hoursOld}h old)`);
  } catch (err) {
@@ -3231,7 +3231,8 @@ app.listen(PORT, async () => {
        || (btnValue.length > 10 && !/^(Critical|High|Medium|Low|script)$/.test(btnValue) ? btnValue : null)
        || conv.messages.filter(m => m.role === 'user').find(m => !/(nahi hua|try kiye|same hai)/i.test(m.content))?.content
        || '';
-     const nextBlocks = buildDMBlocks(originalIssue, formattedReply);
+     const nextMode = detectReplyMode(reply, false);
+     const nextBlocks = buildDMBlocks(originalIssue, formattedReply, 'Medium', nextMode);
 
      await client.chat.update({
        channel: thinkMsg.channel, ts: thinkMsg.ts, text: reply, blocks: nextBlocks
@@ -3289,19 +3290,22 @@ app.listen(PORT, async () => {
    try {
      const emp = await lookupEmployee(userId, client);
 
-     // Get pendingTickets data (set by KB/AI path) or fallback to message text
+     // Get pendingTickets data (set by KB/AI path) or fallback to button value / conversation
      let pending = pendingTickets.get(userId);
      if (!pending) {
-       // Build from button's parent message text or generic fallback
-       const msgText = body.message?.blocks?.[0]?.text?.text
-         || body.message?.text
-         || 'IT support required';
+       // BUG-11 fix: use button value (user's problem text stored in buildDMBlocks) not AI reply
+       const btnValue = body.actions?.[0]?.value || '';
+       const conv = await Conversation.findOne({ sessionId: userId }).lean().catch(() => null);
+       const firstUserMsg = conv?.messages?.filter(m => m.role === 'user')?.[0]?.content || '';
+       const problemText = (btnValue.length > 10 && !/^(Critical|High|Medium|Low|script)$/.test(btnValue))
+         ? btnValue
+         : (firstUserMsg || 'IT support required');
        pending = {
          empId: emp.empId, empName: emp.empName, empEmail: emp.email || 'unknown@wiom.in',
          empDept: emp.dept, empFloor: emp.floor,
          laptop: emp.laptop, laptopSN: emp.laptopSN,
          category: 'Other', priority: 'Medium',
-         description: msgText.replace(/[*_`]/g, '').substring(0, 200),
+         description: problemText.replace(/[*_`]/g, '').substring(0, 200),
          source: 'slack', slackUserId: userId,
          createdAt: Date.now()
        };

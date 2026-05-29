@@ -80,9 +80,19 @@ router.patch('/team/:username', verifyAdmin, async (req, res) => {
     if (req.admin.role !== 'superadmin')
       return res.status(403).json({ error: 'Only superadmin can modify admins' });
 
+    // BUG-8 fix: explicit allowlist — prevent mass-assignment of passwordHash, _id, etc.
+    const { role, isActive, name, email } = req.body;
+    const update = {};
+    if (role      !== undefined) update.role     = role;
+    if (isActive  !== undefined) update.isActive = isActive;
+    if (name      !== undefined) update.name     = name;
+    if (email     !== undefined) update.email    = email;
+    if (!Object.keys(update).length)
+      return res.status(400).json({ error: 'No valid fields to update' });
+
     const admin = await Admin.findOneAndUpdate(
       { username: req.params.username },
-      { $set: req.body },
+      { $set: update },
       { new: true }
     ).select('-passwordHash');
     if (!admin) return res.status(404).json({ error: 'Admin not found' });

@@ -43,7 +43,8 @@ const ticketSchema = new mongoose.Schema({
   slaHours       : { type: Number },          // SLA target in hours
   slaDeadline    : { type: Date },            // Exact deadline datetime
   slaBreached    : { type: Boolean, default: false },
-  reminderSent   : { type: Boolean, default: false },
+  reminderSent   : { type: Boolean, default: false }, // SLA approach warning (admin email)
+  empReminderSent: { type: Boolean, default: false }, // Employee 4h Slack reminder (BUG-12 fix)
   escalationSent : { type: Boolean, default: false },
 
   // ── Resolution ───────────────────────────────────────────────────────────────
