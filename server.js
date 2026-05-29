@@ -1389,7 +1389,7 @@ app.listen(PORT, async () => {
 
  try {
  const Employee = require('./models/Employee');
- const employees = await Employee.find({ slackUserId: { $exists: true, $ne: null, $ne: '' } }).lean();
+ const employees = await Employee.find({ slackUserId: { $exists: true, $nin: [null, ''] } }).lean();
  let sent = 0, failed = 0;
  for (const emp of employees) {
  try {
@@ -1634,7 +1634,7 @@ app.listen(PORT, async () => {
  const emp = await Employee.findOne({ $or: [{ slackUserId: userId }, { empId: userId }] });
  let myTickets = [];
  if (emp?.empId) {
- myTickets = await Ticket.find({ empId: emp.empId }).sort({ createdAt: -1 }).limit(1).lean();
+ myTickets = await Ticket.find({ empId: emp.empId }).sort({ createdAt: -1 }).limit(3).lean();
  }
  const expandedSet = expandedHomeMap.get(userId) || new Set();
  const blocks = buildHomeBlocks(emp, myTickets, expandedSet);
@@ -1670,7 +1670,7 @@ app.listen(PORT, async () => {
  try {
  const emp = await Employee.findOne({ $or: [{ slackUserId: userId }, { empId: userId }] });
  let myTickets = [];
- if (emp?.empId) myTickets = await Ticket.find({ empId: emp.empId }).sort({ createdAt: -1 }).limit(1).lean();
+ if (emp?.empId) myTickets = await Ticket.find({ empId: emp.empId }).sort({ createdAt: -1 }).limit(3).lean();
  const blocks = buildHomeBlocks(emp, myTickets, userExpanded);
  await client.views.publish({ user_id: userId, view: { type: 'home', blocks } });
  } catch (err) {

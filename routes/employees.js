@@ -22,7 +22,7 @@ router.get('/', verifyAdmin, async (req, res) => {
 });
 
 // ── GET /api/employees/:empId ─────────────────────────────────────────────────
-router.get('/:empId', async (req, res) => {
+router.get('/:empId', verifyAdmin, async (req, res) => {
   try {
     const emp = await Employee.findOne({ empId: req.params.empId.toUpperCase() });
     if (!emp) return res.status(404).json({ error: 'Employee not found' });
@@ -84,7 +84,7 @@ router.patch('/:empId', verifyAdmin, async (req, res) => {
 });
 
 // ── PATCH /api/employees/:empId/slack  — Link Slack user ID ──────────────────
-router.patch('/:empId/slack', async (req, res) => {
+router.patch('/:empId/slack', verifyAdmin, async (req, res) => {
   try {
     const { slackUserId, slackHandle } = req.body;
     await Employee.findOneAndUpdate(
