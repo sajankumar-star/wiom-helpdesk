@@ -651,22 +651,46 @@ app.listen(PORT, async () => {
  const getScriptForText = (text) => {
    if (!text) return null;
    const t = text.toLowerCase();
-   // ── Fan FIRST — before sound/speed checks (fan sound ≠ speaker sound) ──
-   if (/\bfan\b/.test(t)) return { file: 'fix-fan-noise.bat', label: '🌬️ Auto-Fix: Fan Noise' };
+
+   // ── GUARD: Non-laptop devices / out-of-scope → NO Auto-Fix ever ────────
+   // phone/mobile charging, office equipment, conference room hardware
+   const isPhone    = /\b(phone|mobile|samsung|iphone|android|charger\s*nahi|mobile\s*charg)\b/.test(t);
+   const isOfficeEq = /\b(conference\s*room|meeting\s*room|projector\s*room|reception|hall)\b/.test(t) &&
+                      !/\b(laptop|my\s*laptop|mera\s*laptop)\b/.test(t);
+   if (isPhone || isOfficeEq) return null;
+
+   // ── Fan — ONLY laptop fan, not office/ceiling fan ──────────────────────
+   // "laptop fan", "fan noise laptop", "laptop ki awaaz" — NOT "office fan band"
+   if (/\bfan\b/.test(t) && /laptop|pc|computer/.test(t)) return { file: 'fix-fan-noise.bat', label: '🌬️ Auto-Fix: Fan Noise' };
+
    // ── Blue/Black screen before general screen ───────────────────────────
    if (/blue.?screen|bsod|bluescreen/.test(t)) return { file: 'fix-bluescreen.bat', label: '💙 Auto-Fix: Blue Screen' };
    if (/black.?screen|no display|blank screen/.test(t)) return { file: 'fix-black-screen.bat', label: '🖥️ Auto-Fix: Black Screen' };
    if (/screen flicker|flicker|blink/.test(t)) return { file: 'fix-screen-flicker.bat', label: '📺 Auto-Fix: Screen Flicker' };
+
    // ── Overheating before slow (both can say "garam") ────────────────────
    if (/overheat|garam|hot laptop|laptop garm/.test(t)) return { file: 'fix-overheating.bat', label: '🌡️ Auto-Fix: Overheating' };
-   // ── Specific hardware BEFORE general slow ─────────────────────────────
-   if (/camera|camra|webcam|\bcam\b/.test(t)) return { file: 'fix-camera.bat', label: '📷 Auto-Fix: Camera' };
+
+   // ── Camera — laptop/webcam only, not phone camera ─────────────────────
+   if (/webcam|laptop.*camera|camera.*laptop|video\s*call.*camera|camera.*video\s*call|camra|cam\s*nahi/.test(t)) return { file: 'fix-camera.bat', label: '📷 Auto-Fix: Camera' };
+
+   // ── Mic/Audio — laptop only (not phone/conference room speaker) ────────
    if (/mic|microphone/.test(t)) return { file: 'fix-mic.bat', label: '🎤 Auto-Fix: Microphone' };
    if (/headphone|earphone|earbuds/.test(t)) return { file: 'fix-headphone.bat', label: '🎧 Auto-Fix: Headphone' };
-   if (/projector/.test(t)) return { file: 'fix-projector.bat', label: '📽️ Auto-Fix: Projector' };
+
+   // ── Projector — only laptop-to-projector connection issues ───────────
+   if (/projector/.test(t) && /connect|nahi\s*dikh|screen\s*share|laptop/.test(t)) return { file: 'fix-projector.bat', label: '📽️ Auto-Fix: Projector' };
+
    if (/hdmi|external monitor|external screen/.test(t)) return { file: 'fix-hdmi.bat', label: '🖥️ Auto-Fix: HDMI/Monitor' };
    if (/resolution|display sett/.test(t)) return { file: 'fix-resolution.bat', label: '🖥️ Auto-Fix: Resolution' };
-   if (/sound|audio|speaker|awaaz/.test(t)) return { file: 'fix-sound.bat', label: '🔊 Auto-Fix: Sound' };
+
+   // ── Sound — laptop audio only, not phone/room speaker ─────────────────
+   // Exclude: "phone mein awaaz", "room mein speaker", "conference speaker"
+   if (/sound|audio|speaker|awaaz/.test(t) &&
+       !/\b(phone|mobile|room|conference|meeting|hall|reception)\b/.test(t)) {
+     return { file: 'fix-sound.bat', label: '🔊 Auto-Fix: Sound' };
+   }
+
    if (/keyboard|keys|typing|type nahi/.test(t)) return { file: 'fix-keyboard.bat', label: '⌨️ Auto-Fix: Keyboard' };
    if (/touchpad|trackpad|cursor/.test(t)) return { file: 'fix-touchpad.bat', label: '🖱️ Auto-Fix: Touchpad' };
    if (/touchscreen/.test(t)) return { file: 'fix-touchscreen.bat', label: '🖱️ Auto-Fix: Touchscreen' };
@@ -674,20 +698,31 @@ app.listen(PORT, async () => {
    if (/usb|pendrive|pen drive|flash drive/.test(t)) return { file: 'fix-usb.bat', label: '🔌 Auto-Fix: USB' };
    if (/sd card|sdcard|memory card/.test(t)) return { file: 'fix-sdcard.bat', label: '💳 Auto-Fix: SD Card' };
    if (/fingerprint|finger print/.test(t)) return { file: 'fix-fingerprint.bat', label: '👆 Auto-Fix: Fingerprint' };
-   if (/batter[yi]?|battry|battey|batr[yi]|\bbatt\b|charg|\bplug\b.*(?:power|charg|laptop)/.test(t)) return { file: 'fix-battery.bat', label: '🔋 Auto-Fix: Battery' };
+
+   // ── Battery/Charging — laptop only, not phone charging ────────────────
+   if (/batter[yi]?|battry|battey|batr[yi]|\bbatt\b/.test(t)) return { file: 'fix-battery.bat', label: '🔋 Auto-Fix: Battery' };
+   // "charge" only if laptop context present
+   if (/charg/.test(t) && /laptop|pc|computer|plug/.test(t)) return { file: 'fix-battery.bat', label: '🔋 Auto-Fix: Battery' };
+
    if (/sleep|wake|hibernate|suspend/.test(t)) return { file: 'fix-sleep-wake.bat', label: '💤 Auto-Fix: Sleep/Wake' };
    if (/turn on|boot|start nahi|on nahi|won.?t turn/.test(t)) return { file: 'fix-wont-turn-on.bat', label: '⚡ Auto-Fix: Won\'t Turn On' };
    if (/sudden shutdown|shut.?down|band ho|band ho jata/.test(t)) return { file: 'fix-sudden-shutdown.bat', label: '⚡ Auto-Fix: Sudden Shutdown' };
+
    // ── Software apps BEFORE network — "teams not connecting" ≠ wifi ─────
    if (/\bteams\b/.test(t)) return { file: 'fix-teams.bat', label: '📹 Auto-Fix: Teams' };
    if (/\bzoom\b/.test(t)) return { file: 'fix-zoom.bat', label: '🎥 Auto-Fix: Zoom' };
    if (/outlook/.test(t)) return { file: 'fix-outlook.bat', label: '📧 Auto-Fix: Outlook' };
-   // ── Network — "net" alone also means internet in India ───────────────
-   // IMPORTANT: removed generic "nahi chal rha" — too broad, matches TV/AC/any device
+
+   // ── Network ───────────────────────────────────────────────────────────
    if (/wifi|wi-fi|internet|\bnet\b|network|hotspot|broadband|ping/.test(t)) return { file: 'fix-wifi.bat', label: '📶 Auto-Fix: WiFi' };
    if (/onedrive|one drive/.test(t)) return { file: 'fix-onedrive.bat', label: '☁️ Auto-Fix: OneDrive' };
    if (/\bpdf\b/.test(t)) return { file: 'fix-pdf.bat', label: '📄 Auto-Fix: PDF' };
-   if (/word|excel|office|powerpoint/.test(t)) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
+
+   // ── Office apps — use \b word boundary to avoid matching "password", "poweroffice" ──
+   // "office" only matches MS Office software, not "office mein" (office location)
+   if (/\bword\b|\bexcel\b|\bpowerpoint\b/.test(t)) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
+   if (/\bms\s*office\b|\bmicrosoft\s*office\b/.test(t)) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
+
    if (/chrome|browser|firefox|edge|safari/.test(t)) return { file: 'fix-browser.bat', label: '🌐 Auto-Fix: Browser' };
    if (/printer|print/.test(t)) return { file: 'fix-printer.bat', label: '🖨️ Auto-Fix: Printer' };
    if (/windows update|win update/.test(t)) return { file: 'fix-windows-update.bat', label: '🔄 Auto-Fix: Windows Update' };
@@ -698,6 +733,7 @@ app.listen(PORT, async () => {
    if (/website block|site block|open nahi ho raha/.test(t)) return { file: 'fix-website-blocked.bat', label: '🌐 Auto-Fix: Website' };
    if (/virus|malware|ransomware|hack/.test(t)) return { file: 'fix-virus-scan.bat', label: '🦠 Auto-Fix: Virus Scan' };
    if (/storage|disk full|space|jagah nahi/.test(t)) return { file: 'fix-storage.bat', label: '💾 Auto-Fix: Storage Cleanup' };
+
    // ── General laptop slow — LAST (most generic catch) ───────────────────
    if (/slow|hang|lagg|freez|stuck|fast karo|speed|chalta nahi/.test(t)) return { file: 'fix-slow-laptop.bat', label: '⚡ Auto-Fix: Slow Laptop' };
    return null;
