@@ -733,10 +733,11 @@ app.listen(PORT, async () => {
    if (/onedrive|one drive/.test(t)) return { file: 'fix-onedrive.bat', label: '☁️ Auto-Fix: OneDrive' };
    if (/\bpdf\b/.test(t)) return { file: 'fix-pdf.bat', label: '📄 Auto-Fix: PDF' };
 
-   // ── Office apps — use \b word boundary to avoid matching "password", "poweroffice" ──
-   // "office" only matches MS Office software, not "office mein" (office location)
-   if (/\bword\b|\bexcel\b|\bpowerpoint\b/.test(t)) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
-   if (/\bms\s*office\b|\bmicrosoft\s*office\b/.test(t)) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
+   // ── Office apps — fix scripts only for already-installed Office (not fresh installs) ──
+   // "install karo/kaise install/insatll" = fresh installation → IT admin required → NO script
+   const isInstallRequest = /instal|install\s*karo|install\s*kaise|install\s*karu|install\s*chahiye|naya.*install|fresh.*install/.test(t);
+   if (!isInstallRequest && (/\bword\b|\bexcel\b|\bpowerpoint\b/.test(t))) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
+   if (!isInstallRequest && (/\bms\s*office\b|\bmicrosoft\s*office\b/.test(t))) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
 
    if (/chrome|browser|firefox|edge|safari/.test(t)) return { file: 'fix-browser.bat', label: '🌐 Auto-Fix: Browser' };
    if (/printer|print/.test(t)) return { file: 'fix-printer.bat', label: '🖨️ Auto-Fix: Printer' };

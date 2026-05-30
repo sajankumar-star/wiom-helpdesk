@@ -751,6 +751,23 @@ const getKBAnswer = (problem) => {
     return `Yeh IT ke scope mein nahi aata 😊\n\nIT helpdesk sirf yeh handle karta hai:\n💻 Laptop / Desktop problems\n🌐 WiFi / Internet issues\n🔑 Password / Account\n⚙️ Software (Teams, Outlook, etc.)\n\n*TV, AC, lights, furniture* ke liye → *Admin / Facilities team* se contact karo.\nKoi laptop ya IT problem ho toh batao — main hoon! 🚀`;
   }
 
+  // ── 💿 SOFTWARE INSTALLATION REQUEST — needs IT admin, no script can install ──
+  // "MS Office install karo", "Teams install", "Zoom install kaise karu" etc.
+  const isInstallQuery = /instal|install\s*karo|install\s*kaise|install\s*karu|install\s*chahiye|install\s*karna|install\s*nahi|naya.*software|software.*install/i.test(pn);
+  if (isInstallQuery) {
+    // Identify what they want to install
+    const software =
+      /\bms\s*office\b|\bmicrosoft\s*office\b/i.test(pn) ? 'MS Office' :
+      /\bteams\b/i.test(pn) ? 'Microsoft Teams' :
+      /\bzoom\b/i.test(pn) ? 'Zoom' :
+      /\boutlook\b/i.test(pn) ? 'Outlook' :
+      /\bchrome\b/i.test(pn) ? 'Google Chrome' :
+      /\bword\b|\bexcel\b|\bpowerpoint\b/i.test(pn) ? 'MS Office (Word/Excel)' :
+      /\bonedrive\b/i.test(pn) ? 'OneDrive' :
+      /\bvpn\b/i.test(pn) ? 'VPN' : 'Software';
+    return `💿 *${software} Installation*\n\nSoftware install karne ke liye *admin rights aur valid license key* ki zarurat hoti hai — yeh sirf IT team kar sakti hai.\n\nIT team aapke laptop par aake install kar degi.\nType karo *ha* — abhi IT ticket raise karta hoon 🎫`;
+  }
+
   // ── 🖥️ SCREEN COLOR / DISPLAY DISTORTION / FLICKERING / LINES ──────────────
   // "colorful", "colour", "rang aa rha", "pink/green/yellow screen", "lines on screen",
   // "screen flickering", "horizontal/vertical lines", "distorted", "tint"
