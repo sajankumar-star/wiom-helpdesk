@@ -133,9 +133,21 @@ KABHI numbered steps mat do physical damage ke liye.
 First tell them: "Pehle apni desk/drawer/aas-paas check karo aur colleagues se puchho — kabhi kabhi nearby reh jaata hai."
 Then: "Agar phir bhi nahi mila — ABHI Sajan Kumar ko call karo: 9654244281. HR ko bhi batao. Type karo *ha* — HIGH PRIORITY ticket raise karta hoon."
 
+━━━ WIOM OFFICE ENVIRONMENT (CRITICAL — affects scope and responses) ━━━
+- Laptops: Dell, HP, Lenovo, Apple MacBook (mix) — scripts (.bat) only for Windows laptops, NEVER for Mac
+- Office phones: Company provides phones for testing — IT handles office phones (in scope)
+- Personal phones: Out of scope — IT nahi handle karta
+- Printer: Network printer use hota hai — some employees don't have access (IT ticket for network access)
+- VPN: WIOM mein VPN USE NAHI HOTA — agar koi VPN pooche: "WIOM mein VPN use nahi hota. Koi aur IT issue?"
+- Door access card: New employees ko IT/Admin door access card deta hai — card issue = IT ticket
+- Projector/HDMI: Conference rooms mein use hota hai — IT handles
+- No custom proprietary software — standard MS Office, Teams, Outlook, Chrome etc.
+- WiFi: Office WiFi (spartans500) — no router/modem access for employees
+
 ━━━ OUT OF SCOPE ━━━
-TV, AC, lights, fan (ceiling), furniture, electricity, lift, water, pantry → "Yeh IT ke scope mein nahi — Admin/Facilities team se contact karo 😊"
-IT scope: laptop, WiFi, software, passwords, Teams, Outlook, printer, camera, mic
+Personal phone (employee's own phone), TV, AC, lights, ceiling fan, furniture, electricity, lift, water issues, pantry → "Yeh IT ke scope mein nahi — Admin/Facilities team se contact karo."
+OFFICE PHONE (company-provided testing phone) → IN SCOPE — IT handles
+IT scope: laptop, WiFi, software, passwords, Teams, Outlook, printer, camera, mic, HDMI/projector, door access card, office phones
 
 ━━━ TICKET RULES ━━━
 NEVER say ticket already sent/created/raised — you CANNOT do that
@@ -160,14 +172,18 @@ Teams: Quit from system tray → reopen. Fails: delete %appdata%\Microsoft\Teams
 Outlook: Run outlook /safe → repair account. Fails: use outlook.office365.com in browser
 Camera: Settings → Privacy → Camera → ON. App settings → select correct camera. Fails: Device Manager → Cameras → Disable → Enable
 Keyboard: Restart → use osk.exe (on-screen keyboard). Fails: Device Manager → Keyboards → Uninstall → restart
-Printer: Turn OFF/ON → restart Print Spooler (services.msc). Fails = ticket
+Printer not printing: Turn OFF/ON → restart Print Spooler (services.msc). Fails = ticket
+Printer not visible on network: IT ticket — network access setup needed
+HDMI/Projector not connecting: Check cable → try different HDMI port → display settings → Detect. Fails = ticket
+Door access card not working: IT/Admin ticket — card reprogramming needed
+Office phone issue: IT ticket — IT handles company-provided phones
 Storage full: cleanmgr → delete %temp% → empty Recycle Bin
 USB not working: Try different port → Device Manager → USB → Uninstall → Scan for changes
 Bluetooth: Settings toggle OFF/ON → Device Manager → Bluetooth → Disable → Enable
 Virus/Malware: Windows Security → Quick Scan → disconnect internet if serious → ticket
 Password (Windows/email/account): Ticket only — IT resets
-Software install: Ticket only — needs IT permission
-VPN/Remote: Ticket only — IT configures
+Software install: Ticket only — needs IT permission and license
+VPN: WIOM mein use nahi hota — tell user this directly
 
 ━━━ SHORT REPLIES (no steps needed) ━━━
 Ticket status → match language: "Your ticket is with the IT team — type *my tickets* to check status." / "Aapka ticket IT team ke paas hai — type karein *my tickets* status ke liye."
@@ -746,10 +762,45 @@ const getKBAnswer = (problem) => {
     .replace(/\bcharg(e|er|ing)?\b/g, 'charging');   // normalize charger/charging
 
   // ── 🚫 OUT OF SCOPE — TV, AC, furniture, electricity etc. ───────────────
-  // IT helpdesk sirf laptops, WiFi, software, passwords handle karta hai
-  if (/\b(tv|television|telly|ac\b|air\s*condition|fan\b|ceiling\s*fan|light\b|bulb|electricity|current\s*nahi|power\s*cut|generator|geyser|water|pantry|canteen|chair|table|desk|furniture|lift|elevator|ac\s*nahi|ac\s*band)\b/i.test(pn) &&
+  // Personal phones OUT OF SCOPE — but office/company phones = IT handles
+  const isPersonalPhone = /\b(apna|mera|personal|apni)\b/i.test(pn) && /\b(phone|mobile)\b/i.test(pn);
+  const isOfficePhone = /\b(office|company|testing|wiom)\b/i.test(pn) && /\b(phone|mobile)\b/i.test(pn);
+  if (/\b(tv|television|telly|ac\b|air\s*condition|ceiling\s*fan|light\b|bulb|electricity|current\s*nahi|power\s*cut|generator|geyser|pantry|canteen|chair|table|furniture|lift|elevator|ac\s*nahi|ac\s*band)\b/i.test(pn) &&
       !/\b(laptop|wifi|internet|software|password|teams|outlook|chrome|window|screen|monitor|keyboard|mouse|bluetooth|usb)\b/i.test(pn)) {
-    return `Yeh IT ke scope mein nahi aata 😊\n\nIT helpdesk sirf yeh handle karta hai:\n💻 Laptop / Desktop problems\n🌐 WiFi / Internet issues\n🔑 Password / Account\n⚙️ Software (Teams, Outlook, etc.)\n\n*TV, AC, lights, furniture* ke liye → *Admin / Facilities team* se contact karo.\nKoi laptop ya IT problem ho toh batao — main hoon! 🚀`;
+    return `Yeh IT ke scope mein nahi aata.\n\n*TV, AC, lights, furniture* ke liye → *Admin / Facilities team* se contact karo.\n\nIT helpdesk handle karta hai: 💻 Laptop | 🌐 WiFi | 🔑 Password | ⚙️ Software | 🖨️ Printer | 📱 Office phones\n\nKoi laptop ya IT problem ho toh batao!`;
+  }
+  if (isPersonalPhone && !isOfficePhone) {
+    return `Personal phone IT helpdesk ke scope mein nahi hai.\n\nHam sirf *company-provided office phones* handle karte hain.\n\nKoi laptop, WiFi, ya software problem ho toh batao — main help karunga! 💻`;
+  }
+
+  // ── 🚫 VPN — WIOM mein use nahi hota ─────────────────────────────────────
+  if (/\bvpn\b/i.test(pn)) {
+    return `ℹ️ WIOM office mein VPN use nahi hota.\n\nKoi aur IT problem hai? Laptop, WiFi, software — main help karunga!`;
+  }
+
+  // ── 🪪 DOOR ACCESS CARD — IT/Admin handles ────────────────────────────────
+  if (/\b(access\s*card|door\s*card|entry\s*card|id\s*card|biometric|card\s*nahi|card\s*kaam|card\s*chal|swipe|door\s*nahi\s*khul|gate\s*nahi)\b/i.test(pn)) {
+    return `🪪 *Door Access Card Issue*\n\nAccess card IT Admin ke paas se milta/reprogram hota hai.\n\n*Sajan Kumar ko contact karo:*\n📞 9654244281 | 📧 sajan.kumar@wiom.in\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📱 OFFICE PHONE ISSUE — IT handles company phones ────────────────────
+  if (isOfficePhone || (/\b(office\s*phone|company\s*phone|testing\s*phone|wiom\s*phone|diya\s*hua\s*phone)\b/i.test(pn))) {
+    return `📱 *Office Phone Issue*\n\nCompany-provided phones IT team handle karti hai.\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🖨️ PRINTER — distinguish between printing issue vs network access ──────
+  if (/\b(printer|print)\b/i.test(pn)) {
+    const isNetworkAccess = /\b(dikh\s*nahi|nahi\s*dikh|connect\s*nahi|nahi\s*connect|network|add\s*karo|setup|install|access|nahi\s*aa\s*rha|nahi\s*mil\s*rha|find\s*nahi)\b/i.test(pn);
+    if (isNetworkAccess) {
+      return `🖨️ *Network Printer Access*\n\nPrinter network pe add karna IT team ka kaam hai — direct access nahi diya ja sakta.\nType karo *ha* — IT ticket raise karta hoon, IT team aapko network printer se connect kar degi 🎫`;
+    }
+    // Printer visible but not printing → give steps
+    return `🖨️ *Printer Issue* — yeh steps try karein:\n\n1. *Printer restart karo* → band karo, 30 sec baad on karo\n2. *Print Spooler restart* → Win+R → \`services.msc\` → Print Spooler → Restart\n3. *Pending jobs clear karo* → Devices & Printers → printer → See what's printing → Cancel all\n4. *Default printer check* → Settings → Bluetooth & devices → Printers → correct printer default set karo\n5. *Driver reinstall* → Device Manager → Printers → Uninstall → Scan for hardware changes\n\nAgar resolve nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📽️ HDMI / PROJECTOR — conference room ────────────────────────────────
+  if (/\b(hdmi|projector|project|screen\s*share|external\s*screen|external\s*monitor|conference\s*room|meeting\s*room|display\s*nahi|second\s*screen|dual\s*screen|extend\s*display)\b/i.test(pn)) {
+    return `📽️ *HDMI/Projector Issue* — yeh steps try karein:\n\n1. *Cable check karo* → HDMI cable properly plugged in dono sides\n2. *Win+P* → "Extend" ya "Duplicate" select karo\n3. *Detect karo* → Settings → System → Display → "Detect" button dabao\n4. *Different HDMI port try karo* → laptop ya projector pe dusra port\n5. *Restart karo* → cable laga ke laptop restart karo\n\nAgar phir bhi nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
   // ── 💿 SOFTWARE INSTALLATION REQUEST — needs IT admin, no script can install ──
