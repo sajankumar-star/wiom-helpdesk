@@ -350,7 +350,8 @@ const getKBFallback = (problem) => {
     return `WiFi/Internet issue. Please yeh steps try karein:\n\n1. Taskbar WiFi → OFF karein → 10 sec wait karein → ON karein\n2. "Wiom office 5g-Test" select karein → Password: spartans500\n3. Win+R → cmd → netsh winsock reset → Enter → Restart karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
   // Laptop won't start / boot / turn on
-  if (/\b(laptop|leptop|lptop|latop)\b.*(on\s*nahi|start\s*nahi|band\s*ho|nahi\s*chalta|khulta\s*nahi|nahi\s*khulta|chal\s*nahi|chalti\s*nahi|chalte\s*nahi)|boot\s*nahi|(switch|power)\s*on\s*nahi|laptop\s*nahi\s*(chal|start|on|boot)|on\s*nahi\s*ho\s*rh|(nahi\s*ho\s*rh|nahi\s*chal).*(laptop|leptop|lptop|latop)/.test(pn))
+  // ISSUE 5 fix: added English boot phrases ("won't turn on", "not turning on", "laptop dead")
+  if (/\b(laptop|leptop|lptop|latop)\b.*(on\s*nahi|start\s*nahi|band\s*ho|nahi\s*chalta|khulta\s*nahi|nahi\s*khulta|chal\s*nahi|chalti\s*nahi|chalte\s*nahi)|boot\s*nahi|(switch|power)\s*on\s*nahi|laptop\s*nahi\s*(chal|start|on|boot)|on\s*nahi\s*ho\s*rh|(nahi\s*ho\s*rh|nahi\s*chal).*(laptop|leptop|lptop|latop)|won.?t\s*(turn\s*on|start|boot)|not\s*turning\s*on|not\s*starting|laptop\s*(is\s*)?(dead|not\s*starting)|no\s*power\s*laptop/.test(pn))
     return `Laptop on nahi ho raha — yeh ek common boot issue hai. Please yeh steps follow karein:\n\n1. *Force Restart* → Power button 10 sec hold karein → band ho jaayega → dobara on karein\n2. *Charger Check* → Charger lagao aur 5 min wait karein (battery low ho sakti hai) → phir on karein\n3. *Battery Reset* → Charger nikaal lo → Power button 30 sec hold karein → charger lagao → on karein\n4. *Power Drain* → Charger nikaal lo → Power button 60 sec hold karein → charger lagao → on karein\n5. *Safe Mode* → On karte waqt F8 ya Shift+F8 press karein → Safe Mode select karein\n\nAgar kisi bhi step se resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
   // Overheating
@@ -381,8 +382,7 @@ const getKBFallback = (problem) => {
   if (/batter[yi]?|battry|battey|batr[yi]|\bbatt\b|charging/.test(pn))
     return `Battery/Charging issue. Please yeh steps try karein:\n\n1. Charger dono taraf firmly connect karein (laptop side aur socket side)\n2. Alag power socket try karein\n3. Laptop shut down karein → charger disconnect karein → power button 30 sec hold karein → charger reconnect karein → on karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
-  if (pn.includes('black screen') || pn.includes('no display'))
-    return `Black screen issue. Please yeh steps try karein:\n\n1. Fn+F5 ya Fn+F8 press karein (brightness keys)\n2. Koi change nahi → power button 10 sec hold karein → restart\n3. Agar ab bhi display nahi → please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+  // ISSUE 4 fix: removed dead code — black screen already handled above (line ~361)
 
   if (pn.includes('keyboard') || pn.includes('keys') || /keybo?r?a?d/.test(pn))
     return `Keyboard issue. Please yeh steps try karein:\n\n1. Laptop restart karein\n2. Win+R → osk → Enter — on-screen keyboard se kaam chalayein\n3. Device Manager → Keyboards → driver update karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
@@ -805,8 +805,8 @@ const getKBAnswer = (problem) => {
 
   // ── 💿 SOFTWARE INSTALLATION REQUEST — needs IT admin, no script can install ──
   // "MS Office install karo", "Teams install", "Zoom install kaise karu" etc.
-  // Catches: install, insatll, insatall, intsall, instll and all common install typos
-  const isInstallQuery = /install|insatl|insatal|instat|instll|intsall|kaise.*instal|instal.*karo|instal.*karu|naya.*softw|softw.*install/i.test(pn);
+  // Catches: install, insatll, insatall, instaal, intsall, instll and all common install typos
+  const isInstallQuery = /install|insatl|insatal|instaal|instat|instll|intsall|kaise.*instal|instal.*karo|instal.*karu|naya.*softw|softw.*install/i.test(pn);
   if (isInstallQuery) {
     // Identify what they want to install
     const software =
@@ -822,9 +822,10 @@ const getKBAnswer = (problem) => {
   }
 
   // ── 🖥️ SCREEN COLOR / DISPLAY DISTORTION / FLICKERING / LINES ──────────────
-  // "colorful", "colour", "rang aa rha", "pink/green/yellow screen", "lines on screen",
-  // "screen flickering", "horizontal/vertical lines", "distorted", "tint"
-  if ((/\b(colorful|colorfull|colarful|colarfull|colour|color|rang\s*aa|pink|green|yellow|purple|red\s*screen|tint|hue|display\s*kharab|screen\s*kharab|screen\s*pe\s*rang|puri\s*screen)\b/i.test(pn) ||
+  // "colorful screen", "colour aa rha", "rang aa rha", "pink/green/yellow screen", "lines on screen"
+  // ISSUE 2 fix: \bcolor\b alone too broad (matches "color theme") — require color+distortion context
+  // ISSUE 3 fix: screen\s*kharab removed — "screen kharab" = physical damage, not distortion
+  if ((/\b(colorful|colorfull|colarful|colarfull|colour|color\s*aa|color\s*ho|color\s*dikh|rang\s*aa|rang\s*ho|pink\s*screen|green\s*screen|yellow\s*screen|purple\s*screen|red\s*screen|tint|hue|screen\s*pe\s*rang|puri\s*screen)\b/i.test(pn) ||
        /distort|flicker|flickring/i.test(pn) ||
        /\blines\s*(aa|on|pe)\b/i.test(pn) ||
        /horizontal\s*lines?|vertical\s*lines?/i.test(pn)) &&
@@ -921,8 +922,8 @@ const getKBAnswer = (problem) => {
   // NOTE: Resolved check above runs FIRST — so "fan normal hai" won't hit fan noise handler
 
   // ── Laptop won't start / turn on / boot ─────────────────────────────────
-  // "laptop on nahi ho rha", "leptop start nahi ho rha", "boot nahi ho rha", "khulta nahi"
-  if (/\blaptop\b.*(on\s*nahi|start\s*nahi|band\s*ho|nahi\s*chalta|khulta\s*nahi|nahi\s*khulta|chal\s*nahi|chalti\s*nahi|chalte\s*nahi|nahi\s*chal\s*rh)|boot\s*nahi|(switch|power)\s*on\s*nahi|\blaptop\b.*(nahi\s*(chal|start|on|boot)|on\s*ho\s*nahi)|on\s*nahi\s*ho\s*rh/.test(pn))
+  // Hindi/Hinglish + English variants (ISSUE 1 fix: added English patterns)
+  if (/\blaptop\b.*(on\s*nahi|start\s*nahi|band\s*ho|nahi\s*chalta|khulta\s*nahi|nahi\s*khulta|chal\s*nahi|chalti\s*nahi|chalte\s*nahi|nahi\s*chal\s*rh)|boot\s*nahi|(switch|power)\s*on\s*nahi|\blaptop\b.*(nahi\s*(chal|start|on|boot)|on\s*ho\s*nahi)|on\s*nahi\s*ho\s*rh|won.?t\s*(turn\s*on|start|boot)|not\s*turning\s*on|not\s*starting|laptop\s*(is\s*)?(dead|not\s*starting|won.?t\s*start)|no\s*power\s*laptop/.test(pn))
     return `Laptop on nahi ho raha — yeh ek common boot issue hai. Please yeh steps follow karein:\n\n1. *Force Restart* → Power button 10 sec hold karein → band ho jaayega → dobara on karein\n2. *Charger Check* → Charger lagao aur 5 min wait karein (battery low ho sakti hai) → phir on karein\n3. *Battery Reset* → Charger nikaal lo → Power button 30 sec hold karein → charger lagao → on karein\n4. *Power Drain* → Charger nikaal lo → Power button 60 sec hold karein → charger lagao → on karein\n5. *Safe Mode* → On karte waqt F8 ya Shift+F8 press karein → Safe Mode select karein\n\nAgar kisi bhi step se resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
   // ── Overheating ──────────────────────────────────────────────────────────
