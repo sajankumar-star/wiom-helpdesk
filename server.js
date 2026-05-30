@@ -638,7 +638,7 @@ app.listen(PORT, async () => {
  'home_quick_57': { file: 'fix-virus-scan.bat', label: '️ Antivirus Fix' },
  'home_quick_58': { file: 'fix-onedrive.bat', label: '☁️ OneDrive Storage Fix' },
  // ── Power & Boot ─────────────────────────────────────────────────────
- 'home_quick_2' : { file: 'fix-wont-turn-on.bat', label: 'Won\'t Turn On Fix' },
+ // home_quick_2 (Won't Turn On) intentionally excluded — can't run script on dead laptop
  'home_quick_5' : { file: 'fix-battery.bat', label: 'Battery Fix' },
  'home_quick_10': { file: 'fix-battery.bat', label: 'Charging Fix' },
  // ── WiFi Password & Website ───────────────────────────────────────────
@@ -1498,6 +1498,42 @@ app.listen(PORT, async () => {
  const actionId = body.actions[0].action_id;
  const problem = body.actions[0].value; // e.g. "laptop very slow"
 
+ // ── Special case: "Won't Turn On" → no script possible, raise HIGH ticket directly ──
+ if (actionId === 'vague_pick_wont_turn_on') {
+   try {
+     const emp = await lookupEmployee(userId, client).catch(() => ({ empId: userId, empName: 'User' }));
+     const channelId = body.channel?.id || userId;
+     pendingTickets.set(userId, {
+       empId: emp.empId, empName: emp.empName, empEmail: emp.email || 'unknown@wiom.in',
+       empDept: emp.dept, empFloor: emp.floor,
+       laptop: emp.laptop, laptopSN: emp.laptopSN,
+       category: 'Hardware', priority: 'High',
+       description: "Laptop won't turn on at all",
+       source: 'slack', slackUserId: userId, createdAt: Date.now()
+     });
+     await client.chat.postMessage({
+       channel: channelId,
+       text: "Laptop won't turn on — IT team ko bhejte hain",
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text:
+           `⚠️ *Laptop won't turn on — kuch manual steps try karo:*\n\n` +
+           `1. *Power adapter check karo* — cable properly plugged in hai?\n` +
+           `2. *Adapter LED check karo* — light aa rahi hai?\n` +
+           `3. *Power button 10 seconds hold karo* — force restart\n` +
+           `4. *Battery removable hai?* — nikalo, 30 sec baad wapas lagao\n` +
+           `5. *Different power socket try karo*\n\n` +
+           `Agar yeh sab try karne ke baad bhi on nahi hua — IT team ko aana hoga. Type karo *ha* for HIGH priority ticket 🎫`
+         }},
+         { type: 'actions', elements: [
+           { type: 'button', text: { type: 'plain_text', text: '🎫 IT Ticket Raise Karo', emoji: true },
+             style: 'danger', action_id: 'quick_ticket_btn', value: "Laptop won't turn on at all" }
+         ]}
+       ]
+     });
+   } catch (err) { console.error('vague_pick_wont_turn_on error:', err.message); }
+   return;
+ }
+
  // ── Special case: "Create Ticket" button → open /ticket modal directly ─
  if (actionId === 'vague_pick_create_ticket') {
    try {
@@ -2099,6 +2135,48 @@ app.listen(PORT, async () => {
    }
  }).catch(e => console.error('Liquid damage ticket error:', e.message));
  }
+ return;
+ }
+
+ // ── Special case: Won't Turn On — no script possible, show manual steps + HIGH ticket ──
+ if (actionId === 'home_quick_2') {
+ const empWon = await Employee.findOne({ slackUserId: userId });
+ if (empWon?.empId) {
+   pendingTickets.set(userId, {
+     empId: empWon.empId, empName: empWon.name, empEmail: empWon.email || 'unknown@wiom.in',
+     empDept: empWon.department, empFloor: empWon.floor,
+     laptop: empWon.laptop, laptopSN: empWon.laptopSN,
+     category: 'Hardware', priority: 'High',
+     description: "Laptop won't turn on at all",
+     source: 'slack', slackUserId: userId, createdAt: Date.now()
+   });
+ }
+ await client.views.open({
+   trigger_id: triggerId,
+   view: {
+     type: 'modal',
+     title: { type: 'plain_text', text: '💀 Laptop Won\'t Turn On', emoji: true },
+     close: { type: 'plain_text', text: 'Close', emoji: true },
+     blocks: [
+       { type: 'section', text: { type: 'mrkdwn', text:
+         `⚠️ *Pehle yeh manual steps try karo:*\n\n` +
+         `1. *Power adapter check karo* — cable properly plugged in hai?\n` +
+         `2. *Adapter LED check karo* — light aa rahi hai adapter mein?\n` +
+         `3. *Power button 10 seconds hold karo* — hard reset hoga\n` +
+         `4. *Battery removable hai?* — nikalo, 30 sec wait karo, wapas lagao\n` +
+         `5. *Alag power socket try karo*\n\n` +
+         `_Agar yeh sab karne ke baad bhi on nahi hua — IT team physically aayegi._`
+       }},
+       { type: 'divider' },
+       { type: 'section', text: { type: 'mrkdwn', text: '*IT Team ko bulana hai? HIGH Priority ticket raise karo:*' }},
+       { type: 'actions', elements: [
+         { type: 'button', text: { type: 'plain_text', text: '🎫 IT Ticket Raise Karo (HIGH)', emoji: true },
+           style: 'danger', action_id: 'quick_ticket_btn', value: "Laptop won't turn on at all" }
+       ]},
+       { type: 'context', elements: [{ type: 'mrkdwn', text: '_Aur koi help chahiye? DM mein apni problem type karo._' }]}
+     ]
+   }
+ });
  return;
  }
 
@@ -2783,8 +2861,11 @@ app.listen(PORT, async () => {
    for (let i = 0; i < btns.length; i += 4) rows.push(btns.slice(i, i + 4));
 
    const label = categoryLabels[vagueMatch.type] || 'Issue';
+   // Script hint only for categories where scripts actually help (not power/boot issues)
+   const canScript = vagueMatch.type !== 'laptop' || true; // label is generic — no script promise
+   const subLabel = `_Select karo — Zivon help karega 👇_`;
    const blocks = [
-     { type: 'section', text: { type: 'mrkdwn', text: `*${label} — exact problem select karo:*\n_Zivon directly fix + script dega 👇_` } },
+     { type: 'section', text: { type: 'mrkdwn', text: `*${label} — exact problem select karo:*\n${subLabel}` } },
    ];
    rows.forEach(row => {
      blocks.push({
