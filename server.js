@@ -2647,11 +2647,11 @@ app.listen(PORT, async () => {
  { type: 'context', elements: [{ type: 'mrkdwn', text: '_Zivon AI Vision | Kaam nahi hua toh ticket raise karo: type *ha*_' }]}
  ]});
  } else {
- await say({ text: 'Screenshot mila! 📸 Describe karo kya error aa raha hai — main help karunga! 😊' });
+ await say({ text: '📸 Screenshot received. Please type the error message in text — main help karunga.' });
  }
  } catch (err) {
  console.error('Photo diagnosis error:', err.message);
- await say({ text: '📸 Screenshot mila! Kya error dikh raha hai? Describe karo — main turant fix batata hoon! 😊' });
+ await say({ text: '📸 Screenshot received. Error message text mein type karo — main dekh ke help karunga.' });
  }
  } else {
  await say({ text: `File mila (${file.name})! Iske baare mein kya help chahiye? 😊` });
