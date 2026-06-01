@@ -91,30 +91,22 @@ End every troubleshooting reply with:
 You:
 Please yeh steps follow karein:
 
-1. *Force Restart* → Power button 10 sec hold karein → band ho jaayega → dobara on karein
-2. *Safe Mode* → Startup pe F8 ya Shift+F8 press karein → Safe Mode with Networking select karein
-3. *Startup Repair* → F8 menu → "Repair Your Computer" → Startup Repair run karein
-4. *Last Known Good Config* → F8 → "Last Known Good Configuration" select karein
-5. *System Restore* → Safe Mode → Start → System Restore → kal se pehle ka restore point select karein
-6. *Driver Fix* → Safe Mode → Device Manager → yellow (!) driver → Uninstall → Restart
-7. *Disk Check* → Safe Mode CMD: chkdsk C: /f /r → Y → Restart
+1. *Restart* → Power button se properly shut down karo → dobara on karo
+2. *Wait* → Agar Windows update chal rahi hai → wait karo, band mat karo
 
-Agar kisi bhi step se resolve nahi hua, please type karein *ha* — main IT team ko escalate kar deta hoon 🎫
+Agar 3 baar se zyada restart ho raha hai ya nahi ruk raha — type karo *ha* — IT ticket raise karta hoon 🎫
 
 ---
 
 [ENGLISH] User: "My WiFi is not working"
 You:
-This is a common connectivity issue. Please try the following steps:
+Please try the following steps:
 
-1. *Toggle WiFi* → Click the WiFi icon in the taskbar → Turn OFF → wait 10 sec → Turn ON → connect to "Wiom office" (Password: spartans500)
-2. *Forget & Reconnect* → WiFi Settings → right-click the network → Forget → reconnect
-3. *Adapter Reset* → Win+X → Device Manager → Network Adapters → WiFi adapter → Disable → Enable
-4. *Winsock Reset* → Open CMD as Administrator → type: netsh winsock reset → Restart
-5. *DNS Flush* → CMD → ipconfig /flushdns → ipconfig /release → ipconfig /renew
-6. *Driver Update* → Device Manager → WiFi adapter → Update Driver → Search automatically
+1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON → connect to "Wiom office" (password: spartans500)
+2. *Forget & Reconnect* → WiFi settings → right-click the network → Forget → reconnect
+3. *Restart* → Restart your laptop
 
-If none of the above works, please type *ha* and I will raise an IT ticket for you 🎫
+If still not resolved — type *ha*, IT ticket raise karta hoon 🎫
 
 ---
 
@@ -122,13 +114,11 @@ If none of the above works, please type *ha* and I will raise an IT ticket for y
 You:
 Please yeh steps try karein — har step ke baad check karein ki connect hua ya nahi:
 
-1. *Toggle* → Taskbar WiFi → OFF karein → 10 sec → ON karein → "Wiom office" se connect karein (password: spartans500)
-2. *Forget & Reconnect* → WiFi Settings → network pe right-click → Forget → dobara connect karein
-3. *Adapter Reset* → Win+X → Device Manager → Network Adapters → WiFi → Disable → Enable
-4. *Winsock Reset* → CMD (Admin) → netsh winsock reset → Restart
-5. *DNS Flush* → CMD → ipconfig /flushdns → ipconfig /release → ipconfig /renew
+1. *Toggle* → Taskbar WiFi → OFF → 10 sec → ON → "Wiom office" se connect karo (password: spartans500)
+2. *Forget & Reconnect* → WiFi settings → network → Forget → dobara connect karo
+3. *Restart* → Laptop restart karo
 
-Agar ab bhi resolve nahi hua → type karein *ha* — IT ticket raise kar deta hoon 🎫
+Resolve nahi hua → type karein *ha* — IT ticket raise kar deta hoon 🎫
 
 ━━━ 🔧 PHYSICAL DAMAGE — IMMEDIATE TICKET ━━━
 Agar user bole "water damage", "paani gira", "liquid spill", "bhig gaya" — CRITICAL EMERGENCY hai. Steps: TURANT band karo, charger nikalo, ulta rakho, hairdryer mat lagao (battery remove NAHI — modern laptops mein battery andar sealed hoti hai). CRITICAL ticket raise karo.
@@ -178,7 +168,7 @@ IT Admin: Sajan Kumar | 📞 9654244281 | sajan.kumar@wiom.in
 NEVER suggest router/modem/cable changes — only laptop-side Windows fixes
 
 ━━━ TROUBLESHOOTING KNOWLEDGE ━━━
-Slow laptop: Task Manager → End Task heavy apps → Restart. Fails: msconfig → Startup → disable → restart. Still slow = ticket (RAM/SSD need upgrade, IT will check)
+Slow laptop: Task Manager → End Task heavy apps → close extra browser tabs → Restart. Still slow = ticket (RAM/SSD need upgrade, IT will check)
 Blue screen: Note error code → restart (usually fixes). 3+ times = ticket immediately
 Black screen: Fn+F5/F8 brightness → 10sec power restart → external monitor test via HDMI
 Battery not charging: Replug both ends → different socket → shutdown → remove charger → hold power 30sec → reconnect
@@ -188,16 +178,16 @@ Teams: Quit from system tray → reopen. Fails: delete %appdata%\Microsoft\Teams
 Gmail/Email not working: Open gmail.com in Chrome incognito → check if opens. Fails → clear Chrome cache (Ctrl+Shift+Del) → try again. Password forgot = IT raises Google account reset
 Gmail password forgot: IT Admin reset karta hai → ticket raise karo (employees cannot reset Google account password themselves — needs IT)
 Apple ID / MacBook password: Apple ID ≠ Google account ≠ Windows password — these are 3 DIFFERENT things. NEVER say Apple ID = Google account. Company MacBook = IT handles. Personal Apple device (iPhone/iPad) = out of scope (support.apple.com). NEVER suggest Google account recovery for Apple ID questions.
-Camera: Settings → Privacy → Camera → ON. App settings → select correct camera. Fails: Device Manager → Cameras → Disable → Enable. Still fails = ticket
-Keyboard: Restart → use osk.exe (on-screen keyboard). Fails: Device Manager → Keyboards → Uninstall → restart. NEVER suggest driver download — no admin rights
-Printer not printing: Turn OFF/ON → restart Print Spooler (services.msc). Fails = ticket
+Camera: Settings → Privacy → Camera → ON. App settings → select correct camera. Fails = ticket (IT fixes driver)
+Keyboard: Restart → use osk.exe (on-screen keyboard). Fails = ticket (IT fixes driver — no admin rights)
+Printer not printing: Printer OFF/ON → laptop restart → dobara print. Fails = ticket
 Printer not visible on network: IT ticket — network access setup needed, employee cannot add themselves (no admin rights)
 HDMI/Projector not connecting: Check cable → try different HDMI port → Win+P → Extend → Detect. Fails = ticket
 Door access card not working: IT/Admin ticket — card reprogramming needed
 Office phone issue: IT ticket — IT handles company-provided phones
-Storage full: cleanmgr → delete %temp% → empty Recycle Bin
-USB not working: Try different port → Device Manager → USB → Uninstall → Scan for changes
-Bluetooth: Settings toggle OFF/ON → Device Manager → Bluetooth → Disable → Enable
+Storage full: Empty Recycle Bin → delete Downloads folder junk. Fails = ticket (IT does cleanup)
+USB not working: Try different port → restart laptop. Fails = ticket
+Bluetooth: Settings toggle OFF/ON → re-pair device → restart. Fails = ticket
 Virus/Malware: Windows Security → Quick Scan → disconnect internet if serious → ticket immediately
 Password (Windows/email/account): Ticket only — IT resets
 Software install: Ticket only — needs IT permission and license
@@ -235,7 +225,7 @@ const detectIntent = (messages) => {
 
   // WiFi connected but no internet
   if (/connect(ed)?.*(nahi chal|work nahi|internet nahi|chal nahi|nahi work|not working)|wifi.*(connected|chal raha).*(internet nahi|nahi chal|no internet)|(no internet|internet nahi).*(connected|chal raha)|wifi connected.*but|but.*wifi connected/.test(recentText))
-    return { category: 'NETWORK_CONNECTED', hint: 'User ALREADY SAID WiFi is connected but internet not working. SKIP the diagnostic question — they gave you the symptom. Give numbered steps directly:\n1. WiFi icon click → Disconnect → reconnect → Password: spartans500\n2. Win+R → cmd → type: ipconfig /flushdns → Enter\n3. type: netsh winsock reset → Enter → laptop restart karo\n4. Agar ab bhi nahi hua → type *ha* — ticket raise karta hoon 🎫\nNO QUESTIONS. Give these steps now.' };
+    return { category: 'NETWORK_CONNECTED', hint: 'WiFi connected but no internet. Steps: 1) Toggle WiFi off/on. 2) Restart laptop. 3) If only one site blocked — check another site. Agar resolve nahi hua → type karo *ha*, IT ticket.' };
 
   // Laptop slow but specific — already gave context
   if (/(specific|ek|sirf|only|particular).*(app|game|software).*(slow|hang)|(slow|hang).*(specific|ek|sirf)/.test(recentText))
@@ -264,7 +254,7 @@ const detectIntent = (messages) => {
 
   // DISPLAY COLOR DISTORTION — colorful screen, color lines, tint
   if (/colorful|colorfull|colarful|colarfull|colour|color\s*aa|rang\s*aa|pink\s*screen|green\s*screen|tint|lines\s*aa|horizontal\s*line|vertical\s*line|screen\s*pe\s*rang|display.*rang|rang.*display/.test(recentText))
-    return { category: 'DISPLAY_COLOR', hint: 'SCREEN COLOR DISTORTION. User says screen is showing colors/lines/tint. This is a display driver or hardware issue. SKIP all diagnostic questions — give steps directly:\n1. Restart laptop — driver glitch often fixes on restart\n2. Device Manager → Display adapters → Update driver → Search automatically\n3. Device Manager → Display adapters → Uninstall device → Restart (auto-reinstalls)\n4. Settings → System → Display → Advanced display → Change refresh rate → 60Hz\n5. Test with external monitor via HDMI — if external is fine, laptop screen hardware issue\nEnd with: type karein *ha* — IT ticket raise kar deta hoon 🎫' };
+    return { category: 'DISPLAY_COLOR', hint: 'Screen color issue. Step 1: Restart laptop (driver glitch usually fixes on restart). Step 2: If external monitor available, test HDMI — if external fine, laptop screen hardware issue. Agar nahi hua → ticket.' };
 
   // DISPLAY — screen, black, blue screen
   if (/screen|display|black screen|nahi dikh|dikhna band|blue screen|bsod|flicker|bright|dim|resolution|monitor|hdmi|kala ho gaya|screen kali/.test(recentText))
@@ -358,14 +348,14 @@ const getKBFallback = (problem) => {
 
   // WiFi connected but no internet
   if (/connect(ed)?.*(nahi chal|work nahi|internet nahi|nahi work)|wifi.*(connected|chal).*(internet nahi|nahi chal)|(no internet|internet nahi).*(connected|connect)/.test(pn))
-    return `WiFi connected hai par internet nahi chal raha. Please yeh steps follow karein:\n\n1. Taskbar mein WiFi icon click karein → Disconnect karein → "Wiom office 5g-Test" select karein → Password: spartans500\n2. Win+R → cmd → Enter → ipconfig /flushdns → Enter\n3. netsh winsock reset → Enter → Laptop restart karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `WiFi connected hai par internet nahi chal raha. Yeh try karo:\n\n1. *WiFi toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Chrome reopen* → Chrome band karo → dobara open karo → gmail.com try karo\n3. *Restart* → Laptop restart karo\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
   if (pn.includes('slow') || pn.includes('hang') || pn.includes('freez') || pn.includes('dheema') || pn.includes('lagg'))
-    return `💻 *Laptop Slow/Hang Issue* — yeh steps try karein:\n\n1. *Task Manager* → Ctrl+Shift+Esc → CPU column pe click karo (sort by highest) → jo zyada use kar rha ho, End Task karo\n2. *Restart karo* → Sab se simple fix — laptop properly shut down karo, sleep nahi\n3. *Startup apps band karo* → Win+R → \`msconfig\` → Startup tab → unnecessary apps disable karo → Restart\n4. *Temp files delete karo* → Win+R → \`%temp%\` → Ctrl+A → Delete\n5. *Disk cleanup* → Win+R → \`cleanmgr\` → C: drive → Clean up system files\n6. *Chrome tabs check karo* → Zyada tabs = zyada RAM → unnecessary tabs band karo\n\nAgar in steps ke baad bhi same problem hai, type karo *ha* — IT ticket raise karta hoon (RAM ya SSD upgrade ho sakta hai) 🎫`;
+    return `💻 *Laptop Slow/Hang* — yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → CPU column → jo zyada use kar raha ho End Task karo\n2. *Browser tabs* → unnecessary Chrome/Edge tabs band karo\n3. *Restart* → Laptop properly shut down karo (restart, sleep nahi)\n\nAgar in teeno se theek nahi hua, type karo *ha* — IT ticket raise karta hoon (RAM ya SSD check hogi) 🎫`;
 
   if (pn.includes('wifi') || pn.includes('internet') || pn.includes('network') ||
       /\bnet\b/.test(pn) || pn.includes('net band') || pn.includes('signal nahi') || pn.includes('no internet'))
-    return `WiFi/Internet issue. Please yeh steps try karein:\n\n1. Taskbar WiFi → OFF karein → 10 sec wait karein → ON karein\n2. "Wiom office 5g-Test" select karein → Password: spartans500\n3. Win+R → cmd → netsh winsock reset → Enter → Restart karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `WiFi/Internet issue. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi → OFF → 10 sec → ON → "Wiom office" se connect karo (password: spartans500)\n2. *Restart* → Laptop restart karo\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
   // Laptop won't start / boot / turn on
   // ISSUE 5 fix: added English boot phrases ("won't turn on", "not turning on", "laptop dead")
@@ -385,11 +375,11 @@ const getKBFallback = (problem) => {
        /distort|flicker|flickring/i.test(pn) ||
        /lines\s*(aa|on|on\s*screen|pe)|screen.*lines|horizontal\s*lines?|vertical\s*lines?/.test(pn)) &&
       /screen|display|monitor|laptop/.test(pn))
-    return `Screen color/display issue hai. Please yeh steps try karein:\n\n1. *Restart* → Laptop restart karein — driver glitch zyada tar restart se theek ho jaata hai\n2. *Display Driver Update* → Win+X → Device Manager → Display adapters → right-click → Update driver → Search automatically\n3. *Display Driver Reinstall* → Device Manager → Display adapters → Uninstall device → Restart karein\n4. *Refresh Rate* → Settings → System → Display → Advanced display → 60Hz select karein\n5. *External Monitor Test* → HDMI se monitor connect karein — bahar sahi dikh raha toh laptop screen hardware issue hai\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Screen color/display issue hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek ho jaata hai\n2. *External monitor test* → HDMI se monitor connect karo — bahar sahi dikh raha toh laptop screen hardware issue hai\n\nAgar restart se theek nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
 
   // Windows update / OS crash / restart loop
   if (/windows\s*(crash|restart|update|stuck|atak|loop|hang)|update\s*(stuck|atak|hang|nahi|ruka)|restart\s*(bar\s*bar|baar\s*baar|loop|hota\s*rha|ho\s*rha\s*bar)|os\s*(crash|hang|stuck)/.test(pn))
-    return `Windows/OS issue hai. Please yeh steps follow karein:\n\n1. *Force Restart* → Power button 10 sec hold karein → band karein → dobara on karein\n2. *Update Wait* → Agar update chal rahi hai → wait karein, band mat karein\n3. *Startup Repair* → On karte waqt F8 press karein → "Repair Your Computer" → Startup Repair\n4. *Last Known Good* → F8 menu → "Last Known Good Configuration" select karein\n5. *Safe Mode* → F8 → Safe Mode with Networking → login karein\n\nAgar 3 baar se zyada restart ho raha hai, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Windows issue hai. Yeh try karo:\n\n1. *Restart* → Power button se properly shut down karo → dobara on karo\n2. *Wait* → Agar Windows update chal rahi hai → wait karo, band mat karo\n\nAgar 3 baar se zyada restart ho raha hai ya nahi ruk raha — type karo *ha* — IT ticket raise karta hoon 🎫`;
 
   if (pn.includes('sound') || pn.includes('audio') || pn.includes('speaker') || pn.includes('headphone'))
     return `Audio issue. Please yeh steps try karein:\n\n1. Taskbar mein speaker icon par right-click karein → Sound settings\n2. Output device mein sahi device select karein\n3. Volume check karein — 0% ya mute toh nahi hai\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
@@ -403,13 +393,13 @@ const getKBFallback = (problem) => {
   // ISSUE 4 fix: removed dead code — black screen already handled above (line ~361)
 
   if (pn.includes('keyboard') || pn.includes('keys') || /keybo?r?a?d/.test(pn))
-    return `Keyboard issue. Please yeh steps try karein:\n\n1. Laptop restart karein\n2. Win+R → osk → Enter — on-screen keyboard se kaam chalayein\n3. Device Manager → Keyboards → driver update karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Keyboard issue. Yeh try karo:\n\n1. *Restart* → Laptop restart karo\n2. *On-screen keyboard* → Win+R → osk → Enter → screen keyboard se kaam chalao\n\nType karo *ha* — IT ticket raise karta hoon, IT aake fix karega 🎫`;
 
   if (pn.includes('touchpad') || pn.includes('mouse'))
     return `Touchpad issue. Please yeh steps try karein:\n\n1. Fn + touchpad lock key press karein (keyboard par lock icon wali key)\n2. Settings → Bluetooth & devices → Touchpad → ON karein\n3. Laptop restart karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
   if (pn.includes('printer'))
-    return `Printer issue. Please yeh steps try karein:\n\n1. Settings → Bluetooth & devices → Printers → printer par right-click → Set as default\n2. Win+R → services.msc → Print Spooler → Restart\n3. Dobara print karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Printer issue. Yeh try karo:\n\n1. *Printer restart* → Printer band karo → 30 sec → on karo\n2. *Laptop restart* → Laptop restart karo → dobara print karo\n\nAgar resolve nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
 
   if (pn.includes('teams'))
     return `Microsoft Teams issue. Please yeh steps try karein:\n\n1. System tray → Teams icon right-click → Quit → dobara open karein\n2. Win+R → %appdata%\\Microsoft\\Teams → Cache folder delete karein\n3. teams.microsoft.com browser mein try karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
@@ -434,19 +424,19 @@ const getKBFallback = (problem) => {
   }
 
   if (pn.includes('bluetooth'))
-    return `Bluetooth issue. Please yeh steps try karein:\n\n1. Settings → Bluetooth → toggle OFF karein → ON karein\n2. Device dobara pair karein\n3. Device Manager → Bluetooth → Disable → Enable\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Bluetooth issue. Yeh try karo:\n\n1. *Toggle* → Settings → Bluetooth → OFF → ON karein\n2. *Re-pair* → Device remove karein → dobara pair karein\n3. *Restart* → Laptop restart karo\n\nAgar resolve nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
 
   if (pn.includes('camera') || pn.includes('webcam') || /\bcam\b/.test(pn))
-    return `Camera issue. Please yeh steps try karein:\n\n1. Settings → Privacy & Security → Camera → ON karein\n2. Teams/Zoom Settings → Video → correct camera select karein\n3. Device Manager → Cameras → Disable → Enable\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Camera issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Camera → ON karein\n2. *App settings* → Teams/Zoom mein Settings → Video → correct camera select karein\n3. *Restart* → Laptop restart karo\n\nAgar resolve nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
 
   if (pn.includes('mic') || pn.includes('microphone'))
     return `Microphone issue. Please yeh steps try karein:\n\n1. Settings → Privacy & Security → Microphone → ON karein\n2. Sound settings → Input → correct mic select karein\n3. Teams: Settings → Devices → mic test karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
   if (pn.includes('usb') || pn.includes('pendrive'))
-    return `USB issue. Please yeh steps try karein:\n\n1. Alag USB port mein try karein\n2. Device Manager → Universal Serial Bus → Uninstall → Scan for hardware changes\n3. Laptop restart karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `USB issue. Yeh try karo:\n\n1. *Alag port* → USB device dusre port mein lagao\n2. *Restart* → Laptop restart karo → dobara lagao\n\nAgar resolve nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
 
   if (pn.includes('storage') || pn.includes('disk full'))
-    return `Storage full issue. Please yeh steps try karein:\n\n1. Win+R → cleanmgr → C: → Clean system files\n2. Win+R → %temp% → Ctrl+A → Delete\n3. Recycle Bin empty karein\n\nAgar resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Storage/disk full issue. Yeh try karo:\n\n1. *Recycle Bin* → Desktop pe Recycle Bin → Empty Recycle Bin\n2. *Downloads folder* → File Explorer → Downloads → jo files zaruri nahi unhe delete karo\n\nAgar ab bhi issue hai, type karo *ha* — IT ticket raise karta hoon (IT baaki cleanup karega) 🎫`;
 
   if (pn.includes('virus') || pn.includes('malware') || pn.includes('antivirus'))
     return `Possible virus/malware issue. Please yeh steps follow karein:\n\n1. Windows Security → Virus & threat protection → Quick Scan\n2. Agar suspicious activity lag rahi hai → internet disconnect karein\n\nPlease type karein *ha* — IT team ko escalate karna zaroori hai 🎫`;
@@ -823,7 +813,7 @@ const getKBAnswer = (problem) => {
       return `🖨️ *Network Printer Access*\n\nPrinter network pe add karna IT team ka kaam hai — direct access nahi diya ja sakta.\nType karo *ha* — IT ticket raise karta hoon, IT team aapko network printer se connect kar degi 🎫`;
     }
     // Printer visible but not printing → give steps
-    return `🖨️ *Printer Issue* — yeh steps try karein:\n\n1. *Printer restart karo* → band karo, 30 sec baad on karo\n2. *Print Spooler restart* → Win+R → \`services.msc\` → Print Spooler → Restart\n3. *Pending jobs clear karo* → Devices & Printers → printer → See what's printing → Cancel all\n4. *Default printer check* → Settings → Bluetooth & devices → Printers → correct printer default set karo\n5. *Driver reinstall* → Device Manager → Printers → Uninstall → Scan for hardware changes\n\nAgar resolve nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
+    return `🖨️ *Printer Issue* — yeh try karo:\n\n1. *Printer restart* → Printer band karo → 30 sec → on karo\n2. *Pending jobs cancel* → Taskbar mein printer icon → cancel all pending jobs\n3. *Default printer* → Settings → Bluetooth & devices → Printers → correct printer default set karo\n4. *Laptop restart* → Laptop restart karo → dobara print karo\n\nAgar resolve nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
   // ── 📽️ HDMI / PROJECTOR — conference room ────────────────────────────────
@@ -858,7 +848,7 @@ const getKBAnswer = (problem) => {
        /\blines\s*(aa|on|pe)\b/i.test(pn) ||
        /horizontal\s*lines?|vertical\s*lines?/i.test(pn)) &&
       /\b(screen|display|monitor|laptop)\b/i.test(pn)) {
-    return `Screen color/display issue hai. Please yeh steps try karein:\n\n1. *Restart* → Laptop restart karein — sometimes driver glitch hota hai jo restart se theek ho jaata hai\n2. *Display Driver Update* → Win+X → Device Manager → Display adapters → right-click → Update driver → Search automatically\n3. *Display Driver Reinstall* → Device Manager → Display adapters → Uninstall device → Restart (Windows automatically reinstall karega)\n4. *Refresh Rate Check* → Settings → System → Display → Advanced display → Change refresh rate → 60Hz select karein\n5. *External Monitor Test* → HDMI se bahar monitor connect karein — agar bahar sahi dikh raha → laptop screen hardware issue hai\n\nAgar kisi bhi step se resolve nahi hua, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Screen color/display issue hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek ho jaata hai\n2. *External monitor test* → HDMI se monitor connect karo — bahar sahi dikh raha toh laptop screen hardware issue hai\n\nAgar restart se theek nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
   // ── 💧 WATER / LIQUID DAMAGE — CRITICAL EMERGENCY — check BEFORE generic damage ──
@@ -936,7 +926,7 @@ const getKBAnswer = (problem) => {
     /office\s*(wifi|network|wi-fi)\s*(password|pass)/i.test(pn);
 
   if (isWifiPassword) {
-    return `WiFi Password! 📶\n\n🔑 *Password:* \`spartans500\` — sabhi networks ke liye same\n\n*Networks:*\n• Wiom office 5g-Test — Ground floor\n• Wiom office Guest\n• Wiom office 3rd floor\n• Wiomnet — Saket office *(Password: \`Password@12345\`)*\n\nHo gaya? Batao! 😊`;
+    return `WiFi Password! 📶\n\n🔑 *Password:* \`spartans500\` — sabhi networks ke liye same\n\n*Networks:*\n• Wiom office 5g-Test — Ground floor\n• Wiom office Guest\n• Wiom office 3rd floor\n• Wiomnet — Saket office *(Password: \`Password@12345\`)*\n\nConnect ho gaya? Koi aur help chahiye?`;
   }
 
   // ── Instant KB answers — Zivon tone, no Step 1/2/3 ─────────────────────
@@ -981,7 +971,7 @@ const getKBAnswer = (problem) => {
   // ── Windows / OS crash / restart loop / update stuck ────────────────────
   // "windows crash ho gaya", "windows restart ho rha bar bar", "windows update atak gaya/stuck"
   if (/windows\s*(crash|restart|update|stuck|atak|loop|hang)|update\s*(stuck|atak|hang|nahi|ruka)|restart\s*(bar\s*bar|baar\s*baar|loop|hota\s*rha|ho\s*rha\s*bar)|os\s*(crash|hang|stuck)/.test(pn))
-    return `Windows/OS issue hai. Please yeh steps follow karein:\n\n1. *Force Restart* → Power button 10 sec hold karein → band karein → dobara on karein\n2. *Update Wait* → Agar update chal rahi hai → wait karein, band mat karein\n3. *Startup Repair* → On karte waqt F8 press karein → "Repair Your Computer" → Startup Repair\n4. *Last Known Good* → F8 menu → "Last Known Good Configuration" select karein\n5. *Safe Mode* → F8 → Safe Mode with Networking → login karein\n\nAgar 3 baar se zyada restart ho raha hai, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Windows issue hai. Yeh try karo:\n\n1. *Restart* → Power button se properly shut down karo → dobara on karo\n2. *Wait* → Agar Windows update chal rahi hai → wait karo, band mat karo\n\nAgar 3 baar se zyada restart ho raha hai ya nahi ruk raha — type karo *ha* — IT ticket raise karta hoon 🎫`;
 
   // ════════════════════════════════════════════════════════════════════════
   // TOP 5 MOST COMMON WIOM PROBLEMS — optimized for 300 users, 1 IT admin
@@ -990,7 +980,7 @@ const getKBAnswer = (problem) => {
   // ── 📶 WIFI / NET SLOW — most common WIOM issue ─────────────────────────
   // "wifi slow hai", "net slow hai", "internet slow", "speed nahi"
   if (/\b(net|wifi|internet|speed|bandwidth)\b.*(slow|dheema|dheemi|kam|bahut\s*slow|bahut\s*dheema|bura|bekar|nahi\s*chal\s*rha\s*theek)|slow.*(net|wifi|internet|speed)|(internet|wifi|net)\s*(bahut)?\s*(slow|dheema|weak|poor)/i.test(pn)) {
-    return `📶 *WiFi/Net Slow Issue* — yeh steps try karein:\n\n1. *Background apps band karo* → Ctrl+Shift+Esc → Task Manager → Network column sort karo → bandwidth kha rahe apps End Task karo (OneDrive sync, Chrome updates, etc.)\n2. *WiFi toggle* → Taskbar WiFi → OFF → 10 sec → ON → "Wiom office" se reconnect karo (password: spartans500)\n3. *Speed test karo* → fast.com ya speedtest.net browser mein open karo → dekho speed kitni aa rahi hai\n4. *Browser cache clear* → Chrome → Ctrl+Shift+Del → All time → Cookies + Cache → Clear\n5. *DNS change karo* → Win+R → ncpa.cpl → WiFi adapter → Properties → IPv4 → DNS: 8.8.8.8 aur 8.8.4.4 → OK\n6. *Laptop restart karo* → sab background processes reset ho jaate hain\n\n💡 *Sirf aapka laptop slow hai ya sab ka?*\n- Sab ka slow → Floor ka access point issue hai, type karo *ha* — IT ticket raise karta hoon\n- Sirf aapka → Steps se fix ho jaayega 👆\n\nAgar resolve nahi hua, type karo *ha* — IT ticket 🎫`;
+    return `📶 *WiFi/Net Slow* — yeh try karo:\n\n1. *Background apps* → Ctrl+Shift+Esc → Network column → bandwidth kha rahe apps End Task karo\n2. *WiFi toggle* → Taskbar WiFi → OFF → 10 sec → ON → "Wiom office" se connect karo\n3. *Speed test* → fast.com browser mein open karo — speed dekho\n4. *Browser cache* → Chrome → Ctrl+Shift+Del → All time → Cache → Clear\n5. *Restart* → Laptop restart karo\n\n💡 Sirf aapka slow hai ya sab ka? Sab ka slow → floor ka network issue → type karo *ha* — IT ticket 🎫\n\nAgar resolve nahi hua, type karo *ha* — IT ticket 🎫`;
   }
 
   // ── 💻 MS OFFICE NOT ACTIVATED — separate from "not working" ────────────
@@ -1004,14 +994,14 @@ const getKBAnswer = (problem) => {
   // "word nahi khul rha", "excel crash ho rha", "MS Office chal nahi rha"
   if (/\b(word|excel|powerpoint|ms\s*office|microsoft\s*office)\b.*(nahi\s*khul|not\s*open|crash|band\s*ho|error|kaam\s*nahi|loading|atak|stuck|response\s*nahi|hang)/i.test(pn) ||
       /(nahi\s*khul|crash|error).*(word|excel|powerpoint|office)/i.test(pn)) {
-    return `⚙️ *MS Office Issue* — yeh steps try karein:\n\n1. *Force close karo* → Ctrl+Shift+Esc → Task Manager → WINWORD.EXE / EXCEL.EXE → End Task → dobara open karo\n2. *Safe Mode mein open karo* → Win+R → \`winword /safe\` (Word ke liye) ya \`excel /safe\` (Excel) → Enter → agar khulta hai toh add-in issue hai\n3. *Recent file hat karo* → Safe mode mein File → Options → Trust Center → Protected View → sab uncheck → OK → restart\n4. *Office Repair* → Settings → Apps → Microsoft Office → Modify → Quick Repair → Repair karo\n5. *Restart* → Laptop restart karo → dobara try karo\n\n⚠️ *Activated nahi hai?* → Type karo *ha* — IT ticket raise karta hoon, Admin activate kar denge 🎫\n\nAgar koi bhi step kaam nahi kiya, type karo *ha* — IT ticket 🎫`;
+    return `⚙️ *MS Office Issue* — yeh try karo:\n\n1. *Force close* → Ctrl+Shift+Esc → Task Manager → WINWORD.EXE ya EXCEL.EXE → End Task → dobara open karo\n2. *Restart* → Laptop restart karo → dobara open karo\n\nAgar ab bhi nahi khul raha — type karo *ha* — IT ticket raise karta hoon (IT aake repair karega) 🎫`;
   }
 
   // ── 🖱️ TOUCHPAD STUCK / NOT WORKING — 4th most common ──────────────────
   // "touchpad kaam nahi kar rha", "cursor stuck", "mouse nahi chal rha"
   if (/\b(touchpad|trackpad|cursor|mouse)\b.*(nahi|stuck|freeze|chal\s*nahi|kaam\s*nahi|band|work\s*nahi|move\s*nahi|response\s*nahi|hilta\s*nahi|ek\s*jagah)|cursor\s*(stuck|freeze|hilta\s*nahi|ek\s*jagah\s*hai)/i.test(pn) ||
       /(touchpad|trackpad)\s*(nahi|band|stuck|kharab)/i.test(pn)) {
-    return `🖱️ *Touchpad Issue* — yeh steps try karein:\n\n1. *Touchpad lock key* → Keyboard pe touchpad icon wali key dhundho:\n   • Dell: Fn+F5 dabao\n   • HP: Fn+F12 dabao  \n   • Lenovo: Fn+F6 dabao\n   • (Key pe touchpad/hand icon hoga)\n2. *Settings se on karo* → Settings → Bluetooth & devices → Touchpad → toggle ON karo\n3. *Device Manager* → Win+X → Device Manager → "Mice and other pointing devices" → HID-compliant mouse → right-click → Enable device\n4. *Laptop restart karo* → sab se pehle yeh try karo agar nahi kiya\n5. *External mouse lagao* → USB mouse se kaam chala lo aur type karo *ha* — IT ticket raise karta hoon 🎫\n\nAgar touchpad physically stuck/jammed lag rha hai (physical feel mein problem) → hardware issue hai, type karo *ha* 🎫`;
+    return `🖱️ *Touchpad Issue* — yeh try karo:\n\n1. *Fn key* → Keyboard pe touchpad lock key dabao:\n   • Dell: Fn+F5 | HP: Fn+F12 | Lenovo: Fn+F6\n2. *Settings* → Settings → Bluetooth & devices → Touchpad → toggle ON karo\n3. *Restart* → Laptop restart karo\n4. *External mouse* → USB mouse lagao aur type karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
   // Fan noise/sound (fan IS running but making noise — NOT an emergency)
