@@ -786,8 +786,8 @@ const getKBAnswer = (problem) => {
   // ── 🛒 HARDWARE PURCHASE / NEW EQUIPMENT REQUEST ─────────────────────────
   // "headphone chahiye", "mouse ki zarurat hai", "new keyboard chahiye"
   if (/\b(chahiye|ki\s*need|ki\s*zarurat|naya|new|purchase|buy|kharidna|request|mangwana|milega|doge|de\s*do)\b/i.test(pn) &&
-      /\b(headphone|earphone|mouse|keyboard|monitor|screen|webcam|charger|cable|laptop|bag|stand|hub|adapter|pendrive|hard\s*disk|ssd|ram|headset)\b/i.test(pn)) {
-    return `🛒 *New Equipment / Hardware Request*\n\nNaya equipment lene ke liye *IT ticket raise karo* — IT Admin zarurat assess karke arrange karega.\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+      /\b(headphone|earphone|mouse|keyboard|monitor|screen|webcam|charger|cable|laptop|bag|stand|hub|adapter|pendrive|hard\s*disk|ssd|ram|headset|mobile|phone|tablet)\b/i.test(pn)) {
+    return `🛒 *New Equipment Request*\n\nNaya equipment lene ke liye:\n\n1. *Apne Reporting Manager ko email karo*\n2. *CC mein add karo:* sajan.kumar@wiom.in\n3. Email mein likho — kaunsa equipment chahiye aur kyun\n\nManager approval ke baad IT arrange kar dega.`;
   }
 
   // ── 📹 CCTV — not IT scope, Admin handles ────────────────────────────────
