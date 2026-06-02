@@ -856,6 +856,11 @@ const getKBAnswer = (problem) => {
     return `📱 *Office Phone Issue*\n\nCompany-provided phones IT team handle karti hai.\nType karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
+  // ── 🖨️ PRINTOUT REQUEST — "mujhe printout chahiye" vs printer issue ──────
+  if (/\b(printout|print\s*out)\b/i.test(pn) && /need|chahiye|karo|dena|lena|nikalna|i\s*need|mujhe/i.test(pn)) {
+    return `🖨️ *Printout ke liye:*\n\n1. File open karo\n2. *Ctrl+P* dabao → printer select karo → Print\n\nAgar printer nahi dikh raha ya connect nahi ho raha — type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
   // ── 🖨️ PRINTER — distinguish between printing issue vs network access ──────
   if (/\b(printer|print)\b/i.test(pn)) {
     const isNetworkAccess = /\b(dikh\s*nahi|nahi\s*dikh|connect\s*nahi|nahi\s*connect|network|add\s*karo|setup|install|access|nahi\s*aa\s*rha|nahi\s*mil\s*rha|find\s*nahi)\b/i.test(pn);
@@ -1003,7 +1008,8 @@ const getKBAnswer = (problem) => {
 
   // ── Laptop automatic off/on / sudden shutdown / restart loop ────────────
   // "laptop automatic off on ho rha hai", "laptop khud band ho jaata hai", "sudden shutdown"
-  if (/automatic.*off|automatic.*on|auto.*band|auto.*restart|khud.*band|band.*ho\s*ja|sudden.*shut|achanak.*band|band\s*ho\s*ja\s*rha|restart\s*(ho\s*rha|kar\s*rha|loop)|off\s*on\s*ho\s*rha|on\s*off\s*ho\s*rha/i.test(pn)) {
+  // "band ho rha hai", "20 min me band", "laptop off ho jata hai", "shut down ho rha"
+  if (/automatic.*off|automatic.*on|auto.*band|auto.*restart|khud.*band|band.*ho\s*ja|sudden.*shut|achanak.*band|band\s*ho\s*ja\s*rha|\d+\s*(min|mint|minute).*band|band.*\d+\s*(min|mint)|laptop.*band\s*ho\s*rh|band\s*ho\s*rh.*laptop|shut.*down.*ho\s*rh|restart\s*(ho\s*rha|kar\s*rha|loop)|off\s*on\s*ho\s*rha|on\s*off\s*ho\s*rha|laptop.*off\s*ho\s*(ja|rh)|off\s*ho\s*(ja|rh).*laptop/i.test(pn)) {
     return `⚠️ *Laptop automatically off/restart ho rha hai*\n\nYeh usually overheating ya battery issue hota hai. Yeh try karo:\n\n1. *Table pe rakho* — laptop soft surface (bed/sofa) pe mat rakho, table pe rakho taaki hawa aaye\n2. *Heavy apps band karo* → Ctrl+Shift+Esc → Task Manager → jo zyada CPU use kar raha ho End Task karo\n3. *Charger check karo* — charger properly laga hai? Alag socket try karo\n\nAgar yeh teeno karke bhi band ho raha hai — hardware issue hai, IT ko aana padega.\nType karo *ha* — HIGH PRIORITY ticket raise karta hoon 🎫`;
   }
 

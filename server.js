@@ -737,6 +737,8 @@ app.listen(PORT, async () => {
    if (!isInstallRequest && (/\bms\s*office\b|\bmicrosoft\s*office\b/.test(t))) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
 
    if (/chrome|browser|firefox|edge|safari/.test(t)) return { file: 'fix-browser.bat', label: '🌐 Auto-Fix: Browser' };
+   // "printout chahiye / need printout" = request, not fix — no script
+   if (/\b(printout|print\s*out)\b/.test(t) && /need|chahiye|karo|dena|lena|nikalna/i.test(t)) return null;
    if (/printer|print/.test(t)) return { file: 'fix-printer.bat', label: '🖨️ Auto-Fix: Printer' };
    if (/windows update|win update/.test(t)) return { file: 'fix-windows-update.bat', label: '🔄 Auto-Fix: Windows Update' };
    if (/copy.?paste|clipboard|ctrl.?c|ctrl.?v/.test(t)) return { file: 'fix-clipboard.bat', label: '📋 Auto-Fix: Copy-Paste' };
