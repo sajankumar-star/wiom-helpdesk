@@ -783,9 +783,7 @@ app.listen(PORT, async () => {
  const isWeekday = istDay >= 1 && istDay <= 5;
  const isWorkHour = istHour >= 9 && istHour < 19;
  const adminAvail = isWeekday && isWorkHour;
- const adminStatus = adminAvail
-   ? '🟢 *IT Admin Available* — Mon–Fri, 9AM–7PM'
-   : `🔴 *IT Admin Unavailable* — ${!isWeekday ? 'Weekend' : 'Office hours: 9AM–7PM Mon–Fri'}`;
+ const adminStatus = adminAvail ? '🟢 *IT Admin Available*' : '🔴 *IT Admin Unavailable*';
 
  blocks.push({
    type: 'section',
