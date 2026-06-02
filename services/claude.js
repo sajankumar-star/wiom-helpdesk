@@ -73,7 +73,7 @@ Fixed / resolved → brief professional reply
 ━━━ EMPLOYEE MINDSET — MOST IMPORTANT ━━━
 WIOM employees are NON-TECHNICAL office workers. They are NOT IT people.
 - Give MAXIMUM 3-4 simple steps that anyone can do in 2 minutes
-- NO Safe Mode, NO CMD commands, NO Device Manager, NO BIOS, NO chkdsk — these are IT admin tasks
+- NO Safe Mode, NO CMD commands, NO Device Manager, NO BIOS, NO chkdsk — these are IT tasks
 - Steps must be: click this button, plug/unplug, restart — nothing more
 - If basic steps fail → raise IT ticket immediately
 - Think: "Can a non-tech person do this in 30 seconds?" — if NO, don't include it
@@ -86,7 +86,7 @@ Format: bold the step name, then arrow, then clear action.
 *Step name* → what to do exactly
 
 End every troubleshooting reply with:
-"Agar resolve nahi hua — type karo *ha*, IT Admin ko bhejta hoon 🎫"
+"Agar resolve nahi hua — type karo *ha*, IT ko bhejta hoon 🎫"
 
 ━━━ REAL EXAMPLES — match tone and quality ━━━
 
@@ -168,7 +168,7 @@ Always word it naturally: "type karo *ha*, main IT ko bhej deta hoon 🎫"
 WiFi password: spartans500 (all Wiom networks)
 Special network: "Wiomnet-Saket" → password: Password@12345
 Floor networks: "Wiom office 5g-Test" (Ground) | "Wiom office Guest" | "Wiom office 3rd floor"
-IT Admin: Sajan Kumar | sajan.kumar@wiom.in
+IT: Sajan Kumar | sajan.kumar@wiom.in
 NEVER suggest router/modem/cable changes — only laptop-side Windows fixes
 
 ━━━ TROUBLESHOOTING KNOWLEDGE ━━━
@@ -180,7 +180,7 @@ Fan noise/not working: Shut down NOW, remove charger — hardware risk, ticket i
 Overheating: Hard surface → Task Manager end heavy apps → set Balanced power mode
 Teams: Quit from system tray → reopen. Fails: delete %appdata%\Microsoft\Teams\Cache. Still fails = ticket
 Gmail/Email not working: Open gmail.com in Chrome incognito → check if opens. Fails → clear Chrome cache (Ctrl+Shift+Del) → try again. Password forgot = IT raises Google account reset
-Gmail password forgot: IT Admin reset karta hai → ticket raise karo (employees cannot reset Google account password themselves — needs IT)
+Gmail password forgot: IT reset karta hai → ticket raise karo (employees cannot reset Google account password themselves — needs IT)
 Apple ID / MacBook password: Apple ID ≠ Google account ≠ Windows password — these are 3 DIFFERENT things. NEVER say Apple ID = Google account. Company MacBook = IT handles. Personal Apple device (iPhone/iPad) = out of scope (support.apple.com). NEVER suggest Google account recovery for Apple ID questions.
 Camera: Settings → Privacy → Camera → ON. App settings → select correct camera. Fails = ticket (IT fixes driver)
 Keyboard: Restart → use osk.exe (on-screen keyboard). Fails = ticket (IT fixes driver — no admin rights)
@@ -423,7 +423,7 @@ const getKBFallback = (problem) => {
   if (pn.includes('password') || pn.includes('locked') || pn.includes('login') || /pas?w?ro?d/.test(pn)) {
     // Gmail/Google password — IT handles (no admin rights to self-reset company Google accounts)
     if (/google|gmail|email|mail/.test(pn))
-      return `🔑 *Gmail/Google Account Password*\n\nCompany Gmail account ka password reset IT Admin karta hai — employees khud reset nahi kar sakte.\n\nType karein *ha* — IT ticket raise karta hoon, jaldi reset ho jaayega 🎫`;
+      return `🔑 *Gmail/Google Account Password*\n\nCompany Gmail account ka password reset IT karta hai — employees khud reset nahi kar sakte.\n\nType karein *ha* — IT ticket raise karta hoon, jaldi reset ho jaayega 🎫`;
     return `🔑 *Password/Login Issue*\n\nPassword reset sirf IT team kar sakti hai.\n\nType karein *ha* — IT ticket raise karta hoon, team jaldi reset kar degi 🎫`;
   }
 
@@ -458,7 +458,7 @@ const getKBFallback = (problem) => {
     return `Main *Zivon* hoon — WIOM ka IT support assistant.\nLaptop, WiFi, software, password — kisi bhi IT issue mein help kar sakta hoon.\nPlease batayein aapka issue kya hai.`;
 
   if (pn.includes('sajan') || pn.includes('admin') || pn.includes('it head') || pn.includes('phone number') || pn.includes('number do'))
-    return 'IT Admin: *Sajan Kumar* | 📧 sajan.kumar@wiom.in';
+    return 'IT: *Sajan Kumar* | 📧 sajan.kumar@wiom.in';
 
   return `Thoda aur batao — screen pe kya dikh raha hai? Kaunsa error message aa raha hai? Main help karunga.`;
 };
@@ -622,7 +622,7 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     .replace(/%appdata%[^\s]*/gi, '')
     .replace(/\bcleanmgr\b/gi, '')
     .replace(/\bservices\.msc\b/gi, '')
-    // Remove Safe Mode / F8 / Diagnostic Tool suggestions — IT admin only
+    // Remove Safe Mode / F8 / Diagnostic Tool suggestions — IT only
     .replace(/safe\s*mode\s*(mein|me|boot|open|karo|se)[^.!?\n]*/gi, 'IT ticket raise karo')
     .replace(/F8\s*(key|dabao|press)[^.!?\n]*/gi, '')
     .replace(/diagnostic\s*tool[^.!?\n]*/gi, 'IT ticket raise karo')
@@ -810,11 +810,11 @@ const getKBAnswer = (problem) => {
     return `📁 *Folder / Drive nahi khul raha* — yeh try karo:\n\n1. *Windows + E* → keyboard pe Windows key + E dabao → File Explorer directly khulega\n2. *Restart Explorer* → Ctrl+Shift+Esc → Task Manager → "Windows Explorer" → right-click → Restart\n3. *Laptop restart karo* → sab kuch fresh start ho jaata hai\n\nAgar phir bhi nahi khula — type karo *ha*, IT ticket raise karta hoon 🎫`;
   }
 
-  // ── 🔒 FOLDER LOCK — needs IT admin (admin rights required) ──────────────
+  // ── 🔒 FOLDER LOCK — needs IT (admin rights required) ──────────────
   // "folder lock kaise karu", "foldar look kise karu" (typos handled)
   if (/\b(folder|foldar|foldor|file|drive)\b.*(lock|look|password|protect|secure|band\s*karna|chupa|hide)\b/i.test(pn) ||
       /\b(lock|look|password|protect)\b.*(folder|foldar|file|drive)\b/i.test(pn)) {
-    return `🔒 *Folder Lock / Password Protection*\n\nFolder lock karne ke liye admin rights chahiye — yeh sirf IT Admin kar sakta hai.\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+    return `🔒 *Folder Lock / Password Protection*\n\nFolder lock karne ke liye admin rights chahiye — yeh sirf IT kar sakta hai.\nType karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
   // ── 🛒 HARDWARE PURCHASE / NEW EQUIPMENT REQUEST ─────────────────────────
@@ -848,7 +848,7 @@ const getKBAnswer = (problem) => {
 
   // ── 🪪 DOOR ACCESS CARD — IT/Admin handles ────────────────────────────────
   if (/\b(access\s*card|door\s*card|entry\s*card|id\s*card|biometric|card\s*nahi|card\s*kaam|card\s*chal|swipe|door\s*nahi\s*khul|gate\s*nahi)\b/i.test(pn)) {
-    return `🪪 *Door Access Card Issue*\n\nAccess card IT Admin ke paas se milta/reprogram hota hai.\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+    return `🪪 *Door Access Card Issue*\n\nAccess card IT ke paas se milta/reprogram hota hai.\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
   // ── 📱 OFFICE PHONE ISSUE — IT handles company phones ────────────────────
@@ -876,7 +876,7 @@ const getKBAnswer = (problem) => {
     return `📽️ *HDMI/Projector Issue* — yeh steps try karein:\n\n1. *Cable check karo* → HDMI cable properly plugged in dono sides\n2. *Win+P* → keyboard pe Win+P dabao → "Extend" ya "Duplicate" select karo\n3. *Alag port try karo* → laptop ya projector pe dusra HDMI port lagao\n4. *Restart karo* → cable laga ke laptop restart karo\n\nAgar phir bhi nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
-  // ── 💿 SOFTWARE INSTALLATION REQUEST — needs IT admin, no script can install ──
+  // ── 💿 SOFTWARE INSTALLATION REQUEST — needs IT, no script can install ──
   // "MS Office install karo", "Teams install", "Zoom install kaise karu" etc.
   // Catches: install, insatll, insatall, instaal, intsall, instll and all common install typos
   const isInstallQuery = /install|insatl|insatal|instaal|instat|instll|intsall|kaise.*instal|instal.*karo|instal.*karu|naya.*softw|softw.*install/i.test(pn);
@@ -932,7 +932,7 @@ const getKBAnswer = (problem) => {
   // "Apple ID bhool gaya", "MacBook ka password", "Apple M4 login nahi ho rha"
   // IMPORTANT: Apple ID ≠ Google account ≠ Windows password — completely different things
   if (/\b(apple\s*id|appleid|apple\s*account|icloud|macbook|mac\s*book|mac\s*os|macos|apple\s*m[1-4]|apple\s*password|apple.*login|apple.*password)\b/i.test(pn)) {
-    return `🍎 *Apple ID / MacBook Issue*\n\nApple ID aur Google account alag hote hain — inhe mix mat karo.\n\n*Company MacBook hai?*\nIT Admin company Apple devices manage karta hai — woh reset kar denge.\nType karo *ha* — IT ticket raise karta hoon 🎫\n\n*Personal iPhone/iPad ke liye Apple ID bhool gaye?*\nYeh personal device hai — IT scope mein nahi aata.\nApple support se help lo: *support.apple.com/en-in/forgot-password*`;
+    return `🍎 *Apple ID / MacBook Issue*\n\nApple ID aur Google account alag hote hain — inhe mix mat karo.\n\n*Company MacBook hai?*\nIT company Apple devices manage karta hai — woh reset kar denge.\nType karo *ha* — IT ticket raise karta hoon 🎫\n\n*Personal iPhone/iPad ke liye Apple ID bhool gaye?*\nYeh personal device hai — IT scope mein nahi aata.\nApple support se help lo: *support.apple.com/en-in/forgot-password*`;
   }
 
   // ── 🚨 THEFT / LOSS — HIGHEST PRIORITY — check BEFORE anything else ────
@@ -1030,10 +1030,10 @@ const getKBAnswer = (problem) => {
   if (/screen\s*(kali|kala|black|blank|kuch\s*nahi\s*dikh|pe\s*kuch\s*nahi)|black\s*screen|kali\s*screen|monitor\s*(black|kala|kali|blank)|display\s*(black|kali|blank|nahi\s*aa)|(nahi\s*dikh|dikhna\s*band)\s*(rha|rhi|raha)/.test(pn))
     return `Black/blank screen issue hai. Please yeh steps follow karein:\n\n1. *Brightness Keys* → Fn+F5 ya Fn+F8 press karein (brightness keys) — screen dim ho sakti hai\n2. *Force Restart* → Power button 10 sec hold karein → band karein → dobara on karein\n3. *External Monitor Test* → HDMI cable se bahar monitor connect karein — agar bahar dikh raha toh laptop screen hardware issue hai\n4. *Charger Check* → Battery completely dead ho sakti hai → charger lagao → 10 min wait karein → on karein\n\nAgar ab bhi screen nahi aa rahi, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
-  // ── Windows Diagnosis / Safe Mode / Diagnostic Tool — IT admin only ─────
+  // ── Windows Diagnosis / Safe Mode / Diagnostic Tool — IT only ─────
   // Employee sees "Windows Diagnosis" screen or asks about Safe Mode/Diagnostic Tool
   if (/\b(safe\s*mode|safemode|diagnostic\s*tool|windows\s*diagno|diagno.*tool|f8\s*key|advanced\s*boot|startup\s*repair|last\s*known\s*good)\b/i.test(pn)) {
-    return `Yeh IT Admin ka kaam hai — aap khud mat karo, kuch aur kharab ho sakta hai.\n\nType karo *ha* — IT ticket raise karta hoon, IT team aake fix karega 🎫`;
+    return `Yeh IT ka kaam hai — aap khud mat karo, kuch aur kharab ho sakta hai.\n\nType karo *ha* — IT ticket raise karta hoon, IT team aake fix karega 🎫`;
   }
 
   // ── Windows / OS crash / restart loop / update stuck ────────────────────
@@ -1042,7 +1042,7 @@ const getKBAnswer = (problem) => {
     return `Windows issue aa raha hai. Yeh try karo:\n\n1. *Restart* → Power button se properly shut down karo → dobara on karo\n2. *Update hai?* → Agar Windows update chal rahi hai → wait karo, band mat karo\n\nAgar baar baar ho raha hai ya screen pe koi error aa raha hai — type karo *ha* — IT ticket raise karta hoon 🎫`;
 
   // ════════════════════════════════════════════════════════════════════════
-  // TOP 5 MOST COMMON WIOM PROBLEMS — optimized for 300 users, 1 IT admin
+  // TOP 5 MOST COMMON WIOM PROBLEMS — optimized for 300 users, 1 IT
   // ════════════════════════════════════════════════════════════════════════
 
   // ── 📶 WIFI / NET SLOW — most common WIOM issue ─────────────────────────
@@ -1055,7 +1055,7 @@ const getKBAnswer = (problem) => {
   // "MS Office activate nahi hai", "office activated nahi", "product key chahiye"
   if (/\b(office|word|excel|powerpoint|ms\s*office)\b.*(activ|activat|license|product\s*key|register|genuine|unactivat|not\s*activ|nahi\s*activ|activation\s*error|unlicensed)/i.test(pn) ||
       /activ.*(office|word|excel|ms\s*office)/i.test(pn)) {
-    return `🔑 *MS Office Activation Issue*\n\nEmployees khud MS Office activate nahi kar sakte — admin rights aur valid license key IT ke paas hoti hai.\n\nIT Admin aapke laptop pe aake activate kar denge.\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+    return `🔑 *MS Office Activation Issue*\n\nEmployees khud MS Office activate nahi kar sakte — admin rights aur valid license key IT ke paas hoti hai.\n\nIT aapke laptop pe aake activate kar denge.\nType karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
   // ── ⚙️ MS OFFICE NOT WORKING / CRASHING ─────────────────────────────────

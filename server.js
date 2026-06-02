@@ -303,7 +303,7 @@ const ensureAdminExists = async () => {
  await Admin.create({
    username : 'it_admin',
    passwordHash: pwd,
-   name : process.env.ADMIN_NAME || 'IT Admin',
+   name : process.env.ADMIN_NAME || 'IT',
    email : process.env.ADMIN_EMAIL || 'it@wiom.in',
    role : 'superadmin'
  });
@@ -730,7 +730,7 @@ app.listen(PORT, async () => {
    if (/\bpdf\b/.test(t)) return { file: 'fix-pdf.bat', label: '📄 Auto-Fix: PDF' };
 
    // ── Office apps — fix scripts only for already-installed Office (not fresh installs) ──
-   // "install karo/kaise install/insatll" = fresh installation → IT admin required → NO script
+   // "install karo/kaise install/insatll" = fresh installation → IT required → NO script
    // Catches: install, insatll, insatall, intsall, instll and all common install typos
    const isInstallRequest = /install|insatl|insatal|instat|instll|intsall|kaise.*instal|instal.*karo|instal.*karu|naya.*softw|softw.*install/.test(t);
    if (!isInstallRequest && (/\bword\b|\bexcel\b|\bpowerpoint\b/.test(t))) return { file: 'fix-word-excel.bat', label: '📄 Auto-Fix: Word/Excel' };
@@ -778,14 +778,14 @@ app.listen(PORT, async () => {
  const blocks = [];
 
  // ── HEADER ──────────────────────────────────────────────────────────────
- // IT Admin availability (Mon-Fri 9AM-7PM IST)
+ // IT availability (Mon-Fri 9AM-7PM IST)
  const nowIST = new Date(Date.now() + 5.5 * 3600000);
  const istDay = nowIST.getUTCDay(); // 0=Sun, 1=Mon...5=Fri, 6=Sat
  const istHour = nowIST.getUTCHours();
  const isWeekday = istDay >= 1 && istDay <= 5;
  const isWorkHour = istHour >= 9 && istHour < 19;
  const adminAvail = isWeekday && isWorkHour;
- const adminStatus = adminAvail ? '🟢 *IT Admin Available*' : '🔴 *IT Admin Unavailable*';
+ const adminStatus = adminAvail ? '🟢 *IT Available*' : '🔴 *IT Unavailable*';
 
  blocks.push({
    type: 'section',
@@ -1390,7 +1390,7 @@ app.listen(PORT, async () => {
  if (!adminId || adminId === 'FILL_KARO' || command.user_id !== adminId) {
  await client.chat.postEphemeral({
  channel: command.channel_id, user: command.user_id,
- text: '❌ Sirf IT Admin broadcast kar sakta hai!'
+ text: '❌ Sirf IT broadcast kar sakta hai!'
  });
  return;
  }
@@ -1852,7 +1852,7 @@ app.listen(PORT, async () => {
  title: { type: 'plain_text', text: '📞 Contact IT', emoji: true },
  close: { type: 'plain_text', text: 'Close', emoji: true },
  blocks: [
- { type: 'section', text: { type: 'mrkdwn', text: '*IT Admin se seedha baat karo:*' }},
+ { type: 'section', text: { type: 'mrkdwn', text: '*IT se seedha baat karo:*' }},
  { type: 'divider' },
  { type: 'section', text: { type: 'mrkdwn', text: '📱 *Phone:*\n*9654244281*' }},
  { type: 'section', text: { type: 'mrkdwn', text: '📧 *Email:*\nsajan.kumar@wiom.in' }},
@@ -1910,10 +1910,10 @@ app.listen(PORT, async () => {
  { type: 'header', text: { type: 'plain_text', text: '🆘 SOS Emergency Registered!', emoji: true }},
  { type: 'section', text: { type: 'mrkdwn', text: `*${name}, aapka SOS register ho gaya!*\n*Issue:* ${issueType.split(' — ')[0]}` }},
  { type: 'divider' },
- { type: 'section', text: { type: 'mrkdwn', text: `📞 *IT Admin se ABHI contact karo:*\n📱 *Phone:* *9654244281*\n📧 *Email:* sajan.kumar@wiom.in` }},
+ { type: 'section', text: { type: 'mrkdwn', text: `📞 *IT se ABHI contact karo:*\n📱 *Phone:* *9654244281*\n📧 *Email:* sajan.kumar@wiom.in` }},
  ticketId
- ? { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ Ticket auto-created: \`${ticketId}\` | Priority: *${priority}* | IT Admin ko alert bhej diya gaya hai!` }]}
- : { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ IT Admin ko alert bhej diya gaya hai! Woh jald aayenge.` }]}
+ ? { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ Ticket auto-created: \`${ticketId}\` | Priority: *${priority}* | IT ko alert bhej diya gaya hai!` }]}
+ : { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ IT ko alert bhej diya gaya hai! Woh jald aayenge.` }]}
  ]
  });
 
@@ -2107,7 +2107,7 @@ app.listen(PORT, async () => {
  title: { type: 'plain_text', text: '🆘 SOS IT Emergency', emoji: true },
  close: { type: 'plain_text', text: 'Close', emoji: true },
  blocks: [
- { type: 'section', text: { type: 'mrkdwn', text: '*Apna emergency issue select karo — IT Admin ko turant alert jayega:*' }},
+ { type: 'section', text: { type: 'mrkdwn', text: '*Apna emergency issue select karo — IT ko turant alert jayega:*' }},
  { type: 'divider' },
  {
  type: 'actions',
@@ -2145,7 +2145,7 @@ app.listen(PORT, async () => {
  ]
  },
  { type: 'divider' },
- { type: 'section', text: { type: 'mrkdwn', text: '📞 *IT Admin Direct:*  📱 *9654244281*  |  📧 sajan.kumar@wiom.in' }}
+ { type: 'section', text: { type: 'mrkdwn', text: '📞 *IT Direct:*  📱 *9654244281*  |  📧 sajan.kumar@wiom.in' }}
  ]
  }
  });
@@ -2653,7 +2653,7 @@ app.listen(PORT, async () => {
 Analyze the screenshot carefully and:
 1. Identify exactly what error/issue is visible
 2. Give 2-3 simple steps to fix it (non-technical employee, no CMD, no Device Manager)
-3. If it needs IT admin help → say "Type karo *ha* — IT ticket raise karta hoon 🎫"
+3. If it needs IT help → say "Type karo *ha* — IT ticket raise karta hoon 🎫"
 
 Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue" opener.`;
 
@@ -3157,7 +3157,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    const kbHasTicketAsk = /type\s*karo[:\s]*\*?ha(an|a|n)?\*?/i.test(kbReply);
    const isInfoOnly = !kbHasTicketAsk && (
      // Greetings, identity, thanks
-     /spartans|kaun\s*hoon|Zivon|IT Admin|sajan kumar|khushi hui|koi baat nahi|theek hoon|IT problems mein help|Hello.*Kya IT|Theek hoon/i.test(kbReply) ||
+     /spartans|kaun\s*hoon|Zivon|IT|sajan kumar|khushi hui|koi baat nahi|theek hoon|IT problems mein help|Hello.*Kya IT|Theek hoon/i.test(kbReply) ||
      // Ticket status replies — no buttons needed, user just wanted info
      /IT team ke paas hai|my tickets|Status dekhne|ticket.*resolve|same day resolve|priority mark/i.test(kbReply) ||
      // Resolved confirm
