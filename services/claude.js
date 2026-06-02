@@ -1021,6 +1021,258 @@ const getKBAnswer = (problem) => {
     return `📝 *Text file nahi khul rhi?*\n\nFile pe right-click karo → "Open with" → Notepad select karo\n\nAgar phir bhi nahi khula — type karo *ha*, IT ticket raise karta hoon 🎫`;
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── 🆕 ADDITIONAL INDIAN OFFICE IT KB ENTRIES ─────────────────────────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── 📸 SCREENSHOT — "screenshot kaise lu", "printscreen kaise karu" ────────
+  if (/\b(screenshot|screen\s*shot|printscreen|print\s*screen|screen\s*capture|capture\s*karna|capture\s*kaise)\b/i.test(pn) &&
+      !/record|video|cctv|surveillance/i.test(pn)) {
+    return `📸 *Screenshot kaise lo:*\n\n• *Area select karke:* Win+Shift+S dabao → mouse se area select karo → clipboard mein aa jaayega, paste karo (Ctrl+V)\n• *Full screen:* PrtSc key dabao → Paint mein paste karo (Ctrl+V) → save karo\n• *Active window only:* Alt+PrtSc dabao → Paint mein paste karo\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── ✏️ FILE RENAME — "file rename kaise karu", "rename karna hai" ──────────
+  if (/\b(rename|naam\s*change|file\s*ka\s*naam|naam\s*badalna|file\s*rename|folder\s*rename)\b/i.test(pn)) {
+    return `✏️ *File/Folder rename karna:*\n\nFile ya folder pe *right-click karo* → *"Rename"* select karo → naya naam type karo → Enter dabao\n\n💡 Shortcut: File select karo → *F2* key dabao → naam type karo → Enter`;
+  }
+
+  // ── 📁 NEW FOLDER CREATE — "folder kaise banau", "new folder banana" ────────
+  if (/\b(new\s*folder|naya\s*folder|folder\s*bana|folder\s*kaise\s*bana|create\s*folder|folder\s*create)\b/i.test(pn)) {
+    return `📁 *Naya folder banao:*\n\nJahan folder banana hai wahan *right-click karo* → *"New"* → *"Folder"* → naam type karo → Enter\n\n💡 Shortcut: Ctrl+Shift+N (File Explorer mein)`;
+  }
+
+  // ── 👁️ FILE/FOLDER HIDE — "file hide kaise karu", "folder hide karna" ───────
+  if (/\b(file|folder)\b.*(hide|chupa|chupana|invisible|hidden)\b|\b(hide|chupa|chupana)\b.*(file|folder)\b/i.test(pn)) {
+    return `👁️ *File/Folder hide karna:*\n\n1. File ya folder pe *right-click karo* → *"Properties"*\n2. *"Hidden"* checkbox tick karo → *"Apply"* → OK\n\n⚠️ Note: Yeh sirf basic hide hai — koi bhi "View → Hidden items" se dekh sakta hai. Secure lock chahiye toh type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🖥️ DESKTOP ICONS MISSING — "icons nahi dikh rahe", "desktop icons gayab" ─
+  if (/\b(desktop\s*icon|icon.*desktop|icons?\s*nahi\s*dikh|icons?\s*gayab|icons?\s*gaye|shortcut\s*nahi\s*dikh|desktop\s*pe\s*kuch\s*nahi)\b/i.test(pn)) {
+    return `🖥️ *Desktop icons nahi dikh rahe?*\n\n1. Desktop pe *right-click karo*\n2. *"View"* → *"Show desktop icons"* pe click karo (tick aana chahiye)\n\nSab icons wapas aa jaayenge! Koi aur IT issue ho toh batayein.`;
+  }
+
+  // ── 📌 TASKBAR MISSING — "taskbar nahi dikh rha", "taskbar gayab ho gaya" ────
+  if (/\b(taskbar\s*nahi|taskbar\s*gayab|taskbar\s*gaya|taskbar\s*dikh\s*nahi|taskbar\s*miss|start\s*bar\s*nahi|bottom\s*bar\s*nahi)\b/i.test(pn)) {
+    return `📌 *Taskbar nahi dikh rha?*\n\n1. Mouse cursor screen ke bilkul *neeche* le jao — taskbar auto-hide mein hoga toh aayega\n2. Agar nahi aaya → Taskbar pe *right-click karo* → *"Taskbar settings"* → *"Automatically hide the taskbar"* OFF karo\n\nAgar phir bhi nahi dikh rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── ⌨️ KEYBOARD LANGUAGE CHANGED — "language change ho gayi", "hindi aa rhi" ─
+  if (/\b(keyboard\s*language|language\s*change|hindi\s*type|english\s*type|language\s*switch|lang\s*change|keyboard.*hindi|keyboard.*english|typing.*hindi|typing.*galat)\b/i.test(pn) ||
+      /\b(win\s*space|language.*aa\s*rhi|language.*aa\s*gyi|keyboard.*aa\s*rha)\b/i.test(pn)) {
+    return `⌨️ *Keyboard language change ho gayi?*\n\nEk baar *Win+Space* dabao — language switch ho jaayegi (Hindi ↔ English)\n\nYa Taskbar mein neeche right-side mein language icon (ENG/HIN) pe click karo → English select karo\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 🕐 DATE/TIME WRONG — "date galat hai", "time galat aa rha" ──────────────
+  if (/\b(date|time|clock|ghadi)\b.*(galat|wrong|sahi\s*nahi|theek\s*nahi|glt|change|set\s*karna|sync|adjust)\b|\b(galat|wrong)\b.*(date|time|clock)\b/i.test(pn)) {
+    return `🕐 *Date/Time galat hai?*\n\n1. Taskbar mein *clock pe right-click karo*\n2. *"Adjust date/time"* select karo\n3. *"Set time automatically"* toggle ON karo → *"Sync now"* dabao\n\nDate/time apne aap sahi ho jaayega. Koi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 🌐 DEFAULT BROWSER CHANGE — "default browser kaise change karu" ──────────
+  if (/\b(default\s*browser|browser\s*change|chrome.*default|edge.*default|default.*chrome|default.*edge|browser\s*default\s*kaise)\b/i.test(pn)) {
+    return `🌐 *Default browser change karna:*\n\n1. *Settings* kholo (Win+I)\n2. *"Apps"* → *"Default apps"*\n3. *"Web browser"* dhundho → *Google Chrome* select karo\n\nAb sab links Chrome mein khulenge. Koi aur IT issue ho toh batayein!`;
+  }
+
+  // ── ◧ SPLIT SCREEN / TWO WINDOWS SIDE BY SIDE — "window side by side" ────────
+  if (/\b(side\s*by\s*side|split\s*screen|do\s*window|two\s*window|dono\s*window|aadha\s*screen|window\s*split|snap|do\s*cheezen\s*ek\s*saath)\b/i.test(pn)) {
+    return `◧ *Do windows side by side kaise karo:*\n\n• Ek window pe *Win+Left arrow* dabao → left half mein aa jaayegi\n• Doosri window pe *Win+Right arrow* dabao → right half mein aa jaayegi\n\nDono ek saath dikh jaayengi! Koi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 📡 HOTSPOT CONNECTION — "hotspot se connect nahi ho rha" ─────────────────
+  if (/\b(hotspot|hot\s*spot)\b.*(connect|nahi|chal|ho\s*nahi|nahi\s*ho|problem)/i.test(pn) ||
+      /connect.*(hotspot|hot\s*spot)/i.test(pn)) {
+    return `📡 *Hotspot connect nahi ho rha?* — yeh try karo:\n\n1. *Phone pe check karo* → Hotspot ON hai? Settings → Personal Hotspot → ON karo\n2. *Visible hai?* → Laptop WiFi mein hotspot ka naam dikh raha hai?\n3. *Forget & reconnect* → WiFi → hotspot pe right-click → Forget → dobara connect karo\n\nAgar phir bhi nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔌 LAN CABLE — "LAN lagaya par internet nahi" ────────────────────────────
+  if (/\b(lan\s*cable|ethernet|rj45|network\s*cable|cable.*internet|internet.*cable|wired.*connect)\b/i.test(pn)) {
+    return `🔌 *LAN cable lagaya par internet nahi chal rha?* — yeh try karo:\n\n1. *Cable dono ends check karo* — laptop aur wall socket dono mein firmly laga hai?\n2. *Alag port try karo* — doosra LAN socket try karo\n3. *Restart* → Laptop restart karo cable laga ke\n\nAgar phir bhi nahi chal rha — yeh network/firewall issue ho sakta hai.\nType karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💾 PEN DRIVE NOT DETECTED — "pen drive nahi dikh rhi" ────────────────────
+  // (USB not working is already covered — this is pen drive specific detection)
+  if (/\b(pen\s*drive|pendrive|flash\s*drive|thumb\s*drive)\b.*(nahi\s*dikh|dikh\s*nahi|detect\s*nahi|nahi\s*detect|nahi\s*aa\s*rha|aa\s*nahi|show\s*nahi|nahi\s*show)\b/i.test(pn)) {
+    return `💾 *Pen drive nahi dikh rhi?* — yeh try karo:\n\n1. *Alag USB port try karo* — dusre port mein lagao\n2. *Laptop restart karo* → pen drive laga ke restart karo\n3. *Doosre laptop mein check karo* — pen drive theek hai ya nahi\n\nAgar phir bhi nahi dikh rhi → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📝 PEN DRIVE WRITE PROTECTED — "pen drive mein file transfer nahi" ─────────
+  if (/\b(pen\s*drive|pendrive|usb)\b.*(write\s*protect|transfer\s*nahi|copy\s*nahi|save\s*nahi|nahi\s*copy|nahi\s*transfer|likhna\s*nahi|paste\s*nahi)/i.test(pn) ||
+      /write\s*protect.*(pen\s*drive|pendrive|usb)/i.test(pn)) {
+    return `📝 *Pen drive mein file copy nahi ho rhi?*\n\n1. *Write protection switch check karo* → Pen drive ke side mein ek chhota switch hota hai → Lock position se Unlock pe slide karo\n2. *Different file try karo* → Koi aur file copy karne ki koshish karo\n3. *Pen drive format check karo* → Sirf IT kar sakta hai format change\n\nAgar phir bhi nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💿 SD CARD NOT DETECTED — "SD card nahi dikh rha" ───────────────────────
+  if (/\b(sd\s*card|sdcard|memory\s*card|micro\s*sd)\b.*(nahi\s*dikh|dikh\s*nahi|detect\s*nahi|nahi\s*aa|show\s*nahi|read\s*nahi)\b/i.test(pn)) {
+    return `💿 *SD Card nahi dikh rha?* — yeh try karo:\n\n1. *Card nikaal ke dobara lagao* — properly push karo\n2. *Card saaf karo* — card ke contacts (gold strip) ko saaf kapde se wipe karo\n3. *Doosre device mein try karo* — card theek hai ya nahi check karo\n\nAgar phir bhi nahi dikh rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🗑️ RECYCLE BIN EMPTY — "recycle bin empty kaise karu" ───────────────────
+  if (/\b(recycle\s*bin|recycle|trash)\b.*(empty|khaali|saaf|delete|clear)/i.test(pn) ||
+      /empty.*(recycle\s*bin|trash)/i.test(pn)) {
+    return `🗑️ *Recycle Bin empty karna:*\n\nDesktop pe *Recycle Bin pe right-click karo* → *"Empty Recycle Bin"* → Yes\n\nSab permanently delete ho jaayega. Koi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 📤 FILE TOO LARGE TO SEND — "file size bahut bada hai" ──────────────────
+  if (/\b(file\s*size|attachment\s*large|file\s*bada|badi\s*file|large\s*file|heavy\s*file|send\s*nahi\s*ho\s*rha|attach\s*nahi|attachment\s*nahi)\b/i.test(pn) ||
+      /file.*(send\s*nahi|bhej\s*nahi|limit).*(size|bada|large)/i.test(pn)) {
+    return `📤 *File bahut badi hai send karne ke liye?*\n\n*Option 1 — ZIP compress karo (free):*\nFile pe right-click → "Compress to ZIP" → ZIP file bhejo\n\n*Option 2 — Google Drive se bhejo:*\n1. drive.google.com → file upload karo\n2. File pe right-click → "Share" → email type karo → Send\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 🔄 DISPLAY ROTATE — "display rotate ho gayi", "screen teri ho gayi" ──────
+  if (/\b(display|screen)\b.*(rotate|ulta|seedha\s*nahi|90\s*degree|sideways|tedi|teri|palta)\b|\b(rotate|ulta|teda|teri)\b.*(display|screen)\b/i.test(pn)) {
+    return `🔄 *Screen/Display rotate ho gayi?*\n\n*Shortcut se theek karo:*\n• Normal (seedha): *Ctrl+Alt+Up Arrow*\n• Left rotate: Ctrl+Alt+Left Arrow\n• Right rotate: Ctrl+Alt+Right Arrow\n\nYa: Desktop pe right-click → Display settings → Orientation → *"Landscape"* select karo\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 🖱️ MOUSE SPEED — "mouse cursor bahut fast hai", "pointer slow hai" ─────────
+  if (/\b(mouse|cursor|pointer)\b.*(fast|slow|speed|bahut\s*tez|bahut\s*dheema|adjust|change|speed\s*change)\b|\b(mouse\s*speed|pointer\s*speed|cursor\s*speed)\b/i.test(pn)) {
+    return `🖱️ *Mouse pointer speed adjust karna:*\n\n1. *Settings* kholo (Win+I)\n2. *"Bluetooth & devices"* → *"Mouse"*\n3. *"Pointer speed"* slider adjust karo — left = slow, right = fast\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 🌙 NIGHT MODE / DARK MODE — "night mode kaise karu", "dark mode" ──────────
+  if (/\b(night\s*mode|night\s*light|dark\s*mode|dark\s*theme|eye\s*strain|aankhein\s*dard|blue\s*light|warm\s*light|screen\s*warm)\b/i.test(pn)) {
+    return `🌙 *Night Mode / Dark Mode:*\n\n*Night Light (warm color for eyes):*\nSettings → System → Display → *"Night light"* → ON karo\n\n*Dark Mode (dark background everywhere):*\nSettings → Personalization → Colors → *"Choose your mode"* → *"Dark"* select karo\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 🪟 WINDOWS ACTIVATION — "Windows activate nahi hai" ─────────────────────
+  if (/\b(windows\s*activ|activate\s*windows|windows\s*license|windows\s*genuine|windows\s*not\s*activ|activate\s*karna\s*hai)\b/i.test(pn)) {
+    return `🪟 *Windows Activation*\n\nWindows activate karne ke liye company license key chahiye — employees khud nahi kar sakte.\n\nType karo *ha* — IT ticket raise karta hoon, IT aake activate kar dega 🎫`;
+  }
+
+  // ── 💻 LAPTOP SLOW AFTER WINDOWS UPDATE ─────────────────────────────────────
+  if (/\b(update\s*ke\s*baad|after\s*update|update\s*hone\s*ke\s*baad)\b.*(slow|hang|dheema|chal\s*nahi)|\b(slow|hang)\b.*(update\s*ke\s*baad|after\s*update)/i.test(pn)) {
+    return `💻 *Laptop update ke baad slow ho gaya?*\n\n1. *Ek baar restart karo* → Update ke baad restart zaroori hoti hai\n2. *10 minute wait karo* → Windows background mein kaam karta hai update ke baad, apne aap normal ho jaayega\n\nAgar 10 min baad bhi slow hai — type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── ℹ️ SYSTEM INFO / RAM / LAPTOP SPECS ─────────────────────────────────────
+  if (/\b(system\s*info|system\s*properties|ram\s*kitni|kitni\s*ram|processor\s*kya|specs\s*kya|laptop\s*specs|configuration|config\s*kya|about\s*this\s*pc|this\s*pc.*properties)\b/i.test(pn)) {
+    return `ℹ️ *Laptop info kaise dekhein:*\n\n*Win+Pause/Break* dabao — System Properties seedha khulega\n\nYa: Desktop pe *"This PC"* pe right-click → *"Properties"* → RAM, processor sab dikh jaayega\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 🔢 SERIAL NUMBER — "laptop serial number kaise dekhun" ──────────────────
+  if (/\b(serial\s*number|serial\s*no|service\s*tag|model\s*number|asset\s*tag|laptop\s*ka\s*number)\b/i.test(pn)) {
+    return `🔢 *Laptop serial number kaise dekhein:*\n\n• *Sabse easy:* Laptop palatao — neeche sticker pe serial number likha hota hai\n• *Settings se:* Settings → System → About → "Device specifications" → Serial number\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 🕐 TIME ZONE — "time zone galat hai", "IST nahi hai" ────────────────────
+  if (/\b(time\s*zone|timezone|ist\s*nahi|india\s*time|galat\s*time\s*zone|time\s*zone\s*change)\b/i.test(pn)) {
+    return `🕐 *Time zone change karna:*\n\n1. Taskbar mein *clock pe right-click karo*\n2. *"Adjust date/time"* → *"Time zone"*\n3. *"(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi"* select karo\n\nIST sahi ho jaayega. Koi aur IT issue ho toh batayein!`;
+  }
+
+  // ── ⌨️ KEYBOARD SHORTCUT NOT WORKING — "Fn key kaam nahi kar rhi" ─────────────
+  if (/\b(fn\s*key|function\s*key|shortcut\s*kaam\s*nahi|hotkey\s*nahi|keyboard\s*shortcut\s*nahi|fn\s*lock)\b/i.test(pn)) {
+    return `⌨️ *Keyboard shortcut / Fn key kaam nahi kar rhi?*\n\n1. *Fn Lock check karo* → Keyboard pe *Fn+Esc* dabao (Fn Lock toggle hoga)\n2. *Dobara try karo* → shortcut kaam karta hai ab?\n\nAgar phir bhi nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🌐 GOOGLE CHROME SLOW — "Chrome slow hai", "browser slow" ────────────────
+  if (/\b(chrome|browser)\b.*(slow|hang|dheema|lagg|speed\s*nahi)\b|\b(slow|hang|dheema)\b.*(chrome|browser)\b/i.test(pn)) {
+    return `🌐 *Chrome/Browser slow hai?* — yeh try karo:\n\n1. *Cache clear karo* → Chrome → Ctrl+Shift+Del → "All time" → Cached images + Cookies → Clear data\n2. *Extra tabs band karo* → Sirf zaroori tabs khule rakho\n3. *Extensions check karo* → Chrome → top-right 3 dots → Extensions → jo zaroori nahi woh disable karo\n\nAgar phir bhi slow → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💥 CHROME TAB CRASH — "Chrome tab crash ho rha", "Aw Snap" ──────────────
+  if (/\b(chrome|tab)\b.*(crash|aw\s*snap|nahi\s*khul|khul\s*nahi|error|response\s*nahi)\b/i.test(pn) ||
+      /\baw\s*snap\b/i.test(pn)) {
+    return `💥 *Chrome tab crash / Aw Snap error?* — yeh try karo:\n\n1. *Page reload karo* → F5 ya Ctrl+R dabao\n2. *Extra tabs band karo* → bahut zyada tabs se RAM full ho jaati hai\n3. *Chrome restart karo* → Chrome completely band karo → dobara open karo\n\nAgar phir bhi crash hota hai → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── ☁️ GOOGLE DRIVE UPLOAD — "Google Drive upload nahi ho rha" ───────────────
+  if (/\b(google\s*drive|gdrive|drive\.google)\b.*(upload\s*nahi|upload\s*fail|upload\s*ho\s*nahi|upload\s*error|nahi\s*upload)\b/i.test(pn)) {
+    return `☁️ *Google Drive upload nahi ho rha?* — yeh try karo:\n\n1. *Internet check karo* → WiFi connected hai?\n2. *File size check karo* → 5GB se badi file upload nahi hoti free account mein\n3. *Drive storage check karo* → drive.google.com → neeche storage dikh jaata hai — full toh nahi?\n4. *Alag browser try karo* → Chrome mein nahi ho rha? Edge mein try karo\n\nAgar phir bhi nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📤 GOOGLE DRIVE FILE SHARE — "Google Drive file share kaise karu" ─────────
+  if (/\b(google\s*drive|gdrive)\b.*(share\s*kaise|share\s*karna|share\s*karo|share\s*link|link\s*share|share\s*file|file\s*share)\b/i.test(pn) ||
+      /share.*(google\s*drive|gdrive)/i.test(pn)) {
+    return `📤 *Google Drive file share kaise karo:*\n\n1. *drive.google.com* kholo → file dhundho\n2. File pe *right-click karo* → *"Share"*\n3. Email address type karo → *"Editor"* ya *"Viewer"* select karo → *"Send"*\n\nYa: *"Copy link"* karo → link email/WhatsApp pe bhejo\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 📥 GMAIL ATTACHMENT DOWNLOAD FAIL — "attachment download nahi" ────────────
+  if (/\b(gmail|email|mail)\b.*(attachment\s*nahi|download\s*nahi|attachment\s*download|download.*attachment)\b/i.test(pn)) {
+    return `📥 *Gmail attachment download nahi ho rha?* — yeh try karo:\n\n1. *Incognito mein try karo* → Chrome → Ctrl+Shift+N → gmail.com → dobara try karo\n2. *Storage check karo* → laptop mein Downloads folder full toh nahi?\n3. *Cache clear karo* → Ctrl+Shift+Del → All time → Clear\n\nAgar phir bhi nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📧 GMAIL STORAGE FULL — "Gmail storage full hai" ────────────────────────
+  if (/\b(gmail|google)\b.*(storage\s*full|storage\s*khatam|space\s*nahi|storage\s*nahi|no\s*storage|quota|space\s*full)\b|\b(storage\s*full|storage\s*khatam)\b.*(gmail|google|email|drive)\b/i.test(pn)) {
+    return `📧 *Gmail/Google storage full hai?*\n\n1. *Attachment wale emails delete karo* → Gmail mein search karo: "has:attachment" → bade attachment wale emails delete karo\n2. *Trash empty karo* → Gmail left sidebar → "Trash" → "Empty Trash now"\n3. *Google Drive check karo* → drive.google.com → badi files delete karo\n\nAgar company account ka storage full hai — type karo *ha*, IT ticket raise karta hoon (IT Google Workspace storage badha sakta hai) 🎫`;
+  }
+
+  // ── 🔋 CHARGER PIN DAMAGED — "charger ka pin toot gaya" ─────────────────────
+  if (/\b(charger|charging\s*pin|pin\s*toot|charging\s*port|charging.*damaged|charger.*kharab|charger.*toot)\b/i.test(pn) &&
+      /\b(toot|toota|tuta|broken|damage|kharab|bend|muda)\b/i.test(pn)) {
+    return `🔋 *Charger damaged / pin toot gaya?*\n\nYeh hardware replacement hai — charger khud replace mat karo (wrong charger se laptop kharab ho sakta hai).\n\nType karo *ha* — IT ticket raise karta hoon, IT sahi charger arrange karega 🎫`;
+  }
+
+  // ── 🎧 HEADPHONE MIC NOT WORKING — "headphone ka mic kaam nahi" ───────────────
+  if (/\b(headphone|earphone|headset)\b.*(mic|microphone|nahi\s*sun|nahi\s*aa\s*rhi|kaam\s*nahi)\b|\b(mic|microphone)\b.*(headphone|earphone|headset)\b/i.test(pn)) {
+    return `🎧 *Headphone mic kaam nahi kar rha?* — yeh try karo:\n\n1. *Input device check karo* → Taskbar pe speaker icon pe right-click → Sound settings → *"Input"* → headphone mic select karo\n2. *3.5mm jack theek se laga hai?* → properly push karo\n3. *Teams/Zoom settings check karo* → Settings → Devices → Microphone → headphone mic select karo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── ⌨️ EXTERNAL KEYBOARD NOT WORKING ────────────────────────────────────────
+  if (/\b(external\s*keyboard|bahar\s*wala\s*keyboard|usb\s*keyboard|wired\s*keyboard)\b.*(nahi\s*chal|kaam\s*nahi|type\s*nahi|work\s*nahi)\b/i.test(pn)) {
+    return `⌨️ *External keyboard kaam nahi kar rha?* — yeh try karo:\n\n1. *Alag USB port try karo* — dusre port mein lagao\n2. *Keyboard unplug/replug karo* — nikalo → 5 sec → dobara lagao\n3. *Restart karo* — laptop restart karo keyboard laga ke\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🖱️ WIRELESS MOUSE NOT WORKING ───────────────────────────────────────────
+  if (/\b(wireless\s*mouse|wifi\s*mouse|bluetooth\s*mouse|cordless\s*mouse)\b.*(nahi\s*chal|kaam\s*nahi|work\s*nahi|band)\b/i.test(pn)) {
+    return `🖱️ *Wireless mouse nahi chal rha?* — yeh try karo:\n\n1. *Battery check karo* → mouse ke andar ki batteries replace karo\n2. *USB receiver check karo* → chhota USB dongle (receiver) laptop mein laga hai? Alag port mein lagao\n3. *Mouse ON/OFF button* → mouse ke neeche switch OFF → ON karo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💡 LAPTOP NOT CHARGING (extended) — different socket + adapter LED ────────
+  // Note: Battery/charging is already covered broadly above. This catches the specific
+  // "different socket / adapter LED" variant not in the main KB.
+  if (/\b(charging\s*nahi|charge\s*nahi|nahi\s*charge|laptop\s*charge|charger\s*nahi\s*chal|charger.*kaam\s*nahi)\b/i.test(pn) &&
+      !/toot|broken|damage|kharab|pin/i.test(pn)) {
+    return `🔌 *Laptop charge nahi ho rha?* — yeh try karo:\n\n1. *Charger dono ends check karo* — laptop aur socket dono mein firmly laga hai?\n2. *Alag wall socket try karo* — extension board nahi, seedha wall socket\n3. *Adapter ki LED check karo* — charger ka light on hai? Off hai toh charger kharab ho sakta hai\n4. *Reset karo* → Laptop band karo → charger nikalo → power button 30 sec hold karo → charger lagao → on karo\n\nAgar phir bhi charge nahi ho rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🌐 INTERNET SPEED TEST — "speed test kaise karu" ────────────────────────
+  if (/\b(speed\s*test|internet\s*speed\s*test|net\s*speed\s*test|check\s*speed|bandwidth\s*test|fast\.com|speedtest)\b/i.test(pn)) {
+    return `🌐 *Internet speed test karna:*\n\nChrome mein *fast.com* ya *speedtest.net* kholo — automatically speed check ho jaayega\n\n💡 Sirf aapka slow hai ya sab ka? Sab ka slow → floor ka network issue hai — type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔒 PROXY SETTINGS — "proxy settings change karna" ───────────────────────
+  if (/\b(proxy|proxy\s*settings|proxy\s*change|proxy\s*kya|network\s*proxy)\b/i.test(pn)) {
+    return `🔒 *Proxy settings*\n\nProxy settings employees khud change nahi kar sakte — galat setting se internet band ho sakta hai.\n\nType karo *ha* — IT ticket raise karta hoon, IT handle karega 🎫`;
+  }
+
+  // ── 🔒 FIREWALL BLOCKING — "firewall blocking", "site block hai" ─────────────
+  if (/\b(firewall|site\s*block|website\s*block|block\s*hai|blocked|access\s*denied|forbidden|403\s*error)\b/i.test(pn)) {
+    return `🔒 *Website blocked / Firewall issue?*\n\nKuch websites company network pe restricted hoti hain. Agar koi zaroori site block hai:\n\nType karo *ha* — IT ticket raise karta hoon, IT check karega ki site access dena safe hai ya nahi 🎫`;
+  }
+
+  // ── 🖊️ DIGITAL SIGNATURE — "digital signature chahiye" ──────────────────────
+  if (/\b(digital\s*signature|e-signature|esign|dsc|digital\s*sign)\b/i.test(pn)) {
+    return `🖊️ *Digital Signature chahiye?*\n\nDigital signature setup karna IT ka kaam hai — token, driver sab IT install karta hai.\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📧 NEW EMAIL ID — "naya email ID chahiye company ka" ─────────────────────
+  if (/\b(naya\s*email|new\s*email|email\s*id\s*chahiye|company\s*email|wiom\s*email|company\s*gmail|new\s*account|naya\s*account)\b/i.test(pn)) {
+    return `📧 *New company email ID chahiye?*\n\nCompany Gmail accounts sirf IT create karta hai — HR approval ke baad.\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💻 LAPTOP UPGRADE REQUEST — "laptop upgrade chahiye" ────────────────────
+  if (/\b(laptop\s*upgrade|upgrade\s*laptop|new\s*laptop\s*chahiye|laptop\s*badalna|laptop\s*purana|replace\s*laptop|laptop\s*replace)\b/i.test(pn)) {
+    return `💻 *Laptop upgrade / replacement chahiye?*\n\nLaptop upgrade ke liye:\n\n1. *Apne Reporting Manager ko email karo* — reason explain karo\n2. *CC karo:* sajan.kumar@wiom.in\n\nManager approval ke baad IT assess karega aur arrange karega.`;
+  }
+
+  // ── 📦 SOFTWARE PURCHASE — "software purchase karna hai" ────────────────────
+  if (/\b(software\s*purchase|software\s*kharidna|software\s*license|license\s*chahiye|buy\s*software|naya\s*software\s*chahiye)\b/i.test(pn)) {
+    return `📦 *Software purchase / new license chahiye?*\n\n1. *Manager ko email karo* — software ka naam aur reason likho\n2. *CC karo:* sajan.kumar@wiom.in\n\nManager approval ke baad IT purchase aur install kar dega.`;
+  }
+
+  // ── 🔐 TWO-FACTOR AUTHENTICATION — "2FA setup karna hai" ────────────────────
+  if (/\b(two\s*factor|2fa|2-fa|two-factor|multifactor|mfa|otp\s*setup|authenticator\s*app|google\s*authenticator|microsoft\s*authenticator)\b/i.test(pn)) {
+    return `🔐 *Two-Factor Authentication (2FA) setup?*\n\nCompany accounts pe 2FA setup IT karega — employee khud galti se account lock ho sakta hai.\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔑 PASSWORD MANAGER — "password manager recommend karo" ─────────────────
+  if (/\b(password\s*manager|password\s*save|save\s*password|password\s*bhool\s*jaata|paassword\s*yaad\s*nahi|password\s*store)\b/i.test(pn)) {
+    return `🔑 *Password kaise yaad rakhe?*\n\nSabse easy tarika: *Browser ka built-in password manager use karo*\n\n• Chrome: Password save karne ke liye "Save password" pe click karo jab prompt aaye\n• Saved passwords dekhne ke liye: Chrome → Settings → Passwords\n\nNote: Company accounts ke passwords browser mein save karna generally OK hai company devices pe.\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
+  // ── 🖥️ WIN+P / DISPLAY MODE — explicit Win+P shortcut question ───────────────
+  if (/\b(win\s*[+]\s*p|win\s*p\s*kya|display\s*mode|extend\s*karna|duplicate\s*karna|second\s*screen\s*kaise|monitor\s*kaise\s*connect)\b/i.test(pn)) {
+    return `🖥️ *Display mode change karna (Win+P):*\n\n*Win+P* dabao → 4 options aayenge:\n• *PC screen only* — sirf laptop screen\n• *Duplicate* — same screen dono pe\n• *Extend* — alag workspace dono screen pe (most useful)\n• *Second screen only* — sirf bahar wala monitor\n\nKoi aur IT issue ho toh batayein!`;
+  }
+
   // ── 🛒 HARDWARE PURCHASE / NEW EQUIPMENT REQUEST ─────────────────────────
   // "headphone chahiye", "mouse ki zarurat hai", "new keyboard chahiye"
   if (/\b(chahiye|ki\s*need|ki\s*zarurat|naya|new|purchase|buy|kharidna|request|mangwana|milega|doge|de\s*do)\b/i.test(pn) &&
