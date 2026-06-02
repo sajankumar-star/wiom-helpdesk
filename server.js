@@ -1009,7 +1009,7 @@ app.listen(PORT, async () => {
          },
          {
            type: 'button',
-           text: { type: 'plain_text', text: '👎  Galat Jawab', emoji: true },
+           text: { type: 'plain_text', text: '❌  Kaam Nahi Aaya', emoji: true },
            action_id: 'wrong_answer_btn',
            value: problemText || ''
          }
