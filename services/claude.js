@@ -233,7 +233,7 @@ const detectIntent = (messages) => {
 
   // Laptop slow but specific — already gave context
   if (/(specific|ek|sirf|only|particular).*(app|game|software).*(slow|hang)|(slow|hang).*(specific|ek|sirf)/.test(recentText))
-    return { category: 'PERFORMANCE_SPECIFIC', hint: 'User gave specific detail about slow app. Ask which app name, then give: End Task in Task Manager → clear cache for that app → reinstall if needed.' };
+    return { category: 'PERFORMANCE_SPECIFIC', hint: 'User gave specific detail about slow app. Give: End Task in Task Manager for that app → clear browser cache if browser → restart laptop. If still slow → IT ticket.' };
 
   // Screen black but laptop is on
   if (/(black|kali|blank).*(screen|display).*(on|chal|power)|(on|chal|power).*(black|kali|blank).*(screen|display)/.test(recentText))
@@ -254,11 +254,15 @@ const detectIntent = (messages) => {
 
   // PERFORMANCE — slow, hang, freeze
   if (/slow|hang\b|lagg|freez|speed|fast karo|\bram\b|\bcpu\b|processor|heavy|battery drain|alag hai|dheema|dheere|aahista/.test(recentText))
-    return { category: 'PERFORMANCE', hint: 'PERFORMANCE ISSUE. First ask: "Kab se ho raha hai? Koi specific app mein ya poora laptop slow hai?" — then give MAXIMUM 3 steps: 1) Task Manager → End Task heavy apps 2) Close browser tabs 3) Restart laptop. No more than 3 steps.' };
+    return { category: 'PERFORMANCE', hint: 'PERFORMANCE ISSUE. If user already said slow/hang/lagg → give 3 steps directly (Task Manager End Task, close browser tabs, restart). Do NOT ask follow-up if symptom is clear. Maximum 3 steps only.' };
 
   // DISPLAY COLOR DISTORTION — colorful screen, color lines, tint
   if (/colorful|colorfull|colarful|colarfull|colour|color\s*aa|rang\s*aa|pink\s*screen|green\s*screen|tint|lines\s*aa|horizontal\s*line|vertical\s*line|screen\s*pe\s*rang|display.*rang|rang.*display/.test(recentText))
     return { category: 'DISPLAY_COLOR', hint: 'Screen color issue. Step 1: Restart laptop (driver glitch usually fixes on restart). Step 2: If external monitor available, test HDMI — if external fine, laptop screen hardware issue. Agar nahi hua → ticket.' };
+
+  // SIMPLE HOW-TO — brightness/wallpaper/zoom-in: answer directly, no diagnostic questions
+  if (/brightness|screen.*bright|bright.*screen|\bdim\b|wallpaper|zoom\s*in\s*ho|sab.*bada/i.test(recentText))
+    return { category: 'SIMPLE_HOWTO', hint: 'User is asking a simple how-to question about display/brightness settings. Give a DIRECT 1-2 line answer. Do NOT ask diagnostic questions. Answer: Fn+F5/F6 for brightness, right-click desktop for wallpaper, Ctrl+0 for zoom reset.' };
 
   // DISPLAY — screen, black, blue screen
   if (/screen|display|black screen|nahi dikh|dikhna band|blue screen|bsod|flicker|bright|dim|resolution|monitor|hdmi|kala ho gaya|screen kali/.test(recentText))
@@ -273,7 +277,7 @@ const detectIntent = (messages) => {
     return { category: 'AUDIO', hint: 'AUDIO ISSUE. First ask: "Headphone laga hai? Taskbar pe speaker icon mein X toh nahi?" — check output device.' };
 
   // SOFTWARE
-  if (/teams|zoom|outlook|email|\bchrome\b|\boffice\b|\bword\b|\bexcel\b|onedrive|pdf|app nahi|software|install|crash|error aa raha|error aa rahi/.test(recentText))
+  if (/teams|zoom|outlook|email|\bchrome\b|\boffice\b|\bword\b|\bexcel\b|onedrive|pdf|app nahi|software|install\s+\w+|\w+\s+install|crash|error aa raha|error aa rahi/.test(recentText))
     return { category: 'SOFTWARE', hint: 'SOFTWARE/APP ISSUE. First ask: "Kya exact error message aa raha hai? Screen pe kya likh raha hai?" — give app-specific fix only. If outlook mentioned: WIOM uses Gmail not Outlook — redirect to Gmail. NO %appdata% paths, NO CMD.' };
 
   // PERIPHERAL — keyboard, mouse
@@ -282,7 +286,7 @@ const detectIntent = (messages) => {
 
   // PRINTER
   if (/printer|print|printing/.test(recentText))
-    return { category: 'PRINTER', hint: 'PRINTER ISSUE. First ask: "Printer ON hai aur connected hai? Koi error message dikh raha screen pe?" — Print Spooler restart.' };
+    return { category: 'PRINTER', hint: 'PRINTER ISSUE. First ask: "Printer ON hai aur connected hai? Koi error message dikh raha screen pe?" — then: printer restart karo, restart laptop, IT ticket if unresolved.' };
 
   // ACCOUNT / PASSWORD
   if (/password|login|locked|account|access|sign in|signin|password bhool|bhool gaya password/.test(recentText))
@@ -368,7 +372,7 @@ const getKBFallback = (problem) => {
 
   // Overheating
   if (/\b(laptop|leptop|lptop|latop)\b.*(garm|garam|heat|hot\b)|garm.*(laptop|leptop)|(overheat|over\s*heat|bahut\s*garam|bahut\s*garm|zyada\s*heat|zyada\s*garm)/.test(pn))
-    return `Laptop overheating issue hai. Please yeh steps follow karein:\n\n1. *Hard Surface* → Laptop ko table par rakhein — bed/sofa par mat rakhein (vents block hote hain)\n2. *Heavy Apps Band Karein* → Ctrl+Shift+Esc → Task Manager → CPU column sort karein → heavy apps End Task karein\n3. *Power Mode* → Settings → Power & battery → Power mode → Balanced select karein\n4. *Restart* → Laptop restart karein — background processes band ho jaate hain\n5. *Vents Check* → Laptop ke vents (sides/bottom) mein dust toh nahi — thoda dur rakhein taaki airflow ho\n\nAgar bahut zyada garam ho raha hai ya band ho raha hai, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
+    return `Laptop overheating issue hai. Please yeh steps follow karein:\n\n1. *Hard Surface* → Laptop ko table par rakhein — bed/sofa par mat rakhein (vents block hote hain)\n2. *Heavy Apps Band Karein* → Ctrl+Shift+Esc → Task Manager → CPU column sort karein → heavy apps End Task karein\n3. *Restart* → Laptop restart karein — background processes band ho jaate hain\n\nAgar bahut zyada garam ho raha hai ya band ho raha hai, please type karein *ha* — IT ticket raise kar deta hoon 🎫`;
 
   // Screen black / blank / nothing visible
   if (/screen\s*(kali|kala|black|blank|kuch\s*nahi)|black\s*screen|kali\s*screen|monitor\s*(black|kala|kali|blank)|display\s*(black|kali|blank|nahi\s*aa)|screen\s*pe\s*kuch\s*nahi|(nahi\s*dikh|dikhna\s*band)/.test(pn))
@@ -608,9 +612,9 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
   reply = reply
     .replace(/\barre\s+yaar\b/gi, 'Haan')
     .replace(/\barre\s+bhai\b/gi, 'Haan')
-    .replace(/\barre\b/gi, '')
-    .replace(/\byaar\b/gi, '')
-    .replace(/\bbhai\b/gi, '')
+    .replace(/\barre\b/gi, ' ')
+    .replace(/\byaar\b/gi, ' ')
+    .replace(/\bbhai\b/gi, ' ')
     // Remove phone number — never show in any bot message
     .replace(/📞?\s*9654244281/g, '')
     .replace(/\b9654244281\b/g, '')
@@ -619,6 +623,7 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     .replace(/\bAchha\s+suno\b/gi, 'Please note:')
     .replace(/\bHaan\s+yaar\b/gi, 'Haan,')
     // Remove admin-only tools if AI slips them through
+    .replace(/\bosk\.exe\b/gi, 'On-Screen Keyboard')
     .replace(/%appdata%[^\s]*/gi, '')
     .replace(/\bcleanmgr\b/gi, '')
     .replace(/\bservices\.msc\b/gi, '')
@@ -812,7 +817,7 @@ const getKBAnswer = (problem) => {
 
   if (/\b(folder|file\s*explorer|c\s*drive|d\s*drive|my\s*computer|this\s*pc|drive\b|explorer)\b/i.test(pnFile) &&
       /\b(not\s*open|nahi\s*khul|open\s*nahi|nahi\s*open|khul\s*nahi|kholna|open\s*nahi\s*ho|nahi\s*ho\s*rha|chal\s*nahi|access\s*nahi|dikh\s*nahi)\b/i.test(pnFile)) {
-    return `📁 *Folder / Drive nahi khul raha* — yeh try karo:\n\n1. *Windows + E* → keyboard pe Windows key + E dabao → File Explorer directly khulega\n2. *Restart Explorer* → Ctrl+Shift+Esc → Task Manager → "Windows Explorer" → right-click → Restart\n3. *Laptop restart karo* → sab kuch fresh start ho jaata hai\n\nAgar phir bhi nahi khula — type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `📁 *Folder / Drive nahi khul raha* — yeh try karo:\n\n1. *Windows + E* → keyboard pe Windows key + E dabao → File Explorer directly khulega\n2. *Restart karo* → Laptop restart karo — File Explorer khud theek ho jaata hai\n\nAgar phir bhi nahi khula — type karo *ha*, IT ticket raise karta hoon 🎫`;
   }
 
   // ── 🔒 FOLDER LOCK — needs IT (admin rights required) ──────────────
@@ -829,9 +834,35 @@ const getKBAnswer = (problem) => {
     return `🛒 *New Equipment Request*\n\nNaya equipment lene ke liye:\n\n1. *Apne Reporting Manager ko email karo*\n2. *CC mein add karo:* sajan.kumar@wiom.in\n3. Email mein likho — kaunsa equipment chahiye aur kyun\n\nManager approval ke baad IT arrange kar dega.`;
   }
 
+  // ── 🔆 BRIGHTNESS — simple how-to, no IT needed ─────────────────────────
+  if (/brightness|screen.*bright|bright.*screen|screen.*dark|dark.*screen|aankhein.*dard|screen.*dim\b|\bdim\b.*screen/i.test(pn)) {
+    return `🔆 *Brightness adjust karo:*\n\nKeyboard pe *Fn + F5* (kam) ya *Fn + F6* (zyada) dabao\nYa: Taskbar mein sun icon → slider se adjust karo`;
+  }
+
+  // ── 🖼️ WALLPAPER — simple how-to, no IT needed ───────────────────────────
+  if (/wallpaper|background.*change|desktop.*change|background.*laptop/i.test(pn)) {
+    return `🖼️ *Wallpaper change karna hai?*\n\nDesktop pe right-click karo → *"Personalize"* → Background → apni photo select karo`;
+  }
+
+  // ── 📋 COPY-PASTE — simple fix ───────────────────────────────────────────
+  if (/copy\s*paste|ctrl\s*[+]\s*c|ctrl\s*[+]\s*v|copy\s*nahi|paste\s*nahi/i.test(pn)) {
+    return `📋 *Copy-Paste nahi ho rha* — yeh try karo:\n\n1. *App restart karo* — jo app mein problem hai usse band karo → dobara open karo\n2. *Laptop restart karo* — aksar restart se theek ho jaata hai\n\nAgar phir bhi nahi hua — type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── ⌨️ CAPS LOCK / NUM LOCK / SCROLL LOCK ────────────────────────────────
+  if (/caps\s*lock|num\s*lock|scroll\s*lock|numlock|capslock/i.test(pn)) {
+    const key = /caps/i.test(pn) ? 'Caps Lock' : /num/i.test(pn) ? 'Num Lock' : 'Scroll Lock';
+    return `⌨️ *${key} Issue*\n\n*${key}* key ek baar dabao — on/off toggle hoga.\nAgar kaam nahi kiya → laptop restart karo.\n\nAgar phir bhi problem hai — type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔍 SCREEN ZOOM IN / EVERYTHING BIG ───────────────────────────────────
+  if (/zoom\s*in\s*ho|sab.*bada\s*ho|bada\s*ho\s*gaya|font.*bada|text.*bada|screen.*zoom|display.*zoom|zoom.*screen/i.test(pn)) {
+    return `🔍 *Screen zoom in ho gayi?* — yeh try karo:\n\n1. *Browser mein:* Ctrl + 0 dabao (zoom reset)\n2. *Poori screen badi lag rhi hai:* Ctrl + Scroll wheel neeche (zoom out)\n3. *Settings se:* Settings → Display → Scale → 100% set karo\n\nAgar theek nahi hua — type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
   // ── 📹 CCTV — not IT scope, Admin handles ────────────────────────────────
   if (/\b(cctv|camera\s*footage|security\s*camera|recording|footage|surveillance)\b/i.test(pn)) {
-    return `📹 CCTV access IT helpdesk ke scope mein nahi aata.\n\nCCTV ke liye *Admin team* se contact karein.\nKoi laptop ya IT problem ho toh batao!`;
+    return `📹 CCTV access IT helpdesk ke scope mein nahi aata.\n\nCCTV ke liye *Admin team* se contact karein.\nKoi laptop ya IT problem ho toh batao.`;
   }
 
   // ── 🚫 OUT OF SCOPE — TV, AC, furniture, electricity etc. ───────────────
@@ -840,7 +871,7 @@ const getKBAnswer = (problem) => {
   const isOfficePhone = /\b(office|company|testing|wiom)\b/i.test(pn) && /\b(phone|mobile)\b/i.test(pn);
   if (/\b(tv|television|telly|ac\b|air\s*condition|ceiling\s*fan|light\b|bulb|electricity|current\s*nahi|power\s*cut|generator|geyser|pantry|canteen|chair|table|furniture|lift|elevator|ac\s*nahi|ac\s*band)\b/i.test(pn) &&
       !/\b(laptop|wifi|internet|software|password|teams|outlook|chrome|window|screen|monitor|keyboard|mouse|bluetooth|usb)\b/i.test(pn)) {
-    return `Yeh IT ke scope mein nahi aata.\n\n*TV, AC, lights, furniture* ke liye → *Admin / Facilities team* se contact karo.\n\nIT helpdesk handle karta hai: 💻 Laptop | 🌐 WiFi | 🔑 Password | ⚙️ Software | 🖨️ Printer | 📱 Office phones\n\nKoi laptop ya IT problem ho toh batao!`;
+    return `Yeh IT ke scope mein nahi aata.\n\n*TV, AC, lights, furniture* ke liye → *Admin / Facilities team* se contact karo.\n\nIT helpdesk handle karta hai: 💻 Laptop | 🌐 WiFi | 🔑 Password | ⚙️ Software | 🖨️ Printer | 📱 Office phones\n\nKoi laptop ya IT problem ho toh batao.`;
   }
   if (isPersonalPhone && !isOfficePhone) {
     return `Personal phone IT helpdesk ke scope mein nahi hai.\n\nHam sirf *company-provided office phones* handle karte hain.\n\nKoi laptop, WiFi, ya software problem ho toh batao — main help karunga! 💻`;
@@ -883,8 +914,13 @@ const getKBAnswer = (problem) => {
     return `🖨️ *Printer Issue* — yeh try karo:\n\n1. *Printer restart* → Printer band karo → 30 sec → on karo\n2. *Pending jobs cancel* → Taskbar mein printer icon → cancel all pending jobs\n3. *Default printer* → Settings → Bluetooth & devices → Printers → correct printer default set karo\n4. *Laptop restart* → Laptop restart karo → dobara print karo\n\nAgar resolve nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
+  // ── 📺 SCREEN SHARE — Teams / Zoom (software, not HDMI) ─────────────────
+  if (/screen\s*share|share\s*screen|present\s*karna|presentation\s*nahi/i.test(pn) && !/hdmi|projector|external|monitor/i.test(pn)) {
+    return `📺 *Screen Share Issue* — yeh try karo:\n\n1. *Teams mein:* Meeting join karo → bottom mein "Share" button → "Screen" select karo\n2. *Zoom mein:* Meeting mein "Share Screen" button dabao → window select karo\n3. *Allow karo* → agar permission maange toh "Allow" karo\n\nAgar share nahi ho rha — type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
   // ── 📽️ HDMI / PROJECTOR — conference room ────────────────────────────────
-  if (/\b(hdmi|projector|project|screen\s*share|external\s*screen|external\s*monitor|conference\s*room|meeting\s*room|display\s*nahi|second\s*screen|dual\s*screen|extend\s*display)\b/i.test(pn)) {
+  if (/\b(hdmi|projector|project|external\s*screen|external\s*monitor|conference\s*room|meeting\s*room|display\s*nahi|second\s*screen|dual\s*screen|extend\s*display)\b/i.test(pn)) {
     return `📽️ *HDMI/Projector Issue* — yeh steps try karein:\n\n1. *Cable check karo* → HDMI cable properly plugged in dono sides\n2. *Win+P* → keyboard pe Win+P dabao → "Extend" ya "Duplicate" select karo\n3. *Alag port try karo* → laptop ya projector pe dusra HDMI port lagao\n4. *Restart karo* → cable laga ke laptop restart karo\n\nAgar phir bhi nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
   }
 
@@ -972,7 +1008,7 @@ const getKBAnswer = (problem) => {
     /^(kise\s*hai|kise\s*ho|tum\s*kise\s*ho|aap\s*kise\s*ho|tum\s*kaun\s*ho|aap\s*kaun\s*ho|kaun\s*ho|kaun\s*hain|kaun\s*hai|tum\s*kya\s*ho|aap\s*kya\s*ho|kya\s*ho\s*tum|kya\s*hain\s*aap|what\s*are\s*you|who\s*are\s*you|bot\s*hai\s*kya|kya\s*tum\s*bot|are\s*you\s*a\s*bot|introduce|apna\s*parichay|apne\s*bare\s*mein\s*batao)\s*\??$/i.test(pn.trim()) ||
     /\b(kise|kaun)\s*(ho|hain|hai)\b/i.test(pn) && pn.split(/\s+/).length <= 5;
   if (isIdentityQ) {
-    return `I am *Zivon* — WIOM IT Support Assistant.\nI can help with laptop, WiFi, software, and account issues.\nPlease describe your issue and I will assist you.`;
+    return `Main *Zivon* hoon — WIOM IT Helpdesk assistant.\nLaptop, WiFi, software, password — kisi bhi IT problem mein help kar sakta hoon.\nApni problem type karo, main help karunga.`;
   }
 
   // ── Ticket status / ETA questions (typo-tolerant: tiket/tikket/ticket) ──
@@ -980,7 +1016,7 @@ const getKBAnswer = (problem) => {
   if (/ticket\s*(kab|kb|kab\s*tak|kab\s*solve|kab\s*hoga|kab\s*fix|status|update|progress|ho\s*gaya|hua\s*kya|abhi\s*tak|kyun\s*nahi|pending)/i.test(pTicket) ||
       /kab\s*tak\s*(hoga|milega|fix\s*hoga|solve\s*hoga|resolve)/i.test(pTicket) ||
       /mera\s*ticket\s*(kab|solve|fix|hoga|ho\s*ga)/i.test(pTicket)) {
-    return `Aapka ticket IT team ke paas hai! 📋 Usually same day resolve hota hai — priority ke hisaab se.\nStatus dekhne ke liye type karo: *my tickets* 👀\nUrgent hai toh batao, main priority mark kar deta hoon! 🎫`;
+    return `Aapka ticket IT team ke paas hai. 📋 Usually same day resolve hota hai — priority ke hisaab se.\nStatus dekhne ke liye type karo: *my tickets*\nUrgent hai toh batao, IT team ko priority deta hoon. 🎫`;
   }
 
   // ── WiFi password — strict match only (pn handles wiffi typo) ───────────
@@ -1074,7 +1110,7 @@ const getKBAnswer = (problem) => {
   // "word nahi khul rha", "excel crash ho rha", "MS Office chal nahi rha"
   if (/\b(word|excel|powerpoint|ms\s*office|microsoft\s*office)\b.*(nahi\s*khul|not\s*open|crash|band\s*ho|error|kaam\s*nahi|loading|atak|stuck|response\s*nahi|hang)/i.test(pn) ||
       /(nahi\s*khul|crash|error).*(word|excel|powerpoint|office)/i.test(pn)) {
-    return `⚙️ *MS Office Issue* — yeh try karo:\n\n1. *Force close* → Ctrl+Shift+Esc → Task Manager → WINWORD.EXE ya EXCEL.EXE → End Task → dobara open karo\n2. *Restart* → Laptop restart karo → dobara open karo\n\nAgar ab bhi nahi khul raha — type karo *ha* — IT ticket raise karta hoon (IT aake repair karega) 🎫`;
+    return `⚙️ *MS Office Issue* — yeh try karo:\n\n1. *Force close* → Ctrl+Shift+Esc → Task Manager → 'Microsoft Word' ya 'Microsoft Excel' dhundho → End Task karo → dobara open karo\n2. *Restart* → Laptop restart karo → dobara open karo\n\nAgar ab bhi nahi khul raha — type karo *ha* — IT ticket raise karta hoon (IT aake repair karega) 🎫`;
   }
 
   // ── 🖱️ TOUCHPAD STUCK / NOT WORKING — 4th most common ──────────────────
