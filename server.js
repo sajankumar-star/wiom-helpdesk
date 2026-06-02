@@ -616,7 +616,7 @@ app.listen(PORT, async () => {
  'home_quick_26': { file: 'fix-wifi.bat', label: 'Hotspot Fix' },
  'home_quick_29': { file: 'fix-wifi.bat', label: 'Internet Speed Fix' },
  'home_quick_44': { file: 'fix-wifi.bat', label: 'WiFi Disconnect Fix' },
- 'home_quick_45': { file: 'fix-outlook.bat', label: 'Email Fix' },
+ 'home_quick_45': { file: 'fix-browser.bat', label: 'Gmail Fix' },
  // ── Audio & Display ───────────────────────────────────────────────────
  'home_quick_9' : { file: 'fix-sound.bat', label: 'Sound Fix' },
  'home_quick_16': { file: 'fix-mic.bat', label: 'Microphone Fix' },
@@ -720,7 +720,7 @@ app.listen(PORT, async () => {
    // ── Software apps BEFORE network — "teams not connecting" ≠ wifi ─────
    if (/\bteams\b/.test(t)) return { file: 'fix-teams.bat', label: '📹 Auto-Fix: Teams' };
    if (/\bzoom\b/.test(t)) return { file: 'fix-zoom.bat', label: '🎥 Auto-Fix: Zoom' };
-   if (/outlook/.test(t)) return { file: 'fix-outlook.bat', label: '📧 Auto-Fix: Outlook' };
+   if (/outlook/.test(t)) return { file: 'fix-browser.bat', label: '📧 Auto-Fix: Gmail (Browser)' };
 
    // ── Network ───────────────────────────────────────────────────────────
    if (/wifi|wi-fi|internet|\bnet\b|network|hotspot|broadband|ping/.test(t)) return { file: 'fix-wifi.bat', label: '📶 Auto-Fix: WiFi' };
@@ -756,7 +756,7 @@ app.listen(PORT, async () => {
  const CAT_COLORS = {
    laptop:      { icon: '🔵 💻', label: 'Laptop & Display',        desc: 'Screen · Battery · Keyboard · Audio · Camera and more' },
    network:     { icon: '🟢 🌐', label: 'Network & Internet',       desc: 'Wi-Fi · Internet Slow · Website and more' },
-   software:    { icon: '🟣 ⚙️',  label: 'Software, Apps & Account', desc: 'Teams · Outlook · Password · Virus · Storage and more' },
+   software:    { icon: '🟣 ⚙️',  label: 'Software, Apps & Account', desc: 'Teams · Gmail · Password · Virus · Storage and more' },
    replacement: { icon: '🟠 🔄', label: 'Replacement / Upgrade',    desc: 'Laptop · Mouse · Keyboard · Monitor replacement' },
    access:      { icon: '🔴 🔒', label: 'Access & Permissions',     desc: 'Access Request · Account Locked' },
    printer:     { icon: '🩵 🖨️', label: 'Printer & Peripheral',    desc: 'Mouse · Keyboard · USB devices' },
@@ -1166,7 +1166,7 @@ app.listen(PORT, async () => {
 
  if (!text) {
  await respond({ response_type: 'ephemeral', blocks:[
- { type:'section', text:{ type:'mrkdwn', text:'* WIOM IT Helpdesk*\nApni IT problem batao!\n\n*Examples:*\n `/helpdesk wifi nahi chal raha`\n `/helpdesk laptop slow hai`\n `/helpdesk outlook nahi khul raha`\n\n_Apne tickets dekhne ke liye:_ `/helpdesk status`' }}
+ { type:'section', text:{ type:'mrkdwn', text:'* WIOM IT Helpdesk*\nApni IT problem batao!\n\n*Examples:*\n `/helpdesk wifi nahi chal raha`\n `/helpdesk laptop slow hai`\n `/helpdesk gmail nahi khul rhi`\n\n_Apne tickets dekhne ke liye:_ `/helpdesk status`' }}
  ], text:'WIOM IT Helpdesk apni problem batao' });
  return;
  }
@@ -1564,7 +1564,7 @@ app.listen(PORT, async () => {
            `1. *Power adapter check karo* — cable properly plugged in hai?\n` +
            `2. *Adapter LED check karo* — light aa rahi hai?\n` +
            `3. *Power button 10 seconds hold karo* — force restart\n` +
-           `4. *Battery removable hai?* — nikalo, 30 sec baad wapas lagao\n` +
+           `4. *Power adapter dono taraf properly laga hai?* — laptop side + socket dono check karo\n` +
            `5. *Different power socket try karo*\n\n` +
            `Agar yeh sab try karne ke baad bhi on nahi hua — IT team ko aana hoga. Type karo *ha* for HIGH priority ticket 🎫`
          }},
@@ -1852,7 +1852,7 @@ app.listen(PORT, async () => {
  blocks: [
  { type: 'section', text: { type: 'mrkdwn', text: '*IT se seedha baat karo:*' }},
  { type: 'divider' },
- { type: 'section', text: { type: 'mrkdwn', text: '📱 *Phone:*\n*9654244281*' }},
+ { type: 'section', text: { type: 'mrkdwn', text: '💬 *Slack:*\nSajan Kumar ko Slack pe DM karo' }},
  { type: 'section', text: { type: 'mrkdwn', text: '📧 *Email:*\nsajan.kumar@wiom.in' }},
  ]
  }
@@ -1908,7 +1908,7 @@ app.listen(PORT, async () => {
  { type: 'header', text: { type: 'plain_text', text: '🆘 SOS Emergency Registered!', emoji: true }},
  { type: 'section', text: { type: 'mrkdwn', text: `*${name}, aapka SOS register ho gaya!*\n*Issue:* ${issueType.split(' — ')[0]}` }},
  { type: 'divider' },
- { type: 'section', text: { type: 'mrkdwn', text: `📞 *IT se ABHI contact karo:*\n📱 *Phone:* *9654244281*\n📧 *Email:* sajan.kumar@wiom.in` }},
+ { type: 'section', text: { type: 'mrkdwn', text: `📧 *IT se ABHI contact karo:*\nEmail: sajan.kumar@wiom.in | Slack: Sajan Kumar ko DM karo` }},
  ticketId
  ? { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ Ticket auto-created: \`${ticketId}\` | Priority: *${priority}* | IT ko alert bhej diya gaya hai!` }]}
  : { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ IT ko alert bhej diya gaya hai! Woh jald aayenge.` }]}
@@ -2073,14 +2073,7 @@ app.listen(PORT, async () => {
  close: { type: 'plain_text', text: 'Close', emoji: true },
  blocks: [
  { type: 'section', text: { type: 'mrkdwn', text:
- '*Email / Google Account Password Reset*\n\n' +
- '*Follow these steps:*\n' +
- '1. Go to *Google Account*: myaccount.google.com\n' +
- '2. Click the *Security* tab\n' +
- '3. Under *"How you sign in to Google"* click *Password*\n' +
- '4. Enter your current password _(or verify via fingerprint / prompt)_\n' +
- '5. Set your new password\n\n' +
- '_Still not working? Raise a ticket below for IT support._'
+ '*Email / Google Account Password Reset*\n\nWIOM company Gmail account ka password *sirf IT reset kar sakta hai* — employees khud reset nahi kar sakte.\n\n_IT team aapka password jaldi reset kar degi. Neeche ticket raise karo:_'
  }},
  { type: 'divider' },
  { type: 'actions', elements: [{
@@ -2139,11 +2132,11 @@ app.listen(PORT, async () => {
  type: 'actions',
  elements: [
  { type: 'button', style: 'danger', text: { type: 'plain_text', text: '🖥️ Projector Down', emoji: true }, action_id: 'sos_issue', value: 'Projector/Screen Share Down — presentation or meeting screen not working' },
- { type: 'button', style: 'danger', text: { type: 'plain_text', text: '🔑 VPN Not Working', emoji: true }, action_id: 'sos_issue', value: 'VPN Not Working — cannot connect to remote access or company VPN' }
+ { type: 'button', style: 'danger', text: { type: 'plain_text', text: '🖨️ Printer Down', emoji: true }, action_id: 'sos_issue', value: 'Printer Down — office printer not working urgent print needed' }
  ]
  },
  { type: 'divider' },
- { type: 'section', text: { type: 'mrkdwn', text: '📞 *IT Direct:*  📱 *9654244281*  |  📧 sajan.kumar@wiom.in' }}
+ { type: 'section', text: { type: 'mrkdwn', text: '📧 *IT Direct:*  sajan.kumar@wiom.in  |  💬 Slack: Sajan Kumar' }}
  ]
  }
  });
@@ -2207,7 +2200,7 @@ app.listen(PORT, async () => {
          `1. *Power adapter check karo* — cable properly plugged in hai?\n` +
          `2. *Adapter LED check karo* — light aa rahi hai adapter mein?\n` +
          `3. *Power button 10 seconds hold karo* — hard reset hoga\n` +
-         `4. *Battery removable hai?* — nikalo, 30 sec wait karo, wapas lagao\n` +
+         `4. *Power adapter dono taraf laga hai?* — laptop aur socket dono side firmly check karo\n` +
          `5. *Alag power socket try karo*\n\n` +
          `_Agar yeh sab karne ke baad bhi on nahi hua — IT team physically aayegi._`
        }},
@@ -2973,7 +2966,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  ]},
  { type:'actions', elements: [
  { type:'button', text:{ type:'plain_text', text:'🖨️ Printer', emoji:true }, action_id:'vague_pick_printer', value:'printer not working' },
- { type:'button', text:{ type:'plain_text', text:'📧 Email / Gmail', emoji:true }, action_id:'vague_pick_outlook_issue', value:'Outlook not working' },
+ { type:'button', text:{ type:'plain_text', text:'📧 Email / Gmail', emoji:true }, action_id:'vague_pick_outlook_issue', value:'Gmail not working email issue' },
  { type:'button', text:{ type:'plain_text', text:'📹 Teams / Zoom', emoji:true }, action_id:'vague_pick_teams_issue', value:'Microsoft Teams not working' },
  { type:'button', text:{ type:'plain_text', text:'🎫 Create Ticket', emoji:true }, style:'primary', action_id:'vague_pick_create_ticket', value:'create ticket' },
  ]},
@@ -3490,7 +3483,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    } catch(err) {
      console.error('quick_ticket_btn error:', err.message);
      await client.chat.postEphemeral({ channel: channelId, user: userId,
-       text: '❌ Ticket nahi ban saka. /ticket command try karo ya IT ko directly call karo: 9654244281' });
+       text: '❌ Ticket nahi ban saka. /ticket command try karo ya IT ko email karo: sajan.kumar@wiom.in' });
    }
  });
 
