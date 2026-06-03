@@ -982,8 +982,10 @@ const getKBAnswer = (problem) => {
   }
 
   // ── 🗂️ NETWORK / SHARED / MAPPED DRIVE — "network drive nahi dikh rha" ───────
-  if (/\b(network\s*drive|mapped\s*drive|shared\s*drive|shared\s*folder|network\s*folder|server\s*path|\\\\server|\\\\[a-z])\b/i.test(pn) ||
-      (/\b(drive|folder)\b/i.test(pn) && /\b(network|mapped|disconnect|nahi\s*dikh|dikh\s*nahi|nahi\s*aa\s*rha|gaya)\b/i.test(pn))) {
+  // Exclude data-loss messages like "c drive ka data lost" — those go to data recovery KB
+  const isDataLossMsg = /\b(data\s*lost|data\s*loss|data\s*delete|files?\s*gum|recover|wapas\s*lana)\b/i.test(pn);
+  if (!isDataLossMsg && (/\b(network\s*drive|mapped\s*drive|shared\s*drive|shared\s*folder|network\s*folder|server\s*path|\\\\server|\\\\[a-z])\b/i.test(pn) ||
+      (/\b(drive|folder)\b/i.test(pn) && /\b(network|mapped|disconnect|nahi\s*dikh|dikh\s*nahi|nahi\s*aa\s*rha|gaya)\b/i.test(pn)))) {
     return `🗂️ *Network / Shared Drive Issue* — yeh try karo:\n\n1. *This PC check karo* → File Explorer open karo → "This PC" → dekho drive visible hai ya nahi\n2. *Restart karo* → Laptop restart karo — drive aksar restart se reconnect ho jaati hai\n3. *Dobara connect karo* → File Explorer → address bar mein server path type karo (IT se path lo)\n\nAgar phir bhi nahi dikh rhi → type karo *ha*, IT ticket raise karta hoon 🎫`;
   }
 
@@ -1700,6 +1702,276 @@ const getKBAnswer = (problem) => {
   // Virus (urgent — must be instant)
   if (/\b(virus|malware|ransomware|hack)\b/i.test(pn)) {
     return `Abhi Windows Security → Virus & threat protection → Quick Scan karo 🦠 Kuch suspicious mila? Internet band karo aur type karo *ha* — IT ko turant batata hoon 🎫`;
+  }
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ── 🆕 EXPANDED KB — covers all common office IT issue categories ──────────
+  // ══════════════════════════════════════════════════════════════════════════
+
+  // ── 🔋 BATTERY BACKUP / DRAIN — "battery backup kam ho gaya" ────────────────
+  if (/\b(battery\s*backup|backup\s*kam|battery\s*drain|battery\s*jaldi\s*khatam|battery\s*jaldi\s*kha|low\s*backup|backup\s*low|battery\s*bahut\s*kam|charge\s*jaldi|charge\s*bahut\s*jaldi)\b/i.test(pn) ||
+      (/\b(battery|batter[yi]?)\b/i.test(pn) && /\b(backup|drain|jaldi|khatam|kam\s*chal|zyada\s*kha|nahi\s*chal)\b/i.test(pn))) {
+    return `🔋 *Battery backup kam ho gaya?* — yeh try karo:\n\n1. *Power mode* → Taskbar battery icon pe click karo → "Balanced" mode select karo\n2. *Battery saver* → Settings → System → Battery → Battery saver → ON karo\n3. *Heavy apps band karo* → Ctrl+Shift+Esc → Task Manager → battery zyada use karne wale apps End Task karo\n4. *Screen brightness kam karo* → Fn+F5 se brightness 50% pe rakho\n\nAgar battery 2 ghante se kam chal rahi hai — battery replace ho sakti hai.\nType karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔌 CHARGER LOST / REPLACEMENT ─────────────────────────────────────────
+  // Note: pn normalizes "charger" → "charging" so match on "charging" for charger-specific issues
+  if (/\b(charging\s*(lost|gum|kho|missing|nahi\s*mila|nahi\s*hai|chahiye|replacement|replace|naya|new|kharab|kaam\s*nahi|nahi\s*chal))\b/i.test(pn) ||
+      (/\b(charging)\b/i.test(pn) && /\b(chahiye|lost|gum|kho|replacement|naya|milega|kharab)\b/i.test(pn))) {
+    return `🔌 *Charger lost / replacement chahiye?*\n\nCharger replacement ke liye:\n\n1. *Apne Reporting Manager ko email karo*\n2. *CC mein add karo:* sajan.kumar@wiom.in\n3. Email mein likho — charger lost hua ya kharab hua aur kaunse laptop ka hai\n\nManager approval ke baad IT replacement arrange karega.`;
+  }
+
+  // ── ⌨️ KEYBOARD KEYS NOT WORKING (not water damage) ────────────────────────
+  if (/\b(keyboard|keys?)\b.*(kaam\s*nahi|nahi\s*chal|work\s*nahi|type\s*nahi|kuch\s*nahi|response\s*nahi|band|stuck|press\s*nahi|dab\s*nahi|nahi\s*dab)/i.test(pn) ||
+      /\b(specific\s*key|kuch\s*keys?|key\s*kaam|key\s*nahi|keys?\s*kaam\s*nahi)\b/i.test(pn)) {
+    return `⌨️ *Keyboard keys kaam nahi kar rhi?* — yeh try karo:\n\n1. *Restart karo* → Laptop restart karo — aksar driver glitch se theek ho jaata hai\n2. *On-Screen Keyboard use karo* → Start → "On-Screen Keyboard" search karo → open karo → kaam chalao\n3. *External keyboard lagao* → USB keyboard temporarily use karo\n\nType karo *ha* — IT ticket raise karta hoon, IT aake fix karega 🎫`;
+  }
+
+  // ── 📷 CAMERA NOT WORKING ──────────────────────────────────────────────────
+  if (/\b(camera|webcam|camra)\b.*(kaam\s*nahi|nahi\s*chal|work\s*nahi|nahi\s*aa\s*rhi|band|nahi\s*dikh|detect\s*nahi|nahi\s*ho\s*rha)/i.test(pn) ||
+      /\b(camera|webcam)\b.*(issue|problem|kharab)/i.test(pn)) {
+    return `📷 *Camera kaam nahi kar rha?* — yeh try karo:\n\n1. *Privacy check karo* → Settings → Privacy & Security → Camera → ON karo → app (Teams/Zoom) ke liye bhi ON karo\n2. *App settings check karo* → Teams/Zoom mein Settings → Devices/Video → sahi camera select karo\n3. *Restart karo* → Laptop restart karo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon (IT driver fix karega) 🎫`;
+  }
+
+  // ── 🔊 SPEAKER / SOUND NOT WORKING ──────────────────────────────────────────
+  if (/\b(speaker|awaaz|sound|audio)\b.*(nahi\s*aa|aa\s*nahi|nahi\s*chal|work\s*nahi|band|kaam\s*nahi|nahi\s*sun)/i.test(pn) ||
+      /\b(no\s*sound|no\s*audio|sound\s*nahi|awaaz\s*nahi)\b/i.test(pn)) {
+    return `🔊 *Speaker / Sound nahi aa rha?* — yeh try karo:\n\n1. *Volume check karo* → Taskbar pe speaker icon → volume 0 ya mute toh nahi?\n2. *Output device check karo* → Speaker icon pe right-click → Sound settings → Output → "Speakers" select karo (Headphone pe set toh nahi?)\n3. *Restart karo* → Laptop restart karo\n\nAgar phir bhi nahi aa rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🎙️ MIC NOT WORKING ────────────────────────────────────────────────────
+  if (/\b(mic|microphone)\b.*(kaam\s*nahi|nahi\s*chal|work\s*nahi|band|nahi\s*sun|detect\s*nahi|nahi\s*ho\s*rha|nahi\s*pick)/i.test(pn)) {
+    return `🎙️ *Mic kaam nahi kar rha?* — yeh try karo:\n\n1. *Privacy check karo* → Settings → Privacy & Security → Microphone → ON karo → app ke liye bhi ON karo\n2. *Input device check karo* → Sound settings → Input → correct mic select karo\n3. *App check karo* → Teams/Zoom mein Settings → Devices → mic test karo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💨 FAN ISSUE / NOISE (general — not emergency) ───────────────────────
+  if (/\b(fan\s*issue|fan\s*problem|fan\s*kaam\s*nahi|fan\s*nahi\s*chal|fan\s*band|fan\s*kharab)\b/i.test(pn) ||
+      (/\bfan\b/i.test(pn) && /\b(issue|problem|kharab|nahi)\b/i.test(pn))) {
+    return `💨 *Fan issue hai?*\n\nFan ek hardware component hai — IT physically check karega.\n\n*Pehle yeh check karo:*\n1. Laptop table pe rakho (bed/sofa pe nahi) — hawa aani chahiye\n2. Agar fan ki awaaz bahut tez hai ya bilkul band hai → laptop abhi band karo\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔌 USB PORT NOT WORKING ───────────────────────────────────────────────
+  if (/\b(usb\s*port|usb\s*slot|usb)\b.*(kaam\s*nahi|nahi\s*chal|work\s*nahi|nahi\s*chal\s*rha|detect\s*nahi|nahi\s*dikh|nahi\s*ho\s*rha|band)/i.test(pn)) {
+    return `🔌 *USB port kaam nahi kar rha?* — yeh try karo:\n\n1. *Alag USB port try karo* → dusre USB port mein lagao\n2. *Device alag try karo* → dusri USB device lagao — check karo port hai ya device\n3. *Restart karo* → Laptop restart karo → dobara lagao\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📶 BLUETOOTH NOT WORKING ──────────────────────────────────────────────
+  if (/\b(bluetooth)\b.*(kaam\s*nahi|nahi\s*chal|work\s*nahi|connect\s*nahi|band|nahi\s*ho\s*rha|issue|problem)/i.test(pn)) {
+    return `📶 *Bluetooth kaam nahi kar rha?* — yeh try karo:\n\n1. *Toggle karo* → Settings → Bluetooth & devices → Bluetooth → OFF → ON karo\n2. *Re-pair karo* → Device remove karo → dobara pair karo (device ke paas jao)\n3. *Restart karo* → Laptop restart karo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🖥️ WINDOWS BOOT ISSUE ─────────────────────────────────────────────────
+  if (/\b(windows\s*boot|boot\s*issue|boot\s*problem|boot\s*nahi|windows\s*start\s*nahi|windows\s*load\s*nahi|stuck\s*at\s*boot|boot\s*loop|grub|startup\s*nahi)\b/i.test(pn)) {
+    return `🖥️ *Windows boot issue?*\n\nBoot problems aksar IT level fix hote hain. Pehle yeh try karo:\n\n1. *Restart karo* → Power button se properly shut down karo → dobara on karo\n2. *Update chal rahi hai?* → Agar percentage dikh raha hai → wait karo, band mat karo\n\nAgar black screen ya error aa raha hai boot pe → type karo *ha*, IT ticket raise karta hoon (yeh hardware ya OS level issue ho sakta hai) 🎫`;
+  }
+
+  // ── 💙 BLUE SCREEN (BSOD) ─────────────────────────────────────────────────
+  if (/\b(blue\s*screen|bsod|bluescreen|blue.*screen|neela.*screen|screen.*neela)\b/i.test(pn)) {
+    return `💙 *Blue Screen (BSOD) aa rha hai?*\n\n1. *Error code note karo* → Screen pe jo code likha tha woh note karo (STOP code)\n2. *Restart karo* → Aksar ek restart se theek ho jaata hai\n3. *3 baar se zyada?* → Serious issue hai — IT ko aana padega\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🧊 SYSTEM FREEZE (generic, no save context) ──────────────────────────
+  if (/\b(system\s*freeze|laptop\s*freeze|freeze\s*ho|screen\s*freeze|atak\s*gaya|stuck\s*ho\s*gaya|kuch\s*nahi\s*ho\s*rha|cursor\s*bhi\s*nahi)\b/i.test(pn) ||
+      (/\b(freez|hung|atak|stuck)\b/i.test(pn) && !/save|bachao/i.test(pn))) {
+    return `🧊 *System freeze ho gaya?*\n\n1. *2-3 minute wait karo* → Kabhi kabhi system khud recover ho jaata hai\n2. *Ctrl+Alt+Del dabao* → Task Manager → heavy app End Task karo\n3. *Force restart* → Power button 10 sec hold karo → laptop band hoga → dobara on karo\n\nAgar baar baar freeze hota hai → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💥 APPLICATION CRASH ──────────────────────────────────────────────────
+  if (/\b(application|app|program)\b.*(crash|band\s*ho|close\s*ho|khatam\s*ho|turant\s*band|suddenly\s*close|force\s*close|khud\s*band|apne\s*aap\s*band)\b/i.test(pn) ||
+      /\b(crash\s*ho\s*rha|app\s*crash|application\s*crash)\b/i.test(pn)) {
+    return `💥 *Application crash ho rhi hai?*\n\n1. *App restart karo* → App band karo → dobara open karo\n2. *Laptop restart karo* → Laptop properly restart karo → phir app open karo\n3. *Kaunsa app?* → Batao kaunsa app crash ho rha hai\n\nAgar specific app baar baar crash ho rha hai → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔑 SOFTWARE ACTIVATION ────────────────────────────────────────────────
+  if (/\b(software\s*activation|activation\s*issue|activat.*nahi|license.*nahi|product\s*key|serial\s*key|activate\s*karna)\b/i.test(pn)) {
+    return `🔑 *Software Activation Issue*\n\nSoftware activate karne ke liye valid license key chahiye — employees khud activate nahi kar sakte.\n\nIT team license key aur activation handle karti hai.\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔧 DRIVER ISSUE ───────────────────────────────────────────────────────
+  if (/\b(driver\s*issue|driver\s*problem|driver\s*nahi|driver\s*update|driver\s*missing|driver\s*corrupt|driver\s*error|driver\s*install)\b/i.test(pn)) {
+    return `🔧 *Driver Issue*\n\nDriver update ya install karne ke liye admin rights chahiye — employees khud nahi kar sakte.\n\nType karo *ha* — IT ticket raise karta hoon, IT aake sahi driver install karega 🎫`;
+  }
+
+  // ── 💬 TEAMS NOT WORKING ──────────────────────────────────────────────────
+  if (/\b(teams)\b.*(kaam\s*nahi|nahi\s*chal|work\s*nahi|nahi\s*khul|crash|band|error|nahi\s*ho\s*rha|issue|problem|slow)/i.test(pn) ||
+      /\bteams\b.*(nahi|problem|issue)/i.test(pn)) {
+    return `💬 *Microsoft Teams kaam nahi kar rha?* — yeh try karo:\n\n1. *Quit & Reopen* → Taskbar mein Teams icon pe right-click → Quit → dobara open karo\n2. *Laptop restart karo* → Laptop restart karo — Teams fresh start karta hai\n3. *Browser mein try karo* → teams.microsoft.com Chrome mein kholo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🎥 ZOOM NOT WORKING ───────────────────────────────────────────────────
+  if (/\b(zoom)\b.*(kaam\s*nahi|nahi\s*chal|work\s*nahi|nahi\s*khul|crash|band|error|issue|problem)/i.test(pn) ||
+      /\bzoom\b.*(nahi|problem|issue)/i.test(pn)) {
+    return `🎥 *Zoom kaam nahi kar rha?* — yeh try karo:\n\n1. *Restart karo* → Zoom close karo → dobara open karo\n2. *Browser mein try karo* → zoom.us Chrome mein open karo → Join karo\n3. *Settings check karo* → Zoom → Settings → Audio/Video → correct device select karo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💬 SLACK NOT WORKING ──────────────────────────────────────────────────
+  if (/\b(slack)\b.*(kaam\s*nahi|nahi\s*chal|work\s*nahi|nahi\s*khul|crash|band|error|issue|problem)/i.test(pn) ||
+      /\bslack\b.*(nahi|problem|issue)/i.test(pn)) {
+    return `💬 *Slack kaam nahi kar rha?* — yeh try karo:\n\n1. *Quit & Reopen* → Taskbar mein Slack icon pe right-click → Quit → dobara open karo\n2. *Restart karo* → Laptop restart karo\n3. *Browser mein try karo* → app.slack.com Chrome mein kholo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📊 EXCEL / WORD ISSUE (generic) ──────────────────────────────────────
+  if (/\b(excel|word)\b.*(issue|problem|nahi\s*chal|kaam\s*nahi|error)/i.test(pn) ||
+      /\b(excel\s*word|word\s*excel)\b/i.test(pn)) {
+    return `📊 *Excel / Word issue?* — yeh try karo:\n\n1. *App restart karo* → Excel/Word band karo → Ctrl+Shift+Esc → Task Manager → "Microsoft Excel" ya "Microsoft Word" End Task karo → dobara open karo\n2. *Laptop restart karo* → Laptop restart karo → phir open karo\n\nAgar activate nahi hai ya error aa raha hai → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🗄️ DATA CORRUPT ──────────────────────────────────────────────────────
+  if (/\b(data\s*corrupt|file\s*corrupt|corrupt\s*ho\s*gaya|corrupt\s*ho\s*gyi|data\s*kharab|file\s*kharab\s*ho\s*gyi|data\s*damage)\b/i.test(pn)) {
+    return `🗄️ *Data corrupt ho gaya?*\n\n1. *Recycle Bin check karo* → Desktop Recycle Bin mein dekho — wahan backup mil sakta hai\n2. *Previous version check karo* → File pe right-click → "Restore previous versions"\n3. *MS Office AutoRecover* → Word/Excel khud AutoRecover pop-up dega — wahan se restore karo\n\nAgar recover nahi ho rha → type karo *ha*, IT ticket raise karta hoon — data recovery try karenge 🎫`;
+  }
+
+  // ── 📡 WIFI NOT CONNECTING ────────────────────────────────────────────────
+  if (/\b(wifi)\b.*(connect\s*nahi|nahi\s*connect|nahi\s*ho\s*rha|nahi\s*aa\s*rha|nahi\s*chal|nahi\s*jud|jud\s*nahi)/i.test(pn) ||
+      /\b(wifi\s*nahi|wifi\s*connect\s*nahi)\b/i.test(pn)) {
+    return `📡 *WiFi connect nahi ho rha?* — yeh try karo:\n\n1. *WiFi toggle karo* → Taskbar WiFi icon → OFF → 10 sec → ON karo\n2. *Forget & Reconnect* → WiFi settings → "Wiom office" pe right-click → Forget → dobara connect karo → password: spartans500\n3. *Restart karo* → Laptop restart karo\n\nAgar phir bhi nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📡 WIFI KEEPS DISCONNECTING ──────────────────────────────────────────
+  if (/\b(wifi)\b.*(baar\s*baar|bar\s*bar|frequently|keep|kehta|disconnect|cut\s*ho|gir\s*jaata|chhoot\s*jaata|drop)/i.test(pn) ||
+      /\b(wifi\s*disconnect|wifi\s*keeps|wifi\s*dropping)\b/i.test(pn)) {
+    return `📡 *WiFi baar baar disconnect ho rha hai?* — yeh try karo:\n\n1. *WiFi toggle karo* → Taskbar WiFi → OFF → 10 sec → ON → dobara connect karo\n2. *Forget & Reconnect* → WiFi → "Wiom office" Forget → password spartans500 se reconnect karo\n3. *Restart karo* → Laptop restart karo\n\nAgar phir bhi bar bar disconnect ho rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🌐 INTERNET NOT WORKING ───────────────────────────────────────────────
+  if (/\b(internet\s*nahi\s*chal|internet\s*band|internet\s*nahi\s*aa|internet\s*nahi|net\s*nahi\s*chal|net\s*band|net\s*nahi\s*aa)\b/i.test(pn)) {
+    return `🌐 *Internet nahi chal rha?* — yeh try karo:\n\n1. *WiFi connected hai?* → Taskbar mein WiFi icon dekho — connected hai ya "No Internet" likh raha hai?\n2. *Toggle karo* → WiFi → OFF → 10 sec → ON → "Wiom office" se connect karo (password: spartans500)\n3. *Restart karo* → Laptop restart karo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📧 EMAIL LOGIN NOT WORKING ────────────────────────────────────────────
+  if (/\b(email|gmail)\b.*(login\s*nahi|login\s*issue|sign\s*in\s*nahi|sign\s*in\s*issue|nahi\s*khul|open\s*nahi|access\s*nahi|nahi\s*ho\s*rha)\b/i.test(pn)) {
+    return `📧 *Email/Gmail login nahi ho rha?* — yeh try karo:\n\n1. *Incognito mein try karo* → Chrome → Ctrl+Shift+N → gmail.com → login try karo\n2. *Cache clear karo* → Ctrl+Shift+Del → All time → Cookies + Cache → Clear → phir try karo\n3. *Password bhool gaye?* → Password reset sirf IT kar sakta hai — type karo *ha*, ticket raise karta hoon\n\nAgar phir bhi nahi khul rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔑 EMAIL PASSWORD FORGOT ──────────────────────────────────────────────
+  if (/\b(email|gmail)\b.*(password\s*bhool|password\s*forgot|bhool\s*gaya|password\s*nahi\s*pata|password\s*yaad\s*nahi|password\s*reset)\b/i.test(pn) ||
+      /\b(gmail\s*password|email\s*password)\b.*(bhool|forgot|reset|nahi\s*pata)/i.test(pn)) {
+    return `🔑 *Gmail/Email password bhool gaye?*\n\nCompany Gmail account ka password IT reset karta hai — employees khud reset nahi kar sakte (company account hai).\n\nType karo *ha* — IT ticket raise karta hoon, jaldi reset ho jaayega 🎫`;
+  }
+
+  // ── 📭 EMAIL NOT RECEIVING ────────────────────────────────────────────────
+  if (/\b(email|gmail|mail)\b.*(nahi\s*aa\s*rha|nahi\s*aa\s*rhi|receive\s*nahi|coming\s*nahi|nahi\s*milta|nahi\s*milti|nahi\s*aata|nahi\s*aati)\b/i.test(pn)) {
+    return `📭 *Email nahi aa rha?* — yeh try karo:\n\n1. *Spam/Junk folder check karo* → Gmail left sidebar → "Spam" folder → dekho wahan toh nahi\n2. *Filter check karo* → Gmail Settings (gear icon) → Filters — koi filter toh nahi lagaya?\n3. *Refresh karo* → gmail.com refresh karo (F5)\n4. *Storage check karo* → Gmail bottom mein storage check karo — full toh nahi?\n\nAgar phir bhi nahi aa rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📦 MAILBOX FULL ───────────────────────────────────────────────────────
+  if (/\b(mailbox\s*full|inbox\s*full|email\s*storage\s*full|gmail\s*full|storage\s*full.*mail|mail.*storage\s*full)\b/i.test(pn)) {
+    return `📦 *Mailbox/Gmail storage full hai?*\n\n1. *Trash empty karo* → Gmail → left sidebar → "Trash" → "Empty Trash now"\n2. *Attachment wale emails delete karo* → Gmail search: has:attachment larger:10M → bade emails delete karo\n3. *Spam clear karo* → Gmail → Spam → "Delete all spam messages"\n\nAgar company account ka storage increase chahiye → type karo *ha*, IT ticket raise karta hoon (IT Google Workspace storage badha sakta hai) 🎫`;
+  }
+
+  // ── 📅 CALENDAR SYNC ISSUE ────────────────────────────────────────────────
+  if (/\b(calendar\s*sync|calendar\s*nahi|calendar\s*issue|calendar\s*problem|meetings?\s*nahi\s*dikh|events?\s*nahi|google\s*calendar)\b/i.test(pn)) {
+    return `📅 *Calendar sync nahi ho rha?* — yeh try karo:\n\n1. *Calendar refresh karo* → calendar.google.com open karo → F5 press karo\n2. *Gmail se check karo* → gmail.com → top-right grid icon → Calendar → dekho events hain ya nahi\n3. *Incognito mein try karo* → Ctrl+Shift+N → calendar.google.com\n\nAgar phir bhi sync nahi ho rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔒 ACCOUNT LOCKED ─────────────────────────────────────────────────────
+  if (/\b(account\s*lock|locked\s*out|account\s*locked|account\s*block|locked\s*ho\s*gaya|lock\s*ho\s*gaya|account\s*band)\b/i.test(pn)) {
+    return `🔒 *Account locked ho gaya?*\n\nAccount unlock sirf IT kar sakta hai — multiple wrong password attempts se account lock hota hai.\n\nType karo *ha* — IT ticket raise karta hoon, jaldi unlock ho jaayega 🎫`;
+  }
+
+  // ── 🔑 PASSWORD RESET (generic) ──────────────────────────────────────────
+  if (/\b(password\s*reset|reset\s*password|password\s*bhool|password\s*forgot|naya\s*password|password\s*change\s*karna)\b/i.test(pn)) {
+    return `🔑 *Password reset karna hai?*\n\nPassword reset sirf IT team kar sakti hai:\n• *Windows password* → IT aake reset karega\n• *Gmail/Google password* → IT Google account reset karega\n• *Kisi aur app ka password* → batao kaunsa, IT handle karega\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🌐 GOOGLE WORKSPACE ACCESS ────────────────────────────────────────────
+  if (/\b(google\s*workspace|workspace\s*access|google\s*workspace\s*chahiye|g\s*suite)\b/i.test(pn) ||
+      (/\b(google|gmail|drive|sheets|docs|meet)\b/i.test(pn) && /\b(access\s*chahiye|access\s*nahi|permission\s*chahiye|access\s*do)\b/i.test(pn))) {
+    return `🌐 *Google Workspace access chahiye?*\n\nGoogle Workspace access IT team deti hai — manager approval ke baad.\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💬 SLACK ACCESS ───────────────────────────────────────────────────────
+  if (/\b(slack\s*access|slack\s*chahiye|slack\s*mein\s*add|slack\s*invite|slack.*channel.*access)\b/i.test(pn) ||
+      (/\b(slack)\b/i.test(pn) && /\b(access|chahiye|invite|add\s*karo|permission)\b/i.test(pn))) {
+    return `💬 *Slack access chahiye?*\n\nSlack access ke liye IT ticket raise karo:\n• Kaunsa workspace ya channel chahiye?\n• Manager se approval le lo pehle\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🐙 GITHUB ACCESS ──────────────────────────────────────────────────────
+  if (/\b(github\s*access|github\s*chahiye|github.*permission|github.*repo|github.*invite)\b/i.test(pn) ||
+      (/\b(github)\b/i.test(pn) && /\b(access|chahiye|invite|add\s*karo|permission)\b/i.test(pn))) {
+    return `🐙 *GitHub access chahiye?*\n\nGitHub access ke liye:\n1. *Manager se approval lo* — kaunsa repo/team chahiye batao\n2. *IT ticket raise karo*\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── ☁️ AWS ACCESS ─────────────────────────────────────────────────────────
+  if (/\b(aws\s*access|aws\s*chahiye|amazon\s*web\s*services|aws.*permission|aws.*account|aws.*console)\b/i.test(pn) ||
+      (/\b(aws|amazon\s*cloud)\b/i.test(pn) && /\b(access|chahiye|permission|account|console)\b/i.test(pn))) {
+    return `☁️ *AWS access chahiye?*\n\nAWS access sensitive hai — manager approval mandatory hai.\n\n1. *Manager ko email karo* — kaunsa service/resource chahiye batao\n2. *IT ticket raise karo*\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🛡️ ADMIN RIGHTS ──────────────────────────────────────────────────────
+  if (/\b(admin\s*rights|admin\s*access|admin\s*permission|administrator|elevated\s*access|admin\s*chahiye|sudo)\b/i.test(pn)) {
+    return `🛡️ *Admin rights chahiye?*\n\nAdmin rights employees ko by policy nahi diye jaate — security risk hota hai.\n\nAagar kuch specific install/change karna hai — batao kya karna hai, IT karega.\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🔐 DATA LEAK ──────────────────────────────────────────────────────────
+  if (/\b(data\s*leak|data\s*breach|data\s*exposed|confidential.*shared|sensitive.*data.*share|data.*outside|leak\s*ho\s*gaya)\b/i.test(pn)) {
+    return `🚨 *Data Leak / Breach — URGENT!*\n\nYeh bahut serious hai — TURANT yeh karo:\n\n1. *Kisi ko mat batao* — sirf IT aur management ko\n2. *Koi action mat lo* — IT guidance ke bagair kuch mat karo\n3. *IT ko immediately batao*\n\nType karo *ha* — CRITICAL PRIORITY ticket raise karta hoon, IT aur management ko abhi batata hoon 🎫`;
+  }
+
+  // ── 🖥️ DOCKING STATION ISSUE ──────────────────────────────────────────────
+  if (/\b(docking\s*station|dock\s*station|docking|dock\s*hub|thunderbolt\s*dock)\b.*(issue|problem|nahi\s*chal|kaam\s*nahi|connect\s*nahi|nahi\s*ho\s*rha)/i.test(pn) ||
+      /\b(docking\s*station|dock\s*station)\b/i.test(pn)) {
+    return `🖥️ *Docking Station issue?* — yeh try karo:\n\n1. *Unplug & Replug karo* → Docking station laptop se nikalo → 5 sec → dobara lagao\n2. *Cable check karo* → USB-C/Thunderbolt cable properly connected hai?\n3. *Restart karo* → Docking station laga ke laptop restart karo\n\nAgar phir bhi nahi chal rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💻 LAPTOP SLOW (generic — missed by slow+laptop regex above) ───────────
+  if (/\blaptop\b.*(slow|hang|dheema|dheemi|lagg|bahut\s*dheema|bahut\s*slow|speed\s*nahi|fast\s*nahi|responsive\s*nahi)/i.test(pn) ||
+      /\b(slow|hang|dheema)\b.*\blaptop\b/i.test(pn)) {
+    return `💻 *Laptop slow / hang ho rha hai?* — yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → CPU/Memory column → heavy apps End Task karo\n2. *Browser tabs band karo* → Extra Chrome/Edge tabs band karo\n3. *Restart karo* → Laptop properly shut down karo → dobara on karo (sleep nahi)\n\nAgar in steps se theek nahi hua → type karo *ha*, IT ticket raise karta hoon (RAM ya SSD check hogi) 🎫`;
+  }
+
+  // ── 🚀 LAPTOP STARTUP SLOW ────────────────────────────────────────────────
+  if (/\b(startup\s*slow|boot\s*slow|slow\s*boot|start\s*hone\s*mein|on\s*hone\s*mein\s*time|slow.*startup|laptop.*time.*laga|boot.*zyada\s*time|slow.*start)\b/i.test(pn)) {
+    return `🚀 *Laptop startup slow hai?* — yeh try karo:\n\n1. *Restart karo* → Pehle properly shut down karo (restart, sleep/hibernate nahi)\n2. *Startup apps check karo* → Settings → Apps → Startup → jo zaroori nahi unhe disable karo\n3. *Disk space check karo* → C: drive full toh nahi? → Downloads folder clean karo\n\nAgar phir bhi bahut slow hai → type karo *ha*, IT ticket raise karta hoon (SSD/RAM check hogi) 🎫`;
+  }
+
+  // ── ⚡ APPLICATION SLOW ───────────────────────────────────────────────────
+  if (/\b(app|application|software|program)\b.*(slow|hang|dheema|lagg|bahut\s*slow|response\s*nahi|nahi\s*chal\s*rha\s*sahi|chal\s*nahi\s*rha\s*theek)/i.test(pn) ||
+      (/\b(slow|hang|dheema)\b/i.test(pn) && /\b(app|application|software)\b/i.test(pn))) {
+    return `⚡ *Application slow hai?* — yeh try karo:\n\n1. *App restart karo* → App band karo → dobara open karo\n2. *Other apps band karo* → Ctrl+Shift+Esc → zyada RAM/CPU use karne wale dusre apps band karo\n3. *Laptop restart karo* → Fresh start se aksar theek ho jaata hai\n\nAgar specific app baar baar slow hai → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📊 HIGH CPU USAGE ─────────────────────────────────────────────────────
+  if (/\b(high\s*cpu|cpu\s*high|cpu\s*usage|cpu\s*100|cpu\s*full|processor\s*busy|processor\s*high|cpu\s*bahut\s*zyada)\b/i.test(pn)) {
+    return `📊 *High CPU usage hai?* — yeh try karo:\n\n1. *Task Manager kholo* → Ctrl+Shift+Esc → CPU column header pe click karo (sort by CPU)\n2. *Heavy process End Task karo* → Jo process 50%+ CPU use kar rha hai → End Task karo\n3. *Restart karo* → Laptop restart karo — background processes clear ho jaate hain\n\nAgar phir bhi high CPU aa rha hai → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 💾 DISK SPACE LOW ─────────────────────────────────────────────────────
+  if (/\b(disk\s*space|disk\s*full|storage\s*kam|c\s*drive\s*full|drive\s*full|space\s*nahi|low\s*disk|disk\s*space\s*kam|storage\s*full|no\s*space)\b/i.test(pn)) {
+    return `💾 *Disk space kam hai?* — yeh try karo:\n\n1. *Recycle Bin empty karo* → Desktop pe Recycle Bin → right-click → Empty Recycle Bin\n2. *Downloads folder clean karo* → File Explorer → Downloads → jo files zaruri nahi unhe delete karo\n3. *Temp files delete karo* → Settings → System → Storage → Temporary files → Remove files\n\nAgar phir bhi space nahi → type karo *ha*, IT ticket raise karta hoon (IT deep cleanup ya storage upgrade karega) 🎫`;
+  }
+
+  // ── 🔄 DATA MIGRATION ────────────────────────────────────────────────────
+  if (/\b(data\s*migration|migrate\s*data|data\s*transfer.*laptop|laptop.*data\s*transfer|purane\s*laptop.*data|data.*naye\s*laptop)\b/i.test(pn)) {
+    return `🔄 *Data migration chahiye?*\n\nData ek laptop se dusre mein transfer karna IT ka kaam hai — pehle:\n1. *Kya transfer karna hai?* → Documents, emails, settings — sab?\n2. *Kab tak chahiye?* → Timeline batao\n\nType karo *ha* — IT ticket raise karta hoon, IT data migration plan karega 🎫`;
+  }
+
+  // ── ☁️ GOOGLE DRIVE SYNC ISSUE ────────────────────────────────────────────
+  if (/\b(google\s*drive|gdrive)\b.*(sync\s*nahi|sync\s*issue|sync\s*problem|nahi\s*sync|sync\s*fail|sync\s*error|syncing\s*nahi)\b/i.test(pn) ||
+      /\b(drive\s*sync|google.*sync.*issue|sync.*google.*drive)\b/i.test(pn)) {
+    return `☁️ *Google Drive sync issue?* — yeh try karo:\n\n1. *drive.google.com kholo* → dekho files manually wahan hain ya nahi\n2. *Browser refresh karo* → F5 dabao → dobara check karo\n3. *Incognito mein try karo* → Ctrl+Shift+N → drive.google.com\n\nAgar files upload/sync nahi ho rhi → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📱 PHONE EMAIL SETUP ─────────────────────────────────────────────────
+  if (/\b(phone|mobile)\b.*(email\s*setup|gmail\s*setup|email\s*lagana|email\s*add|email\s*configure|mail\s*setup)\b/i.test(pn) ||
+      /\b(email|gmail)\b.*(phone|mobile)\b.*(setup|add|configure|lagana)\b/i.test(pn)) {
+    return `📱 *Phone pe Gmail setup karna hai?*\n\n1. *Play Store / App Store* mein "Gmail" app dhundho → Install (pehle se nahi hai toh)\n2. *Gmail app kholo* → "Add account" → "Google" select karo\n3. *Company email enter karo* → @wiom.in email address → company password\n4. *Verify karo* → OTP aayega ya IT ne pehle se setup kiya hoga\n\nAgar login nahi ho rha ya OTP nahi aa rha → type karo *ha*, IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 📧 NEW EMPLOYEE EMAIL ID ──────────────────────────────────────────────
+  if (/\b(naye\s*employee|new\s*employee|naya\s*employee|new\s*joiner|new\s*hire|joining)\b.*(email\s*id|gmail|account|email\s*banana|email\s*create)\b/i.test(pn) ||
+      /\b(email\s*id\s*banana|email\s*id\s*create|email\s*id\s*chahiye)\b.*(naye|new)\b/i.test(pn)) {
+    return `📧 *Naye employee ke liye email ID banana hai?*\n\nCompany Gmail accounts HR ke request pe IT create karta hai.\n\nIT ko yeh information do:\n• Employee ka full name\n• Department\n• Joining date\n• Reporting manager\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🚫 ACCOUNT DEACTIVATE ────────────────────────────────────────────────
+  if (/\b(account\s*deactivate|deactivate.*account|account\s*delete|account\s*close|account\s*hatana|account\s*band\s*karna|exit.*account|resign.*account)\b/i.test(pn)) {
+    return `🚫 *Account deactivate karna hai?*\n\nEmployee exit pe accounts IT deactivate karta hai — HR initiate karta hai ye process.\n\nIT ko yeh info chahiye:\n• Kis employee ka account? (name + email)\n• Last working day kab hai?\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  }
+
+  // ── 🏷️ WARRANTY CHECK ────────────────────────────────────────────────────
+  if (/\b(warranty\s*check|warranty\s*kya|warranty\s*kitni|warranty\s*hai\s*kya|warranty\s*dekhna|warranty\s*status|warranty\s*kab\s*tak)\b/i.test(pn)) {
+    return `🏷️ *Laptop warranty check karna hai?*\n\nWarranty check ke liye IT ke paas laptop records hote hain.\n\nBatao:\n• Laptop ka model/brand kya hai?\n• Laptop ke neeche sticker pe serial number likha hai — woh share karo\n\nType karo *ha* — IT ticket raise karta hoon, IT warranty status check karke batayega 🎫`;
   }
 
   return null; // Everything else → Claude handles with follow-up questions
