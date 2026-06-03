@@ -1206,10 +1206,14 @@ const getKBAnswer = (problem) => {
     return `🌐 *Chrome/Browser slow hai?* — yeh try karo:\n\n1. *Cache clear karo* → Chrome → Ctrl+Shift+Del → "All time" → Cached images + Cookies → Clear data\n2. *Extra tabs band karo* → Sirf zaroori tabs khule rakho\n3. *Extensions check karo* → Chrome → top-right 3 dots → Extensions → jo zaroori nahi woh disable karo\n\nAgar phir bhi slow → type karo *ha*, IT ticket raise karta hoon 🎫`;
   }
 
-  // ── 💥 CHROME TAB CRASH — "Chrome tab crash ho rha", "Aw Snap" ──────────────
-  if (/\b(chrome|tab)\b.*(crash|aw\s*snap|nahi\s*khul|khul\s*nahi|error|response\s*nahi)\b/i.test(pn) ||
+  // ── 💥 CHROME NOT OPENING / CRASH ────────────────────────────────────────
+  // chrmo/chrme/chome = typo for chrome
+  const pnChrome = pn.replace(/\bchrmo\b|\bchrme\b|\bchome\b|\bchorme\b/gi, 'chrome');
+  if (/\b(chrome|browser)\b.*(nahi\s*khul|not\s*open(ing)?|open\s*nahi|crash|aw\s*snap|response\s*nahi|band\s*ho|kaam\s*nahi|not\s*working|not\s*start)\b/i.test(pnChrome) ||
+      /\b(chrome|browser)\b.*(khul\s*nahi|nahi\s*chal|start\s*nahi)\b/i.test(pnChrome) ||
+      /(google\s*chrome|chrome)\s*(not\s*open|not\s*start|nahi\s*khul|khul\s*nahi)/i.test(pnChrome) ||
       /\baw\s*snap\b/i.test(pn)) {
-    return `💥 *Chrome tab crash / Aw Snap error?* — yeh try karo:\n\n1. *Page reload karo* → F5 ya Ctrl+R dabao\n2. *Extra tabs band karo* → bahut zyada tabs se RAM full ho jaati hai\n3. *Chrome restart karo* → Chrome completely band karo → dobara open karo\n\nAgar phir bhi crash hota hai → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `🌐 *Chrome nahi khul rha / crash?* — yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → "Google Chrome" dhundho → End Task → dobara open karo\n2. *Restart karo* → Laptop restart karo — aksar restart se theek ho jaata hai\n3. *Cache clear karo* → Chrome khulne pe Ctrl+Shift+Del → All time → Clear\n\nAgar phir bhi nahi khulta → type karo *ha*, IT ticket raise karta hoon 🎫\n\n⚠️ *Chrome reinstall mat karo khud se* — admin rights chahiye, IT karega`;
   }
 
   // ── ☁️ GOOGLE DRIVE UPLOAD — "Google Drive upload nahi ho rha" ───────────────
@@ -1469,9 +1473,16 @@ const getKBAnswer = (problem) => {
   }
 
   // ── 💿 SOFTWARE INSTALLATION REQUEST — needs IT, no script can install ──
+  // ── 🗑️ UNINSTALL — employees can't do this (no admin rights) ────────────────
+  if (/\b(uninstall|remove\s*karna|hatana\s*hai|delete\s*karna|software\s*hata)\b/i.test(pn)) {
+    const sw = /chrome/i.test(pn) ? 'Chrome' : /teams/i.test(pn) ? 'Teams' : /zoom/i.test(pn) ? 'Zoom' : 'Software';
+    return `💿 *${sw} Uninstall/Remove*\n\nUninstall karne ke liye admin rights chahiye — employees khud nahi kar sakte.\n\nType karo *ha* — IT ticket raise karta hoon, IT aake handle karega 🎫`;
+  }
+
   // "MS Office install karo", "Teams install", "Zoom install kaise karu" etc.
   // Catches: install, insatll, insatall, instaal, intsall, instll and all common install typos
-  const isInstallQuery = /install|insatl|insatal|instaal|instat|instll|intsall|kaise.*instal|instal.*karo|instal.*karu|naya.*softw|softw.*install/i.test(pn);
+  // NOTE: uninstall checked ABOVE — this only fires for fresh installation requests
+  const isInstallQuery = /(?<!un)install|insatl|insatal|instaal|instat|instll|intsall|kaise.*instal|instal.*karo|instal.*karu|naya.*softw|softw.*install/i.test(pn);
   if (isInstallQuery) {
     // Identify what they want to install
     const software =
