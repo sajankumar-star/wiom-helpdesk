@@ -3350,38 +3350,41 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        }}]
      });
 
-     // 2. Auto-generate better answer using AI and save to DB
+     // 2. Auto-generate better answer using AI + send immediately
      if (question && question.length > 3) {
        const claudeSvc = require('./services/claude');
-       const LearnedResponse = require('./models/LearnedResponse').catch ? null : require('./models/LearnedResponse');
 
-       // Generate correct answer using AI
-       const fixMessages = [{ role: 'user', content: question }];
-       const empInfo = { empId: emp?.empId || userId, empName: empName, source: 'slack',
-         laptop: emp?.laptop, dept: emp?.dept, floor: emp?.floor };
-       const { reply } = await claudeSvc.chat(fixMessages, empInfo).catch(() => ({ reply: null }));
-
-       // Save to MongoDB for future use
-       if (reply && Conversation) {
-         await Conversation.findOneAndUpdate(
-           { sessionId: `learned-${question.toLowerCase().replace(/\s+/g, '-').substring(0,50)}` },
-           { $set: { sessionId: `learned-${question.toLowerCase().replace(/\s+/g, '-').substring(0,50)}`,
-               empId: 'system', empName: 'LearnedResponse', source: 'learned',
-               messages: [{ role: 'user', content: question }, { role: 'assistant', content: reply }],
-               learnedQ: question.toLowerCase(), learnedA: reply, lastActive: new Date() }},
-           { upsert: true }
-         );
-         console.log(`🧠 Auto-learned: "${question.substring(0,60)}" → saved`);
+       // Try KB first, then AI
+       let reply = claudeSvc.getKBAnswer ? claudeSvc.getKBAnswer(question) : null;
+       if (!reply) {
+         const fixMessages = [{ role: 'user', content: question }];
+         const empInfo = { empId: emp?.empId || userId, empName: empName, source: 'slack',
+           laptop: emp?.laptop, dept: emp?.dept, floor: emp?.floor };
+         const result = await claudeSvc.chat(fixMessages, empInfo).catch(() => ({ reply: null }));
+         reply = result?.reply;
        }
 
-       // Send improved answer to employee
+       // Save to Conversation DB for future reference
+       if (reply) {
+         Conversation.findOneAndUpdate(
+           { sessionId: `feedback-${question.substring(0,40).replace(/\s+/g,'-')}` },
+           { $set: { sessionId: `feedback-${question.substring(0,40).replace(/\s+/g,'-')}`,
+               empId: emp?.empId || 'unknown', empName, source: 'feedback',
+               messages: [{ role: 'user', content: question }, { role: 'assistant', content: reply }],
+               lastActive: new Date() }},
+           { upsert: true }
+         ).catch(e => console.error('Feedback save error:', e.message));
+         console.log(`🧠 Auto-answered: "${question.substring(0,60)}"`);
+       }
+
+       // Send better answer to employee right now
        if (reply) {
          const formatted = formatForSlack(reply);
          await client.chat.postMessage({
            channel: channelId,
            text: 'Yeh try karo:',
            blocks: [
-             { type: 'section', text: { type: 'mrkdwn', text: `✅ *Sahi jawab yeh hai:*\n\n${formatted}` }},
+             { type: 'section', text: { type: 'mrkdwn', text: `✅ *Yeh try karo:*\n\n${formatted}` }},
              { type: 'actions', elements: [
                { type: 'button', text: { type: 'plain_text', text: '✅ Ho gaya!', emoji: true },
                  action_id: 'resolved_yes_btn', style: 'primary', value: 'Medium' },
