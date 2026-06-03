@@ -748,7 +748,9 @@ app.listen(PORT, async () => {
    if (/storage|disk full|space|jagah nahi/.test(t)) return { file: 'fix-storage.bat', label: '💾 Auto-Fix: Storage Cleanup' };
 
    // ── General laptop slow — LAST (most generic catch) ───────────────────
-   if (/slow|hang|lagg|freez|stuck|fast karo|speed|chalta nahi/.test(t)) return { file: 'fix-slow-laptop.bat', label: '⚡ Auto-Fix: Slow Laptop' };
+   // GUARD: laptop change/upgrade/new request — never show slow fix for these
+   const isChangeRequest = /change|upgrade|naya|replace|badal|new\s*laptop|laptop\s*change|laptop\s*upgrade|chahiye|need|request/i.test(t);
+   if (!isChangeRequest && /slow|hang|lagg|freez|stuck|fast karo|speed|chalta nahi/.test(t)) return { file: 'fix-slow-laptop.bat', label: '⚡ Auto-Fix: Slow Laptop' };
    return null;
  };
 
