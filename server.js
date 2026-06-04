@@ -1136,99 +1136,75 @@ app.listen(PORT, async () => {
    printer:     { icon: '🩵 🖨️', label: 'Printer & Peripheral',    desc: 'Mouse · Keyboard · USB devices' },
  };
 
- // ── Build Home Tab blocks — new 8-category professional layout ────────────────
+ // ── Build Home Tab blocks — CLEAN 8-category layout ──────────────────────────
          const buildHomeBlocks = (emp, myTickets, expandedSet) => {
          const name = (emp?.empName || emp?.name || 'there').split(' ')[0];
-         const laptop = emp?.laptop || null;
-         const laptopSN = emp?.laptopSN || null;
-         const dept = emp?.dept || emp?.department || null;
-         const openCnt = myTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length;
-
-         const statEmoji = { 'Open':'\u{1f534}', 'In Progress':'\u{1f7e1}', 'Resolved':'\u2705', 'Closed':'\u26ab' };
-         const priEmoji2 = { 'Critical':'\u{1f534}', 'High':'\u{1f7e0}', 'Medium':'\u{1f7e1}', 'Low':'\u{1f7e2}' };
+         const openCnt = myTickets ? myTickets.filter(t => t.status === 'Open' || t.status === 'In Progress').length : 0;
+         const statEmoji = { 'Open': '🔴', 'In Progress': '🟡', 'Resolved': '✅', 'Closed': '⚫' };
+         const priEmoji2 = { 'Critical': '🔴', 'High': '🟠', 'Medium': '🟡', 'Low': '🟢' };
 
          const blocks = [];
 
          // ── HEADER ─────────────────────────────────────────────────────────────
-         const nowIST = new Date(Date.now() + 5.5 * 3600000);
-         const istDay = nowIST.getUTCDay();
-         const istHour = nowIST.getUTCHours();
-         const isWeekday = istDay >= 1 && istDay <= 5;
-         const isWorkHour = istHour >= 9 && istHour < 19;
-         const adminAvail = isWeekday && isWorkHour;
-         const adminStatus = adminAvail ? '\u{1f7e2} *IT Available*' : '\u{1f534} *IT Unavailable*';
-
          blocks.push({
            type: 'section',
-           text: { type: 'mrkdwn', text: '\u{1f44b} *Hello ' + name + '!* Welcome to *WIOM IT Helpdesk*\n\u{1f916} *Zivon is Online* \u2014 24/7   |   ' + adminStatus },
+           text: { type: 'mrkdwn', text: '*🛠 WIOM IT Helpdesk*\nHow can I help you today, *' + name + '*?' },
            accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/wiom-logo.webp', alt_text: 'WIOM Logo' }
          });
 
          // ── QUICK ACTIONS ──────────────────────────────────────────────────────
          blocks.push({ type: 'divider' });
-         blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '\u26a1 *Quick Actions*' } });
          blocks.push({
            type: 'actions',
            elements: [
-             { type: 'button', text: { type: 'plain_text', text: '\u{1f4f6} WiFi Password', emoji: true }, value: 'wifi password kya hai', action_id: 'home_quick_wifi_pwd_quick', style: 'primary' },
-             { type: 'button', text: { type: 'plain_text', text: '\u{1f511} Password Reset', emoji: true }, value: 'Windows ya Gmail ka password bhool gaya', action_id: 'home_quick_55b' },
-             { type: 'button', text: { type: 'plain_text', text: '\u{1f3ab} Raise Ticket', emoji: true }, value: 'create ticket', action_id: 'vague_pick_create_ticket', style: 'danger' }
-           ]
-         });
-         blocks.push({
-           type: 'actions',
-           elements: [
-             { type: 'button', text: { type: 'plain_text', text: '\u{1f4bb} New Laptop Request', emoji: true }, value: 'Need a new laptop request for replacement or new joiner', action_id: 'home_quick_75' },
-             { type: 'button', text: { type: 'plain_text', text: '\u{1f4e6} Asset Request', emoji: true }, value: 'I need a new hardware asset or equipment', action_id: 'home_quick_74' }
+             { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Password', emoji: true }, value: 'wifi password kya hai', action_id: 'home_quick_wifi_pwd_quick', style: 'primary' },
+             { type: 'button', text: { type: 'plain_text', text: '🔑 Password Reset', emoji: true }, value: 'Windows ya Gmail ka password bhool gaya', action_id: 'home_quick_55b' },
+             { type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, value: 'create ticket', action_id: 'vague_pick_create_ticket', style: 'danger' }
            ]
          });
          blocks.push({ type: 'divider' });
 
-         // ── MY TICKETS ─────────────────────────────────────────────────────────
-         // Only show Open/In Progress/Waiting tickets \u2014 resolved/closed auto-hide
-         if (myTickets.length > 0) {
-           blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '\ud83c\udfab *My Open Tickets* \u2014 \ud83d\udd34 *' + myTickets.length + ' Open*' } });
+         // ── 8 CATEGORY BUTTONS ────────────────────────────────────────────────
+         blocks.push({
+           type: 'actions',
+           elements: [
+             { type: 'button', text: { type: 'plain_text', text: '💻 Laptop & Hardware', emoji: true }, action_id: 'cat_laptop', value: 'laptop hardware issue' },
+             { type: 'button', text: { type: 'plain_text', text: '🌐 Network & Internet', emoji: true }, action_id: 'cat_network', value: 'wifi internet issue' },
+             { type: 'button', text: { type: 'plain_text', text: '📊 Microsoft Office', emoji: true }, action_id: 'cat_msoffice', value: 'microsoft office issue' }
+           ]
+         });
+         blocks.push({
+           type: 'actions',
+           elements: [
+             { type: 'button', text: { type: 'plain_text', text: '🌍 Browser & Apps', emoji: true }, action_id: 'cat_browser', value: 'browser app issue' },
+             { type: 'button', text: { type: 'plain_text', text: '📧 Email & Communication', emoji: true }, action_id: 'cat_email', value: 'gmail email issue' },
+             { type: 'button', text: { type: 'plain_text', text: '🔐 Access & Password', emoji: true }, action_id: 'cat_access', value: 'password access issue' }
+           ]
+         });
+         blocks.push({
+           type: 'actions',
+           elements: [
+             { type: 'button', text: { type: 'plain_text', text: '📦 Asset Requests', emoji: true }, action_id: 'cat_asset', value: 'new equipment asset request' }
+           ]
+         });
+         blocks.push({ type: 'divider' });
+
+         // ── MY OPEN TICKETS (only if any exist) ───────────────────────────────
+         if (myTickets && myTickets.length > 0) {
+           blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '🎫 *My Open Tickets* — 🔴 *' + myTickets.length + ' Open*' } });
            for (const t of myTickets.slice(0, 3)) {
              const hrs = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
              const timeStr = hrs < 24 ? hrs + 'h ago' : Math.floor(hrs/24) + 'd ago';
              const desc = (t.description||'').substring(0,60) + ((t.description||'').length>60?'...':'');
              blocks.push({
                type: 'section',
-               text: { type: 'mrkdwn', text: (statEmoji[t.status]||'\ud83d\udd35') + ' `' + t.ticketId + '` \u2014 *' + t.status + '* ' + (priEmoji2[t.priority]||'\ud83d\udfe1') + ' ' + t.priority + '\n_' + desc + '_\n\ud83d\udcc5 ' + timeStr + ' \u00b7 ' + (t.category||'Other') }
-             });
-           }
-         }
-         // No section shown when no open tickets \u2014 clean home page
-
-         blocks.push({ type: 'divider' });
-         blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '\u{1f4c2}  *Select a Category*\n_Apni problem select karo \u2014 Zivon help karega!_ \u{1f447}' } });
-
-         // ── ALL 8 CATEGORIES ──────────────────────────────────────────────────
-         for (const cat of CATEGORIES) {
-           blocks.push({ type: 'section', text: { type: 'mrkdwn', text: cat.emoji + '  *' + cat.label + '*\n_' + cat.desc + '_' } });
-           for (const row of cat.rows) {
-             blocks.push({
-               type: 'actions',
-               elements: row.map(btn => ({
-                 type: 'button',
-                 text: { type: 'plain_text', text: btn.text, emoji: true },
-                 value: btn.value,
-                 action_id: btn.id
-               }))
+               text: { type: 'mrkdwn', text: (statEmoji[t.status]||'🔵') + ' `' + t.ticketId + '` — *' + t.status + '* ' + (priEmoji2[t.priority]||'🟡') + ' ' + t.priority + '\n_' + desc + '_\n📅 ' + timeStr + ' · ' + (t.category||'Other') }
              });
            }
            blocks.push({ type: 'divider' });
          }
 
-         // ── EMPLOYEE FOOTER ────────────────────────────────────────────────────
-         if (emp?.empId) {
-           const openStr = openCnt > 0 ? '\u{1f514} ' + openCnt + ' open ticket(s)' : '\u2705 No open tickets';
-           blocks.push({
-             type: 'context',
-             elements: [{ type: 'mrkdwn', text: '\u{1f464} *' + (emp.empName||emp.empId) + '* \u00b7 \u{1f3e2} ' + (dept||'\u2014') + ' \u00b7 \u{1f4bb} ' + (laptop||'\u2014') + ' \u00b7 \u{1f3f7}\ufe0f `' + (laptopSN||'\u2014') + '` \u00b7 ' + openStr }]
-           });
-         }
-         blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: '_Made with \u2764\ufe0f by WIOM IT Team  |  Powered by Zivon AI_' }] });
+         blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: '_Made with ❤️ by WIOM IT Team  |  Powered by Zivon AI_' }] });
 
          return blocks;
          };
@@ -1870,6 +1846,160 @@ app.listen(PORT, async () => {
  }
  });
 
+
+ // ── Home Category button handlers (cat_laptop, cat_network, etc.) ────────────
+ slackApp.action(/^cat_/, async ({ body, ack, client }) => {
+   await ack();
+   const userId = body.user.id;
+   const channelId = body.channel?.id || body.container?.channel_id || userId;
+   const actionId = body.actions[0].action_id;
+
+   const categoryMenus = {
+     cat_laptop: {
+       label: '💻 Laptop & Hardware',
+       desc: 'Select your specific issue:',
+       issues: [
+         { text: '🐢 Laptop Slow', val: 'laptop_slow' },
+         { text: '💀 Won\'t Turn On', val: 'wont_turn_on' },
+         { text: '💙 Blue Screen', val: 'blue_screen' },
+         { text: '🌡️ Overheating', val: 'overheat' },
+         { text: '🔋 Battery Issue', val: 'battery_issue' },
+         { text: '⌨️ Keyboard Issue', val: 'keys_not_working' },
+         { text: '🖱️ Touchpad Issue', val: 'touchpad_issue' },
+         { text: '📷 Camera Issue', val: 'camera_issue' },
+         { text: '🔊 Audio Issue', val: 'sound_none' },
+         { text: '🖥️ Screen Issue', val: 'screen_black' },
+         { text: '🔌 Charger Issue', val: 'battery_not_charging' },
+       ]
+     },
+     cat_network: {
+       label: '🌐 Network & Internet',
+       desc: 'Select your specific issue:',
+       issues: [
+         { text: '📵 WiFi Not Working', val: 'wifi_not_connect' },
+         { text: '🐌 Slow Internet', val: 'internet_slow' },
+         { text: '🔄 WiFi Disconnecting', val: 'wifi_drop' },
+         { text: '🔒 Website Blocked', val: 'website_blocked' },
+         { text: '🔌 LAN Cable Issue', val: 'lan_issue' },
+       ]
+     },
+     cat_msoffice: {
+       label: '📊 Microsoft Office',
+       desc: 'Select your specific issue:',
+       issues: [
+         { text: '📊 Excel Issue', val: 'excel_issue' },
+         { text: '📝 Word Issue', val: 'word_issue' },
+         { text: '📊 PowerPoint Issue', val: 'ppt_issue' },
+         { text: '🔑 Office Activation', val: 'office_activation' },
+         { text: '📁 File Corrupted', val: 'file_corrupted' },
+       ]
+     },
+     cat_browser: {
+       label: '🌍 Browser & Apps',
+       desc: 'Select your specific issue:',
+       issues: [
+         { text: '🌐 Chrome Not Opening', val: 'chrome_issue' },
+         { text: '🐌 Browser Slow', val: 'browser_slow' },
+         { text: '❌ Website Not Loading', val: 'website_blocked' },
+         { text: '📹 Teams Issue', val: 'teams_issue' },
+         { text: '🎥 Zoom Issue', val: 'zoom_issue' },
+       ]
+     },
+     cat_email: {
+       label: '📧 Email & Communication',
+       desc: 'Select your specific issue:',
+       issues: [
+         { text: '📧 Gmail Issue', val: 'gmail_issue' },
+         { text: '🔑 Email Password', val: 'email_password' },
+         { text: '📅 Calendar Sync', val: 'calendar_sync' },
+         { text: '📤 Can\'t Send Email', val: 'email_not_sending' },
+       ]
+     },
+     cat_access: {
+       label: '🔐 Access & Password',
+       desc: 'Select your specific issue:',
+       issues: [
+         { text: '🔑 Password Reset', val: 'password_reset' },
+         { text: '🔒 Account Locked', val: 'account_locked' },
+         { text: '📁 Shared Folder Access', val: 'shared_folder' },
+         { text: '💾 Software Access', val: 'software_access' },
+       ]
+     },
+     cat_asset: {
+       label: '📦 Asset Requests',
+       desc: 'What do you need?',
+       issues: [
+         { text: '💻 New Laptop', val: 'new_laptop' },
+         { text: '🔌 New Charger', val: 'new_charger' },
+         { text: '🖱️ New Mouse', val: 'new_mouse' },
+         { text: '⌨️ New Keyboard', val: 'new_keyboard' },
+         { text: '🎧 Headphone Request', val: 'new_headphone' },
+       ]
+     },
+   };
+
+   const menu = categoryMenus[actionId];
+   if (!menu) return;
+
+   const rows = [];
+   for (let i = 0; i < menu.issues.length; i += 3) {
+     rows.push(menu.issues.slice(i, i + 3));
+   }
+
+   const blocks = [
+     { type: 'section', text: { type: 'mrkdwn', text: '*' + menu.label + '*\n' + menu.desc } },
+     { type: 'divider' },
+   ];
+
+   rows.forEach(row => {
+     blocks.push({
+       type: 'actions',
+       elements: row.map(issue => ({
+         type: 'button',
+         text: { type: 'plain_text', text: issue.text, emoji: true },
+         action_id: 'vague_pick_' + issue.val,
+         value: issue.val
+       }))
+     });
+   });
+
+   // Navigation buttons
+   blocks.push({ type: 'divider' });
+   blocks.push({
+     type: 'actions',
+     elements: [
+       { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home' },
+       { type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'danger' },
+     ]
+   });
+
+   try {
+     await client.chat.postMessage({ channel: channelId, text: menu.label, blocks });
+   } catch (err) {
+     console.error('cat_ handler error:', err.message);
+   }
+ });
+
+ // ── Go Home navigation button ─────────────────────────────────────────────────
+ slackApp.action('go_home_btn', async ({ body, ack, client }) => {
+   await ack();
+   const userId = body.user.id;
+   try {
+     const emp = await lookupEmployee(userId, client).catch(() => null);
+     const myTickets = emp?.empId
+       ? await Ticket.find({ empId: emp.empId, status: { $in: ['Open', 'In Progress', 'Waiting'] } }).sort({ createdAt: -1 }).limit(3).lean()
+       : [];
+     const blocks = buildHomeBlocks(emp, myTickets, new Set());
+     await client.views.publish({ user_id: userId, view: { type: 'home', blocks } });
+     const channelId = body.channel?.id || body.container?.channel_id || userId;
+     await client.chat.postMessage({
+       channel: channelId,
+       text: '🏠 Home pe wapas aa gaye!',
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '🏠 *Home pe wapas aa gaye!*\nKoi aur IT problem ho toh Home tab pe jaao.' } }]
+     });
+   } catch (err) { console.error('go_home_btn error:', err.message); }
+ });
+
  // ── New ticket button after close notification ───────────────────────
  slackApp.action('new_ticket_after_close', async ({ body, ack, client }) => {
  await ack();
@@ -2435,7 +2565,7 @@ app.listen(PORT, async () => {
  };
 
  // ── Quick Action buttons from Home tab ────────────────────────────────
- const homeQuickActions = ['home_quick_wifi_pwd_quick','home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9','home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14','home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19','home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24','home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29','home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34','home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39','home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44','home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49','home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54','home_quick_55','home_quick_55b','home_quick_56','home_quick_57','home_quick_58','home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_quick_63','home_quick_63b','home_quick_64','home_quick_65','home_quick_66','home_quick_67','home_quick_68','home_quick_69','home_quick_70','home_quick_71','home_quick_72','home_quick_73','home_quick_74','home_quick_75','home_quick_76','home_quick_77','home_sos','home_new_01','home_new_02','home_new_03','home_new_04','home_new_05','home_new_06','home_new_07','home_new_08','home_new_09','home_new_10','home_new_11','home_new_12','home_new_13','home_new_14','home_new_15'];
+ const homeQuickActions = ['home_quick_wifi_pwd_quick','home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9','home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14','home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19','home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24','home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29','home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34','home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39','home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44','home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49','home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54','home_quick_55','home_quick_55b','home_quick_56','home_quick_57','home_quick_58','home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_quick_63','home_quick_63b','home_quick_64','home_quick_65','home_quick_66','home_quick_67','home_quick_68','home_quick_69','home_quick_70','home_quick_71','home_quick_72','home_quick_73','home_quick_74','home_quick_75','home_quick_76','home_quick_77','home_sos','home_new_01','home_new_02','home_new_03','home_new_04','home_new_05','home_new_06','home_new_07','home_new_08','home_new_09','home_new_10','home_new_11','home_new_12','home_new_13','home_new_14','home_new_15','cat_laptop','cat_network','cat_msoffice','cat_browser','cat_email','cat_access','cat_asset','go_home_btn'];
  homeQuickActions.forEach(actionId => {
  slackApp.action(actionId, async ({ body, ack, client }) => {
  await ack();
@@ -2700,35 +2830,24 @@ app.listen(PORT, async () => {
  }
 
           modalBlocks.push({ type: 'divider' });
-         // ── 3-Button Guided Troubleshooting Pattern ────────────────────────────────────
+         // ── Resolution Flow ─────────────────────────────────────────────────────────────
+         modalBlocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*Did this fix your issue?*' } });
          modalBlocks.push({
            type: 'actions',
            elements: [
              {
                type: 'button',
-               text: { type: 'plain_text', text: '✅ Problem Solved', emoji: true },
+               text: { type: 'plain_text', text: '✅ Yes, Fixed!', emoji: true },
                action_id: 'resolved_yes_btn',
                style: 'primary',
                value: 'Medium'
              },
              {
                type: 'button',
-               text: { type: 'plain_text', text: '🔄 Need More Help', emoji: true },
+               text: { type: 'plain_text', text: '❌ Still Not Working', emoji: true },
                action_id: 'not_resolved_btn',
-               value: (problem || '').substring(0, 100)
-             },
-             {
-               type: 'button',
-               text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true },
-               action_id: 'quick_ticket_btn',
                style: 'danger',
-               value: 'Medium',
-               confirm: {
-                 title: { type: 'plain_text', text: 'Ticket Create Karein?' },
-                 text: { type: 'mrkdwn', text: '_IT team ko alert bheja jayega — woh directly fix karegi._' },
-                 confirm: { type: 'plain_text', text: '✅ Ha, Banao!' },
-                 deny: { type: 'plain_text', text: 'Ruko' }
-               }
+               value: (problem || '').substring(0, 100)
              }
            ]
          });
@@ -3365,6 +3484,28 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      email_not_receiving: 'email not receiving emails not coming in gmail',
      email_not_sending: 'cannot send email gmail not sending',
      email_mailbox_full: 'gmail mailbox storage full cannot receive',
+     // ── New entries added for cat_ category buttons ──────────────────
+     excel_issue: 'Microsoft Excel not opening or crashing',
+     word_issue: 'Microsoft Word not opening or crashing',
+     ppt_issue: 'PowerPoint not opening or crashing',
+     office_activation: 'Microsoft Office activation issue license error',
+     file_corrupted: 'file is corrupted cannot open',
+     gmail_issue: 'Gmail not opening email issue',
+     email_not_sending: 'cannot send email Gmail not working',
+     calendar_sync: 'Google Calendar not syncing',
+     lan_issue: 'LAN cable ethernet internet not working',
+     new_laptop: 'new laptop request',
+     new_charger: 'charger replacement request',
+     new_mouse: 'new mouse request',
+     new_keyboard: 'new keyboard request',
+     new_headphone: 'headphone request',
+     shared_folder: 'shared folder access needed',
+     software_access: 'software application access needed',
+     camera_issue: 'camera not working',
+     chrome_issue: 'Chrome browser not opening or crashing',
+     browser_slow: 'browser is very slow or freezing',
+     zoom_issue: 'Zoom not working cannot join meeting',
+     teams_issue: 'Microsoft Teams not working crashing',
    };
 
    const categoryLabels = {
@@ -3877,7 +4018,12 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    await client.chat.postMessage({
      channel: channelId,
      text: '✅ Problem solve ho gayi!',
-     blocks: [{ type:'section', text:{ type:'mrkdwn', text: msg }}]
+     blocks: [
+       { type: 'section', text: { type: 'mrkdwn', text: '🎉 *Great! Issue resolved.*\n\nKoi aur problem ho toh Home tab pe jaao.' } },
+       { type: 'actions', elements: [
+         { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' }
+       ]}
+     ]
    });
  });
 
@@ -4039,10 +4185,16 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      failedAttempts.delete(userId);
      await client.chat.postMessage({
        channel: channelId,
-       text: 'Steps se nahi hua — IT ticket raise karte hain!',
-       blocks: buildAutoTicketBlocks(
-         `No worries 👍\n\nLagta hai ye steps se theek nahi ho raha. *IT team physically aayegi* — woh direct fix karegi!\n\n_Ek click mein ticket create karo:_`
-       )
+       text: '⚠️ Auto Fix could not resolve the issue.',
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: '⚠️ *Auto Fix could not resolve the issue.*\n\nIT team personally fix karegi — ticket raise karo.' } },
+         { type: 'actions', elements: [
+           { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Medium',
+             confirm: { title: { type: 'plain_text', text: 'Ticket Create Karein?' }, text: { type: 'mrkdwn', text: '_IT team ko alert bheja jayega — woh directly fix karegi._' }, confirm: { type: 'plain_text', text: '✅ Ha, Banao!' }, deny: { type: 'plain_text', text: 'Ruko' } }
+           },
+           { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home' }
+         ]}
+       ]
      });
      return;
    }
