@@ -1973,10 +1973,27 @@ app.listen(PORT, async () => {
      ]
    });
 
+   // Open as MODAL (popup) — works even when Messages Tab is disabled
+   const triggerId = body.trigger_id;
    try {
-     await client.chat.postMessage({ channel: channelId, text: menu.label, blocks });
+     if (triggerId) {
+       await client.views.open({
+         trigger_id: triggerId,
+         view: {
+           type: 'modal',
+           title: { type: 'plain_text', text: menu.label, emoji: true },
+           close: { type: 'plain_text', text: '🏠 Home', emoji: true },
+           blocks
+         }
+       });
+     } else {
+       // Fallback: update home tab with sub-issues
+       await client.chat.postMessage({ channel: userId, text: menu.label, blocks });
+     }
    } catch (err) {
      console.error('cat_ handler error:', err.message);
+     // Last resort: DM
+     try { await client.chat.postMessage({ channel: userId, text: menu.label, blocks }); } catch {}
    }
  });
 
