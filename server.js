@@ -2862,8 +2862,18 @@ app.listen(PORT, async () => {
  });
 
  // ── DM Handler ────────────────────────────────────────────────────────
+ // NOTE: Messages Tab is disabled in Slack App settings.
+ // This handler still processes messages in case someone DMs directly.
+ // Redirect users to Home tab for better experience.
  slackApp.message(async ({ message, client, say }) => {
  if (message.bot_id) return;
+
+ // If message tab is disabled but someone still messages → redirect to Home tab
+ const isDirectMessage = message.channel_type === 'im';
+ if (isDirectMessage && message.text && !message.subtype) {
+   // Still process the message normally — Home tab is main but DM still works
+   // as fallback. This ensures no functionality is lost.
+ }
  // Handle file/image uploads (screenshot diagnosis)
  if (message.subtype === 'file_share' && message.files && message.files.length > 0) {
  const userId = message.user;
