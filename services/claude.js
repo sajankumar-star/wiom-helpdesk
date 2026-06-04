@@ -670,6 +670,27 @@ const parseOutput = (raw) => {
 };
 
 
+// ── FALLBACK RESPONSE GENERATOR ────────────────────────────────────────────
+// When KB misses AND confidence is low → structured fallback instead of generic "batao"
+const getFallbackResponse = (query, intent, category) => {
+  const q = query.toLowerCase();
+
+  // Enterprise software — specific error codes, specific apps
+  if (/\b(sap|autocad|power\s*bi|vmware|cisco|oracle|tally|quickbooks|solidworks|matlab|tableau|figma|sketch|adobe|photoshop|illustrator|premiere|after\s*effects|jira|confluence|salesforce|hubspot)\b/i.test(q)) {
+    const appName = q.match(/\b(sap|autocad|power\s*bi|vmware|cisco|oracle|tally|quickbooks|solidworks|matlab|tableau|figma|sketch|adobe\s*\w+|photoshop|illustrator|premiere|after\s*effects|jira|confluence|salesforce|hubspot)\b/i)?.[0] || 'application';
+    return `Yeh ${appName.toUpperCase()} ka issue lag rha hai. IT team ko yeh details share karo:\n\n• *Error message/code* — exactly kya likh raha hai?\n• *Kab se ho rha hai* — aaj pehli baar ya pehle bhi?\n• *Screenshot* — agar le sako\n\nType karo *ha* — IT ticket raise karta hoon, specialist handle karega 🎫`;
+  }
+
+  // Error codes — specific format like 0x80045, error 404, etc.
+  if (/\b(error\s*[0-9a-fx]{4,}|0x[0-9a-f]+|err\s*\d+|code\s*\d+)\b/i.test(q)) {
+    const errCode = q.match(/\b(error\s*[0-9a-fx]{4,}|0x[0-9a-f]+|err\s*\d+|code\s*\d+)\b/i)?.[0] || 'error';
+    return `${errCode.toUpperCase()} error — yeh specific error code IT ko dhundhna padega.\n\nPlease share karo:\n• *Kaunsa application* — kis software mein aa rha hai?\n• *Exact error message* — screenshot helpful hogi\n• *Kab se* — koi update/change ke baad?\n\nType karo *ha* — HIGH PRIORITY ticket raise karta hoon 🎫`;
+  }
+
+  // Generic unknown but has technical words
+  return `Yeh issue meri knowledge base mein nahi hai. IT team better help kar sakti hai.\n\nYeh share karo:\n• *Kaunsa app/device* — exactly kya problem hai?\n• *Error message* — screen pe kya likha hai?\n• *Kab se* — pehle theek tha?\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+};
+
 // ── Main chat function ────────────────────────────────────────────────────────
 const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, floor }) => {
   if (!modelLogged) {
@@ -791,6 +812,17 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     .replace(/\s{2,}/g, ' ')
     .replace(/^[\s,!]+/, '')
     .trim();
+
+  // ── LOW CONFIDENCE FALLBACK: if KB missed AND reply is generic ──────────────
+  const isGenericFallback = /thoda\s*aur\s*batao|kya\s*problem\s*ho\s*rahi|describe\s*your\s*issue|more\s*detail/i.test(reply);
+  const { intent: qIntent, confidence: qConf } = (typeof detectQueryIntent === 'function')
+    ? detectQueryIntent(lastMsg)
+    : { intent: 'unknown', confidence: 70 };
+
+  if (isGenericFallback || qConf < 60) {
+    const betterFallback = getFallbackResponse(lastMsg, qIntent, '');
+    reply = betterFallback;
+  }
 
   // Strip robotic title lines before "Step 1:" (keep emoji openers)
   const stepIdx = reply.indexOf('Step 1:');

@@ -342,6 +342,7 @@ app.listen(PORT, async () => {
  const processingUsers = new Set(); // Fix 8: per-user lock — prevents race conditions
  const expandedHomeMap = new Map(); // slackUserId -> Set<categoryKey>
  const failedAttempts  = new Map(); // slackUserId -> { count, lastTime } — tracks "Nahi hua" clicks
+ const unknownAttempts = new Map(); // userId → { count, lastQuery, lastTime } — unknown query escalation
 
  // ── Brand detection helpers ───────────────────────────────────────────
  const detectBrand = (laptopName) => {
@@ -3499,6 +3500,53 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  conv.messages.push({ role: 'assistant', content: reply });
  await conv.save();
 
+ // ── LOG UNKNOWN QUERIES to MongoDB for weekly review ──────────────────────
+ try {
+   const { intent: qi, confidence: qc, category: qcat } = claudeSvc.detectQueryIntent
+     ? claudeSvc.detectQueryIntent(text)
+     : { intent: 'unknown', confidence: 50, category: 'unknown' };
+
+   if (!kbReply && (qc < 70 || qi === 'unknown')) {
+     const UnknownQuery = require('./models/UnknownQuery');
+     await UnknownQuery.findOneAndUpdate(
+       { normalizedQuery: text.toLowerCase().trim().substring(0, 100) },
+       {
+         $set: { query: text, detectedIntent: qi, detectedCategory: qcat, confidence: qc, empId: emp.empId, empName: emp.empName, source: 'slack' },
+         $inc: { attempts: 1 }
+       },
+       { upsert: true }
+     ).catch(() => {}); // Never crash bot for logging
+   }
+ } catch(e) { /* ignore logging errors */ }
+
+ // ── 2-ATTEMPT ESCALATION for unknown queries ──────────────────────────────
+ if (!kbReply && reply) {
+   const isGenericOrFallback = /thoda\s*aur\s*batao|yeh\s*issue\s*meri\s*knowledge|kb\s*miss|main.*identify.*nahi/i.test(reply);
+   if (isGenericOrFallback) {
+     const prev = unknownAttempts.get(userId) || { count: 0, lastTime: 0 };
+     const isRecent = Date.now() - prev.lastTime < 30 * 60 * 1000; // 30 min window
+     const newCount = isRecent ? prev.count + 1 : 1;
+     unknownAttempts.set(userId, { count: newCount, lastTime: Date.now() });
+
+     // After 2 attempts → auto-escalate
+     if (newCount >= 2) {
+       unknownAttempts.delete(userId);
+       await say({
+         text: 'IT Support ticket raise kar raha hoon',
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: `⚡ *2 attempts ke baad bhi identify nahi ho paya.*\n\nIT team directly handle karegi.\nType karo *ha* — IT ticket raise karta hoon 🎫` }},
+           { type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '🎫 IT Ticket Raise Karo', emoji: true },
+               style: 'danger', action_id: 'quick_ticket_btn', value: text }
+           ]}
+         ]
+       });
+       processingUsers.delete(userId);
+       return;
+     }
+   }
+ }
+
  // ── Format reply + build blocks ───────────────────────────────────
  const formattedReply = formatForSlack(reply);
  const recentUserText = conv.messages.filter(m=>m.role==='user').slice(-2).map(m=>m.content).join(' ');
@@ -3945,6 +3993,49 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  } catch (err) {
  console.error('Daily summary cron error:', err.message);
  }
+ });
+
+ // ── Weekly Unknown Query Report — Every Monday 9AM IST (= 03:30 UTC) ─────────
+ cron.schedule('30 3 * * 1', async () => {
+   try {
+     const adminId = process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
+     if (!adminId || adminId === 'FILL_KARO' || !slackClient) return;
+
+     const UnknownQuery = require('./models/UnknownQuery');
+     const oneWeekAgo = new Date(Date.now() - 7 * 24 * 3600000);
+
+     // Top 20 unknown queries this week
+     const topUnknown = await UnknownQuery.find({
+       createdAt: { $gte: oneWeekAgo },
+       resolved: false
+     })
+     .sort({ attempts: -1 })
+     .limit(20)
+     .lean();
+
+     if (topUnknown.length === 0) {
+       console.log('Weekly report: no unknown queries this week');
+       return;
+     }
+
+     const listText = topUnknown
+       .map((q, i) => `${i+1}. \`${q.query.substring(0, 60)}\` — ${q.attempts} baar poochha gaya`)
+       .join('\n');
+
+     await slackClient.chat.postMessage({
+       channel: adminId,
+       text: '📊 Weekly Unknown Queries Report',
+       blocks: [
+         { type: 'header', text: { type: 'plain_text', text: '📊 Weekly Unknown Queries Report', emoji: true }},
+         { type: 'section', text: { type: 'mrkdwn', text: `*Top ${topUnknown.length} queries bot answer nahi de paya:*\n\n${listText}` }},
+         { type: 'section', text: { type: 'mrkdwn', text: '_In queries ke liye KB articles banao → bot automatically improve hoga._' }},
+         { type: 'context', elements: [{ type: 'mrkdwn', text: `_Total this week: ${topUnknown.length} unique unknown queries_` }]}
+       ]
+     });
+     console.log('📊 Weekly unknown queries report sent');
+   } catch(err) {
+     console.error('Weekly report cron error:', err.message);
+   }
  });
 
  }).catch(err => {
