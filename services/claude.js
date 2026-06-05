@@ -468,7 +468,24 @@ const getKBFallback = (problem) => {
   if (/connect(ed)?.*(nahi chal|work nahi|internet nahi|nahi work)|wifi.*(connected|chal).*(internet nahi|nahi chal)|(no internet|internet nahi).*(connected|connect)/.test(pn))
     return `WiFi connected hai par internet nahi chal raha. Yeh try karo:\n\n1. *WiFi toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Chrome reopen* → Chrome band karo → dobara open karo → gmail.com try karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
-  if (pn.includes('slow') || pn.includes('hang') || pn.includes('freez') || pn.includes('dheema') || pn.includes('lagg'))
+  // Browser slow — check BEFORE generic slow to avoid wrong match
+  if ((pn.includes('browser') || pn.includes('chrome') || pn.includes('edge')) &&
+      (pn.includes('slow') || pn.includes('hang') || pn.includes('freez') || pn.includes('lagg')))
+    return `Browser slow hai. Yeh try karo:\n\n1. *Cache clear* → Ctrl+Shift+Del → "All time" → Cached images & files → Clear\n2. *Extensions band* → Chrome → Settings → Extensions → sab disable karo\n3. *Restart browser* → Band karo → dobara open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
+  // Excel slow — check BEFORE generic slow
+  if (pn.includes('excel') && (pn.includes('slow') || pn.includes('hang') || pn.includes('freez')))
+    return `Excel slow/hang ho rha hai. Yeh try karo:\n\n1. *Doosri files band karo* → koi aur Excel file khuli hai? Band karo\n2. *Add-ins disable* → File → Options → Add-ins → Manage: COM Add-ins → Go → sabko uncheck karo\n3. *Restart karo* → Excel band karo → laptop restart karo → dobara kholo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT repair karega 🎫`;
+
+  // Teams slow
+  if (pn.includes('teams') && (pn.includes('slow') || pn.includes('hang') || pn.includes('lagg')))
+    return `Microsoft Teams slow hai. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar Teams icon → right-click → Quit → dobara open karo\n2. *Browser mein try karo* → teams.microsoft.com Chrome mein open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
+  // Generic laptop slow — only when NO app/browser context
+  if ((pn.includes('slow') || pn.includes('hang') || pn.includes('freez') || pn.includes('dheema') || pn.includes('lagg')) &&
+      !pn.includes('browser') && !pn.includes('chrome') && !pn.includes('edge') && !pn.includes('excel') &&
+      !pn.includes('word') && !pn.includes('teams') && !pn.includes('zoom') && !pn.includes('internet') &&
+      !pn.includes('wifi') && !pn.includes('website'))
     return `💻 *Laptop Slow/Hang* — yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → CPU column → jo zyada use kar raha ho End Task karo\n2. *Browser tabs* → unnecessary Chrome/Edge tabs band karo\n3. *Restart* → Laptop properly shut down karo (restart, sleep nahi)\n\nAgar in teeno se theek nahi hua → *Create Ticket* button dabao — IT team RAM ya SSD check karegi 🎫`;
 
   if (pn.includes('wifi') || pn.includes('internet') || pn.includes('network') ||
@@ -567,6 +584,21 @@ const getKBFallback = (problem) => {
   if (pn.includes('usb') || pn.includes('pendrive'))
     return `USB issue. Yeh try karo:\n\n1. *Alag port* → USB device dusre port mein lagao\n2. *Restart* → Laptop restart karo → dobara lagao\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
+  if (pn.includes('pdf') || pn.includes('adobe') || pn.includes('acrobat'))
+    return `PDF issue. Yeh try karo:\n\n1. *Chrome mein open karo* → PDF file ko Chrome mein drag karke drop karo — bina Adobe bhi khulti hai\n2. *Right-click* → PDF pe right-click → Open With → Adobe Acrobat select karo\n\nAgar Adobe nahi hai → *Create Ticket* button dabao — IT install kar dega 🎫`;
+
+  if (pn.includes('scanner') || pn.includes('scan'))
+    return `Scanner issue. Yeh try karo:\n\n1. *Scanner restart karo* → Band karo → 30 sec → on karo\n2. *USB check karo* → Cable properly lagi hai?\n3. *Laptop restart karo* → Dobara scan try karo\n\nAgar detect nahi ho rha → *Create Ticket* button dabao — IT driver install karega 🎫`;
+
+  if (pn.includes('network drive') || pn.includes('shared drive') || /z:\s*drive|mapped\s*drive|shared\s*folder/.test(pn))
+    return `Network Drive issue. Yeh try karo:\n\n1. *Laptop restart karo* → Aksar restart se drive wapas aa jaati hai\n2. *File Explorer* → This PC → agar nahi dikh rha → *Create Ticket* button dabao — IT remap kar dega\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
+  if (pn.includes('shared folder') || pn.includes('folder access') || pn.includes('access nahi'))
+    return `Shared Folder Access issue. Yeh karo:\n\n*Create Ticket* button dabao — IT team aapko folder access dega. Ticket mein batao: *kaunsa folder* chahiye aur *kis kaam ke liye* 🎫`;
+
+  if (pn.includes('hdmi') || pn.includes('projector') || pn.includes('second screen') || pn.includes('external monitor') || pn.includes('monitor connect'))
+    return `External Monitor/Projector issue. Yeh try karo:\n\n1. *Cable check karo* → HDMI cable dono taraf properly lagi hai?\n2. *Win+P* → Windows + P key dabao → Extend ya Duplicate select karo\n3. *Monitor ON* → External monitor on hai?\n\nAgar detect nahi ho rha → *Create Ticket* button dabao — IT directly help karegi 🎫`;
+
   if (pn.includes('storage') || pn.includes('disk full'))
     return `Storage/disk full issue. Yeh try karo:\n\n1. *Recycle Bin* → Desktop pe Recycle Bin → Empty Recycle Bin\n2. *Downloads folder* → File Explorer → Downloads → jo files zaruri nahi unhe delete karo\n\nAgar ab bhi issue hai → *Create Ticket* button dabao — IT baaki cleanup karega 🎫`;
 
@@ -619,7 +651,7 @@ const getKBFallback = (problem) => {
   if (/are\s*you\s*(ai|human|bot|robot)|kya\s*aap\s*(human|ai|bot|robot|real)\s*hain/i.test(pn))
     return `Main *Zivon* hoon — WIOM ka IT support AI assistant.\nLaptop, WiFi, software, password — kisi bhi IT issue mein help kar sakta hoon.`;
 
-  return `Thoda aur batao — kya problem ho rahi hai? Main help karunga.`;
+  return `Apni problem thodi detail mein batao — kaunsa app ya device, aur kya ho rha hai exactly?\n\nYa seedha *Create Ticket* button dabao — IT team directly aapki help karegi. 🎫`;
 };
 
 // ── Call Gemini (Google FREE fallback) ───────────────────────────────────────
@@ -746,13 +778,19 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
   let raw;
   const lastMsg = history.filter(m => m.role === 'user').pop()?.content || '';
 
+  // Timeout wrapper — prevents hanging if AI API is slow/down
+  const withTimeout = (promise, ms, label) => Promise.race([
+    promise,
+    new Promise((_, rej) => setTimeout(() => rej(new Error(`${label} timeout after ${ms}ms`)), ms))
+  ]);
+
   try {
-    raw = await callGroq(systemPrompt, history);
+    raw = await withTimeout(callGroq(systemPrompt, history), 12000, 'Groq');
     console.log('✅ Groq (PRIMARY) responded OK');
   } catch (err) {
     console.warn('⚠️ Groq failed:', err.message, '— trying Gemini...');
     try {
-      raw = await callGemini(systemPrompt, history);
+      raw = await withTimeout(callGemini(systemPrompt, history), 10000, 'Gemini');
       console.log('✅ Gemini (BACKUP) responded OK');
     } catch (err2) {
       console.error('❌ Gemini also failed:', err2.message, '— using KB fallback');
@@ -805,7 +843,8 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     .replace(/\bHaan\s+yaar\b/gi, 'Haan,')
     // Remove admin-only tools if AI slips them through
     .replace(/\bosk\.exe\b/gi, 'On-Screen Keyboard')
-    .replace(/%appdata%[^\s]*/gi, '')
+    .replace(/delete\s+%appdata%[^\n]*/gi, 'Teams cache clear karo (IT ticket raise karo — woh clear kar denge)')
+    .replace(/%appdata%[^\s]*/gi, 'Teams cache folder')
     .replace(/\bcleanmgr\b/gi, '')
     .replace(/\bservices\.msc\b/gi, '')
     .replace(/\bDevice Manager\b[^.!?\n]*/gi, 'IT ticket raise karo')
@@ -879,8 +918,13 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     reply = reply.replace(/\s*$/, '') + '\n\n*Create Ticket* button dabao — IT team directly help karegi 🎫';
   }
 
+  // Final safety: if reply is empty for any reason
+  if (!reply || reply.trim().length < 10) {
+    reply = `Kuch technical issue aa gaya. Seedha *Create Ticket* button dabao — IT team directly help karegi. 🎫`;
+  }
+
   return {
-    reply             : reply || getKBFallback('generic'),
+    reply             : reply,
     shouldCreateTicket: shouldCreateTicket || isHallucinated,
     ticketData        : null
   };
