@@ -1841,20 +1841,19 @@ app.listen(PORT, async () => {
        desc: 'Select your specific issue:',
        issues: [
          { text: '🐢 Laptop Slow',              val: 'laptop_slow' },
-         { text: '❌ Laptop Not Starting',         val: 'wont_turn_on' },
-         { text: '💙 Blue Screen',               val: 'blue_screen' },
-         { text: '🌡️ Overheating',           val: 'overheat' },
-         { text: '🔋 Battery Issue',              val: 'battery_issue' },
-         { text: '🔌 Charger Issue',              val: 'battery_not_charging' },
+         { text: '❌ Laptop Not Starting',       val: 'wont_turn_on' },
+         { text: '💙 Blue Screen',              val: 'blue_screen' },
+         { text: '🌡️ Overheating',             val: 'overheat' },
+         { text: '🔋 Battery Issue',            val: 'battery_issue' },
+         { text: '🔌 Charger Issue',            val: 'charger_issue_menu' },
          { text: '⌨️ Keyboard Issue',           val: 'keys_not_working' },
-         { text: '🖱️ Touchpad Issue',       val: 'touchpad_issue' },
-         { text: '📷 Camera Issue',               val: 'camera_issue' },
-         { text: '🎤 Microphone Issue',           val: 'mic_issue' },
-         { text: '🔊 Speaker / Audio Issue',      val: 'sound_none' },
-         { text: '🖥️ Screen Issue',         val: 'screen_black' },
-         { text: '🖵 External Monitor Issue',     val: 'external_monitor' },
-         { text: '🖨️ Printer Issue',        val: 'printer_issue' },
-         { text: '🖨️ Scanner Issue',        val: 'scanner_issue' },
+         { text: '🖱️ Touchpad Issue',           val: 'touchpad_issue' },
+         { text: '📷 Camera Issue',             val: 'camera_issue' },
+         { text: '🎤 Microphone Issue',         val: 'mic_issue' },
+         { text: '🔊 Speaker / Audio Issue',    val: 'sound_none' },
+         { text: '🖥️ Screen Issue',             val: 'screen_black' },
+         { text: '🖵 External Monitor Issue',   val: 'external_monitor' },
+         { text: '🖨️ Scanner Issue',            val: 'scanner_issue' },
        ]
      },
      cat_network: {
@@ -1864,9 +1863,7 @@ app.listen(PORT, async () => {
          { text: '📵 WiFi Not Working',    val: 'wifi_not_connect' },
          { text: '🌐 No Internet',         val: 'wifi_not_connect' },
          { text: '🐌 Slow Internet',       val: 'internet_slow' },
-         { text: '🔒 VPN Issue',           val: 'vpn_issue' },
          { text: '🔌 LAN Issue',           val: 'lan_issue' },
-         { text: '🔍 DNS Issue',           val: 'dns_issue' },
          { text: '💾 Network Drive Issue', val: 'network_drive' },
        ]
      },
@@ -1874,14 +1871,12 @@ app.listen(PORT, async () => {
        label: '📊 Microsoft Office',
        desc: 'Select your specific issue:',
        issues: [
-         { text: '📊 Excel Not Opening',        val: 'excel_issue' },
-         { text: '📝 Word Not Opening',          val: 'word_issue' },
-         { text: '📊 PowerPoint Not Opening',    val: 'ppt_issue' },
-         { text: '📧 Outlook Not Opening',       val: 'outlook_issue' },
-         { text: '🔑 Office Activation Issue',   val: 'office_activation' },
-         { text: '📁 File Not Opening',          val: 'file_corrupted' },
-         { text: '📊 Excel Slow',                val: 'laptop_slow' },
-         { text: '🔄 Outlook Sync Issue',        val: 'outlook_sync' },
+         { text: '📊 Excel Not Opening',       val: 'excel_issue' },
+         { text: '📝 Word Not Opening',         val: 'word_issue' },
+         { text: '📊 PowerPoint Not Opening',   val: 'ppt_issue' },
+         { text: '🔑 Office Activation Issue',  val: 'office_activation' },
+         { text: '📁 File Not Opening',         val: 'file_corrupted' },
+         { text: '📊 Excel Slow',               val: 'laptop_slow' },
        ]
      },
      cat_browser: {
@@ -1915,24 +1910,23 @@ app.listen(PORT, async () => {
        label: '🔐 Access & Password',
        desc: 'Select your specific issue:',
        issues: [
-         { text: '🔑 Password Reset',        val: 'password_reset' },
-         { text: '🔒 Account Locked',        val: 'account_locked' },
-         { text: '📁 Shared Folder Access',  val: 'shared_folder' },
-         { text: '🔒 VPN Access',            val: 'vpn_access' },
-         { text: '📧 Email Access',          val: 'email_access' },
-         { text: '💾 Application Access',    val: 'software_access' },
+         { text: '🔑 Password Reset',       val: 'password_reset' },
+         { text: '🔒 Account Locked',       val: 'account_locked' },
+         { text: '📁 Shared Folder Access', val: 'shared_folder' },
+         { text: '📧 Email Access',         val: 'email_access' },
+         { text: '💾 Application Access',   val: 'software_access' },
        ]
      },
      cat_asset: {
        label: '📦 Asset Requests',
        desc: 'What do you need?',
        issues: [
-         { text: '💻 New Laptop Request',   val: 'new_laptop' },
-         { text: '🔌 Charger Request',      val: 'new_charger' },
-         { text: '🖱️ Mouse Request',  val: 'new_mouse' },
-         { text: '⌨️ Keyboard Request',   val: 'new_keyboard' },
-         { text: '🎧 Headphone Request',    val: 'new_headphone' },
-         { text: '🖵 Monitor Request',      val: 'new_monitor' },
+         { text: '💻 New Laptop',     val: 'new_laptop' },
+         { text: '🔌 Charger',        val: 'charger_asset_menu' },
+         { text: '🖱️ Mouse',         val: 'new_mouse' },
+         { text: '⌨️ Keyboard',      val: 'new_keyboard' },
+         { text: '🎧 Headphone',      val: 'new_headphone' },
+         { text: '🖵 Monitor',        val: 'new_monitor' },
        ]
      },
    }
@@ -1997,6 +1991,74 @@ app.listen(PORT, async () => {
  });
 
  // ── Go Home navigation button ─────────────────────────────────────────────────
+ // ── Charger Issue (Hardware) — 2 options ────────────────────────────────────
+ slackApp.action('vague_pick_charger_issue_menu', async ({ body, ack, client }) => {
+   await ack();
+   const triggerId = body.trigger_id;
+   if (!triggerId) return;
+   await client.views.push({
+     trigger_id: triggerId,
+     view: {
+       type: 'modal',
+       title: { type: 'plain_text', text: '🔌 Charger Issue', emoji: true },
+       close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: '*🔌 Charger Issue*\n\nKya problem hai?' }},
+         { type: 'divider' },
+         { type: 'actions', elements: [
+           { type: 'button', text: { type: 'plain_text', text: '💥 Charger Damage/Toota Hai', emoji: true }, action_id: 'vague_pick_charger_damaged', value: 'charger_damaged', style: 'danger' },
+           { type: 'button', text: { type: 'plain_text', text: '❌ Charger Kaam Nahi Kar Rha', emoji: true }, action_id: 'vague_pick_battery_not_charging', value: 'battery_not_charging' },
+         ]},
+       ]
+     }
+   });
+ });
+
+ // ── Charger Damaged → IT Ticket ───────────────────────────────────────────────
+ slackApp.action('vague_pick_charger_damaged', async ({ body, ack, client }) => {
+   await ack();
+   const triggerId = body.trigger_id;
+   if (!triggerId) return;
+   await client.views.push({
+     trigger_id: triggerId,
+     view: {
+       type: 'modal',
+       title: { type: 'plain_text', text: '💥 Charger Damaged', emoji: true },
+       close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: '💥 *Charger physically damage/toota hai*\n\nIT team replacement arrange karegi.\nType karo *ha* — IT ticket raise karta hoon 🎫' }},
+         { type: 'divider' },
+         { type: 'actions', elements: [
+           { type: 'button', text: { type: 'plain_text', text: '🎫 IT Ticket Banao', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Charger physically damaged - replacement needed' },
+         ]},
+       ]
+     }
+   });
+ });
+
+ // ── Charger Asset Request — 2 options ─────────────────────────────────────────
+ slackApp.action('vague_pick_charger_asset_menu', async ({ body, ack, client }) => {
+   await ack();
+   const triggerId = body.trigger_id;
+   if (!triggerId) return;
+   await client.views.push({
+     trigger_id: triggerId,
+     view: {
+       type: 'modal',
+       title: { type: 'plain_text', text: '🔌 Charger Request', emoji: true },
+       close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: '*🔌 Charger Request*\n\nKya problem hai?' }},
+         { type: 'divider' },
+         { type: 'actions', elements: [
+           { type: 'button', text: { type: 'plain_text', text: '💥 Charger Damage/Toota Hai', emoji: true }, action_id: 'vague_pick_charger_damaged', value: 'charger_damaged', style: 'danger' },
+           { type: 'button', text: { type: 'plain_text', text: '❌ Kaam Nahi Kar Rha', emoji: true }, action_id: 'vague_pick_battery_not_charging', value: 'battery_not_charging' },
+         ]},
+       ]
+     }
+   });
+ });
+
  slackApp.action('go_home_btn', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
@@ -2153,19 +2215,23 @@ app.listen(PORT, async () => {
 
  try {
  const emp = await lookupEmployee(userId, client);
- const conv = await getSlackSession(userId, emp);
- conv.messages.push({ role: 'user', content: problem });
- if (conv.messages.length > 30) conv.messages = conv.messages.slice(-30);
- await conv.save();
 
- const { reply, shouldCreateTicket } = await claudeSvc.chat(
- conv.messages,
- { empId: emp.empId, empName: emp.empName, source: 'slack',
- laptop: emp.laptop, laptopSN: emp.laptopSN, dept: emp.dept, floor: emp.floor }
- );
+ // ── KB FIRST — check knowledge base before calling AI ────────────────────
+ let reply = claudeSvc.getKBAnswer ? claudeSvc.getKBAnswer(problem) : null;
+ let shouldCreateTicket = reply ? /type\s*karo[:\s]*\*?ha/i.test(reply) : false;
 
- conv.messages.push({ role: 'assistant', content: reply });
- await conv.save();
+ if (!reply) {
+   // KB miss → call AI
+   const conv = await getSlackSession(userId, emp);
+   conv.messages.push({ role: 'user', content: problem });
+   if (conv.messages.length > 30) conv.messages = conv.messages.slice(-30);
+   await conv.save();
+   const aiResult = await claudeSvc.chat(conv.messages, { empId: emp.empId, empName: emp.empName, source: 'slack', laptop: emp.laptop, laptopSN: emp.laptopSN, dept: emp.dept, floor: emp.floor });
+   reply = aiResult.reply;
+   shouldCreateTicket = aiResult.shouldCreateTicket;
+   conv.messages.push({ role: 'assistant', content: reply });
+   conv.save().catch(() => {});
+ }
 
  const formattedReply = formatForSlack(reply);
  const blocks = [{ type: 'section', text: { type: 'mrkdwn', text: formattedReply }}];
@@ -2264,7 +2330,7 @@ app.listen(PORT, async () => {
        trigger_id: triggerId,
        view: {
          type: 'modal',
-         title: { type: 'plain_text', text: actionId.replace('vague_pick_','').replace(/_/g,' ').substring(0,24), emoji: true },
+         title: { type: 'plain_text', text: '🛠 IT Help', emoji: true },
          close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
          blocks
        }
