@@ -215,7 +215,18 @@ Teams: Quit from system tray → reopen. Fails: delete %appdata%\Microsoft\Teams
 Gmail/Email not working: Open gmail.com in Chrome incognito → check if opens. Fails → clear Chrome cache (Ctrl+Shift+Del) → try again. Password forgot = IT raises Google account reset
 Gmail password forgot: IT reset karta hai → ticket raise karo (employees cannot reset Google account password themselves — needs IT)
 Apple ID / MacBook password: Apple ID ≠ Google account ≠ Windows password — these are 3 DIFFERENT things. NEVER say Apple ID = Google account. Company MacBook = IT handles. Personal Apple device (iPhone/iPad) = out of scope (support.apple.com). NEVER suggest Google account recovery for Apple ID questions.
-Camera: Settings → Privacy → Camera → ON. App settings → select correct camera. Fails = ticket (IT fixes driver)
+Camera: Settings → Privacy → Camera → ON. App settings (Teams/Zoom) → Settings → Video → select correct camera. Fails = ticket (IT fixes driver)
+Microphone: Settings → Privacy → Microphone → ON. Teams/Zoom → Settings → Audio → select correct mic → test mic. Restart app. Fails = ticket (IT fixes driver)
+Speaker/Audio no sound: Right-click speaker icon (taskbar) → Open Sound Settings → Output device → select correct speakers. Volume mixer check. Restart laptop. Fails = ticket
+Excel slow/freezing: Close other open apps → disable Excel add-ins (File → Options → Add-ins → Manage → Go → uncheck all) → reduce file size (delete unused rows/sheets) → repair Office (Control Panel → Programs → MS Office → Change → Repair). Still slow = ticket
+PDF not opening: Right-click PDF → Open With → Adobe Acrobat. If Adobe not installed = ticket (IT installs). Try opening in Chrome as workaround (drag PDF to Chrome)
+File not opening (Word/Excel/PPT/other): Try right-click → Open With → correct app. If app missing = ticket. If file corrupted = ticket (IT recovers)
+Browser slow (Chrome/Edge): Clear cache → Chrome: Ctrl+Shift+Del → All time → Cached images → Clear. Close extra tabs. Disable extensions (Chrome: ... → Extensions → disable one by one). Restart browser. Still slow = ticket
+Website not loading: Check other websites first (google.com). If only one site → might be server issue, try later. Clear DNS: ipconfig /flushdns in CMD. Try incognito mode. Still not loading = ticket
+Scanner not working: Scanner OFF/ON → check USB cable → restart laptop → try scanning again. Not detected = ticket (IT adds driver)
+Network drive missing: Disconnect/reconnect → File Explorer → This PC → Map Network Drive → use same drive letter. Restart laptop → check if auto-reconnects. Still missing = ticket (IT remaps)
+Email not sending (Gmail): Check internet → try sending from gmail.com directly in Chrome. Check spam/sent folder. If bouncing = ticket
+Email not receiving (Gmail): Check spam/junk/trash folders. Check Gmail storage (Settings → Storage). Try gmail.com in incognito. Still missing = ticket
 Keyboard: Restart → use osk.exe (on-screen keyboard). Fails = ticket (IT fixes driver — no admin rights)
 Printer not printing: Printer OFF/ON → laptop restart → dobara print. Fails = ticket
 Printer not visible on network: IT ticket — network access setup needed, employee cannot add themselves (no admin rights)
