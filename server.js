@@ -2253,10 +2253,43 @@ app.listen(PORT, async () => {
  blocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`_Ticket banana hai? *"ha"* ya *"nahi"* type karo_` }]});
  }
 
- await client.chat.postMessage({ channel: userId, text: reply, blocks });
+ // ── If triggered from a modal (category menu) → update/push modal ───────
+ const isFromModal = !!body.view;
+ const triggerId = body.trigger_id;
+
+ if (isFromModal && triggerId) {
+   // Push a new modal on top with the response
+   try {
+     await client.views.push({
+       trigger_id: triggerId,
+       view: {
+         type: 'modal',
+         title: { type: 'plain_text', text: actionId.replace('vague_pick_','').replace(/_/g,' ').substring(0,24), emoji: true },
+         close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
+         blocks
+       }
+     });
+   } catch(modalErr) {
+     // Fallback: open new modal
+     try {
+       await client.views.open({ trigger_id: triggerId, view: { type: 'modal', title: { type: 'plain_text', text: 'IT Help', emoji: true }, close: { type: 'plain_text', text: '⬅ Back', emoji: true }, blocks }});
+     } catch(e2) {
+       await client.chat.postMessage({ channel: userId, text: reply, blocks });
+     }
+   }
+ } else {
+   // Not from modal — post to DM as before
+   await client.chat.postMessage({ channel: userId, text: reply, blocks });
+ }
  } catch (err) {
  console.error('vague_pick action error:', err.message);
- await client.chat.postMessage({ channel: userId, text: '❌ Kuch error aa gaya. Apni problem DM mein type karo.' });
+ try {
+   if (body.trigger_id) {
+     await client.views.open({ trigger_id: body.trigger_id, view: { type: 'modal', title: { type: 'plain_text', text: 'IT Help' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Kuch error aa gaya. Thodi der baad try karo.' }}]}});
+   } else {
+     await client.chat.postMessage({ channel: userId, text: '❌ Kuch error aa gaya. Thodi der baad try karo.' });
+   }
+ } catch(e) {}
  }
  });
 
