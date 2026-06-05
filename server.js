@@ -1987,7 +1987,7 @@ app.listen(PORT, async () => {
    overheat: 'laptop overheating bahut garam ho rha hai', battery_issue: 'battery issue charging problem',
    battery_not_charging: 'battery charge nahi ho rhi charger nahi chal rha',
    keys_not_working: 'keyboard kaam nahi kar rha', touchpad_issue: 'touchpad kaam nahi kar rha cursor stuck',
-   camera_issue: 'camera kaam nahi kar rha black screen', mic_issue: 'microphone kaam nahi kar rha',
+   camera_issue: 'laptop ki built-in webcam Teams ya Zoom call mein detect nahi ho rhi ya video nahi aa rha — camera hardware issue nahi, software/driver ya app setting issue hai', mic_issue: 'microphone kaam nahi kar rha',
    sound_none: 'speaker nahi chal rha awaaz nahi aa rhi', screen_black: 'screen black ho gyi kuch nahi dikh rha',
    external_monitor: 'external monitor detect nahi ho rha hdmi issue', scanner_issue: 'scanner kaam nahi kar rha',
    wont_turn_on: 'laptop on nahi ho rha won\'t turn on start nahi ho rha',
