@@ -2127,6 +2127,35 @@ app.listen(PORT, async () => {
  });
 
  // ── Vague pick button handler (quick problem selection from DM) ─────
+ // ── Build response blocks helper ────────────────────────────────────────────
+ const buildResponseBlocks = (reply, problemKey) => {
+   const formattedReply = formatForSlack(reply);
+   const blocks = [{ type: 'section', text: { type: 'mrkdwn', text: formattedReply }}];
+   const PORTAL = process.env.API_BASE_URL || 'https://wiom-helpdesk-production.up.railway.app';
+   const VAGUE_AUTOFIX_LOCAL = {
+     laptop_slow: 'fix-slow-laptop.bat', overheat: 'fix-overheating.bat', blue_screen: 'fix-bluescreen.bat',
+     freezing: 'fix-freezing.bat', battery_issue: 'fix-battery.bat', battery_not_charging: 'fix-battery.bat',
+     keys_not_working: 'fix-keyboard.bat', touchpad_issue: 'fix-touchpad.bat', camera_issue: 'fix-camera.bat',
+     mic_issue: 'fix-mic.bat', sound_none: 'fix-sound.bat', screen_black: 'fix-black-screen.bat',
+     wifi_not_connect: 'fix-wifi.bat', internet_slow: 'fix-wifi.bat', teams_issue: 'fix-teams.bat',
+     zoom_issue: 'fix-zoom.bat', excel_issue: 'fix-word-excel.bat', word_issue: 'fix-word-excel.bat',
+     chrome_issue: 'fix-browser.bat', app_crash: 'fix-app-crash.bat',
+   };
+   const scriptFile = VAGUE_AUTOFIX_LOCAL[problemKey];
+   if (scriptFile) {
+     blocks.push({ type: 'divider' });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Auto-Fix Available* — Download karke double-click karo' }});
+     blocks.push({ type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '⬇️ Download Auto-Fix', emoji: true }, style: 'primary', url: `${PORTAL}/scripts/${scriptFile}`, action_id: `dl_vague_${problemKey}` }]});
+   }
+   blocks.push({ type: 'divider' });
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '✅ Yes, Fixed!', emoji: true }, action_id: 'resolved_yes_btn', style: 'primary', value: 'Medium' },
+     { type: 'button', text: { type: 'plain_text', text: '❌ Still Not Working', emoji: true }, action_id: 'not_resolved_btn', style: 'danger', value: problemKey },
+     { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'quick_ticket_btn', value: 'Medium' },
+   ]});
+   return blocks;
+ };
+
  slackApp.action(/^vague_pick_/, async ({ body, ack, client, say }) => {
  await ack();
  const userId = body.user.id;
@@ -2213,43 +2242,36 @@ app.listen(PORT, async () => {
    return;
  }
 
- // ── STEP 1: LOADING MODAL FIRST — before ANY DB/API calls ───────────────────
  const isFromModal = !!body.view;
  const triggerId = body.trigger_id;
- let loadingViewId = null;
-
- if (isFromModal && triggerId) {
-   try {
-     const loadingResp = await client.views.push({
-       trigger_id: triggerId,
-       view: {
-         type: 'modal',
-         title: { type: 'plain_text', text: '🛠 IT Help', emoji: true },
-         close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
-         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ _Loading..._' }}]
-       }
-     });
-     loadingViewId = loadingResp?.view?.id;
-   } catch(e) { /* trigger_id expired */ }
- }
 
  try {
- // ── STEP 2: KB CHECK — instant, no API call for known issues ────────────
+ // ── KB CHECK — instant for known issues ──────────────────────────────────
  let reply = claudeSvc.getKBAnswer ? claudeSvc.getKBAnswer(problem) : null;
- let shouldCreateTicket = reply ? /type\s*karo[:\s]*\*?ha/i.test(reply) : false;
 
  if (!reply) {
-   // KB miss → call AI (only for unknown issues)
+   // Unknown issue → show loading first, then AI
+   let loadingViewId = null;
+   if (isFromModal && triggerId) {
+     try {
+       const lr = await client.views.push({ trigger_id: triggerId, view: { type: 'modal', title: { type: 'plain_text', text: '🛠 IT Help', emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ _Finding solution..._' }}] }});
+       loadingViewId = lr?.view?.id;
+     } catch(e) {}
+   }
    const emp = await lookupEmployee(userId, client);
    const conv = await getSlackSession(userId, emp);
    conv.messages.push({ role: 'user', content: problem });
    if (conv.messages.length > 30) conv.messages = conv.messages.slice(-30);
-   await conv.save();
-   const aiResult = await claudeSvc.chat(conv.messages, { empId: emp.empId, empName: emp.empName, source: 'slack', laptop: emp.laptop, laptopSN: emp.laptopSN, dept: emp.dept, floor: emp.floor });
+   const aiResult = await claudeSvc.chat(conv.messages, { empId: emp.empId, empName: emp.empName, source: 'slack' });
    reply = aiResult.reply;
-   shouldCreateTicket = aiResult.shouldCreateTicket;
    conv.messages.push({ role: 'assistant', content: reply });
    conv.save().catch(() => {});
+   // Update loading modal
+   if (loadingViewId) {
+     const finalBlocks = buildResponseBlocks(reply, vagueProblemKey);
+     try { await client.views.update({ view_id: loadingViewId, view: { type: 'modal', title: { type: 'plain_text', text: '🛠 IT Help', emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks: finalBlocks }}); } catch(e) {}
+     return;
+   }
  }
 
  const formattedReply = formatForSlack(reply);
@@ -2338,32 +2360,14 @@ app.listen(PORT, async () => {
  blocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`_Ticket banana hai? *"ha"* ya *"nahi"* type karo_` }]});
  }
 
- // ── UPDATE loading modal OR post to DM ───────────────────────────────────
- const modalView = {
-   type: 'modal',
-   title: { type: 'plain_text', text: '🛠 IT Help', emoji: true },
-   close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
-   blocks
- };
-
- if (loadingViewId) {
-   // Update the loading modal with actual content
+ // ── SHOW RESPONSE — direct push (KB hits are instant) ────────────────────
+ if (isFromModal && triggerId) {
    try {
-     await client.views.update({ view_id: loadingViewId, view: modalView });
+     await client.views.push({ trigger_id: triggerId, view: { type: 'modal', title: { type: 'plain_text', text: '🛠 IT Help', emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks }});
    } catch(e) {
      await client.chat.postMessage({ channel: userId, text: reply, blocks });
    }
- } else if (isFromModal && triggerId) {
-   // Loading modal failed — try push/open
-   try {
-     await client.views.push({ trigger_id: triggerId, view: modalView });
-   } catch(e) {
-     try { await client.views.open({ trigger_id: triggerId, view: modalView }); } catch(e2) {
-       await client.chat.postMessage({ channel: userId, text: reply, blocks });
-     }
-   }
  } else {
-   // Not from modal — post to DM
    await client.chat.postMessage({ channel: userId, text: reply, blocks });
  }
  } catch (err) {
