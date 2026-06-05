@@ -1585,7 +1585,7 @@ app.listen(PORT, async () => {
        desc: 'Select your specific issue:',
        issues: [
          { text: '📵 WiFi Not Working',    val: 'wifi_not_connect' },
-         { text: '🌐 No Internet',         val: 'wifi_not_connect' },
+         { text: '🌐 No Internet',         val: 'no_internet' },
          { text: '🐌 Slow Internet',       val: 'internet_slow' },
          { text: '🔌 LAN Issue',           val: 'lan_issue' },
          { text: '💾 Network Drive Issue', val: 'network_drive' },
@@ -1622,7 +1622,7 @@ app.listen(PORT, async () => {
        desc: 'Select your specific issue:',
        issues: [
          { text: '📧 Gmail Issue',          val: 'gmail_issue' },
-         { text: '📧 Outlook Email Issue',  val: 'outlook_email' },
+         { text: '🔐 Email Login Issue',    val: 'email_login' },
          { text: '💬 Slack Issue',          val: 'slack_issue' },
          { text: '📹 Teams Meeting Issue',  val: 'teams_issue' },
          { text: '📤 Email Not Sending',    val: 'email_not_sending' },
@@ -1907,6 +1907,76 @@ app.listen(PORT, async () => {
    });
  });
 
+ // ── Won't Turn On — Special handler with exact steps ─────────────────────────
+ slackApp.action('vague_pick_wont_turn_on', async ({ body, ack, client }) => {
+   await ack();
+   const userId = body.user.id;
+   const isFromModal = !!body.view;
+   const triggerId = body.trigger_id;
+
+   const blocks = [
+     { type: 'section', text: { type: 'mrkdwn', text:
+       `❌ *Laptop Not Starting* — yeh try karo:\n\n` +
+       `1. *Charger check karo* — charger properly laga hai? Alag socket mein try karo\n` +
+       `2. *10 second hold* — power button 10 sec tak dabao → chhoddo → 30 sec wait → dobara try karo\n` +
+       `3. *Charger nikaal ke try karo* — charger hatao → power button 30 sec hold → charger lagao → on karo\n\n` +
+       `Agar in teeno se bhi nahi khula — laptop hardware issue hai, IT physically check karega.`
+     }},
+     { type: 'divider' },
+     { type: 'actions', elements: [
+       { type: 'button', text: { type: 'plain_text', text: '✅ Yes, Started!', emoji: true }, action_id: 'resolved_yes_btn', style: 'primary', value: 'High' },
+       { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket (HIGH)', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Laptop won\'t turn on at all — hardware issue' },
+     ]}
+   ];
+
+   const modalView = { type: 'modal', title: { type: 'plain_text', text: '❌ Laptop Not Starting', emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks };
+
+   if (isFromModal && triggerId) {
+     try { await client.views.push({ trigger_id: triggerId, view: modalView }); }
+     catch(e) { await client.chat.postMessage({ channel: userId, text: 'Laptop Not Starting steps', blocks }); }
+   } else {
+     await client.chat.postMessage({ channel: userId, text: 'Laptop Not Starting steps', blocks });
+   }
+ });
+
+ // ── Asset Requests — Email Process Handler ────────────────────────────────────
+ slackApp.action(/^vague_pick_(new_laptop|new_mouse|new_keyboard|new_headphone|new_monitor)$/, async ({ body, ack, client }) => {
+   await ack();
+   const userId = body.user.id;
+   const rawKey = body.actions[0].value;
+   const isFromModal = !!body.view;
+   const triggerId = body.trigger_id;
+
+   const itemNames = {
+     new_laptop: 'New Laptop', new_mouse: 'New Mouse', new_keyboard: 'New Keyboard',
+     new_headphone: 'Headphone', new_monitor: 'New Monitor',
+   };
+   const itemName = itemNames[rawKey] || 'Equipment';
+
+   const blocks = [
+     { type: 'section', text: { type: 'mrkdwn', text:
+       `📦 *${itemName} Request*\n\nNaya equipment lene ke liye:\n\n` +
+       `1. *Apne Reporting Manager ko email karo*\n` +
+       `2. *CC mein add karo:* sajan.kumar@wiom.in\n` +
+       `3. *Email mein likho* — kya chahiye aur kyun\n\n` +
+       `✅ Manager approval ke baad *2 din* mein arrange ho jaayega.`
+     }},
+     { type: 'divider' },
+     { type: 'actions', elements: [
+       { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' },
+     ]}
+   ];
+
+   const modalView = { type: 'modal', title: { type: 'plain_text', text: `📦 ${itemName}`, emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks };
+
+   if (isFromModal && triggerId) {
+     try { await client.views.push({ trigger_id: triggerId, view: modalView }); }
+     catch(e) { await client.chat.postMessage({ channel: userId, text: `${itemName} Request`, blocks }); }
+   } else {
+     await client.chat.postMessage({ channel: userId, text: `${itemName} Request`, blocks });
+   }
+ });
+
  slackApp.action(/^vague_pick_/, async ({ body, ack, client, say }) => {
  await ack();
  const userId = body.user.id;
@@ -1921,7 +1991,9 @@ app.listen(PORT, async () => {
    camera_issue: 'camera kaam nahi kar rha black screen', mic_issue: 'microphone kaam nahi kar rha',
    sound_none: 'speaker nahi chal rha awaaz nahi aa rhi', screen_black: 'screen black ho gyi kuch nahi dikh rha',
    external_monitor: 'external monitor detect nahi ho rha hdmi issue', scanner_issue: 'scanner kaam nahi kar rha',
-   wifi_not_connect: 'wifi nahi chal rha connect nahi ho rha', internet_slow: 'internet bahut slow hai',
+   wont_turn_on: 'laptop on nahi ho rha won\'t turn on start nahi ho rha',
+  wifi_not_connect: 'wifi nahi chal rha connect nahi ho rha', no_internet: 'internet bilkul nahi chal rha laptop connected hai par pages nahi khul rhe',
+  internet_slow: 'internet bahut slow hai',
    lan_issue: 'lan cable nahi chal rha ethernet issue', network_drive: 'network drive nahi dikh rha',
    excel_issue: 'excel open nahi ho rha crash ho rha', word_issue: 'word open nahi ho rha crash',
    ppt_issue: 'powerpoint open nahi ho rha', office_activation: 'ms office activation issue',
@@ -1930,7 +2002,8 @@ app.listen(PORT, async () => {
    website_blocked: 'website nahi khul rhi blocked hai', teams_issue: 'teams nahi chal rha',
    zoom_issue: 'zoom nahi chal rha', pdf_issue: 'pdf nahi khul rha',
    app_crash: 'application crash ho rha hai nahi khul rha', gmail_issue: 'gmail nahi chal rha',
-   outlook_email: 'gmail email issue', slack_issue: 'slack nahi chal rha',
+   outlook_email: 'gmail email issue', email_login: 'gmail login nahi ho rha email mein access nahi',
+  slack_issue: 'slack nahi chal rha',
    email_not_sending: 'email nahi bhej pa rha', email_not_receiving: 'email nahi aa rhi',
    calendar_sync: 'calendar sync nahi ho rha', password_reset: 'password bhool gaya reset karna hai',
    account_locked: 'account locked ho gaya login nahi ho rha', shared_folder: 'shared folder access nahi mil rha',
@@ -1988,12 +2061,32 @@ app.listen(PORT, async () => {
  const triggerId = body.trigger_id;
  let loadingViewId = null;
 
+ const ISSUE_TITLES = {
+   blue_screen: '💙 Blue Screen', overheat: '🌡️ Overheating', battery_issue: '🔋 Battery Issue',
+   battery_not_charging: '🔌 Charging Issue', keys_not_working: '⌨️ Keyboard Issue',
+   touchpad_issue: '🖱️ Touchpad Issue', camera_issue: '📷 Camera Issue', mic_issue: '🎤 Mic Issue',
+   sound_none: '🔊 Sound Issue', screen_black: '🖥️ Screen Issue',
+   external_monitor: '🖵 Monitor Issue', scanner_issue: '🖨️ Scanner Issue',
+   wifi_not_connect: '📶 WiFi Issue', no_internet: '🌐 No Internet',
+   internet_slow: '🐌 Slow Internet', lan_issue: '🔌 LAN Issue', network_drive: '💾 Network Drive',
+   excel_issue: '📊 Excel Issue', word_issue: '📝 Word Issue', ppt_issue: '📊 PowerPoint Issue',
+   office_activation: '🔑 Office Activation', file_corrupted: '📁 File Issue',
+   chrome_issue: '🌐 Chrome Issue', edge_issue: '🌐 Edge Issue', browser_slow: '🐌 Browser Slow',
+   website_blocked: '❌ Website Issue', teams_issue: '📹 Teams Issue', zoom_issue: '🎥 Zoom Issue',
+   pdf_issue: '📄 PDF Issue', app_crash: '💥 App Issue',
+   gmail_issue: '📧 Gmail Issue', email_login: '🔐 Email Login', slack_issue: '💬 Slack Issue',
+   email_not_sending: '📤 Email Sending', email_not_receiving: '📥 Email Receiving', calendar_sync: '📅 Calendar Issue',
+   password_reset: '🔑 Password Reset', account_locked: '🔒 Account Locked',
+   shared_folder: '📁 Folder Access', email_access: '📧 Email Access', software_access: '💾 App Access',
+ };
+ const modalTitle = ISSUE_TITLES[rawKey] || '🛠 IT Help';
+
  // Show loading immediately
  if (isFromModal && triggerId) {
    try {
      const lr = await client.views.push({
        trigger_id: triggerId,
-       view: { type: 'modal', title: { type: 'plain_text', text: '🛠 IT Help', emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ _Checking..._' }}] }
+       view: { type: 'modal', title: { type: 'plain_text', text: modalTitle, emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ _Checking..._' }}] }
      });
      loadingViewId = lr?.view?.id;
    } catch(e) {}
@@ -2017,7 +2110,7 @@ app.listen(PORT, async () => {
      ]}
    ];
 
-   const modalView = { type: 'modal', title: { type: 'plain_text', text: '🛠 IT Help', emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks };
+   const modalView = { type: 'modal', title: { type: 'plain_text', text: modalTitle, emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks };
 
    if (loadingViewId) {
      try { await client.views.update({ view_id: loadingViewId, view: modalView }); } catch(e) {}
@@ -2420,7 +2513,7 @@ app.listen(PORT, async () => {
  };
 
  // ── Quick Action buttons from Home tab ────────────────────────────────
- const homeQuickActions = ['home_quick_wifi_pwd_quick','home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9','home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14','home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19','home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24','home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29','home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34','home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39','home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44','home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49','home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54','home_quick_55','home_quick_55b','home_quick_56','home_quick_57','home_quick_58','home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_quick_63','home_quick_63b','home_quick_64','home_quick_65','home_quick_66','home_quick_67','home_quick_68','home_quick_69','home_quick_70','home_quick_71','home_quick_72','home_quick_73','home_quick_74','home_quick_75','home_quick_76','home_quick_77','home_sos','home_new_01','home_new_02','home_new_03','home_new_04','home_new_05','home_new_06','home_new_07','home_new_08','home_new_09','home_new_10','home_new_11','home_new_12','home_new_13','home_new_14','home_new_15','cat_laptop','cat_network','cat_msoffice','cat_browser','cat_email','cat_access','cat_asset','go_home_btn','vague_pick_camera_issue','vague_pick_external_monitor','vague_pick_printer_issue','vague_pick_scanner_issue','vague_pick_vpn_issue','vague_pick_lan_issue','vague_pick_dns_issue','vague_pick_network_drive','vague_pick_outlook_sync','vague_pick_edge_issue','vague_pick_browser_slow','vague_pick_pdf_issue','vague_pick_outlook_email','vague_pick_slack_issue','vague_pick_vpn_access','vague_pick_email_access','vague_pick_new_monitor','vague_pick_outlook_issue','vague_pick_excel_issue','vague_pick_word_issue','vague_pick_ppt_issue','vague_pick_office_activation','vague_pick_file_corrupted','vague_pick_gmail_issue','vague_pick_calendar_sync','vague_pick_email_not_sending','vague_pick_email_not_receiving','vague_pick_password_reset','vague_pick_account_locked','vague_pick_shared_folder','vague_pick_software_access','vague_pick_new_laptop','vague_pick_new_charger','vague_pick_new_mouse','vague_pick_new_keyboard','vague_pick_new_headphone','vague_pick_laptop_slow','vague_pick_wont_turn_on','vague_pick_blue_screen','vague_pick_overheat','vague_pick_battery_issue','vague_pick_charger_issue_menu','vague_pick_keys_not_working','vague_pick_touchpad_issue','vague_pick_mic_issue','vague_pick_sound_none','vague_pick_screen_black','vague_pick_wifi_not_connect','vague_pick_internet_slow','vague_pick_chrome_issue','vague_pick_website_blocked','vague_pick_teams_issue','vague_pick_zoom_issue','vague_pick_app_crash','vague_pick_charger_asset_menu','vague_pick_charger_damaged','vague_pick_battery_not_charging'];
+ const homeQuickActions = ['home_quick_wifi_pwd_quick','home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9','home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14','home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19','home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24','home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29','home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34','home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39','home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44','home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49','home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54','home_quick_55','home_quick_55b','home_quick_56','home_quick_57','home_quick_58','home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_quick_63','home_quick_63b','home_quick_64','home_quick_65','home_quick_66','home_quick_67','home_quick_68','home_quick_69','home_quick_70','home_quick_71','home_quick_72','home_quick_73','home_quick_74','home_quick_75','home_quick_76','home_quick_77','home_sos','home_new_01','home_new_02','home_new_03','home_new_04','home_new_05','home_new_06','home_new_07','home_new_08','home_new_09','home_new_10','home_new_11','home_new_12','home_new_13','home_new_14','home_new_15','cat_laptop','cat_network','cat_msoffice','cat_browser','cat_email','cat_access','cat_asset','go_home_btn','vague_pick_camera_issue','vague_pick_external_monitor','vague_pick_printer_issue','vague_pick_scanner_issue','vague_pick_vpn_issue','vague_pick_lan_issue','vague_pick_dns_issue','vague_pick_network_drive','vague_pick_outlook_sync','vague_pick_edge_issue','vague_pick_browser_slow','vague_pick_pdf_issue','vague_pick_outlook_email','vague_pick_slack_issue','vague_pick_vpn_access','vague_pick_email_access','vague_pick_new_monitor','vague_pick_outlook_issue','vague_pick_excel_issue','vague_pick_word_issue','vague_pick_ppt_issue','vague_pick_office_activation','vague_pick_file_corrupted','vague_pick_gmail_issue','vague_pick_calendar_sync','vague_pick_email_not_sending','vague_pick_email_not_receiving','vague_pick_password_reset','vague_pick_account_locked','vague_pick_shared_folder','vague_pick_software_access','vague_pick_new_laptop','vague_pick_new_charger','vague_pick_new_mouse','vague_pick_new_keyboard','vague_pick_new_headphone','vague_pick_laptop_slow','vague_pick_wont_turn_on','vague_pick_blue_screen','vague_pick_overheat','vague_pick_battery_issue','vague_pick_charger_issue_menu','vague_pick_keys_not_working','vague_pick_touchpad_issue','vague_pick_mic_issue','vague_pick_sound_none','vague_pick_screen_black','vague_pick_wifi_not_connect','vague_pick_internet_slow','vague_pick_chrome_issue','vague_pick_website_blocked','vague_pick_teams_issue','vague_pick_zoom_issue','vague_pick_app_crash','vague_pick_charger_asset_menu','vague_pick_charger_damaged','vague_pick_battery_not_charging','vague_pick_no_internet','vague_pick_email_login'];
  homeQuickActions.forEach(actionId => {
  slackApp.action(actionId, async ({ body, ack, client }) => {
  await ack();
