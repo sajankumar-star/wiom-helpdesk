@@ -2098,7 +2098,16 @@ app.listen(PORT, async () => {
    // Get AI response
    const emp = await lookupEmployee(userId, client).catch(() => ({ empId: userId, empName: 'User' }));
    const messages = [{ role: 'user', content: naturalProblem }];
-   const { reply } = await claudeSvc.chat(messages, { empId: emp.empId, empName: emp.empName, source: 'slack' });
+   let { reply } = await claudeSvc.chat(messages, { empId: emp.empId, empName: emp.empName, source: 'slack' });
+
+   // Strip any residual "type karo ha" instructions — Messages Tab is disabled, users can only click buttons
+   reply = reply
+     .replace(/type\s+karo\s+\*?ha\*?[,\s—–]*[^.\n]*[🎫]?/gi, '')
+     .replace(/type\s+karein\s+\*?ha\*?[,\s—–]*[^.\n]*[🎫]?/gi, '')
+     .replace(/Agar\s+theek\s+nahi\s+hua[,—–\s]+type\s+karo[^.]*\./gi, '')
+     .replace(/type\s+karo\s+ha[^.]*\./gi, '')
+     .replace(/\n{3,}/g, '\n\n')
+     .trim();
 
    const formattedReply = formatForSlack(reply);
    const blocks = [

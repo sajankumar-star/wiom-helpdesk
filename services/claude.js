@@ -93,7 +93,7 @@ Format: bold the step name, then arrow, then clear action.
 *Step name* → what to do exactly
 
 End every troubleshooting reply with:
-"Agar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫"
+"Agar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi."
 
 ━━━ REAL EXAMPLES — match tone and quality ━━━
 
@@ -104,7 +104,7 @@ Yeh try karo:
 1. *Restart* → Power button se properly shut down karo → dobara on karo
 2. *Update hai?* → Agar Windows update chal rahi hai → wait karo, band mat karo
 
-Agar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫
+Agar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi.
 
 ---
 
@@ -116,7 +116,7 @@ Try these steps:
 2. *Forget & Reconnect* → WiFi settings → right-click the network → Forget → reconnect
 3. *Restart* → Restart your laptop
 
-If still not resolved — type *ha*, IT ticket raise karta hoon 🎫
+If still not resolved — click *Create Ticket* button — IT team will help directly.
 
 ---
 
@@ -128,19 +128,19 @@ Yeh try karo — har step ke baad check karo ki connect hua ya nahi:
 2. *Forget & Reconnect* → WiFi settings → network → Forget → dobara connect karo
 3. *Restart* → Laptop restart karo
 
-Agar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫
+Agar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi.
 
 ━━━ 🔧 PHYSICAL DAMAGE — IMMEDIATE TICKET ━━━
 Agar user bole "water damage", "paani gira", "liquid spill", "bhig gaya" — CRITICAL EMERGENCY hai. Steps: TURANT band karo, charger nikalo, ulta rakho, hairdryer mat lagao (battery remove NAHI — modern laptops mein battery andar sealed hoti hai). CRITICAL ticket raise karo.
 Agar user bole "damage ho gya", "toot gaya", "crack aa gaya", "phoot gaya", "gir gaya" — yeh HARDWARE damage hai.
 Software steps, scripts, Auto-Fix — KUCH KAAM NAHI KAREGA.
-Seedha bolna: "Physical damage hai — software se fix nahi hoga. Type karo *ha*, IT team physically replace karegi 🎫"
+Seedha bolna: "Physical damage hai — software se fix nahi hoga. *Create Ticket* button dabao — IT team physically replace karegi 🎫"
 KABHI numbered steps mat do physical damage ke liye.
 
 ━━━ 🚨 THEFT / LOSS — EMERGENCY ━━━
 "chori ho gya", "gum ho gya", "laptop missing" → NEVER troubleshoot, NEVER say "resolved"
 First tell them: "Pehle apni desk/drawer/aas-paas check karo aur colleagues se puchho — kabhi kabhi nearby reh jaata hai."
-Then: "Agar phir bhi nahi mila — Sajan Kumar ko email karo: sajan.kumar@wiom.in. HR ko bhi batao. Type karo *ha* — HIGH PRIORITY ticket raise karta hoon."
+Then: "Agar phir bhi nahi mila — Sajan Kumar ko email karo: sajan.kumar@wiom.in. HR ko bhi batao. *Create Ticket* button dabao — HIGH PRIORITY ticket raise hoga."
 
 ━━━ WIOM IT ASSETS POLICY (official — answer based on this) ━━━
 LAPTOP ALLOCATION by role:
@@ -193,8 +193,9 @@ NEVER give phone number in any response — phone numbers are STRICTLY FORBIDDEN
 
 ━━━ TICKET RULES ━━━
 NEVER say ticket already sent/created/raised — you CANNOT do that
-User must type "ha" to confirm — only then ticket is created by the system
-Always word it naturally: "type karo *ha*, main IT ko bhej deta hoon 🎫"
+User must click the *Create Ticket* button — only then ticket is created by the system
+Always word it naturally: "Agar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi."
+IMPORTANT: NEVER say "type karo ha" or "type karo *ha*" — the Messages Tab is disabled. Users can ONLY click buttons.
 
 ━━━ WIOM FACTS ━━━
 WiFi password: spartans500 (all Wiom networks)
@@ -269,7 +270,7 @@ const detectIntent = (messages) => {
 
   // WiFi connected but no internet
   if (/connect(ed)?.*(nahi chal|work nahi|internet nahi|chal nahi|nahi work|not working)|wifi.*(connected|chal raha).*(internet nahi|nahi chal|no internet)|(no internet|internet nahi).*(connected|chal raha)|wifi connected.*but|but.*wifi connected/.test(recentText))
-    return { category: 'NETWORK_CONNECTED', hint: 'WiFi connected but no internet. Max 3 steps: 1) Toggle WiFi off/on. 2) Check if only one site is blocked — try gmail.com and another site. 3) If all sites fail → restart laptop. Agar resolve nahi hua → type karo *ha*, IT ticket. Do NOT suggest CMD or ipconfig.' };
+    return { category: 'NETWORK_CONNECTED', hint: 'WiFi connected but no internet. Max 3 steps: 1) Toggle WiFi off/on. 2) Check if only one site is blocked — try gmail.com and another site. 3) If all sites fail → restart laptop. Agar resolve nahi hua → tell user to click Create Ticket button. Do NOT suggest CMD or ipconfig.' };
 
   // Laptop slow but specific — already gave context
   if (/(specific|ek|sirf|only|particular).*(app|game|software).*(slow|hang)|(slow|hang).*(specific|ek|sirf)/.test(recentText))
@@ -281,11 +282,11 @@ const detectIntent = (messages) => {
 
   // Password forgot — specific type
   if (/(windows|laptop|login|pc).*(password|bhool|forgot)|(password|bhool|forgot).*(windows|laptop|login|pc)/.test(recentText))
-    return { category: 'ACCOUNT_WINDOWS', hint: 'Windows login password issue. SKIP question. Say directly: "Windows password sirf IT reset kar sakta hai — type karo *ha*, main IT ko bhej deta hoon 🎫"' };
+    return { category: 'ACCOUNT_WINDOWS', hint: 'Windows login password issue. SKIP question. Say directly: "Windows password sirf IT reset kar sakta hai — *Create Ticket* button dabao, IT team jaldi reset kar degi."' };
 
   // Outlook/Teams specific error
   if (/(gmail|email|teams).*(nahi khul|not opening|crash|band ho|error|loading|nahi aa rha|nahi chal)/.test(recentText))
-    return { category: 'SOFTWARE_SPECIFIC', hint: 'User gave specific app + error. SKIP question. WIOM uses Gmail NOT Outlook. Gmail fix: incognito test → clear Chrome cache → try different browser. Teams fix: system tray quit → reopen. If Teams still fails → type karo *ha* IT ticket (IT cache clear karega). MAX 3 steps. NO %appdata% paths.' };
+    return { category: 'SOFTWARE_SPECIFIC', hint: 'User gave specific app + error. SKIP question. WIOM uses Gmail NOT Outlook. Gmail fix: incognito test → clear Chrome cache → try different browser. Teams fix: system tray quit → reopen. If Teams still fails → tell user to click Create Ticket button (IT cache clear karega). MAX 3 steps. NO %appdata% paths.' };
 
   // ── GENERAL NETWORK — ask diagnostic question ──
   // NOTE: "nahi chal" alone is NOT here — too broad, matches "steps nahi chale" etc.
@@ -454,78 +455,78 @@ const getKBFallback = (problem) => {
 
   // WiFi connected but no internet
   if (/connect(ed)?.*(nahi chal|work nahi|internet nahi|nahi work)|wifi.*(connected|chal).*(internet nahi|nahi chal)|(no internet|internet nahi).*(connected|connect)/.test(pn))
-    return `WiFi connected hai par internet nahi chal raha. Yeh try karo:\n\n1. *WiFi toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Chrome reopen* → Chrome band karo → dobara open karo → gmail.com try karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `WiFi connected hai par internet nahi chal raha. Yeh try karo:\n\n1. *WiFi toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Chrome reopen* → Chrome band karo → dobara open karo → gmail.com try karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('slow') || pn.includes('hang') || pn.includes('freez') || pn.includes('dheema') || pn.includes('lagg'))
-    return `💻 *Laptop Slow/Hang* — yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → CPU column → jo zyada use kar raha ho End Task karo\n2. *Browser tabs* → unnecessary Chrome/Edge tabs band karo\n3. *Restart* → Laptop properly shut down karo (restart, sleep nahi)\n\nAgar in teeno se theek nahi hua, type karo *ha* — IT ticket raise karta hoon (RAM ya SSD check hogi) 🎫`;
+    return `💻 *Laptop Slow/Hang* — yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → CPU column → jo zyada use kar raha ho End Task karo\n2. *Browser tabs* → unnecessary Chrome/Edge tabs band karo\n3. *Restart* → Laptop properly shut down karo (restart, sleep nahi)\n\nAgar in teeno se theek nahi hua → *Create Ticket* button dabao — IT team RAM ya SSD check karegi 🎫`;
 
   if (pn.includes('wifi') || pn.includes('internet') || pn.includes('network') ||
       /\bnet\b/.test(pn) || pn.includes('net band') || pn.includes('signal nahi') || pn.includes('no internet'))
-    return `WiFi/Internet issue. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi → OFF → 10 sec → ON → "Wiom office" se connect karo (password: spartans500)\n2. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `WiFi/Internet issue. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi → OFF → 10 sec → ON → "Wiom office" se connect karo (password: spartans500)\n2. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // Laptop won't start / boot / turn on
   // ISSUE 5 fix: added English boot phrases ("won't turn on", "not turning on", "laptop dead")
   if (/\b(laptop|leptop|lptop|latop)\b.*(on\s*nahi|start\s*nahi|band\s*ho|nahi\s*chalta|khulta\s*nahi|nahi\s*khulta|chal\s*nahi|chalti\s*nahi|chalte\s*nahi)|boot\s*nahi|(switch|power)\s*on\s*nahi|laptop\s*nahi\s*(chal|start|on|boot)|on\s*nahi\s*ho\s*rh|(nahi\s*ho\s*rh|nahi\s*chal).*(laptop|leptop|lptop|latop)|won.?t\s*(turn\s*on|start|boot)|not\s*turning\s*on|not\s*starting|laptop\s*(is\s*)?(dead|not\s*starting)|no\s*power\s*laptop/.test(pn))
-    return `Yeh 3 cheezein try karo:\n\n1. *Charger check karo* — charger properly laga hai? Alag socket mein try karo\n2. *10 second hold* — power button 10 sec tak dabao → chhoddo → 30 sec wait karo → dobara try karo\n3. *Charger nikaal ke try karo* — charger hatao → power button 30 sec hold karo → charger lagao → on karo\n\nType karo *ha* — HIGH PRIORITY ticket raise karta hoon 🎫`;
+    return `Yeh 3 cheezein try karo:\n\n1. *Charger check karo* — charger properly laga hai? Alag socket mein try karo\n2. *10 second hold* — power button 10 sec tak dabao → chhoddo → 30 sec wait karo → dobara try karo\n3. *Charger nikaal ke try karo* — charger hatao → power button 30 sec hold karo → charger lagao → on karo\n\n*Create Ticket* button dabao — HIGH PRIORITY ticket raise hoga 🎫`;
 
   // Overheating
   if (/\b(laptop|leptop|lptop|latop)\b.*(garm|garam|heat|hot\b)|garm.*(laptop|leptop)|(overheat|over\s*heat|bahut\s*garam|bahut\s*garm|zyada\s*heat|zyada\s*garm)/.test(pn))
-    return `Laptop overheating issue hai. Yeh try karo:\n\n1. *Table pe rakho* → Laptop ko table par rakho — bed/sofa pe mat rakho (hawa nahi aati)\n2. *Heavy apps band karo* → Ctrl+Shift+Esc → Task Manager → CPU column → heavy apps End Task karo\n3. *Restart* → Laptop restart karo — background processes band ho jaate hain\n\nAgar bahut zyada garam ho raha hai ya band ho raha hai → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Laptop overheating issue hai. Yeh try karo:\n\n1. *Table pe rakho* → Laptop ko table par rakho — bed/sofa pe mat rakho (hawa nahi aati)\n2. *Heavy apps band karo* → Ctrl+Shift+Esc → Task Manager → CPU column → heavy apps End Task karo\n3. *Restart* → Laptop restart karo — background processes band ho jaate hain\n\nAgar bahut zyada garam ho raha hai ya band ho raha hai → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // Screen black / blank / nothing visible
   if (/screen\s*(kali|kala|black|blank|kuch\s*nahi)|black\s*screen|kali\s*screen|monitor\s*(black|kala|kali|blank)|display\s*(black|kali|blank|nahi\s*aa)|screen\s*pe\s*kuch\s*nahi|(nahi\s*dikh|dikhna\s*band)/.test(pn))
-    return `Black/blank screen issue hai. Yeh try karo:\n\n1. *Brightness Keys* → Fn+F5 ya Fn+F8 dabao (brightness keys) — screen dim ho sakti hai\n2. *Force Restart* → Power button 10 sec hold karo → band karo → dobara on karo\n3. *External Monitor Test* → HDMI cable se bahar monitor connect karo — bahar dikh raha toh laptop screen hardware issue hai\n4. *Charger Check* → Battery dead ho sakti hai → charger lagao → 10 min wait karo → on karo\n\nAgar screen ab bhi nahi aayi → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Black/blank screen issue hai. Yeh try karo:\n\n1. *Brightness Keys* → Fn+F5 ya Fn+F8 dabao (brightness keys) — screen dim ho sakti hai\n2. *Force Restart* → Power button 10 sec hold karo → band karo → dobara on karo\n3. *External Monitor Test* → HDMI cable se bahar monitor connect karo — bahar dikh raha toh laptop screen hardware issue hai\n4. *Charger Check* → Battery dead ho sakti hai → charger lagao → 10 min wait karo → on karo\n\nAgar screen ab bhi nahi aayi → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // Screen color distortion / flickering / lines
   if ((/colorful|colorfull|colarful|colarfull|colour|color\s*aa|rang\s*aa|pink\s*screen|green\s*screen|screen\s*pe\s*rang|display.*color|color.*display|screen\s*kharab/.test(pn) ||
        /distort|flicker|flickring/i.test(pn) ||
        /lines\s*(aa|on|on\s*screen|pe)|screen.*lines|horizontal\s*lines?|vertical\s*lines?/.test(pn)) &&
       /screen|display|monitor|laptop/.test(pn))
-    return `Screen color/display issue hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek ho jaata hai\n2. *External monitor test* → HDMI se monitor connect karo — bahar sahi dikh raha toh laptop screen hardware issue hai\n\nAgar restart se theek nahi hua, type karo *ha* — IT ticket raise karta hoon 🎫`;
+    return `Screen color/display issue hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek ho jaata hai\n2. *External monitor test* → HDMI se monitor connect karo — bahar sahi dikh raha toh laptop screen hardware issue hai\n\nAgar restart se theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // Windows update / OS crash / restart loop
   if (/windows\s*(crash|restart|update|stuck|atak|loop|hang)|update\s*(stuck|atak|hang|nahi|ruka)|restart\s*(bar\s*bar|baar\s*baar|loop|hota\s*rha|ho\s*rha\s*bar)|os\s*(crash|hang|stuck)/.test(pn))
-    return `Windows issue hai. Yeh try karo:\n\n1. *Restart* → Power button se properly shut down karo → dobara on karo\n2. *Wait* → Agar Windows update chal rahi hai → wait karo, band mat karo\n\nAgar 3 baar se zyada restart ho raha hai ya nahi ruk raha — type karo *ha* — IT ticket raise karta hoon 🎫`;
+    return `Windows issue hai. Yeh try karo:\n\n1. *Restart* → Power button se properly shut down karo → dobara on karo\n2. *Wait* → Agar Windows update chal rahi hai → wait karo, band mat karo\n\nAgar 3 baar se zyada restart ho raha hai ya nahi ruk raha → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('sound') || pn.includes('audio') || pn.includes('speaker') || pn.includes('headphone'))
-    return `Audio issue. Yeh try karo:\n\n1. *Sound settings* → Taskbar mein speaker icon pe right-click karo → Sound settings\n2. *Output device* → sahi device select karo\n3. *Volume check* → 0% ya mute toh nahi?\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Audio issue. Yeh try karo:\n\n1. *Sound settings* → Taskbar mein speaker icon pe right-click karo → Sound settings\n2. *Output device* → sahi device select karo\n3. *Volume check* → 0% ya mute toh nahi?\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('blue screen') || pn.includes('bsod'))
-    return `Blue Screen issue. Yeh karo:\n\n1. *Error code note karo* — screen pe jo likha tha woh\n2. *Restart karo* — aksar ek restart se theek ho jaata hai\n3. Agar 3 baar se zyada aaya hai → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Blue Screen issue. Yeh karo:\n\n1. *Error code note karo* — screen pe jo likha tha woh\n2. *Restart karo* — aksar ek restart se theek ho jaata hai\n3. Agar 3 baar se zyada aaya hai → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (/batter[yi]?|battry|battey|batr[yi]|\bbatt\b|charging/.test(pn))
-    return `Battery/Charging issue. Yeh try karo:\n\n1. *Charger check karo* → dono taraf firmly laga hai? (laptop side + socket side)\n2. *Alag socket try karo*\n3. *Reset karo* → Laptop band karo → charger nikalo → power button 30 sec hold karo → charger lagao → on karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Battery/Charging issue. Yeh try karo:\n\n1. *Charger check karo* → dono taraf firmly laga hai? (laptop side + socket side)\n2. *Alag socket try karo*\n3. *Reset karo* → Laptop band karo → charger nikalo → power button 30 sec hold karo → charger lagao → on karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // ISSUE 4 fix: removed dead code — black screen already handled above (line ~361)
 
   if (pn.includes('keyboard') || pn.includes('keys') || /keybo?r?a?d/.test(pn))
-    return `Keyboard issue. Yeh try karo:\n\n1. *Restart* → Laptop restart karo\n2. *On-screen keyboard* → Start menu mein "On-Screen Keyboard" type karo → open karo → kaam chalao\n\nType karo *ha* — IT ticket raise karta hoon, IT aake fix karega 🎫`;
+    return `Keyboard issue. Yeh try karo:\n\n1. *Restart* → Laptop restart karo\n2. *On-screen keyboard* → Start menu mein "On-Screen Keyboard" type karo → open karo → kaam chalao\n\n*Create Ticket* button dabao — IT aake fix karega 🎫`;
 
   if (pn.includes('touchpad') || pn.includes('mouse'))
-    return `Touchpad issue. Yeh try karo:\n\n1. *Fn key* → Fn + touchpad lock key dabao (keyboard pe lock icon wali key)\n2. *Settings* → Settings → Bluetooth & devices → Touchpad → ON karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Touchpad issue. Yeh try karo:\n\n1. *Fn key* → Fn + touchpad lock key dabao (keyboard pe lock icon wali key)\n2. *Settings* → Settings → Bluetooth & devices → Touchpad → ON karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('printer'))
-    return `Printer issue. Yeh try karo:\n\n1. *Printer restart* → Printer band karo → 30 sec → on karo\n2. *Laptop restart* → Laptop restart karo → dobara print karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Printer issue. Yeh try karo:\n\n1. *Printer restart* → Printer band karo → 30 sec → on karo\n2. *Laptop restart* → Laptop restart karo → dobara print karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // MS OFFICE NOT WORKING / CRASHING — all variants including 365, xlsx, docx, pptx
   if (
     /\b(ms\s*office|microsoft\s*office|office\s*365|office365|ms365|word|excel|powerpoint|ppt|xlsx|xls|docx|doc\b|pptx|office\s*file|office\s*app|ms\s*word|ms\s*excel)\b/i.test(pn) &&
     /\b(nahi\s*khul|not\s*open|open\s*nahi|nahi\s*chal|crash|hang|ha+g|freeze|freez|error|band\s*ho|kaam\s*nahi|loading|stuck|atak|response\s*nahi|start\s*nahi|nahi\s*start)\b/i.test(pn)
   ) {
-    return `⚙️ *MS Office Issue* — yeh try karo:\n\n1. *Force close* → Ctrl+Shift+Esc → Task Manager → Microsoft Word/Excel dhundho → End Task → dobara open karo\n2. *Restart karo* → Laptop restart karo → dobara open karo\n\nAgar phir bhi nahi khul rha → type karo *ha* — IT ticket raise karta hoon (IT aake repair karega) 🎫`;
+    return `⚙️ *MS Office Issue* — yeh try karo:\n\n1. *Force close* → Ctrl+Shift+Esc → Task Manager → Microsoft Word/Excel dhundho → End Task → dobara open karo\n2. *Restart karo* → Laptop restart karo → dobara open karo\n\nAgar phir bhi nahi khul rha → *Create Ticket* button dabao — IT aake repair karega 🎫`;
   }
 
   // Office 365 subscription/access issue
   if (/\b(office\s*365|microsoft\s*365|ms\s*365|office365)\b/i.test(pn) &&
       /\b(issue|problem|nahi|error|kaam\s*nahi|access\s*nahi|open\s*nahi|chal\s*nahi|activate|license)\b/i.test(pn)) {
-    return `⚙️ *Microsoft Office 365 Issue*\n\nYeh try karo:\n\n1. *Restart* → Laptop restart karo\n2. *Internet check karo* → Office 365 ke liye internet chahiye\n\nAgar phir bhi problem → type karo *ha* — IT ticket raise karta hoon 🎫`;
+    return `⚙️ *Microsoft Office 365 Issue*\n\nYeh try karo:\n\n1. *Restart* → Laptop restart karo\n2. *Internet check karo* → Office 365 ke liye internet chahiye\n\nAgar phir bhi problem → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
   }
 
   if (pn.includes('teams'))
-    return `Microsoft Teams issue. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar pe Teams icon right-click → Quit → dobara open karo\n2. *Browser mein try karo* → teams.microsoft.com Chrome mein open karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Microsoft Teams issue. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar pe Teams icon right-click → Quit → dobara open karo\n2. *Browser mein try karo* → teams.microsoft.com Chrome mein open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('zoom'))
-    return `Zoom issue. Yeh try karo:\n\n1. *Restart karo* → Zoom close karo → dobara open karo\n2. *Browser mein try karo* → zoom.us/wc/join Chrome mein kholо\n3. *Settings* → Zoom Settings → Audio/Video → correct device select karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Zoom issue. Yeh try karo:\n\n1. *Restart karo* → Zoom close karo → dobara open karo\n2. *Browser mein try karo* → zoom.us/wc/join Chrome mein kholо\n3. *Settings* → Zoom Settings → Audio/Video → correct device select karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // WIOM uses Gmail (Google Workspace) — NOT Outlook
   // "email nahi chal rha", "gmail nahi khul rha", "mail nahi aa rha"
@@ -533,33 +534,33 @@ const getKBFallback = (problem) => {
     return `ℹ️ WIOM mein Outlook use nahi hota — *Gmail* use hoti hai.\n\nGmail se koi problem hai? gmail.com Chrome mein kholo aur batao kya issue aa raha hai.`;
   }
   if (pn.includes('email') || pn.includes('gmail') || pn.includes('mail')) {
-    return `📧 *Gmail Issue* — yeh try karo:\n\n1. *Incognito test* → Chrome → Ctrl+Shift+N → gmail.com → dekho khulta hai ya nahi\n2. *Cache clear karo* → Ctrl+Shift+Del → "All time" → Cookies + Cache → Clear\n3. *Alag browser* → Edge mein gmail.com kholo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `📧 *Gmail Issue* — yeh try karo:\n\n1. *Incognito test* → Chrome → Ctrl+Shift+N → gmail.com → dekho khulta hai ya nahi\n2. *Cache clear karo* → Ctrl+Shift+Del → "All time" → Cookies + Cache → Clear\n3. *Alag browser* → Edge mein gmail.com kholo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
   }
 
   if (pn.includes('password') || pn.includes('locked') || pn.includes('login') || /pas?w?ro?d/.test(pn)) {
     // Gmail/Google password — IT handles (no admin rights to self-reset company Google accounts)
     if (/google|gmail|email|mail/.test(pn))
-      return `🔑 *Gmail/Google Account Password*\n\nCompany Gmail account ka password reset IT karta hai — employees khud reset nahi kar sakte.\n\nType karo *ha* — IT ticket raise karta hoon, jaldi reset ho jaayega 🎫`;
-    return `🔑 *Password/Login Issue*\n\nPassword reset sirf IT team kar sakti hai.\n\nType karo *ha* — IT ticket raise karta hoon, team jaldi reset kar degi 🎫`;
+      return `🔑 *Gmail/Google Account Password*\n\nCompany Gmail account ka password reset IT karta hai — employees khud reset nahi kar sakte.\n\n*Create Ticket* button dabao — IT jaldi reset kar dega 🎫`;
+    return `🔑 *Password/Login Issue*\n\nPassword reset sirf IT team kar sakti hai.\n\n*Create Ticket* button dabao — IT team jaldi reset kar degi 🎫`;
   }
 
   if (pn.includes('bluetooth'))
-    return `Bluetooth issue. Yeh try karo:\n\n1. *Toggle* → Settings → Bluetooth → OFF → ON karo\n2. *Re-pair* → Device remove karo → dobara pair karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Bluetooth issue. Yeh try karo:\n\n1. *Toggle* → Settings → Bluetooth → OFF → ON karo\n2. *Re-pair* → Device remove karo → dobara pair karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('camera') || pn.includes('webcam') || /\bcam\b/.test(pn))
-    return `Camera issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Camera → ON karo\n2. *App settings* → Teams/Zoom mein Settings → Video → correct camera select karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Camera issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Camera → ON karo\n2. *App settings* → Teams/Zoom mein Settings → Video → correct camera select karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('mic') || pn.includes('microphone'))
-    return `Microphone issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Microphone → ON karo\n2. *Input device* → Sound settings → Input → correct mic select karo\n3. *Teams test* → Teams Settings → Devices → mic test karo\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `Microphone issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Microphone → ON karo\n2. *Input device* → Sound settings → Input → correct mic select karo\n3. *Teams test* → Teams Settings → Devices → mic test karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('usb') || pn.includes('pendrive'))
-    return `USB issue. Yeh try karo:\n\n1. *Alag port* → USB device dusre port mein lagao\n2. *Restart* → Laptop restart karo → dobara lagao\n\nAgar theek nahi hua → type karo *ha*, IT ticket raise karta hoon 🎫`;
+    return `USB issue. Yeh try karo:\n\n1. *Alag port* → USB device dusre port mein lagao\n2. *Restart* → Laptop restart karo → dobara lagao\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('storage') || pn.includes('disk full'))
-    return `Storage/disk full issue. Yeh try karo:\n\n1. *Recycle Bin* → Desktop pe Recycle Bin → Empty Recycle Bin\n2. *Downloads folder* → File Explorer → Downloads → jo files zaruri nahi unhe delete karo\n\nAgar ab bhi issue hai, type karo *ha* — IT ticket raise karta hoon (IT baaki cleanup karega) 🎫`;
+    return `Storage/disk full issue. Yeh try karo:\n\n1. *Recycle Bin* → Desktop pe Recycle Bin → Empty Recycle Bin\n2. *Downloads folder* → File Explorer → Downloads → jo files zaruri nahi unhe delete karo\n\nAgar ab bhi issue hai → *Create Ticket* button dabao — IT baaki cleanup karega 🎫`;
 
   if (pn.includes('virus') || pn.includes('malware') || pn.includes('antivirus'))
-    return `Possible virus/malware issue. Yeh karo:\n\n1. *Quick Scan* → Windows Security → Virus & threat protection → Quick Scan\n2. *Internet band karo* → agar suspicious activity lag rahi hai\n\nType karo *ha*, IT ticket raise karta hoon — yeh serious ho sakta hai 🎫`;
+    return `Possible virus/malware issue. Yeh karo:\n\n1. *Quick Scan* → Windows Security → Virus & threat protection → Quick Scan\n2. *Internet band karo* → agar suspicious activity lag rahi hai\n\n*Create Ticket* button dabao — yeh serious ho sakta hai, IT team directly help karegi 🎫`;
 
   if (pn.includes('kaise ho') || pn.includes('kaisa hai') || pn.includes('how are you') || pn.includes('kya haal'))
     return 'Sab theek hai, shukriya. Koi IT issue hai? Batao — help karunga.';
@@ -678,17 +679,17 @@ const getFallbackResponse = (query, intent, category) => {
   // Enterprise software — specific error codes, specific apps
   if (/\b(sap|autocad|power\s*bi|vmware|cisco|oracle|tally|quickbooks|solidworks|matlab|tableau|figma|sketch|adobe|photoshop|illustrator|premiere|after\s*effects|jira|confluence|salesforce|hubspot)\b/i.test(q)) {
     const appName = q.match(/\b(sap|autocad|power\s*bi|vmware|cisco|oracle|tally|quickbooks|solidworks|matlab|tableau|figma|sketch|adobe\s*\w+|photoshop|illustrator|premiere|after\s*effects|jira|confluence|salesforce|hubspot)\b/i)?.[0] || 'application';
-    return `Yeh ${appName.toUpperCase()} ka issue lag rha hai. IT team ko yeh details share karo:\n\n• *Error message/code* — exactly kya likh raha hai?\n• *Kab se ho rha hai* — aaj pehli baar ya pehle bhi?\n• *Screenshot* — agar le sako\n\nType karo *ha* — IT ticket raise karta hoon, specialist handle karega 🎫`;
+    return `Yeh ${appName.toUpperCase()} ka issue lag rha hai. IT team ko yeh details share karo:\n\n• *Error message/code* — exactly kya likh raha hai?\n• *Kab se ho rha hai* — aaj pehli baar ya pehle bhi?\n• *Screenshot* — agar le sako\n\n*Create Ticket* button dabao — IT specialist handle karega 🎫`;
   }
 
   // Error codes — specific format like 0x80045, error 404, etc.
   if (/\b(error\s*[0-9a-fx]{4,}|0x[0-9a-f]+|err\s*\d+|code\s*\d+)\b/i.test(q)) {
     const errCode = q.match(/\b(error\s*[0-9a-fx]{4,}|0x[0-9a-f]+|err\s*\d+|code\s*\d+)\b/i)?.[0] || 'error';
-    return `${errCode.toUpperCase()} error — yeh specific error code IT ko dhundhna padega.\n\nPlease share karo:\n• *Kaunsa application* — kis software mein aa rha hai?\n• *Exact error message* — screenshot helpful hogi\n• *Kab se* — koi update/change ke baad?\n\nType karo *ha* — HIGH PRIORITY ticket raise karta hoon 🎫`;
+    return `${errCode.toUpperCase()} error — yeh specific error code IT ko dhundhna padega.\n\nPlease share karo:\n• *Kaunsa application* — kis software mein aa rha hai?\n• *Exact error message* — screenshot helpful hogi\n• *Kab se* — koi update/change ke baad?\n\n*Create Ticket* button dabao — HIGH PRIORITY ticket raise hoga 🎫`;
   }
 
   // Generic unknown but has technical words
-  return `Yeh issue meri knowledge base mein nahi hai. IT team better help kar sakti hai.\n\nYeh share karo:\n• *Kaunsa app/device* — exactly kya problem hai?\n• *Error message* — screen pe kya likha hai?\n• *Kab se* — pehle theek tha?\n\nType karo *ha* — IT ticket raise karta hoon 🎫`;
+  return `Yeh issue meri knowledge base mein nahi hai. IT team better help kar sakti hai.\n\nYeh share karo:\n• *Kaunsa app/device* — exactly kya problem hai?\n• *Error message* — screen pe kya likha hai?\n• *Kab se* — pehle theek tha?\n\n*Create Ticket* button dabao — IT team directly help karegi 🎫`;
 };
 
 // ── Main chat function ────────────────────────────────────────────────────────
@@ -824,18 +825,19 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
   }
 
   // Check if ticket needed — detect when AI suggests raising a ticket
-  // IMPORTANT: "type karo ha" ALONE is enough — even without the word "ticket"
-  // Claude sometimes says "IT ko bhej deta hoon" without saying "ticket" — catch that too
+  // Detection based on button-focused phrases since Messages Tab is disabled
   const shouldCreateTicket =
-    // "type karo ha/haan" anywhere in reply → always means ticket confirm
-    /type\s*karo[:\s\s]*\*?ha(an|a|n)?\*?/i.test(reply) ||
+    // "Create Ticket button dabao" → ticket confirm
+    /Create\s*Ticket\s*button/i.test(reply) ||
+    // "type karo ha/haan" (legacy, in case old KB response slips through)
+    /type\s*karo[:\s]*\*?ha(an|a|n)?\*?/i.test(reply) ||
     // Or: "ticket" word + action keywords
     (reply.toLowerCase().includes('ticket') && (
       /ticket\s*(bana|raise|create|chahiye|bhejte|banana)/i.test(reply) ||
       /ticket\s*(raise\s*karein|karein|bhejta)/i.test(reply)
     )) ||
     // Claude saying "bhej deta hoon" + "IT" (ticket confirmation without "ticket" word)
-    (/IT\s*(ko|team)\s*(ko\s*)?bhej/i.test(reply) && /type\s*karo/i.test(reply));
+    (/IT\s*(ko|team)\s*(ko\s*)?bhej/i.test(reply) && /Create\s*Ticket/i.test(reply));
 
   // ── HALLUCINATION DETECTOR: Claude claims ticket was sent but it wasn't ──
   // These patterns mean Claude said it already sent/created ticket — which is FALSE
@@ -857,13 +859,13 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     const lastUserMsg = history.filter(m => m.role === 'user').pop()?.content || '';
     const isHardware = /screen|laptop|keyboard|mouse|battery|fan|hardware/i.test(lastUserMsg);
     reply = isHardware
-      ? `Hardware issue hai — ismein IT team physically help karegi. Type karo *ha*, main ticket raise karta hoon 🎫`
-      : `Samajh gaya. IT team ko bhejte hain — woh handle kar lenge. Type karo *ha*, ticket raise karta hoon 🎫`;
+      ? `Hardware issue hai — ismein IT team physically help karegi. *Create Ticket* button dabao — IT directly aayegi 🎫`
+      : `Samajh gaya. IT team handle kar legi. *Create Ticket* button dabao — ticket raise ho jaayega 🎫`;
   }
 
-  // Normalize: if shouldCreateTicket but no "type karo" visible, add the prompt
-  if (shouldCreateTicket && !isHallucinated && !/type\s*karo/i.test(reply)) {
-    reply = reply.replace(/\s*$/, '') + '\n\nType karo *ha* — ticket raise karta hoon 🎫';
+  // Normalize: if shouldCreateTicket but no button prompt visible, add it
+  if (shouldCreateTicket && !isHallucinated && !/Create\s*Ticket\s*button/i.test(reply)) {
+    reply = reply.replace(/\s*$/, '') + '\n\n*Create Ticket* button dabao — IT team directly help karegi 🎫';
   }
 
   return {
