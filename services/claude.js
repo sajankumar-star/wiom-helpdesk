@@ -215,7 +215,11 @@ Black screen: Fn+F5/F8 brightness → 10sec power restart → external monitor t
 Battery not charging: Replug both ends → different socket → shutdown → remove charger → hold power 30sec → reconnect
 Fan noise/not working: Shut down NOW, remove charger — hardware risk, ticket immediately
 Overheating: Hard surface → Task Manager end heavy apps → set Balanced power mode
-Teams: Quit from system tray → reopen. Fails: delete %appdata%\Microsoft\Teams\Cache. Still fails = ticket
+Teams: Quit from system tray → reopen. Fails: Teams cache clear karo (IT ticket raise karo — woh clear kar denge). Still fails = ticket
+Slack: Quit from system tray (right-click Slack icon → Quit) → reopen. Fails → Help menu → Troubleshooting → Clear Cache & Restart. Still fails = ticket
+Zoom: Close Zoom completely → reopen. Fails → try browser: zoom.us/wc/join → Settings → Audio/Video → correct device select karo. Still fails = ticket
+Chrome not opening: Task Manager (Ctrl+Shift+Esc) → find Chrome → End Task → reopen. Fails → laptop restart. Still fails = ticket (IT reinstalls)
+Any app crashing/not opening: Task Manager → End Task the app → reopen. Fails → laptop restart. Still fails = ticket (IT reinstalls)
 Gmail/Email not working: Open gmail.com in Chrome incognito → check if opens. Fails → clear Chrome cache (Ctrl+Shift+Del) → try again. Password forgot = IT raises Google account reset
 Gmail password forgot: IT reset karta hai → ticket raise karo (employees cannot reset Google account password themselves — needs IT)
 Apple ID / MacBook password: Apple ID ≠ Google account ≠ Windows password — these are 3 DIFFERENT things. NEVER say Apple ID = Google account. Company MacBook = IT handles. Personal Apple device (iPhone/iPad) = out of scope (support.apple.com). NEVER suggest Google account recovery for Apple ID questions.
