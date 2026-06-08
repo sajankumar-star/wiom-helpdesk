@@ -1,5 +1,6 @@
 ﻿const Groq                              = require('groq-sdk');
 const { GoogleGenerativeAI }            = require('@google/generative-ai');
+const Anthropic                         = require('@anthropic-ai/sdk');
 
 // Conditional init — prevent crash if API keys missing on Railway
 const groq = process.env.GROQ_API_KEY
@@ -8,10 +9,13 @@ const groq = process.env.GROQ_API_KEY
 const gemini = process.env.GEMINI_API_KEY
   ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
+const anthropic = process.env.ANTHROPIC_API_KEY
+  ? new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
+  : null;
 
 // ── Active model display (logged on first call) ──────────────────────────────
 let modelLogged = false;
-const activeModel = () => 'llama-3.3-70b-versatile (Groq PRIMARY) → gemini-1.5-flash (Backup) → KB';
+const activeModel = () => 'Groq llama-3.3-70b → Groq llama-3.1-8b → Claude claude-3-haiku → KB';
 
 // ── WIOM IT System Prompt ─────────────────────────────────────────────────────
 const SYSTEM_PROMPT = `You are Zivon — WIOM's virtual Desktop Support Engineer. You ARE the IT support for 300 employees. Think exactly like an experienced desktop support engineer who knows every common office IT problem by heart — without needing to be told.
@@ -789,7 +793,7 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     + intentContext
     + triedSteps;
 
-  // ── Routing: Groq PRIMARY → Gemini FREE backup → KB always ─────────────
+  // ── Routing: Groq 70b → Groq 8b (auto in callGroq) → Gemini → KB ──────────
   let raw;
   const lastMsg = history.filter(m => m.role === 'user').pop()?.content || '';
 
@@ -800,17 +804,17 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
   ]);
 
   try {
-    raw = await withTimeout(callGroq(systemPrompt, history), 12000, 'Groq');
-    console.log('✅ Groq (PRIMARY) responded OK');
+    // callGroq tries 70b first, auto-falls to 8b on rate limit
+    raw = await withTimeout(callGroq(systemPrompt, history), 15000, 'Groq');
+    console.log('✅ Groq responded OK');
   } catch (err) {
     console.warn('⚠️ Groq failed:', err.message, '— trying Gemini...');
     try {
       raw = await withTimeout(callGemini(systemPrompt, history), 10000, 'Gemini');
       console.log('✅ Gemini (BACKUP) responded OK');
     } catch (err2) {
-      console.error('❌ Gemini also failed:', err2.message, '— using KB fallback');
+      console.error('❌ All AI failed — using KB fallback');
       raw = getKBFallback(lastMsg);
-      console.log('⚠️ Using KB fallback');
     }
   }
 
