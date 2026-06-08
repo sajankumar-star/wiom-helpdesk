@@ -247,6 +247,15 @@ cron.schedule('0 2 * * *', async () => {
  }
 });
 
+// ── Daily cleanup: delete conversations older than 7 days ────────────────────
+cron.schedule('0 3 * * *', async () => {
+ try {
+ const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
+ const del = await Conversation.deleteMany({ lastActive: { $lte: sevenDaysAgo } });
+ if (del.deletedCount > 0) console.log(` Cleaned ${del.deletedCount} old conversations`);
+ } catch(err) { console.error('Conversation cleanup error:', err.message); }
+});
+
 // ── Recurring Issue Alert: Every 30 min flag when 3+ employees report same problem ──
 cron.schedule('*/30 * * * *', async () => {
  try {
