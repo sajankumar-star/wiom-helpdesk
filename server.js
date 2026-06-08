@@ -951,6 +951,58 @@ app.listen(PORT, async () => {
    { type: 'context', elements: [{ type: 'mrkdwn', text: '_24/7 available — Anytime, Anywhere_' }] }
  ]);
 
+ // ── Shared: "Issue Resolved" modal view — same for every problem ────────────
+ const resolvedModalView = () => ({
+   type: 'modal',
+   title: { type: 'plain_text', text: 'Issue Resolved!', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
+   blocks: [{
+     type: 'section',
+     text: { type: 'mrkdwn', text:
+       '✅ *Bahut accha! Issue resolve ho gaya!* 🎉\n\n' +
+       'IT Helpdesk happy hai ki aapki problem solve ho gayi.\n\n' +
+       '_Is window ko close karo. Koi aur IT problem ho toh Home tab pe jaao._'
+     }
+   }]
+ });
+
+ // ── Shared: "Creating Ticket" loading modal — same for every problem ─────────
+ const creatingTicketModalView = () => ({
+   type: 'modal',
+   title: { type: 'plain_text', text: 'Creating Ticket...', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
+   blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Ticket create ho rha hai — ek second..._' }}]
+ });
+
+ // ── Shared: "Ticket Created" success modal — same for every problem ──────────
+ const ticketCreatedModalView = (result) => ({
+   type: 'modal',
+   title: { type: 'plain_text', text: 'Ticket Created!', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
+   blocks: [{
+     type: 'section',
+     text: { type: 'mrkdwn', text:
+       '*IT Ticket Create Ho Gaya!*\n\n' +
+       `*Ticket ID:* \`${result.ticketId}\`\n` +
+       `*Priority:* ${result.priority}\n` +
+       `*Category:* ${result.category}\n\n` +
+       'IT team jald se jald madad karegi.\n_Is window ko close karo._'
+     }
+   }]
+ });
+
+ // ── Shared: "Resolved" DM message — same for every problem ──────────────────
+ const resolvedDMBlocks = () => ([
+   { type: 'section', text: { type: 'mrkdwn', text:
+     '✅ *Bahut accha! Issue resolve ho gaya!* 🎉\n\n' +
+     'IT Helpdesk happy hai ki aapki problem solve ho gayi.\n\n' +
+     '_Koi aur IT problem ho toh Home tab pe jaao aur category select karo._'
+   }},
+   { type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' }
+   ]}
+ ]);
+
  // ── FEATURE 2: Format reply for Slack mrkdwn ─────────────────────────
  const formatForSlack = (text) => {
    if (!text) return '';
@@ -1892,32 +1944,17 @@ app.listen(PORT, async () => {
    }
  });
 
- // ── Laptop Slow Fixed → success message ──────────────────────────────────────
+ // ── Laptop Slow Fixed → uses shared resolvedModalView ───────────────────────
  slackApp.action('laptop_slow_fixed', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
    const viewId = body.view?.id;
    const channelId = body.channel?.id || body.container?.channel_id || userId;
    if (viewId) {
-     await client.views.update({ view_id: viewId, view: {
-       type: 'modal', title: { type: 'plain_text', text: 'Issue Resolved!', emoji: true },
-       close: { type: 'plain_text', text: 'Close', emoji: true },
-       blocks: [{ type: 'section', text: { type: 'mrkdwn', text:
-         'Bahut accha! Issue resolve ho gaya!\n\nKoi aur IT problem ho toh is window ko close karo aur Home tab pe jaao.'
-       }}]
-     }}).catch(e => console.error('laptop_slow_fixed modal err:', e.message));
+     await client.views.update({ view_id: viewId, view: resolvedModalView() })
+       .catch(e => console.error('laptop_slow_fixed modal err:', e.message));
    } else {
-     await client.chat.postMessage({
-       channel: channelId, text: 'Issue Resolved!',
-       blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text:
-           '✅ *Bahut accha! Issue resolve ho gaya!* 🎉\n\nIT Helpdesk happy hai ki aapki problem solve ho gayi.\n\n_Koi aur IT problem ho toh Home tab pe jaao._'
-         }},
-         { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' }
-         ]}
-       ]
-     });
+     await client.chat.postMessage({ channel: channelId, text: 'Issue Resolved!', blocks: resolvedDMBlocks() });
    }
  });
 
@@ -3995,48 +4032,20 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  }
  });
 
- // ── ✅ Resolved — user says it worked ────────────────────────────────────────
+ // ── ✅ Resolved — uses shared resolvedModalView / resolvedDMBlocks ──────────
  slackApp.action('resolved_yes_btn', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
-   const viewId = body.view?.id; // modal context check
+   const viewId = body.view?.id;
    const channelId = body.channel?.id || body.container?.channel_id || userId;
    failedAttempts.delete(userId);
    pendingTickets.delete(userId);
 
    if (viewId) {
-     // Button inside modal — update modal to show success message
-     await client.views.update({
-       view_id: viewId,
-       view: {
-         type: 'modal',
-         title: { type: 'plain_text', text: 'Issue Resolved!', emoji: true },
-         close: { type: 'plain_text', text: 'Close', emoji: true },
-         blocks: [{
-           type: 'section',
-           text: { type: 'mrkdwn', text:
-             `*Bahut accha! Issue resolve ho gaya!*\n\n` +
-             `IT Helpdesk happy hai ki aapki problem solve ho gayi.\n\n` +
-             `_Is window ko close karo. Koi aur IT problem ho toh Home tab pe jaao._`
-           }
-         }]
-       }
-     }).catch(e => console.error('resolved modal update error:', e.message));
+     await client.views.update({ view_id: viewId, view: resolvedModalView() })
+       .catch(e => console.error('resolved_yes_btn modal err:', e.message));
    } else {
-     await client.chat.postMessage({
-       channel: channelId,
-       text: 'Issue Resolved!',
-       blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text:
-           `✅ *Bahut accha! Issue resolve ho gaya!* 🎉\n\n` +
-           `IT Helpdesk happy hai ki aapki problem solve ho gayi.\n\n` +
-           `_Koi aur IT problem ho toh Home tab pe jaao aur category select karo._`
-         }},
-         { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' }
-         ]}
-       ]
-     });
+     await client.chat.postMessage({ channel: channelId, text: 'Issue Resolved!', blocks: resolvedDMBlocks() });
    }
  });
 
@@ -4342,17 +4351,9 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    const viewId = body.view?.id; // modal context check
    const channelId = body.channel?.id || body.container?.channel_id || userId;
    try {
-     // If inside modal — show loading state immediately
+     // If inside modal — show shared loading state immediately
      if (viewId) {
-       await client.views.update({
-         view_id: viewId,
-         view: {
-           type: 'modal',
-           title: { type: 'plain_text', text: 'Creating Ticket...', emoji: true },
-           close: { type: 'plain_text', text: 'Close', emoji: true },
-           blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Ticket create ho rha hai — ek second..._' }}]
-         }
-       }).catch(() => {});
+       await client.views.update({ view_id: viewId, view: creatingTicketModalView() }).catch(() => {});
      }
      const emp = await lookupEmployee(userId, client);
 
@@ -4391,24 +4392,9 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      } else if (result) {
        pendingTickets.delete(userId);
        if (viewId) {
-         // Modal context — update modal with ticket success
-         await client.views.update({
-           view_id: viewId,
-           view: {
-             type: 'modal',
-             title: { type: 'plain_text', text: 'Ticket Created!', emoji: true },
-             close: { type: 'plain_text', text: 'Close', emoji: true },
-             blocks: [{
-               type: 'section', text: { type: 'mrkdwn', text:
-                 `*IT Ticket Create Ho Gaya!*\n\n` +
-                 `*Ticket ID:* \`${result.ticketId}\`\n` +
-                 `*Priority:* ${result.priority}\n` +
-                 `*Category:* ${result.category}\n\n` +
-                 `IT team jald se jald madad karegi.\n_Is window ko close karo._`
-               }
-             }]
-           }
-         }).catch(e => console.error('ticket modal update error:', e.message));
+         // Modal context — use shared ticketCreatedModalView
+         await client.views.update({ view_id: viewId, view: ticketCreatedModalView(result) })
+           .catch(e => console.error('ticket modal update error:', e.message));
        } else {
          await client.chat.postMessage({
            channel: channelId,
