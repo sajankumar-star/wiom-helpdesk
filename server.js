@@ -1001,12 +1001,33 @@ app.listen(PORT, async () => {
    }]
  });
 
- // ── Shared: "Creating Ticket" loading modal — same for every problem ─────────
+ // ── Shared: "Creating Ticket" loading modal ──────────────────────────────────
  const creatingTicketModalView = () => ({
    type: 'modal',
    title: { type: 'plain_text', text: 'Creating Ticket...', emoji: true },
    close: { type: 'plain_text', text: 'Close', emoji: true },
    blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Ticket create ho rha hai — ek second..._' }}]
+ });
+
+ // ── Shared: Notes form before ticket creation ─────────────────────────────────
+ const ticketNotesFormView = (description, priority) => ({
+   type: 'modal',
+   callback_id: 'quick_ticket_notes_modal',
+   private_metadata: JSON.stringify({ description: description || 'IT support needed', priority: priority || 'Medium' }),
+   title: { type: 'plain_text', text: 'Create Ticket', emoji: true },
+   submit: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true },
+   close: { type: 'plain_text', text: 'Cancel', emoji: true },
+   blocks: [
+     { type: 'section', text: { type: 'mrkdwn', text: `*Issue:*\n_${(description||'IT support needed').substring(0,100)}_` }},
+     { type: 'divider' },
+     { type: 'input', block_id: 'notes_block',
+       optional: true,
+       label: { type: 'plain_text', text: 'Apni problem describe karo (Optional)', emoji: true },
+       element: { type: 'plain_text_input', action_id: 'notes_input', multiline: true,
+         placeholder: { type: 'plain_text', text: 'Koi additional detail add karein... jaise: kab se ho rha hai, kya error aa rha hai, kisi specific file ya app mein ho rha hai...' }
+       }
+     },
+   ]
  });
 
  // ── Shared: "Ticket Created" success modal — same for every problem ──────────
@@ -4578,14 +4599,30 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  slackApp.action('quick_ticket_btn', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
-   const viewId = body.view?.id; // modal context check
+   const viewId = body.view?.id;
+   const triggerId = body.trigger_id;
    const channelId = body.channel?.id || body.container?.channel_id || userId;
-   console.log(`🎫 quick_ticket_btn: userId=${userId} viewId=${viewId} channelId=${channelId}`);
+   const btnValue = body.actions?.[0]?.value || '';
+   const description = (btnValue.length > 5 && !/^(Critical|High|Medium|Low|script|Medium|create ticket)$/i.test(btnValue))
+     ? btnValue : (pendingTickets.get(userId)?.description || 'IT support needed');
+
+   // ── Show notes form FIRST — user can add details before ticket is created ──
    try {
-     // If inside modal — show shared loading state immediately
      if (viewId) {
-       await client.views.update({ view_id: viewId, view: creatingTicketModalView() }).catch(() => {});
+       // Inside modal → update modal to show notes form
+       await client.views.update({ view_id: viewId, view: ticketNotesFormView(description, 'Medium') })
+         .catch(e => console.error('notes form update err:', e.message));
+       return;
+     } else if (triggerId) {
+       // DM context → open new modal with notes form
+       await client.views.open({ trigger_id: triggerId, view: ticketNotesFormView(description, 'Medium') })
+         .catch(e => console.error('notes form open err:', e.message));
+       return;
      }
+   } catch(e) { console.error('quick_ticket notes form err:', e.message); }
+
+   // Fallback: create ticket directly (if no modal/trigger available)
+   try {
      const emp = await lookupEmployee(userId, client);
 
      // Get pendingTickets data (set by KB/AI path) or fallback to button value / conversation
@@ -4658,6 +4695,55 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        await client.chat.postEphemeral({ channel: channelId, user: userId,
          text: 'Ticket nahi ban saka. IT ko email karo: sajan.kumar@wiom.in' });
      }
+   }
+ }); // end quick_ticket_btn
+
+ // ── Ticket Notes Form Submission ─────────────────────────────────────────────
+ slackApp.view('quick_ticket_notes_modal', async ({ body, ack, client, view }) => {
+   const userId = body.user.id;
+   const notes = view.state.values?.notes_block?.notes_input?.value || '';
+   let metadata = {};
+   try { metadata = JSON.parse(view.private_metadata || '{}'); } catch {}
+
+   const baseDesc = metadata.description || 'IT support needed';
+   const fullDesc = baseDesc + (notes.trim() ? '\n\nEmployee Notes: ' + notes.trim() : '');
+
+   try {
+     const emp = await lookupEmployee(userId, client).catch(() => ({ empId: userId, empName: 'User', email: 'unknown@wiom.in' }));
+     const pending = pendingTickets.get(userId) || {};
+     const result = await createTicketSlack({
+       empId: emp.empId, empName: emp.empName, empEmail: emp.email || 'unknown@wiom.in',
+       empDept: emp.dept, empFloor: emp.floor,
+       laptop: emp.laptop, laptopSN: emp.laptopSN,
+       category: pending.category || 'Other', priority: pending.priority || metadata.priority || 'Medium',
+       description: fullDesc.replace(/[*_`]/g, '').substring(0, 500),
+       source: 'slack', slackUserId: userId, createdAt: Date.now()
+     });
+
+     if (result?._duplicate) {
+       await ack({ response_action: 'update', view: {
+         type: 'modal', title: { type: 'plain_text', text: 'Already Open', emoji: true },
+         close: { type: 'plain_text', text: 'Close', emoji: true },
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `⚠️ ${result.message}` }}]
+       }});
+     } else if (result) {
+       pendingTickets.delete(userId);
+       await ack({ response_action: 'update', view: ticketCreatedModalView(result) });
+       await notifyAdmin(client, result, emp);
+     } else {
+       await ack({ response_action: 'update', view: {
+         type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },
+         close: { type: 'plain_text', text: 'Close', emoji: true },
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Ticket nahi ban saka. IT ko email karo: sajan.kumar@wiom.in' }}]
+       }});
+     }
+   } catch(err) {
+     console.error('quick_ticket_notes_modal submission error:', err.message);
+     await ack({ response_action: 'update', view: {
+       type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },
+       close: { type: 'plain_text', text: 'Close', emoji: true },
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Ticket nahi ban saka. IT ko email karo: sajan.kumar@wiom.in' }}]
+     }});
    }
  });
 
