@@ -4046,11 +4046,13 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    const userId = body.user.id;
    const viewId = body.view?.id;
    const channelId = body.channel?.id || body.container?.channel_id || userId;
+   console.log(`✅ resolved_yes_btn: userId=${userId} viewId=${viewId} channelId=${channelId}`);
    failedAttempts.delete(userId);
    pendingTickets.delete(userId);
 
    if (viewId) {
      await client.views.update({ view_id: viewId, view: resolvedModalView() })
+       .then(() => console.log('✅ resolved modal updated OK'))
        .catch(e => console.error('resolved_yes_btn modal err:', e.message));
    } else {
      await client.chat.postMessage({ channel: channelId, text: 'Issue Resolved!', blocks: resolvedDMBlocks() });
@@ -4358,6 +4360,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    const userId = body.user.id;
    const viewId = body.view?.id; // modal context check
    const channelId = body.channel?.id || body.container?.channel_id || userId;
+   console.log(`🎫 quick_ticket_btn: userId=${userId} viewId=${viewId} channelId=${channelId}`);
    try {
      // If inside modal — show shared loading state immediately
      if (viewId) {
