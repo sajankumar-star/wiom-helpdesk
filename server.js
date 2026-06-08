@@ -598,7 +598,7 @@ app.listen(PORT, async () => {
          {
          key: 'software', label: 'Software, Apps & Account',
          emoji: '🟡', color: 'primary',
-         desc: 'Teams, Zoom, Outlook, Password reset, Virus, OneDrive',
+         desc: 'Teams, Zoom, Gmail, Password reset, OneDrive',
          rows: [
          [
          { text:'Teams Issue', value:'Microsoft Teams not working call dropping or not opening', id:'home_quick_13' },
@@ -927,7 +927,7 @@ app.listen(PORT, async () => {
  const buildGreetingBlocks = (firstName = 'there') => ([
    {
      type: 'section',
-     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\nMain *Zivon* hoon — WIOM ka IT assistant.\nLaptop, WiFi, software, password — koi bhi problem batao, abhi fix karunga!\n\n_Category choose karo ya seedha type karo_ 👇` },
+     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\nMain *Zivon* hoon — WIOM ka IT assistant.\nLaptop, WiFi, software, password — koi bhi problem batao, abhi fix karunga!\n\n_Category choose karo — Zivon abhi fix karega!_` },
      accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/images/zivon-robot.gif', alt_text: 'Zivon' }
    },
    { type: 'divider' },
@@ -948,7 +948,7 @@ app.listen(PORT, async () => {
        { type: 'button', text: { type: 'plain_text', text: '📞  Contact IT', emoji: true }, action_id: 'home_contact_it', value: 'contact_it' },
      ]
    },
-   { type: 'context', elements: [{ type: 'mrkdwn', text: '_Ya seedha apni problem type karo — Zivon samjhega! ✦  Anytime, Anywhere_' }] }
+   { type: 'context', elements: [{ type: 'mrkdwn', text: '_24/7 available — Anytime, Anywhere_' }] }
  ]);
 
  // ── FEATURE 2: Format reply for Slack mrkdwn ─────────────────────────
@@ -1350,7 +1350,7 @@ app.listen(PORT, async () => {
  options : [
  { text:{ type:'plain_text', text:'Hardware - Laptop, keyboard, mouse, screen' }, value:'Hardware' },
  { text:{ type:'plain_text', text:'Software - App, Windows, Office' }, value:'Software' },
- { text:{ type:'plain_text', text:'Network - WiFi, internet, VPN' }, value:'Network' },
+ { text:{ type:'plain_text', text:'Network - WiFi, internet' }, value:'Network' },
  { text:{ type:'plain_text', text:'Account - Password, login, email' }, value:'Account' },
  { text:{ type:'plain_text', text:'Purchase - New equipment request' }, value:'Purchase' },
  { text:{ type:'plain_text', text:'❓ Other - Something else' }, value:'Other' }
@@ -1793,6 +1793,14 @@ app.listen(PORT, async () => {
        : [];
      const blocks = buildHomeBlocks(emp, myTickets, new Set());
      await client.views.publish({ user_id: userId, view: { type: 'home', blocks } });
+     // If called from inside a modal — update modal to guide user to Home tab
+     if (body.view?.id) {
+       await client.views.update({ view_id: body.view.id, view: {
+         type: 'modal', title: { type: 'plain_text', text: 'Home Tab', emoji: true },
+         close: { type: 'plain_text', text: 'Close', emoji: true },
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Home tab refresh ho gaya!\n\n*Is window ko close karo* aur upar *Home* tab pe click karo.' }}]
+       }}).catch(() => {});
+     }
    } catch (err) { console.error('go_home_btn error:', err.message); }
  });
 
@@ -1888,21 +1896,29 @@ app.listen(PORT, async () => {
  slackApp.action('laptop_slow_fixed', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
+   const viewId = body.view?.id;
    const channelId = body.channel?.id || body.container?.channel_id || userId;
-   await client.chat.postMessage({
-     channel: channelId,
-     text: '✅ Issue Resolved!',
-     blocks: [
-       { type: 'section', text: { type: 'mrkdwn', text:
-         `✅ *Bahut accha! Issue resolve ho gaya!* 🎉\n\n` +
-         `IT Helpdesk happy hai ki aapki problem solve ho gayi.\n\n` +
-         `_Koi aur IT problem ho toh Home tab pe jaao aur category select karo._`
-       }},
-       { type: 'actions', elements: [
-         { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' }
-       ]}
-     ]
-   });
+   if (viewId) {
+     await client.views.update({ view_id: viewId, view: {
+       type: 'modal', title: { type: 'plain_text', text: 'Issue Resolved!', emoji: true },
+       close: { type: 'plain_text', text: 'Close', emoji: true },
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text:
+         'Bahut accha! Issue resolve ho gaya!\n\nKoi aur IT problem ho toh is window ko close karo aur Home tab pe jaao.'
+       }}]
+     }}).catch(e => console.error('laptop_slow_fixed modal err:', e.message));
+   } else {
+     await client.chat.postMessage({
+       channel: channelId, text: 'Issue Resolved!',
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text:
+           '✅ *Bahut accha! Issue resolve ho gaya!* 🎉\n\nIT Helpdesk happy hai ki aapki problem solve ho gayi.\n\n_Koi aur IT problem ho toh Home tab pe jaao._'
+         }},
+         { type: 'actions', elements: [
+           { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' }
+         ]}
+       ]
+     });
+   }
  });
 
  // ── Won't Turn On — Special handler with exact steps ─────────────────────────
@@ -1995,7 +2011,7 @@ app.listen(PORT, async () => {
   internet_slow: 'internet bahut slow hai',
    lan_issue: 'lan cable nahi chal rha ethernet issue', network_drive: 'network shared drive nahi dikh rha mapped drive Z: ya shared folder access nahi aa rha',
    excel_issue: 'excel open nahi ho rha crash ho rha', word_issue: 'word open nahi ho rha crash',
-   ppt_issue: 'powerpoint open nahi ho rha', office_activation: 'ms office activation issue',
+   ppt_issue: 'powerpoint open nahi ho rha', office_activation: 'Microsoft Office activation issue — employees self-activate nahi kar sakte, IT ticket raise karo',
    file_corrupted: 'Word Excel PPT ya koi bhi file nahi khul rhi — software missing ya file open karne mein error aa rha', chrome_issue: 'chrome nahi khul rha',
    edge_issue: 'edge browser nahi khul rha', browser_slow: 'Google Chrome ya Edge browser bahut slow hai pages load hote hain ya freeze ho jaata hai',
    website_blocked: 'specific website load nahi ho rhi page nahi khul rha — network DNS issue ho sakta hai, IT policy se block nahi hai', teams_issue: 'teams nahi chal rha',
@@ -2006,7 +2022,7 @@ app.listen(PORT, async () => {
    email_not_sending: 'Gmail se email send nahi ho rhi — error aa rha hai ya email stuck hai outbox mein', email_not_receiving: 'Gmail inbox mein emails nahi aa rhi — expected emails missing hain ya inbox khali hai',
    calendar_sync: 'calendar sync nahi ho rha', password_reset: 'password bhool gaya reset karna hai',
    account_locked: 'account locked ho gaya login nahi ho rha', shared_folder: 'shared folder access nahi mil rha',
-   email_access: 'email access chahiye', software_access: 'software application access chahiye',
+   email_access: 'Gmail account access chahiye — naya account ya existing account mein problem', software_access: 'kisi software ka access chahiye — install karna hai ya permission chahiye, IT karega',
    new_laptop: 'new laptop request chahiye', new_mouse: 'mouse chahiye new',
    new_keyboard: 'keyboard chahiye new', new_headphone: 'headphone chahiye',
    new_monitor: 'monitor chahiye new', new_charger: 'charger chahiye',
@@ -2034,7 +2050,7 @@ app.listen(PORT, async () => {
                options: [
                  { text: { type: 'plain_text', text: 'Hardware - Laptop, keyboard, mouse, screen' }, value: 'Hardware' },
                  { text: { type: 'plain_text', text: 'Software - App, Windows, Office' }, value: 'Software' },
-                 { text: { type: 'plain_text', text: 'Network - WiFi, internet, VPN' }, value: 'Network' },
+                 { text: { type: 'plain_text', text: 'Network - WiFi, internet' }, value: 'Network' },
                  { text: { type: 'plain_text', text: 'Account - Password, login, email' }, value: 'Account' },
                  { text: { type: 'plain_text', text: 'Purchase - New equipment request' }, value: 'Purchase' },
                  { text: { type: 'plain_text', text: '❓ Other - Something else' }, value: 'Other' }
@@ -2157,7 +2173,7 @@ app.listen(PORT, async () => {
  : 'Thank you! We will use this feedback to improve ';
 
  await client.chat.update({
- channel: body.channel.id,
+ channel: body.channel?.id || body.container?.channel_id,
  ts : body.message.ts,
  text : `✅ Ticket ${ticketId} Rating: ${stars}`,
  blocks : [
@@ -2681,7 +2697,7 @@ app.listen(PORT, async () => {
          { type: 'button', text: { type: 'plain_text', text: '🎫 IT Ticket Raise Karo (HIGH)', emoji: true },
            style: 'danger', action_id: 'quick_ticket_btn', value: "Laptop won't turn on at all" }
        ]},
-       { type: 'context', elements: [{ type: 'mrkdwn', text: '_Aur koi help chahiye? DM mein apni problem type karo._' }]}
+       { type: 'context', elements: [{ type: 'mrkdwn', text: '_Koi aur IT problem ho toh Home tab pe jaao aur category choose karo._' }]}
      ]
    }
  });
@@ -3069,7 +3085,7 @@ app.listen(PORT, async () => {
  { type: 'context', elements: [{ type: 'mrkdwn', text: '_Cancel karna ho toh IT ko Slack pe batao_' }]}
  ]
  });
- await client.chat.update({ channel: body.channel.id, ts: body.message.ts,
+ await client.chat.update({ channel: body.channel?.id || body.container?.channel_id, ts: body.message.ts,
  text: `✅ Appointment confirmed: ${appt.empName} → ${dateDisplay} ${appt.timeSlot}`,
  blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `✅ *Confirmed:* ${appt.empName} | ${dateDisplay} ${appt.timeSlot}` }}]
  });
@@ -3091,7 +3107,7 @@ app.listen(PORT, async () => {
  { type: 'section', text: { type: 'mrkdwn', text: `❌ *Appointment Cancel* ho gayi aapki.\n\nNaya slot book karne ke liye: \`/appoint\`\nYa turant help ke liye: \`/ticket\`` }}
  ]
  });
- await client.chat.update({ channel: body.channel.id, ts: body.message.ts,
+ await client.chat.update({ channel: body.channel?.id || body.container?.channel_id, ts: body.message.ts,
  text: `❌ Appointment cancelled: ${appt?.empName}`,
  blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ *Cancelled:* ${appt?.empName}` }}]
  });
@@ -3193,11 +3209,11 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      { type: 'context', elements: [{ type: 'mrkdwn', text: '_Zivon Vision — Kaam nahi hua? Neeche IT Ticket button click karo._' }]}
    ]});
  } else {
-   await say({ text: '📸 Screenshot received. Error message text mein type karo — main dekh ke help karunga.' });
+   await say({ text: 'Screenshot mila! Error message clearly share karo, ya *Create Ticket* button dabao — IT team directly help karegi.' });
  }
  } catch (err) {
  console.error('Photo diagnosis error:', err.message);
- await say({ text: '📸 Screenshot received. Error message text mein type karo — main dekh ke help karunga.' });
+ await say({ text: 'Screenshot mila! Error message clearly share karo, ya *Create Ticket* button dabao — IT team directly help karegi.' });
  }
  } else {
  await say({ text: `File mila (${file.name})! Iske baare mein kya help chahiye? 😊` });
@@ -3366,7 +3382,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      ],
      software: [
        { text: '📹 Teams Not Working', val: 'teams_issue' },
-       { text: '📧 Gmail Issue', val: 'outlook_issue' },
+       { text: '📧 Gmail Issue', val: 'gmail_issue' },
        { text: '💥 App Crashing', val: 'app_crash' },
        { text: '🔄 Windows Update', val: 'windows_update' },
        { text: '❓ Something Else', val: 'software_other' },
@@ -3475,11 +3491,11 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      vpn_issue: 'vpn issue — WIOM does not use VPN',
      dns_issue: 'DNS error internet not working',
      network_drive: 'network drive not accessible shared folder',
-     outlook_sync: 'Outlook email sync issue',
+     outlook_sync: 'Gmail email sync issue',
      edge_issue: 'Edge browser not opening',
      browser_slow: 'browser slow laggy',
      pdf_issue: 'PDF file not opening',
-     outlook_email: 'outlook email issue — WIOM uses Gmail',
+     outlook_email: 'Gmail email issue',
      slack_issue: 'Slack not working notification issue',
      vpn_access: 'VPN access — WIOM does not use VPN',
      email_access: 'email Gmail access needed',
@@ -3544,11 +3560,11 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  ]},
  { type:'actions', elements: [
  { type:'button', text:{ type:'plain_text', text:'🖨️ Printer', emoji:true }, action_id:'vague_pick_printer', value:'printer not working' },
- { type:'button', text:{ type:'plain_text', text:'📧 Email / Gmail', emoji:true }, action_id:'vague_pick_outlook_issue', value:'Gmail not working email issue' },
+ { type:'button', text:{ type:'plain_text', text:'📧 Email / Gmail', emoji:true }, action_id:'vague_pick_gmail_issue', value:'Gmail not working email issue' },
  { type:'button', text:{ type:'plain_text', text:'📹 Teams / Zoom', emoji:true }, action_id:'vague_pick_teams_issue', value:'Microsoft Teams not working' },
  { type:'button', text:{ type:'plain_text', text:'🎫 Create Ticket', emoji:true }, style:'primary', action_id:'vague_pick_create_ticket', value:'create ticket' },
  ]},
- { type:'context', elements:[{ type:'mrkdwn', text:`_Ya seedha apni problem type karo — Zivon samjhega! 😊_` }]}
+ { type:'context', elements:[{ type:'mrkdwn', text:`_24/7 available — Anytime, Anywhere_` }]}
  ]
  });
  return;
