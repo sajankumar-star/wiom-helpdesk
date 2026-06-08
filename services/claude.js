@@ -564,11 +564,23 @@ const getKBFallback = (problem) => {
     return `⚙️ *Microsoft Office 365 Issue*\n\nYeh try karo:\n\n1. *Restart* → Laptop restart karo\n2. *Internet check karo* → Office 365 ke liye internet chahiye\n\nAgar phir bhi problem → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
   }
 
+  if (pn.includes('slack'))
+    return `Slack issue. Yeh try karo:\n\n1. *Quit karo* → Taskbar mein Slack icon right-click → Quit\n2. *Dobara open karo* → Start menu se Slack open karo\n3. *Cache clear* → Agar bhi nahi → Help → Troubleshooting → Clear Cache & Restart\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
   if (pn.includes('teams'))
-    return `Microsoft Teams issue. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar pe Teams icon right-click → Quit → dobara open karo\n2. *Browser mein try karo* → teams.microsoft.com Chrome mein open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Teams issue. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar pe Teams icon right-click → Quit → dobara open karo\n2. *Browser mein try karo* → teams.microsoft.com Chrome mein open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('zoom'))
-    return `Zoom issue. Yeh try karo:\n\n1. *Restart karo* → Zoom close karo → dobara open karo\n2. *Browser mein try karo* → zoom.us/wc/join Chrome mein kholо\n3. *Settings* → Zoom Settings → Audio/Video → correct device select karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Zoom issue. Yeh try karo:\n\n1. *Restart karo* → Zoom close karo → dobara open karo\n2. *Browser mein try karo* → zoom.us/wc/join Chrome mein kholo\n3. *Settings* → Zoom Settings → correct device select karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
+  if (pn.includes('calendar'))
+    return `Google Calendar issue. Yeh try karo:\n\n1. *Browser mein check karo* → Chrome mein calendar.google.com kholo\n2. *Cache clear karo* → Ctrl+Shift+Del → All time → Clear\n3. *Incognito try karo* → Ctrl+Shift+N → calendar.google.com\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
+  if (pn.includes('chrome') && (pn.includes('nahi') || pn.includes('crash') || pn.includes('open')))
+    return `Chrome issue. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → Chrome dhundho → End Task\n2. *Dobara open karo*\n3. *Laptop restart karo* → Agar bhi nahi\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
+  if (pn.includes('edge') && (pn.includes('nahi') || pn.includes('crash') || pn.includes('open')))
+    return `Edge browser issue. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → Edge dhundho → End Task\n2. *Dobara open karo*\n3. *Chrome use karo* → Abhi ke liye Chrome browser use karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // WIOM uses Gmail (Google Workspace) — NOT Outlook
   // "email nahi chal rha", "gmail nahi khul rha", "mail nahi aa rha"
