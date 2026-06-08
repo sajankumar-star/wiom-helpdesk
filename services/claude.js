@@ -530,7 +530,7 @@ const getKBFallback = (problem) => {
   if (/windows\s*(crash|restart|update|stuck|atak|loop|hang)|update\s*(stuck|atak|hang|nahi|ruka)|restart\s*(bar\s*bar|baar\s*baar|loop|hota\s*rha|ho\s*rha\s*bar)|os\s*(crash|hang|stuck)/.test(pn))
     return `Windows issue hai. Yeh try karo:\n\n1. *Restart* → Power button se properly shut down karo → dobara on karo\n2. *Wait* → Agar Windows update chal rahi hai → wait karo, band mat karo\n\nAgar 3 baar se zyada restart ho raha hai ya nahi ruk raha → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
-  if (pn.includes('sound') || pn.includes('audio') || pn.includes('speaker') || pn.includes('headphone'))
+  if ((pn.includes('sound') || pn.includes('audio') || pn.includes('speaker') || pn.includes('headphone')) && !pn.includes('zoom') && !pn.includes('teams') && !pn.includes('call'))
     return `Audio issue. Yeh try karo:\n\n1. *Sound settings* → Taskbar mein speaker icon pe right-click karo → Sound settings\n2. *Output device* → sahi device select karo\n3. *Volume check* → 0% ya mute toh nahi?\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('blue screen') || pn.includes('bsod'))
@@ -592,7 +592,7 @@ const getKBFallback = (problem) => {
   if (pn.includes('camera') || pn.includes('webcam') || /\bcam\b/.test(pn))
     return `Camera issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Camera → ON karo\n2. *App settings* → Teams/Zoom mein Settings → Video → correct camera select karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
-  if (pn.includes('mic') || pn.includes('microphone'))
+  if (/mic|microphone/.test(pn) && !pn.includes('microsoft'))
     return `Microphone issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Microphone → ON karo\n2. *Input device* → Sound settings → Input → correct mic select karo\n3. *Teams test* → Teams Settings → Devices → mic test karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('usb') || pn.includes('pendrive'))
