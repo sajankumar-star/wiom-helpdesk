@@ -2156,13 +2156,19 @@ app.listen(PORT, async () => {
 
  try {
    const naturalProblem = KEY_TO_PROBLEM[rawKey] || rawKey;
-   // Tell AI: user already selected this issue — give DIRECT steps, no questions
-   const aiPrompt = `Employee ne IT Helpdesk se yeh issue select kiya: "${naturalProblem}"\n\nSeedha troubleshooting steps do. Koi sawaal mat poochho. 3-4 simple steps max jo non-technical employee 30 seconds mein kar sake. End karo with: "Agar theek nahi hua → *Create Ticket* button dabao."`;
-
-   // Get AI response
    const emp = await lookupEmployee(userId, client).catch(() => ({ empId: userId, empName: 'User' }));
-   const messages = [{ role: 'user', content: aiPrompt }];
-   let { reply } = await claudeSvc.chat(messages, { empId: emp.empId, empName: emp.empName, source: 'slack' });
+
+   // ── KB-FIRST: Use direct KB answer if available (no AI call needed) ──────
+   // Guarantees correct answer even when Groq is rate-limited
+   let reply = claudeSvc.DIRECT_KB?.[rawKey] || null;
+
+   if (!reply) {
+     // No direct KB — call AI
+     const aiPrompt = `Employee ne IT Helpdesk se yeh issue select kiya: "${naturalProblem}"\n\nSeedha troubleshooting steps do. Koi sawaal mat poochho. 3-4 simple steps max. End karo with: "Agar theek nahi hua → *Create Ticket* button dabao."`;
+     const messages = [{ role: 'user', content: aiPrompt }];
+     const result = await claudeSvc.chat(messages, { empId: emp.empId, empName: emp.empName, source: 'slack' });
+     reply = result.reply;
+   }
 
    // Strip any residual "type karo ha" instructions — Messages Tab is disabled, users can only click buttons
    reply = reply

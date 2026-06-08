@@ -228,6 +228,34 @@ const extractTriedSteps = (messages) => {
 
 
 // ── Static KB Fallback (when both AI providers fail) ─────────────────────────
+// ── Direct KB answers by rawKey — used BEFORE AI call in vague_pick ─────────
+// These bypass AI entirely: guaranteed correct answer, zero tokens, instant
+const DIRECT_KB = {
+  wifi_not_connect:
+    `WiFi nahi chal rha. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi icon → OFF → 10 sec ruko → ON → "Wiom office" se connect karo (password: spartans500)\n2. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → dobara connect karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+
+  no_internet:
+    `Internet nahi chal rha (WiFi connected hai). Yeh try karo:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Chrome reopen* → Chrome band karo → dobara open karo → gmail.com try karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+
+  internet_slow:
+    `Internet slow chal rha hai. Yeh try karo:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON → dobara connect karo\n2. *Chrome tabs* → Extra tabs band karo — zyada tabs se net slow hota hai\n3. *Restart* → Laptop restart karo\n4. *Jagah badlo* → Router ke paas jaao — door hone se signal weak hota hai\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+
+  keys_not_working:
+    `Keyboard kaam nahi kar rha. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — aksar restart se theek ho jaata hai\n2. *NumLock check* → NumLock button dabao (agar numbers type ho rahe hain letters ki jagah)\n3. *On-Screen Keyboard* → Start menu → "On-Screen Keyboard" search karo → kaam chalao\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team driver fix karega 🎫`,
+
+  blue_screen:
+    `Blue Screen (BSOD) aa rha hai. Yeh karo:\n\n1. *Error code note karo* → Screen pe jo code likha tha (jaise: MEMORY_MANAGEMENT, DRIVER_IRQL etc.)\n2. *Restart karo* → Power button 10 sec hold karo → band karo → dobara on karo\n3. *Baar baar aa rha hai?* → Ticket raise karo turant\n\nAgar theek nahi hua ya 3 baar se zyada aaya → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+
+  external_monitor:
+    `External monitor detect nahi ho rha. Yeh try karo:\n\n1. *Cable check karo* → HDMI cable dono taraf properly lagi hai? Nikal ke dobara lagao\n2. *Win+P* → Windows key + P dabao → "Extend" ya "Duplicate" select karo\n3. *Monitor ON* → External monitor ka power button check karo — on hai?\n4. *Restart* → Sab connected rakhke laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+
+  scanner_issue:
+    `Scanner kaam nahi kar rha. Yeh try karo:\n\n1. *Scanner restart* → Scanner band karo → 30 sec ruko → on karo\n2. *USB cable check* → Cable properly lagi hai? Nikal ke dobara lagao\n3. *Laptop restart* → Laptop restart karo → dobara scan try karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT driver install karega 🎫`,
+
+  file_corrupted:
+    `File nahi khul rhi. Yeh try karo:\n\n1. *Right-click → Open With* → File pe right-click karo → Open With → sahi app select karo (Word/Excel/Adobe)\n2. *App restart* → App close karo → dobara open karo → phir file open karo\n3. *Laptop restart* → Laptop restart karo → dobara try karo\n\nAgar app missing hai ya file corrupt hai → *Create Ticket* button dabao — IT team install/recover karega 🎫`,
+};
+
 const getKBFallback = (problem) => {
   const p = problem.toLowerCase();
 
@@ -845,5 +873,5 @@ const processQuery = (problem, empInfo = {}) => {
   return { intent, confidence, category, kbAnswer: null };
 };
 
-module.exports = { chat, chatStream, quickReply, detectQueryIntent, processQuery };
+module.exports = { chat, chatStream, quickReply, detectQueryIntent, processQuery, getKBFallback, DIRECT_KB };
 
