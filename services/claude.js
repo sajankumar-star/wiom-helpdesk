@@ -291,6 +291,46 @@ const DIRECT_KB = {
   app_crash:
     `Application nahi khul rha ya crash ho rha hai. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → application dhundho → End Task karo → dobara open karo\n2. *Restart* → Laptop restart karo → dobara try karo\n\nAgar app list mein nahi hai ya install karna hai → *Create Ticket* button dabao — IT install karega (admin rights chahiye) 🎫`,
 
+  // ── Previously missing — all added ──────────────────────────────────────────
+  network_drive:
+    `Network Drive/Mapped Drive nahi dikh rha. Yeh try karo:\n\n1. *Laptop restart karo* → Aksar restart se drive wapas aa jaati hai\n2. *File Explorer* → Left panel mein "This PC" → "Z:" ya mapped drive check karo\n3. *Reconnect* → File Explorer → This PC → Computer tab → Map Network Drive\n\nAgar phir bhi nahi dikh rha → *Create Ticket* button dabao — IT drive remap karega 🎫`,
+
+  gmail_issue:
+    `Gmail kaam nahi kar rha. Yeh try karo:\n\n1. *Incognito test* → Chrome → Ctrl+Shift+N → gmail.com kholo — kaam karta hai?\n2. *Cache clear* → Ctrl+Shift+Del → All time → Cookies + Cache → Clear\n3. *Alag browser* → Edge mein gmail.com try karo\n\nAgar login hi nahi ho rha → *Create Ticket* button dabao — IT password reset karega 🎫`,
+
+  email_login:
+    `Gmail/Email login nahi ho rha. Yeh karo:\n\n*Create Ticket* button dabao — IT company Gmail account ka password reset karega.\n\nEmployees khud Google account password reset nahi kar sakte — IT karega. 🎫`,
+
+  email_not_sending:
+    `Gmail se email nahi bhej pa rhe. Yeh try karo:\n\n1. *Internet check* → Koi aur website khul rhi hai?\n2. *gmail.com directly kholo* → Chrome mein gmail.com → Compose → bhejo\n3. *Sent/Drafts check karo* → Email stuck toh nahi hai?\n\nAgar error message aa rha hai → *Create Ticket* button dabao — IT help karega 🎫`,
+
+  email_not_receiving:
+    `Gmail mein emails nahi aa rhe. Yeh check karo:\n\n1. *Spam/Junk folder* → Gmail left sidebar → Spam folder check karo\n2. *Trash folder* → Gmail → Trash mein check karo\n3. *Storage check* → Gmail settings → Storage full toh nahi?\n4. *Incognito try karo* → Ctrl+Shift+N → gmail.com → inbox check karo\n\nAgar phir bhi missing hain → *Create Ticket* button dabao 🎫`,
+
+  calendar_sync:
+    `Google Calendar sync nahi ho rha. Yeh try karo:\n\n1. *Browser mein kholo* → Chrome → calendar.google.com → events dikh rahe hain?\n2. *Cache clear* → Ctrl+Shift+Del → All time → Clear\n3. *Incognito try karo* → Ctrl+Shift+N → calendar.google.com\n\nAgar access nahi hai kisi calendar ka → *Create Ticket* button dabao — IT access dega 🎫`,
+
+  teams_issue:
+    `Teams kaam nahi kar rha. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar pe Teams icon right-click → Quit → dobara open karo\n2. *Browser mein try karo* → Chrome → teams.microsoft.com\n3. *Restart* → Laptop restart karo\n\nAgar phir bhi nahi → *Create Ticket* button dabao — IT Teams cache clear karega 🎫`,
+
+  zoom_issue:
+    `Zoom kaam nahi kar rha. Yeh try karo:\n\n1. *Close & Reopen* → Zoom band karo → dobara open karo\n2. *Browser se join karo* → Chrome → zoom.us/wc/join → Meeting ID daalo\n3. *Settings* → Zoom → Settings → Audio/Video → correct device select karo\n\nAgar install nahi hai → *Create Ticket* button dabao — IT install karega 🎫`,
+
+  browser_slow:
+    `Browser (Chrome/Edge) slow hai. Yeh try karo:\n\n1. *Cache clear* → Ctrl+Shift+Del → "All time" → Cached images & files → Clear\n2. *Extensions disable* → Chrome → Settings → Extensions → sab OFF karo\n3. *Extra tabs band karo* → zyada tabs se browser slow hota hai\n4. *Restart browser* → Band karo → dobara open karo\n\nAgar phir bhi slow hai → *Create Ticket* button dabao 🎫`,
+
+  excel_issue:
+    `Excel nahi khul rha ya crash ho rha hai. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → Excel dhundho → End Task → dobara open karo\n2. *Restart* → Laptop restart karo → dobara try karo\n3. *Safe Mode* → Nahi karna (admin rights nahi) → Ticket raise karo\n\nAgar phir bhi nahi khul rha → *Create Ticket* button dabao — IT repair karega 🎫`,
+
+  word_issue:
+    `Word nahi khul rha ya crash ho rha hai. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → Word dhundho → End Task → dobara open karo\n2. *Restart* → Laptop restart karo → dobara try karo\n\nAgar phir bhi nahi khul rha → *Create Ticket* button dabao — IT Office repair karega 🎫`,
+
+  ppt_issue:
+    `PowerPoint nahi khul rha ya crash ho rha hai. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → PowerPoint → End Task → dobara open karo\n2. *Restart* → Laptop restart karo → dobara try karo\n\nAgar phir bhi nahi khul rha → *Create Ticket* button dabao — IT Office repair karega 🎫`,
+
+  office_activation:
+    `MS Office activation error aa rha hai.\n\n*Create Ticket* button dabao — IT Office activate karega. Employees khud activate nahi kar sakte (admin rights nahi hain). 🎫`,
+
   pdf_issue:
     `PDF file nahi khul rhi. Yeh try karo:\n\n1. *Right-click → Open With* → PDF pe right-click → Open With → Adobe Acrobat select karo\n2. *Chrome mein try karo* → PDF file Chrome browser mein drag karke drop karo\n3. *Restart* → Laptop restart karo → dobara try karo\n\nAgar Adobe nahi hai → *Create Ticket* button dabao — IT install karega 🎫`,
 
