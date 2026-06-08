@@ -172,7 +172,10 @@ cron.schedule('0 * * * *', async () => {
  await t.save();
  console.log(` Escalation sent for ${t.ticketId} (${hoursOld}h old)`);
  } catch (err) {
- console.error(`Escalation DM failed for ${t.ticketId}:`, err.message);
+ // messages_tab_disabled = admin DM not allowed — silently skip (don't spam logs)
+ if (!err.message?.includes('messages_tab_disabled')) {
+   console.error(`Escalation DM failed for ${t.ticketId}:`, err.message);
+ }
  }
  }
  if (stale.length) console.log(`⚡ Escalated ${stale.length} tickets`);
@@ -218,7 +221,9 @@ cron.schedule('30 * * * *', async () => {
  await t.save();
  console.log(` Reminder sent to ${t.slackUserId} for ticket ${t.ticketId} (${hoursOld}h old)`);
  } catch (err) {
- console.error(`Reminder DM failed for ${t.ticketId}:`, err.message);
+ if (!err.message?.includes('messages_tab_disabled')) {
+   console.error(`Reminder DM failed for ${t.ticketId}:`, err.message);
+ }
  }
  }
  if (unreminded.length) console.log(` Sent ${unreminded.length} employee reminders`);
@@ -2699,19 +2704,9 @@ app.listen(PORT, async () => {
  return;
  }
 
- // ── Special case: Won't Turn On — no script possible, show manual steps + HIGH ticket ──
+ // ── Special case: Won't Turn On — open modal FIRST (trigger_id expires in 3s) ──
  if (actionId === 'home_quick_2') {
- const empWon = await Employee.findOne({ slackUserId: userId });
- if (empWon?.empId) {
-   pendingTickets.set(userId, {
-     empId: empWon.empId, empName: empWon.name, empEmail: empWon.email || 'unknown@wiom.in',
-     empDept: empWon.department, empFloor: empWon.floor,
-     laptop: empWon.laptop, laptopSN: empWon.laptopSN,
-     category: 'Hardware', priority: 'High',
-     description: "Laptop won't turn on at all",
-     source: 'slack', slackUserId: userId, createdAt: Date.now()
-   });
- }
+ // FIX: views.open BEFORE any DB call — trigger_id expires in 3 seconds
  await client.views.open({
    trigger_id: triggerId,
    view: {
@@ -2738,6 +2733,17 @@ app.listen(PORT, async () => {
      ]
    }
  });
+ // DB call AFTER modal — background mein pendingTicket set karo
+ Employee.findOne({ slackUserId: userId }).then(empWon => {
+   if (empWon?.empId) pendingTickets.set(userId, {
+     empId: empWon.empId, empName: empWon.name, empEmail: empWon.email || 'unknown@wiom.in',
+     empDept: empWon.department, empFloor: empWon.floor,
+     laptop: empWon.laptop, laptopSN: empWon.laptopSN,
+     category: 'Hardware', priority: 'High',
+     description: "Laptop won't turn on at all",
+     source: 'slack', slackUserId: userId, createdAt: Date.now()
+   });
+ }).catch(() => {});
  return;
  }
 
@@ -2841,8 +2847,6 @@ app.listen(PORT, async () => {
  }
 
           modalBlocks.push({ type: 'divider' });
-         // ── Resolution Flow ─────────────────────────────────────────────────────────────
-         modalBlocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*Did this fix your issue?*' } });
          modalBlocks.push({
            type: 'actions',
            elements: [
@@ -2855,10 +2859,10 @@ app.listen(PORT, async () => {
              },
              {
                type: 'button',
-               text: { type: 'plain_text', text: '❌ Still Not Working', emoji: true },
-               action_id: 'not_resolved_btn',
+               text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true },
+               action_id: 'quick_ticket_btn',
                style: 'danger',
-               value: (problem || '').substring(0, 100)
+               value: (problem || 'IT support needed').substring(0, 200)
              }
            ]
          });
@@ -2875,21 +2879,25 @@ app.listen(PORT, async () => {
  });
 
  } catch (err) {
- console.error('Home quick action error:', err.message, err.stack);
+ console.error('Home quick action error:', err.message);
+ // Try to update loading modal with fallback — DM nahi (messages_tab_disabled)
  try {
- const scriptConfig = SCRIPT_MAP[actionId];
- const fallbackBlocks = [
- { type: 'section', text: { type: 'mrkdwn', text: `*Your issue has been noted!*\n\nAI is temporarily unavailable — try the script below or type in DM.` }}
- ];
- if (scriptConfig) {
- const scriptUrl = `${PORTAL}/scripts/${scriptConfig.file}`;
- fallbackBlocks.push({ type: 'divider' });
- fallbackBlocks.push({ type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: `⬇️ ${scriptConfig.label} - Auto Script`, emoji: true }, style: 'primary', url: scriptUrl, action_id: `dl_fallback_${actionId}` }] });
- }
- fallbackBlocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: '_Or type your problem in DM — AI will help you there too._' }]});
- await client.chat.postMessage({ channel: userId, text: 'Your issue has been noted!', blocks: fallbackBlocks });
+   const loadingViewId = err._loadingViewId; // may be undefined
+   const fallbackView = {
+     type: 'modal',
+     title: { type: 'plain_text', text: 'IT Help', emoji: true },
+     close: { type: 'plain_text', text: 'Close', emoji: true },
+     blocks: [
+       { type: 'section', text: { type: 'mrkdwn', text: '*Kuch gadbad ho gayi — phir se try karo.*\n\nYa seedha ticket raise karo — IT team directly help karegi.' }},
+       { type: 'divider' },
+       { type: 'actions', elements: [
+         { type: 'button', text: { type: 'plain_text', text: 'Create Ticket', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: problem || 'IT support needed' }
+       ]}
+     ]
+   };
+   if (loadingViewId) await client.views.update({ view_id: loadingViewId, view: fallbackView }).catch(() => {});
  } catch (msgErr) {
- console.error('Fallback message failed:', msgErr.message);
+   console.error('Fallback update failed:', msgErr.message);
  }
  }
  });

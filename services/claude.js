@@ -685,18 +685,33 @@ const callGemini = async (systemPrompt, history) => {
 };
 
 
-// ── Call Groq (LLaMA fallback) ────────────────────────────────────────────────
+// ── Call Groq — tries 70b first, falls back to 8b if rate-limited ────────────
 const callGroq = async (systemPrompt, history) => {
   if (!groq) throw new Error('GROQ_API_KEY not configured');
-  const completion = await groq.chat.completions.create({
-    model      : 'llama-3.3-70b-versatile',
-    messages   : [{ role: 'system', content: systemPrompt }, ...history],
-    temperature: 0.55,  // ChatGPT-like: natural + accurate (0.3 was too robotic)
-    max_tokens : 500    // enough for full step lists without cut-off
-  });
-  const text = completion.choices?.[0]?.message?.content?.trim();
-  if (!text) throw new Error('Empty response from Groq');
-  return text;
+  // Primary: llama-3.3-70b-versatile (100K tokens/day)
+  // Fallback: llama-3.1-8b-instant (500K tokens/day) — used when 70b hits rate limit
+  const models = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant'];
+  let lastErr;
+  for (const model of models) {
+    try {
+      const completion = await groq.chat.completions.create({
+        model,
+        messages   : [{ role: 'system', content: systemPrompt }, ...history],
+        temperature: 0.55,
+        max_tokens : 500
+      });
+      const text = completion.choices?.[0]?.message?.content?.trim();
+      if (!text) throw new Error('Empty response from Groq ' + model);
+      if (model !== 'llama-3.3-70b-versatile') console.log('⚡ Using Groq fallback model:', model);
+      return text;
+    } catch (err) {
+      lastErr = err;
+      // 429 = rate limit → try next model. Other errors → throw immediately.
+      if (!err.message?.includes('429') && !err.message?.includes('rate_limit') && !err.message?.includes('Rate limit')) throw err;
+      console.warn('⚠️ Groq ' + model + ' rate limited, trying next...');
+    }
+  }
+  throw lastErr;
 };
 
 
