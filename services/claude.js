@@ -285,6 +285,15 @@ const DIRECT_KB = {
   printer_issue:
     `Printer print nahi kar rha. Yeh try karo:\n\n1. *Printer restart* → Printer band karo → 30 sec → on karo\n2. *Laptop restart* → Laptop restart karo → dobara print try karo\n3. *Default printer* → Settings → Bluetooth & devices → Printers → sahi printer default set karo\n\nAgar printer list mein dikh hi nahi rha → *Create Ticket* button dabao — IT network printer setup karega 🎫`,
 
+  website_blocked:
+    `Website load nahi ho rhi. Yeh try karo:\n\n1. *Doosri website check karo* → google.com ya gmail.com kholo — woh open hoti hai?\n2. *Incognito try karo* → Ctrl+Shift+N → website dobara kholo\n3. *Cache clear karo* → Ctrl+Shift+Del → All time → Cached images → Clear → website try karo\n4. *Baad mein try karo* → Agar sirf yeh ek website hai → website ka server down ho sakta hai\n\nAgar koi bhi website nahi khul rhi → *Create Ticket* button dabao — IT network check karega 🎫`,
+
+  app_crash:
+    `Application nahi khul rha ya crash ho rha hai. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → application dhundho → End Task karo → dobara open karo\n2. *Restart* → Laptop restart karo → dobara try karo\n\nAgar app list mein nahi hai ya install karna hai → *Create Ticket* button dabao — IT install karega (admin rights chahiye) 🎫`,
+
+  pdf_issue:
+    `PDF file nahi khul rhi. Yeh try karo:\n\n1. *Right-click → Open With* → PDF pe right-click → Open With → Adobe Acrobat select karo\n2. *Chrome mein try karo* → PDF file Chrome browser mein drag karke drop karo\n3. *Restart* → Laptop restart karo → dobara try karo\n\nAgar Adobe nahi hai → *Create Ticket* button dabao — IT install karega 🎫`,
+
   // ── New issues ────────────────────────────────────────────────────────────
   screen_flicker:
     `Screen flicker/blink kar rhi hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek hota hai\n2. *External monitor* → HDMI se monitor connect karo — bahar sahi dikh rha hai to laptop screen ka hardware issue hai\n3. *Brightness adjust* → Fn+F5/F6 se brightness adjust karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT directly help karegi 🎫`,
