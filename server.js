@@ -876,18 +876,17 @@ app.listen(PORT, async () => {
 
  // ── Build Home Tab blocks — FINAL Phase 1 design ────────────────────────────────────────
          const buildHomeBlocks = (emp, myTickets, expandedSet) => {
-           const name = (emp?.empName || emp?.name || 'there').split(' ')[0];
            const blocks = [];
 
-           // Header
+           // ── Header ────────────────────────────────────────────────────────
            blocks.push({
              type: 'section',
-             text: { type: 'mrkdwn', text: '🛠 *WIOM IT Helpdesk*\n_How can I help you today, ' + name + '?_' },
+             text: { type: 'mrkdwn', text: '*🛠 Wiom IT Helpdesk*\nSelect your issue category below.\n_Most common issues can be resolved automatically._' },
              accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/wiom-logo.webp', alt_text: 'WIOM' }
            });
            blocks.push({ type: 'divider' });
 
-           // 11 Categories in rows of 3
+           // ── 11 Categories ────────────────────────────────────────────────
            blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '💻 Device & Hardware', emoji: true }, action_id: 'cat_laptop', value: 'laptop' },
              { type: 'button', text: { type: 'plain_text', text: '🌐 Network & Internet', emoji: true }, action_id: 'cat_network', value: 'network' },
@@ -907,29 +906,46 @@ app.listen(PORT, async () => {
              { type: 'button', text: { type: 'plain_text', text: '📦 Asset Requests', emoji: true }, action_id: 'cat_asset', value: 'asset' },
              { type: 'button', text: { type: 'plain_text', text: '🚨 Emergency', emoji: true }, action_id: 'cat_emergency', value: 'emergency', style: 'danger' },
            ]});
-
            blocks.push({ type: 'divider' });
 
-           // My Open Tickets (only if open)
-           const statEmoji = { 'Open': '🔴', 'In Progress': '🟡', 'Waiting': '🟠' };
+           // ── My Tickets ───────────────────────────────────────────────────
+           const statEmoji = { 'Open': '🔴', 'In Progress': '🟡', 'Waiting': '🟠', 'Resolved': '🟢', 'Closed': '⚪' };
            const priEmoji2 = { 'Critical': '🔴', 'High': '🟠', 'Medium': '🟡', 'Low': '🟢' };
-           const openTickets = myTickets ? myTickets.filter(t => ['Open', 'In Progress', 'Waiting'].includes(t.status)) : [];
-           if (openTickets.length > 0) {
-             blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '🎫 *My Open Tickets* — 🔴 *' + openTickets.length + ' Open*' }});
-             for (const t of openTickets.slice(0, 3)) {
+           const allTickets = myTickets ? myTickets.slice(0, 3) : [];
+           if (allTickets.length > 0) {
+             const openCount = allTickets.filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
+             blocks.push({ type: 'section', text: { type: 'mrkdwn', text:
+               `*🎫 My Tickets* — ${openCount > 0 ? '🔴 *'+openCount+' Open*' : '🟢 All Clear'}`
+             }});
+             for (const t of allTickets) {
                const hrs = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
                const timeStr = hrs < 24 ? hrs + 'h ago' : Math.floor(hrs/24) + 'd ago';
-               blocks.push({ type: 'section', text: { type: 'mrkdwn', text: (statEmoji[t.status]||'🔵') + ' `' + t.ticketId + '` — *' + t.status + '* ' + (priEmoji2[t.priority]||'🟡') + ' ' + t.priority + '\n_' + (t.description||'').substring(0,55) + '..._\n📅 ' + timeStr }});
+               const statusLine = (statEmoji[t.status]||'🔵') + ' *' + t.status + '*  ' + (priEmoji2[t.priority]||'🟡') + ' ' + t.priority;
+               blocks.push({
+                 type: 'section',
+                 text: { type: 'mrkdwn', text: '`' + t.ticketId + '` — ' + statusLine + '\n_' + (t.description||'').substring(0,60) + '..._\n📅 ' + timeStr },
+                 accessory: { type: 'button', text: { type: 'plain_text', text: 'Details', emoji: true }, action_id: 'view_ticket_details', value: t.ticketId }
+               });
              }
              blocks.push({ type: 'divider' });
            }
 
-           // Bottom actions
+           // ── Quick Actions ────────────────────────────────────────────────
            blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'danger' },
+             { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
              { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Password', emoji: true }, action_id: 'home_quick_wifi_pwd_quick', value: 'wifi password', style: 'primary' },
-             { type: 'button', text: { type: 'plain_text', text: '🔑 Password Reset', emoji: true }, action_id: 'home_quick_55b', value: 'password reset' },
            ]});
+           blocks.push({ type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '🔑 Password Reset', emoji: true }, action_id: 'home_quick_55b', value: 'password reset' },
+             { type: 'button', text: { type: 'plain_text', text: '📧 Email Access', emoji: true }, action_id: 'vague_pick_email_access', value: 'email_access' },
+             { type: 'button', text: { type: 'plain_text', text: '💻 Laptop Slow Fix', emoji: true }, action_id: 'vague_pick_laptop_slow', value: 'laptop_slow' },
+           ]});
+
+           // ── Footer ───────────────────────────────────────────────────────
+           blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text:
+             '🕐 *IT Support:* Mon–Fri 9AM–7PM  |  📧 sajan.kumar@wiom.in  |  ⚡ Zivon — 24/7 AI Support'
+           }]});
 
            return blocks;
          };
@@ -1847,6 +1863,45 @@ app.listen(PORT, async () => {
    });
  });
 
+ // ── Ticket Details Modal ─────────────────────────────────────────────────────
+ slackApp.action('view_ticket_details', async ({ body, ack, client }) => {
+   await ack();
+   const ticketId = body.actions[0].value;
+   const triggerId = body.trigger_id;
+   if (!triggerId) return;
+   try {
+     const t = await Ticket.findOne({ ticketId }).lean();
+     if (!t) {
+       await client.views.open({ trigger_id: triggerId, view: {
+         type: 'modal', title: { type: 'plain_text', text: 'Ticket Not Found' },
+         close: { type: 'plain_text', text: 'Close' },
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Ticket `' + ticketId + '` nahi mili.' }}]
+       }});
+       return;
+     }
+     const statEmoji = { 'Open': '🔴', 'In Progress': '🟡', 'Waiting': '🟠', 'Resolved': '🟢', 'Closed': '⚪' };
+     const priEmoji = { 'Critical': '🔴', 'High': '🟠', 'Medium': '🟡', 'Low': '🟢' };
+     const hrs = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
+     const timeStr = hrs < 24 ? hrs + ' hours ago' : Math.floor(hrs/24) + ' days ago';
+     await client.views.open({ trigger_id: triggerId, view: {
+       type: 'modal',
+       title: { type: 'plain_text', text: ticketId, emoji: true },
+       close: { type: 'plain_text', text: 'Close', emoji: true },
+       blocks: [
+         { type: 'section', fields: [
+           { type: 'mrkdwn', text: '*Status:*\n' + (statEmoji[t.status]||'🔵') + ' ' + t.status },
+           { type: 'mrkdwn', text: '*Priority:*\n' + (priEmoji[t.priority]||'🟡') + ' ' + t.priority },
+           { type: 'mrkdwn', text: '*Category:*\n' + (t.category||'Other') },
+           { type: 'mrkdwn', text: '*Created:*\n' + timeStr },
+         ]},
+         { type: 'divider' },
+         { type: 'section', text: { type: 'mrkdwn', text: '*Issue Description:*\n' + (t.description||'No description') }},
+         { type: 'context', elements: [{ type: 'mrkdwn', text: 'IT team working on this. Contact: sajan.kumar@wiom.in' }]}
+       ]
+     }});
+   } catch(err) { console.error('view_ticket_details error:', err.message); }
+ });
+
  // ── Charger Damaged → IT Ticket ───────────────────────────────────────────────
  slackApp.action('vague_pick_charger_damaged', async ({ body, ack, client }) => {
    await ack();
@@ -1963,7 +2018,7 @@ app.listen(PORT, async () => {
 
  // ── Vague pick button handler (quick problem selection from DM) ─────
 
- // ── LAPTOP SLOW — Special handler with exact steps + Auto-Fix ───────────────
+ // ── LAPTOP SLOW — Auto Fix Page (improved UI) ────────────────────────────────
  slackApp.action('vague_pick_laptop_slow', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
@@ -1973,31 +2028,40 @@ app.listen(PORT, async () => {
 
    const blocks = [
      { type: 'section', text: { type: 'mrkdwn', text:
-       `🐢 *Laptop Slow/Hang* — yeh try karo:\n\n` +
-       `1. *Task Manager* → Ctrl+Shift+Esc → CPU column → jo zyada use kar raha ho End Task karo\n` +
-       `2. *Browser tabs* → unnecessary Chrome/Edge tabs band karo\n` +
-       `3. *Restart* → Laptop properly shut down karo (restart, sleep nahi)\n\n` +
-       `Agar in teeno se theek nahi hua, ticket par click karo (RAM ya SSD check hogi)`
+       `*🐢 Laptop Slow/Hang*\n\nPehle yeh 3 steps try karo:\n\n` +
+       `1. *Task Manager* → Ctrl+Shift+Esc → CPU column → heavy app → End Task\n` +
+       `2. *Browser tabs* → extra Chrome/Edge tabs band karo\n` +
+       `3. *Restart* → Properly shut down karo (restart, sleep nahi)`
      }},
      { type: 'divider' },
-     { type: 'section', text: { type: 'mrkdwn', text: `*⚡ Auto-Fix Available*\nYeh script automatically: temp files delete karega, heavy background apps band karega, memory free karega.\n⚠️ Safe hai — koi data delete nahi hoga.` }},
+     { type: 'section', text: { type: 'mrkdwn', text:
+       `*⚡ Auto Fix*\n\nYeh script automatically yeh karega:\n\n` +
+       `✓ Clear temporary files\n` +
+       `✓ Refresh performance settings\n` +
+       `✓ Restart Windows Explorer\n` +
+       `✓ Clean junk files\n\n` +
+       `*Estimated Time:* 2 minutes\n` +
+       `*Success Rate:* 85%\n\n` +
+       `_Safe hai — koi data delete nahi hoga_`
+     }},
      { type: 'actions', elements: [
-       { type: 'button', text: { type: 'plain_text', text: '⬇️ Auto-Fix: Laptop Speed Download', emoji: true }, style: 'primary', url: `${PORTAL}/scripts/fix-slow-laptop.bat`, action_id: 'dl_slow_laptop' }
+       { type: 'button', text: { type: 'plain_text', text: '🔧 Download & Run Auto Fix', emoji: true }, style: 'primary', url: `${PORTAL}/scripts/fix-slow-laptop.bat`, action_id: 'dl_slow_laptop' }
      ]},
      { type: 'divider' },
+     { type: 'section', text: { type: 'mrkdwn', text: '*Auto Fix ke baad — resolved hua?*' }},
      { type: 'actions', elements: [
-       { type: 'button', text: { type: 'plain_text', text: '✅ Yes, Fixed!', emoji: true }, action_id: 'laptop_slow_fixed', style: 'primary', value: 'laptop_slow' },
-       { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Laptop slow hai — RAM ya SSD check karni hai' },
+       { type: 'button', text: { type: 'plain_text', text: '🟢 Yes, Fixed!', emoji: true }, action_id: 'laptop_slow_fixed', style: 'primary', value: 'laptop_slow' },
+       { type: 'button', text: { type: 'plain_text', text: '🔴 No, Still Issue', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Laptop slow hai — Auto Fix se bhi theek nahi hua, RAM ya SSD check karni hai' },
      ]}
    ];
 
-   const modalView = { type: 'modal', title: { type: 'plain_text', text: '🐢 Laptop Slow', emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks };
+   const modalView = { type: 'modal', title: { type: 'plain_text', text: '🐢 Laptop Slow', emoji: true }, close: { type: 'plain_text', text: '⬅ Back', emoji: true }, blocks };
 
    if (isFromModal && triggerId) {
      try { await client.views.push({ trigger_id: triggerId, view: modalView }); }
-     catch(e) { await client.chat.postMessage({ channel: userId, text: 'Laptop Slow fix steps', blocks }); }
+     catch(e) { await client.chat.postMessage({ channel: userId, text: 'Laptop Slow - Auto Fix', blocks }); }
    } else {
-     await client.chat.postMessage({ channel: userId, text: 'Laptop Slow fix steps', blocks });
+     await client.chat.postMessage({ channel: userId, text: 'Laptop Slow - Auto Fix', blocks });
    }
  });
 
@@ -2060,19 +2124,23 @@ app.listen(PORT, async () => {
      new_headphone: 'Headphone', new_monitor: 'New Monitor',
    };
    const itemName = itemNames[rawKey] || 'Equipment';
+   const mailSubject = encodeURIComponent(`${itemName} Request - Approval Required`);
+   const mailBody = encodeURIComponent(`Hi,\n\nI am requesting a ${itemName} for my work.\n\nReason: [Please fill reason]\n\nCC: sajan.kumar@wiom.in\n\nThank you`);
 
    const blocks = [
-     { type: 'section', text: { type: 'mrkdwn', text:
-       `📦 *${itemName} Request*\n\nNaya equipment lene ke liye:\n\n` +
-       `1. *Apne Reporting Manager ko email karo*\n` +
-       `2. *CC mein add karo:* sajan.kumar@wiom.in\n` +
-       `3. *Email mein likho* — kya chahiye aur kyun\n\n` +
-       `✅ Manager approval ke baad *2 din* mein arrange ho jaayega.`
-     }},
+     { type: 'header', text: { type: 'plain_text', text: `📦 ${itemName} Request`, emoji: true }},
+     { type: 'section', text: { type: 'mrkdwn', text: '*Approval Required*\n\nPlease obtain approval from your reporting manager.' }},
+     { type: 'divider' },
+     { type: 'section', fields: [
+       { type: 'mrkdwn', text: '*CC:*\nsajan.kumar@wiom.in' },
+       { type: 'mrkdwn', text: '*Expected Processing Time:*\n2 Working Days' },
+     ]},
      { type: 'divider' },
      { type: 'actions', elements: [
-       { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' },
-     ]}
+       { type: 'button', text: { type: 'plain_text', text: '📧 Send Approval Email', emoji: true }, style: 'primary', url: `mailto:?subject=${mailSubject}&body=${mailBody}`, action_id: `dl_asset_email_${rawKey}` },
+       { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home' },
+     ]},
+     { type: 'context', elements: [{ type: 'mrkdwn', text: '_Manager approval ke baad IT team directly arrange karegi._' }]}
    ];
 
    const modalView = { type: 'modal', title: { type: 'plain_text', text: `📦 ${itemName}`, emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks };
