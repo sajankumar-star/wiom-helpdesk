@@ -2058,7 +2058,7 @@ app.listen(PORT, async () => {
    outlook_email: 'gmail email issue', email_login: 'gmail login nahi ho rha email mein access nahi',
   slack_issue: 'slack nahi chal rha',
    email_not_sending: 'Gmail se email send nahi ho rhi — error aa rha hai ya email stuck hai outbox mein', email_not_receiving: 'Gmail inbox mein emails nahi aa rhi — expected emails missing hain ya inbox khali hai',
-   calendar_sync: 'calendar sync nahi ho rha', password_reset: 'password bhool gaya reset karna hai',
+   calendar_sync: 'Google Calendar sync nahi ho rha — Google Calendar app ya browser mein events nahi dikh rhe ya calendar load nahi ho rha, seedha troubleshooting steps do', password_reset: 'password bhool gaya reset karna hai',
    account_locked: 'account locked ho gaya login nahi ho rha', shared_folder: 'shared folder access nahi mil rha',
    email_access: 'Gmail account access chahiye — naya account ya existing account mein problem', software_access: 'kisi software ka access chahiye — install karna hai ya permission chahiye, IT karega',
    new_laptop: 'new laptop request chahiye', new_mouse: 'mouse chahiye new',
@@ -2165,13 +2165,16 @@ app.listen(PORT, async () => {
      .trim();
 
    const formattedReply = formatForSlack(reply);
+   // IT-only issues — no "Yes Fixed!" button (user can't self-fix these)
+   const itOnlyIssues = ['password_reset','account_locked','email_access','software_access','office_activation','shared_folder','new_laptop','new_mouse','new_keyboard','new_headphone','new_monitor','new_charger'];
+   const isItOnly = itOnlyIssues.includes(rawKey);
+   const actionElements = [];
+   if (!isItOnly) actionElements.push({ type: 'button', text: { type: 'plain_text', text: '✅ Yes, Fixed!', emoji: true }, action_id: 'resolved_yes_btn', style: 'primary', value: 'Medium' });
+   actionElements.push({ type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: naturalProblem });
    const blocks = [
      { type: 'section', text: { type: 'mrkdwn', text: formattedReply }},
      { type: 'divider' },
-     { type: 'actions', elements: [
-       { type: 'button', text: { type: 'plain_text', text: '✅ Yes, Fixed!', emoji: true }, action_id: 'resolved_yes_btn', style: 'primary', value: 'Medium' },
-       { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: naturalProblem },
-     ]}
+     { type: 'actions', elements: actionElements }
    ];
 
    const modalView = { type: 'modal', title: { type: 'plain_text', text: modalTitle, emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks };

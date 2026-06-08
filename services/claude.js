@@ -231,6 +231,11 @@ Scanner not working: Scanner OFF/ON → check USB cable → restart laptop → t
 Network drive missing: Disconnect/reconnect → File Explorer → This PC → Map Network Drive → use same drive letter. Restart laptop → check if auto-reconnects. Still missing = ticket (IT remaps)
 Email not sending (Gmail): Check internet → try sending from gmail.com directly in Chrome. Check spam/sent folder. If bouncing = ticket
 Email not receiving (Gmail): Check spam/junk/trash folders. Check Gmail storage (Settings → Storage). Try gmail.com in incognito. Still missing = ticket
+Google Calendar not syncing: Open calendar.google.com in Chrome → check if events show there. If yes → refresh the app. Clear Chrome cache (Ctrl+Shift+Del). Try incognito. Still not syncing = ticket
+Password reset (Windows/Gmail/any): IT ONLY — employees cannot reset themselves. Raise ticket — IT team will reset within 24 hours.
+Account locked: IT ONLY — raise ticket immediately. Do NOT try to unlock yourself.
+Folder/shared drive access: IT ONLY — raise ticket specifying which folder needed and why. IT will grant access.
+Software/app access: IT ONLY — raise ticket specifying which app needed. IT will install with proper license.
 Keyboard: Restart → use osk.exe (on-screen keyboard). Fails = ticket (IT fixes driver — no admin rights)
 Printer not printing: Printer OFF/ON → laptop restart → dobara print. Fails = ticket
 Printer not visible on network: IT ticket — network access setup needed, employee cannot add themselves (no admin rights)
