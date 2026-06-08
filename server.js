@@ -964,8 +964,7 @@ app.listen(PORT, async () => {
    blocks: [{
      type: 'section',
      text: { type: 'mrkdwn', text:
-       '✅ *Bahut accha! Issue resolve ho gaya!* 🎉\n\n' +
-       'IT Helpdesk happy hai ki aapki problem solve ho gayi.\n\n' +
+       '✅ *Bahut accha! Issue resolve ho gaya!*\n\n' +
        '_Is window ko close karo. Koi aur IT problem ho toh Home tab pe jaao._'
      }
    }]
@@ -988,9 +987,7 @@ app.listen(PORT, async () => {
      type: 'section',
      text: { type: 'mrkdwn', text:
        '*IT Ticket Create Ho Gaya!*\n\n' +
-       `*Ticket ID:* \`${result.ticketId}\`\n` +
-       `*Priority:* ${result.priority}\n` +
-       `*Category:* ${result.category}\n\n` +
+       `*Ticket ID:* \`${result.ticketId}\`\n\n` +
        'IT team jald se jald madad karegi.\n_Is window ko close karo._'
      }
    }]
@@ -999,8 +996,7 @@ app.listen(PORT, async () => {
  // ── Shared: "Resolved" DM message — same for every problem ──────────────────
  const resolvedDMBlocks = () => ([
    { type: 'section', text: { type: 'mrkdwn', text:
-     '✅ *Bahut accha! Issue resolve ho gaya!* 🎉\n\n' +
-     'IT Helpdesk happy hai ki aapki problem solve ho gayi.\n\n' +
+     '✅ *Bahut accha! Issue resolve ho gaya!*\n\n' +
      '_Koi aur IT problem ho toh Home tab pe jaao aur category select karo._'
    }},
    { type: 'actions', elements: [
