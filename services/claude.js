@@ -494,11 +494,12 @@ const getKBFallback = (problem) => {
   if (pn.includes('teams') && (pn.includes('slow') || pn.includes('hang') || pn.includes('lagg')))
     return `Microsoft Teams slow hai. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar Teams icon → right-click → Quit → dobara open karo\n2. *Browser mein try karo* → teams.microsoft.com Chrome mein open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
-  // Generic laptop slow — only when NO app/browser context
+  // Generic laptop slow — only when NO app/browser/software context
   if ((pn.includes('slow') || pn.includes('hang') || pn.includes('freez') || pn.includes('dheema') || pn.includes('lagg')) &&
       !pn.includes('browser') && !pn.includes('chrome') && !pn.includes('edge') && !pn.includes('excel') &&
       !pn.includes('word') && !pn.includes('teams') && !pn.includes('zoom') && !pn.includes('internet') &&
-      !pn.includes('wifi') && !pn.includes('website'))
+      !pn.includes('wifi') && !pn.includes('website') && !pn.includes('slack') && !pn.includes('gmail') &&
+      !pn.includes('outlook') && !pn.includes('app') && !pn.includes('software') && !pn.includes('pdf'))
     return `💻 *Laptop Slow/Hang* — yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → CPU column → jo zyada use kar raha ho End Task karo\n2. *Browser tabs* → unnecessary Chrome/Edge tabs band karo\n3. *Restart* → Laptop properly shut down karo (restart, sleep nahi)\n\nAgar in teeno se theek nahi hua → *Create Ticket* button dabao — IT team RAM ya SSD check karegi 🎫`;
 
   if (pn.includes('wifi') || pn.includes('internet') || pn.includes('network') ||
