@@ -887,19 +887,25 @@ app.listen(PORT, async () => {
            });
            blocks.push({ type: 'divider' });
 
-           // 7 Categories in rows of 3
+           // 11 Categories in rows of 3
            blocks.push({ type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '💻 Laptop & Hardware', emoji: true }, action_id: 'cat_laptop', value: 'laptop' },
+             { type: 'button', text: { type: 'plain_text', text: '💻 Device & Hardware', emoji: true }, action_id: 'cat_laptop', value: 'laptop' },
              { type: 'button', text: { type: 'plain_text', text: '🌐 Network & Internet', emoji: true }, action_id: 'cat_network', value: 'network' },
              { type: 'button', text: { type: 'plain_text', text: '📊 Microsoft Office', emoji: true }, action_id: 'cat_msoffice', value: 'office' },
            ]});
            blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '🌍 Browser & Apps', emoji: true }, action_id: 'cat_browser', value: 'browser' },
-             { type: 'button', text: { type: 'plain_text', text: '📧 Email & Communication', emoji: true }, action_id: 'cat_email', value: 'email' },
-             { type: 'button', text: { type: 'plain_text', text: '🔐 Access & Password', emoji: true }, action_id: 'cat_access', value: 'access' },
+             { type: 'button', text: { type: 'plain_text', text: '📧 Email & Comm', emoji: true }, action_id: 'cat_email', value: 'email' },
+             { type: 'button', text: { type: 'plain_text', text: '🔐 Access & Identity', emoji: true }, action_id: 'cat_access', value: 'access' },
+           ]});
+           blocks.push({ type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '📱 Mobile & SIM', emoji: true }, action_id: 'cat_mobile', value: 'mobile' },
+             { type: 'button', text: { type: 'plain_text', text: '☁️ Cloud & Storage', emoji: true }, action_id: 'cat_cloud', value: 'cloud' },
+             { type: 'button', text: { type: 'plain_text', text: '🔒 Security', emoji: true }, action_id: 'cat_security', value: 'security' },
            ]});
            blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '📦 Asset Requests', emoji: true }, action_id: 'cat_asset', value: 'asset' },
+             { type: 'button', text: { type: 'plain_text', text: '🚨 Emergency', emoji: true }, action_id: 'cat_emergency', value: 'emergency', style: 'danger' },
            ]});
 
            blocks.push({ type: 'divider' });
@@ -1623,100 +1629,141 @@ app.listen(PORT, async () => {
 
    const categoryMenus = {
      cat_laptop: {
-       label: '💻 Laptop & Hardware',
-       desc: 'Select your specific issue:',
+       label: '💻 Device & Hardware', desc: 'Select your specific issue:',
        issues: [
-         { text: '🐢 Laptop Slow',              val: 'laptop_slow' },
-         { text: '❌ Laptop Not Starting',       val: 'wont_turn_on' },
-         { text: '💙 Blue Screen',              val: 'blue_screen' },
-         { text: '🌡️ Overheating',             val: 'overheat' },
-         { text: '🔋 Battery Issue',            val: 'battery_issue' },
-         { text: '🔌 Charger Issue',            val: 'charger_issue_menu' },
-         { text: '⌨️ Keyboard Issue',           val: 'keys_not_working' },
-         { text: '🖱️ Touchpad Issue',           val: 'touchpad_issue' },
-         { text: '📷 Camera Issue',             val: 'camera_issue' },
-         { text: '🎤 Microphone Issue',         val: 'mic_issue' },
-         { text: '🔊 Speaker / Audio Issue',    val: 'sound_none' },
-         { text: '🖥️ Screen Issue',             val: 'screen_black' },
-         { text: '🖵 External Monitor Issue',   val: 'external_monitor' },
-         { text: '🖨️ Scanner Issue',            val: 'scanner_issue' },
+         { text: '🐢 Laptop Slow',            val: 'laptop_slow' },
+         { text: '❌ Laptop Not Starting',     val: 'wont_turn_on' },
+         { text: '💙 Blue Screen',            val: 'blue_screen' },
+         { text: '🌡️ Overheating',           val: 'overheat' },
+         { text: '🔋 Battery Issue',          val: 'battery_issue' },
+         { text: '🔌 Charger Issue',          val: 'charger_issue_menu' },
+         { text: '🔋 Battery Not Charging',   val: 'battery_not_charging' },
+         { text: '⌨️ Keyboard Issue',         val: 'keys_not_working' },
+         { text: '🖱️ Touchpad Issue',         val: 'touchpad_issue' },
+         { text: '📷 Camera Issue',           val: 'camera_issue' },
+         { text: '🎤 Microphone Issue',       val: 'mic_issue' },
+         { text: '🔊 Speaker / Audio',        val: 'sound_none' },
+         { text: '🖥️ Screen Black',           val: 'screen_black' },
+         { text: '🌊 Screen Flickering',      val: 'screen_flicker' },
+         { text: '🖵 External Monitor',       val: 'external_monitor' },
+         { text: '📹 Projector / HDMI',       val: 'projector_issue' },
+         { text: '🔌 USB Port Issue',         val: 'usb_issue' },
+         { text: '🌀 Fan Noise',              val: 'fan_noise' },
+         { text: '💥 Physical/Liquid Damage', val: 'physical_damage' },
        ]
      },
      cat_network: {
-       label: '🌐 Network & Internet',
-       desc: 'Select your specific issue:',
+       label: '🌐 Network & Internet', desc: 'Select your specific issue:',
        issues: [
-         { text: '📵 WiFi Not Working',    val: 'wifi_not_connect' },
-         { text: '🌐 No Internet',         val: 'no_internet' },
-         { text: '🐌 Slow Internet',       val: 'internet_slow' },
-         { text: '🔌 LAN Issue',           val: 'lan_issue' },
-         { text: '💾 Network Drive Issue', val: 'network_drive' },
+         { text: '📵 WiFi Not Working',       val: 'wifi_not_connect' },
+         { text: '🌐 No Internet',            val: 'no_internet' },
+         { text: '🐌 Slow Internet',          val: 'internet_slow' },
+         { text: '🔌 LAN Issue',              val: 'lan_issue' },
+         { text: '💾 Network Drive Issue',    val: 'network_drive' },
+         { text: '❌ Website Not Opening',    val: 'website_blocked' },
+         { text: '🔄 Frequent Disconnect',    val: 'frequent_disconnect' },
        ]
      },
      cat_msoffice: {
-       label: '📊 Microsoft Office',
-       desc: 'Select your specific issue:',
+       label: '📊 Microsoft Office', desc: 'Select your specific issue:',
        issues: [
-         { text: '📊 Excel Not Opening',       val: 'excel_issue' },
-         { text: '📝 Word Not Opening',         val: 'word_issue' },
-         { text: '📊 PowerPoint Not Opening',   val: 'ppt_issue' },
-         { text: '🔑 Office Activation Issue',  val: 'office_activation' },
-         { text: '📁 File Not Opening',         val: 'file_corrupted' },
-         { text: '📊 Excel Slow',               val: 'excel_slow' },
+         { text: '📊 Excel Not Opening',      val: 'excel_issue' },
+         { text: '📝 Word Not Opening',        val: 'word_issue' },
+         { text: '📊 PowerPoint Not Opening', val: 'ppt_issue' },
+         { text: '🔑 Office Activation',      val: 'office_activation' },
+         { text: '📁 File Not Opening',       val: 'file_corrupted' },
+         { text: '📊 Excel Slow',             val: 'excel_slow' },
        ]
      },
      cat_browser: {
-       label: '🌍 Browser & Apps',
-       desc: 'Select your specific issue:',
+       label: '🌍 Browser & Applications', desc: 'Select your specific issue:',
        issues: [
-         { text: '🌐 Chrome Not Opening',         val: 'chrome_issue' },
-         { text: '🌐 Edge Not Opening',           val: 'edge_issue' },
-         { text: '🐌 Browser Slow',               val: 'browser_slow' },
-         { text: '❌ Website Not Loading',          val: 'website_blocked' },
-         { text: '📹 Teams Issue',                val: 'teams_issue' },
-         { text: '🎥 Zoom Issue',                 val: 'zoom_issue' },
-         { text: '📄 Adobe PDF Issue',            val: 'pdf_issue' },
-         { text: '❌ Application Not Opening',      val: 'app_crash' },
+         { text: '🌐 Chrome Not Opening',     val: 'chrome_issue' },
+         { text: '🌐 Edge Not Opening',       val: 'edge_issue' },
+         { text: '🐌 Browser Slow',           val: 'browser_slow' },
+         { text: '❌ Website Not Loading',    val: 'website_blocked' },
+         { text: '📹 Teams Issue',            val: 'teams_issue' },
+         { text: '🎥 Zoom Issue',             val: 'zoom_issue' },
+         { text: '📄 Adobe PDF Issue',        val: 'pdf_issue' },
+         { text: '❌ Application Crash',      val: 'app_crash' },
        ]
      },
      cat_email: {
-       label: '📧 Email & Communication',
-       desc: 'Select your specific issue:',
+       label: '📧 Email & Communication', desc: 'Select your specific issue:',
        issues: [
-         { text: '📧 Gmail Issue',          val: 'gmail_issue' },
-         { text: '🔐 Email Login Issue',    val: 'email_login' },
-         { text: '💬 Slack Issue',          val: 'slack_issue' },
-         { text: '📹 Teams Meeting Issue',  val: 'teams_issue' },
-         { text: '📤 Email Not Sending',    val: 'email_not_sending' },
-         { text: '📥 Email Not Receiving',  val: 'email_not_receiving' },
-         { text: '📅 Calendar Issue',       val: 'calendar_sync' },
+         { text: '📧 Gmail Issue',            val: 'gmail_issue' },
+         { text: '🔐 Email Login',            val: 'email_login' },
+         { text: '📤 Email Not Sending',      val: 'email_not_sending' },
+         { text: '📥 Email Not Receiving',    val: 'email_not_receiving' },
+         { text: '💬 Slack Issue',            val: 'slack_issue' },
+         { text: '📹 Teams Issue',            val: 'teams_issue' },
+         { text: '📅 Calendar Issue',         val: 'calendar_sync' },
        ]
      },
      cat_access: {
-       label: '🔐 Access & Password',
-       desc: 'Select your specific issue:',
+       label: '🔐 Access & Identity', desc: 'Select your specific issue:',
        issues: [
-         { text: '🔑 Password Reset',       val: 'password_reset' },
-         { text: '🔒 Account Locked',       val: 'account_locked' },
-         { text: '📁 Shared Folder Access', val: 'shared_folder' },
-         { text: '📧 Email Access',         val: 'email_access' },
-         { text: '💾 Application Access',   val: 'software_access' },
+         { text: '🔑 Password Reset',         val: 'password_reset' },
+         { text: '🔒 Account Locked',         val: 'account_locked' },
+         { text: '📧 Email Access',           val: 'email_access' },
+         { text: '💾 Application Access',     val: 'software_access' },
+         { text: '🚪 Door Access Card',       val: 'door_access' },
        ]
      },
      cat_asset: {
-       label: '📦 Asset Requests',
-       desc: 'What do you need?',
+       label: '📦 Asset Requests', desc: 'What do you need?',
        issues: [
-         { text: '💻 New Laptop',     val: 'new_laptop' },
-         { text: '🔌 Charger',        val: 'charger_asset_menu' },
-         { text: '🖱️ Mouse',         val: 'new_mouse' },
-         { text: '⌨️ Keyboard',      val: 'new_keyboard' },
-         { text: '🎧 Headphone',      val: 'new_headphone' },
-         { text: '🖵 Monitor',        val: 'new_monitor' },
+         { text: '💻 New Laptop',    val: 'new_laptop' },
+         { text: '🔌 Charger',       val: 'charger_asset_menu' },
+         { text: '🖱️ Mouse',        val: 'new_mouse' },
+         { text: '⌨️ Keyboard',     val: 'new_keyboard' },
+         { text: '🎧 Headphone',     val: 'new_headphone' },
+         { text: '🖵 Monitor',       val: 'new_monitor' },
+       ]
+     },
+     cat_mobile: {
+       label: '📱 Mobile & SIM (Company Phone)', desc: 'Company phones only:',
+       issues: [
+         { text: '📱 Phone Not Working',      val: 'mobile_not_working' },
+         { text: '📡 SIM Not Working',        val: 'sim_not_working' },
+         { text: '🌐 Mobile Internet Issue',  val: 'mobile_internet' },
+         { text: '📧 Email on Phone Setup',   val: 'email_mobile' },
+         { text: '📲 Mobile App Issue',       val: 'mobile_app' },
+         { text: '🔋 Phone Charging Issue',   val: 'mobile_charging' },
+         { text: '🖥️ Phone Screen Damage',   val: 'mobile_screen_damage' },
+       ]
+     },
+     cat_cloud: {
+       label: '☁️ Cloud & Storage', desc: 'Select your specific issue:',
+       issues: [
+         { text: '☁️ Google Drive Issue',     val: 'google_drive_issue' },
+         { text: '🔗 Shared Drive Issue',     val: 'shared_drive_issue' },
+         { text: '🔄 File Sync Issue',        val: 'file_sync_issue' },
+         { text: '💾 Storage Full',           val: 'storage_full' },
+       ]
+     },
+     cat_security: {
+       label: '🔒 Security', desc: 'Select your specific issue:',
+       issues: [
+         { text: '🎣 Phishing Email',         val: 'phishing_email' },
+         { text: '🦠 Virus / Malware',        val: 'virus_malware' },
+         { text: '🔓 Suspicious Login',       val: 'suspicious_login' },
+         { text: '🚨 Security Alert',         val: 'security_alert' },
+         { text: '💀 Account Hacked',         val: 'account_hacked' },
+       ]
+     },
+     cat_emergency: {
+       label: '🚨 Emergency Support', desc: '⚠️ HIGH/CRITICAL ticket created immediately:',
+       issues: [
+         { text: '💧 Water/Liquid Damage',    val: 'liquid_damage' },
+         { text: '📱 Device Lost/Stolen',     val: 'device_lost' },
+         { text: '💀 Account Hacked',         val: 'account_hacked' },
+         { text: '🔥 Burning Smell',          val: 'burning_smell' },
+         { text: '🔋 Battery Swelling',       val: 'battery_swelling' },
+         { text: '💾 Data Loss',              val: 'data_loss' },
        ]
      },
    }
-
    const menu = categoryMenus[actionId];
    if (!menu) return;
 
@@ -2073,6 +2120,34 @@ app.listen(PORT, async () => {
    new_laptop: 'new laptop request chahiye', new_mouse: 'mouse chahiye new',
    new_keyboard: 'keyboard chahiye new', new_headphone: 'headphone chahiye',
    new_monitor: 'monitor chahiye new', new_charger: 'charger chahiye',
+   screen_flicker: 'laptop screen flicker kar rhi hai blink ho rhi',
+   projector_issue: 'projector ya HDMI conference room mein connect nahi ho rha',
+   usb_issue: 'USB port kaam nahi kar rha device detect nahi ho rhi',
+   fan_noise: 'laptop fan bahut tez noise kar rha hai ya band hai',
+   physical_damage: 'laptop physically damage ho gaya crack aa gaya ya gir gaya',
+   liquid_damage: 'laptop mein paani ya liquid gir gaya water damage EMERGENCY',
+   frequent_disconnect: 'WiFi baar baar disconnect ho rhi hai unstable',
+   door_access: 'office door access card kaam nahi kar rha ya naya card chahiye',
+   mobile_not_working: 'company phone kaam nahi kar rha on nahi ho rha',
+   sim_not_working: 'company SIM kaam nahi kar rha network nahi aa rha',
+   mobile_internet: 'company phone par internet nahi chal rha',
+   email_mobile: 'company phone par Gmail email setup karna hai',
+   mobile_app: 'company phone par app kaam nahi kar rha crash ho rha',
+   mobile_charging: 'company phone charge nahi ho rha',
+   mobile_screen_damage: 'company phone ki screen crack ho gayi damage hui',
+   google_drive_issue: 'Google Drive files nahi khul rhi ya sync nahi ho rhi',
+   shared_drive_issue: 'shared Google Drive folder access nahi hai files missing',
+   file_sync_issue: 'files sync nahi ho rhi Google Drive shared folder mein',
+   storage_full: 'laptop storage full ho gayi C drive full files save nahi ho rhe',
+   phishing_email: 'suspicious phishing email aaya hai jo fake lagta hai',
+   virus_malware: 'laptop mein virus ya malware hai suspicious activity ho rhi',
+   suspicious_login: 'kisi aur ne mera account use kiya suspicious login alert',
+   security_alert: 'security alert aa rha hai laptop ya account mein suspicious',
+   account_hacked: 'mera account hack ho gaya password kaam nahi EMERGENCY',
+   burning_smell: 'laptop se burning smell ya smoke aa rha hai EMERGENCY',
+   battery_swelling: 'laptop ki battery swell phool gayi hai EMERGENCY',
+   data_loss: 'important files delete ho gayi hain data missing hai',
+   device_lost: 'laptop ya device kho gaya hai ya chori ho gaya',
  };
 
  // ── Special case: "Create Ticket" button → open /ticket modal directly ─
@@ -2123,6 +2198,29 @@ app.listen(PORT, async () => {
  const triggerId = body.trigger_id;
  let loadingViewId = null;
 
+ // ── Auto-Fix scripts map — rawKey → { script filename, label } ──────────────
+ const PORTAL = process.env.API_BASE_URL || 'https://wiom-helpdesk-production.up.railway.app';
+ const AUTO_FIX = {
+   laptop_slow:         { file: 'fix-slow-laptop.bat',   label: 'Laptop Speed Fix' },
+   overheat:            { file: 'fix-overheating.bat',   label: 'Overheating Fix' },
+   wifi_not_connect:    { file: 'fix-wifi.bat',          label: 'WiFi Fix' },
+   no_internet:         { file: 'fix-wifi.bat',          label: 'Network Reset' },
+   internet_slow:       { file: 'fix-wifi.bat',          label: 'WiFi Speed Fix' },
+   keys_not_working:    { file: 'fix-keyboard.bat',      label: 'Keyboard Fix' },
+   touchpad_issue:      { file: 'fix-touchpad.bat',      label: 'Touchpad Fix' },
+   camera_issue:        { file: 'fix-camera.bat',        label: 'Camera Fix' },
+   mic_issue:           { file: 'fix-mic.bat',           label: 'Microphone Fix' },
+   sound_none:          { file: 'fix-sound.bat',         label: 'Audio Fix' },
+   screen_black:        { file: 'fix-black-screen.bat',  label: 'Screen Fix' },
+   blue_screen:         { file: 'fix-bluescreen.bat',    label: 'Blue Screen Fix' },
+   external_monitor:    { file: 'fix-hdmi.bat',          label: 'HDMI/Monitor Fix' },
+   browser_slow:        { file: 'fix-browser.bat',       label: 'Browser Fix' },
+   pdf_issue:           { file: 'fix-pdf.bat',           label: 'PDF Fix' },
+   teams_issue:         { file: 'fix-teams.bat',         label: 'Teams Fix' },
+   zoom_issue:          { file: 'fix-zoom.bat',          label: 'Zoom Fix' },
+   printer_issue:       { file: 'fix-printer.bat',       label: 'Printer Fix' },
+ };
+
  const ISSUE_TITLES = {
    blue_screen: '💙 Blue Screen', overheat: '🌡️ Overheating', battery_issue: '🔋 Battery Issue',
    battery_not_charging: '🔌 Charging Issue', keys_not_working: '⌨️ Keyboard Issue',
@@ -2140,6 +2238,20 @@ app.listen(PORT, async () => {
    email_not_sending: '📤 Email Sending', email_not_receiving: '📥 Email Receiving', calendar_sync: '📅 Calendar Issue',
    password_reset: '🔑 Password Reset', account_locked: '🔒 Account Locked',
    shared_folder: '📁 Folder Access', email_access: '📧 Email Access', software_access: '💾 App Access',
+   screen_flicker: '🌊 Screen Flicker', projector_issue: '📹 Projector/HDMI',
+   usb_issue: '🔌 USB Issue', fan_noise: '🌀 Fan Noise',
+   physical_damage: '💥 Physical Damage', liquid_damage: '💧 Liquid Damage',
+   frequent_disconnect: '🔄 WiFi Disconnect', door_access: '🚪 Door Access',
+   mobile_not_working: '📱 Phone Issue', sim_not_working: '📡 SIM Issue',
+   mobile_internet: '🌐 Mobile Internet', email_mobile: '📧 Email on Phone',
+   mobile_app: '📲 Mobile App', mobile_charging: '🔋 Phone Charging',
+   mobile_screen_damage: '🖥️ Phone Screen', google_drive_issue: '☁️ Google Drive',
+   shared_drive_issue: '🔗 Shared Drive', file_sync_issue: '🔄 File Sync',
+   storage_full: '💾 Storage Full', phishing_email: '🎣 Phishing',
+   virus_malware: '🦠 Virus/Malware', suspicious_login: '🔓 Suspicious Login',
+   security_alert: '🚨 Security Alert', account_hacked: '💀 Account Hacked',
+   burning_smell: '🔥 EMERGENCY', battery_swelling: '🔋 EMERGENCY',
+   data_loss: '💾 Data Loss', device_lost: '📱 Device Lost',
  };
  const modalTitle = ISSUE_TITLES[rawKey] || '🛠 IT Help';
 
@@ -2181,7 +2293,7 @@ app.listen(PORT, async () => {
 
    const formattedReply = formatForSlack(reply);
    // IT-only issues — no "Yes Fixed!" button (user can't self-fix these)
-   const itOnlyIssues = ['password_reset','account_locked','email_access','software_access','office_activation','shared_folder','new_laptop','new_mouse','new_keyboard','new_headphone','new_monitor','new_charger'];
+   const itOnlyIssues = ['password_reset','account_locked','email_access','software_access','office_activation','shared_folder','new_laptop','new_mouse','new_keyboard','new_headphone','new_monitor','new_charger','door_access','mobile_not_working','sim_not_working','mobile_internet','email_mobile','mobile_app','mobile_charging','mobile_screen_damage','google_drive_issue','shared_drive_issue','file_sync_issue','phishing_email','suspicious_login','security_alert','account_hacked','burning_smell','battery_swelling','data_loss','physical_damage','liquid_damage','storage_full'];
    const isItOnly = itOnlyIssues.includes(rawKey);
    const actionElements = [];
    if (!isItOnly) actionElements.push({ type: 'button', text: { type: 'plain_text', text: '✅ Yes, Fixed!', emoji: true }, action_id: 'resolved_yes_btn', style: 'primary', value: 'Medium' });
@@ -2189,8 +2301,24 @@ app.listen(PORT, async () => {
    const blocks = [
      { type: 'section', text: { type: 'mrkdwn', text: formattedReply }},
      { type: 'divider' },
-     { type: 'actions', elements: actionElements }
    ];
+   // ── Auto-Fix button — if script available for this issue ─────────────────
+   const autoFix = AUTO_FIX[rawKey];
+   if (autoFix) {
+     blocks.push({
+       type: 'section',
+       text: { type: 'mrkdwn', text: `*⚡ Auto-Fix Available*\nYeh script automatically fix karne ki koshish karega. Safe hai — koi data delete nahi hoga.` }
+     });
+     blocks.push({ type: 'actions', elements: [{
+       type: 'button',
+       text: { type: 'plain_text', text: `⬇️ Auto-Fix: ${autoFix.label}`, emoji: true },
+       style: 'primary',
+       url: `${PORTAL}/scripts/${autoFix.file}`,
+       action_id: `dl_autofix_${rawKey}`
+     }]});
+     blocks.push({ type: 'divider' });
+   }
+   blocks.push({ type: 'actions', elements: actionElements });
 
    const modalView = { type: 'modal', title: { type: 'plain_text', text: modalTitle, emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks };
 
@@ -2595,7 +2723,17 @@ app.listen(PORT, async () => {
  };
 
  // ── Quick Action buttons from Home tab ────────────────────────────────
- const homeQuickActions = ['home_quick_wifi_pwd_quick','home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9','home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14','home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19','home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24','home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29','home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34','home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39','home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44','home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49','home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54','home_quick_55','home_quick_55b','home_quick_56','home_quick_57','home_quick_58','home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_quick_63','home_quick_63b','home_quick_64','home_quick_65','home_quick_66','home_quick_67','home_quick_68','home_quick_69','home_quick_70','home_quick_71','home_quick_72','home_quick_73','home_quick_74','home_quick_75','home_quick_76','home_quick_77','home_sos','home_new_01','home_new_02','home_new_03','home_new_04','home_new_05','home_new_06','home_new_07','home_new_08','home_new_09','home_new_10','home_new_11','home_new_12','home_new_13','home_new_14','home_new_15','cat_laptop','cat_network','cat_msoffice','cat_browser','cat_email','cat_access','cat_asset','go_home_btn','vague_pick_camera_issue','vague_pick_external_monitor','vague_pick_printer_issue','vague_pick_scanner_issue','vague_pick_vpn_issue','vague_pick_lan_issue','vague_pick_dns_issue','vague_pick_network_drive','vague_pick_outlook_sync','vague_pick_edge_issue','vague_pick_browser_slow','vague_pick_pdf_issue','vague_pick_outlook_email','vague_pick_slack_issue','vague_pick_vpn_access','vague_pick_email_access','vague_pick_new_monitor','vague_pick_outlook_issue','vague_pick_excel_issue','vague_pick_excel_slow','vague_pick_word_issue','vague_pick_ppt_issue','vague_pick_office_activation','vague_pick_file_corrupted','vague_pick_gmail_issue','vague_pick_calendar_sync','vague_pick_email_not_sending','vague_pick_email_not_receiving','vague_pick_password_reset','vague_pick_account_locked','vague_pick_shared_folder','vague_pick_software_access','vague_pick_new_laptop','vague_pick_new_charger','vague_pick_new_mouse','vague_pick_new_keyboard','vague_pick_new_headphone','vague_pick_laptop_slow','vague_pick_wont_turn_on','vague_pick_blue_screen','vague_pick_overheat','vague_pick_battery_issue','vague_pick_charger_issue_menu','vague_pick_keys_not_working','vague_pick_touchpad_issue','vague_pick_mic_issue','vague_pick_sound_none','vague_pick_screen_black','vague_pick_wifi_not_connect','vague_pick_internet_slow','vague_pick_chrome_issue','vague_pick_website_blocked','vague_pick_teams_issue','vague_pick_zoom_issue','vague_pick_app_crash','vague_pick_charger_asset_menu','vague_pick_charger_damaged','vague_pick_battery_not_charging','vague_pick_no_internet','vague_pick_email_login'];
+ const homeQuickActions = ['home_quick_wifi_pwd_quick','home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9','home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14','home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19','home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24','home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29','home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34','home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39','home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44','home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49','home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54','home_quick_55','home_quick_55b','home_quick_56','home_quick_57','home_quick_58','home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_quick_63','home_quick_63b','home_quick_64','home_quick_65','home_quick_66','home_quick_67','home_quick_68','home_quick_69','home_quick_70','home_quick_71','home_quick_72','home_quick_73','home_quick_74','home_quick_75','home_quick_76','home_quick_77','home_sos','home_new_01','home_new_02','home_new_03','home_new_04','home_new_05','home_new_06','home_new_07','home_new_08','home_new_09','home_new_10','home_new_11','home_new_12','home_new_13','home_new_14','home_new_15','cat_laptop','cat_network','cat_msoffice','cat_browser','cat_email','cat_access','cat_asset','go_home_btn','vague_pick_camera_issue','vague_pick_external_monitor','vague_pick_printer_issue','vague_pick_scanner_issue','vague_pick_vpn_issue','vague_pick_lan_issue','vague_pick_dns_issue','vague_pick_network_drive','vague_pick_outlook_sync','vague_pick_edge_issue','vague_pick_browser_slow','vague_pick_pdf_issue','vague_pick_outlook_email','vague_pick_slack_issue','vague_pick_vpn_access','vague_pick_email_access','vague_pick_new_monitor','vague_pick_outlook_issue','vague_pick_excel_issue','vague_pick_excel_slow','vague_pick_word_issue','vague_pick_ppt_issue','vague_pick_office_activation','vague_pick_file_corrupted','vague_pick_gmail_issue','vague_pick_calendar_sync','vague_pick_email_not_sending','vague_pick_email_not_receiving','vague_pick_password_reset','vague_pick_account_locked','vague_pick_shared_folder','vague_pick_software_access','vague_pick_new_laptop','vague_pick_new_charger','vague_pick_new_mouse','vague_pick_new_keyboard','vague_pick_new_headphone','vague_pick_laptop_slow','vague_pick_wont_turn_on','vague_pick_blue_screen','vague_pick_overheat','vague_pick_battery_issue','vague_pick_charger_issue_menu','vague_pick_keys_not_working','vague_pick_touchpad_issue','vague_pick_mic_issue','vague_pick_sound_none','vague_pick_screen_black','vague_pick_wifi_not_connect','vague_pick_internet_slow','vague_pick_chrome_issue','vague_pick_website_blocked','vague_pick_teams_issue','vague_pick_zoom_issue','vague_pick_app_crash','vague_pick_charger_asset_menu','vague_pick_charger_damaged','vague_pick_battery_not_charging','vague_pick_no_internet','vague_pick_email_login',
+'cat_mobile','cat_cloud','cat_security','cat_emergency',
+'vague_pick_screen_flicker','vague_pick_projector_issue','vague_pick_usb_issue','vague_pick_fan_noise',
+'vague_pick_physical_damage','vague_pick_liquid_damage','vague_pick_frequent_disconnect',
+'vague_pick_door_access','vague_pick_mobile_not_working','vague_pick_sim_not_working',
+'vague_pick_mobile_internet','vague_pick_email_mobile','vague_pick_mobile_app',
+'vague_pick_mobile_charging','vague_pick_mobile_screen_damage','vague_pick_google_drive_issue',
+'vague_pick_shared_drive_issue','vague_pick_file_sync_issue','vague_pick_storage_full',
+'vague_pick_phishing_email','vague_pick_virus_malware','vague_pick_suspicious_login',
+'vague_pick_security_alert','vague_pick_account_hacked','vague_pick_burning_smell',
+'vague_pick_battery_swelling','vague_pick_data_loss','vague_pick_battery_not_charging_new'];
  homeQuickActions.forEach(actionId => {
  slackApp.action(actionId, async ({ body, ack, client }) => {
  await ack();

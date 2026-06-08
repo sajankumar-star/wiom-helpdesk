@@ -254,6 +254,121 @@ const DIRECT_KB = {
 
   file_corrupted:
     `File nahi khul rhi. Yeh try karo:\n\n1. *Right-click → Open With* → File pe right-click karo → Open With → sahi app select karo (Word/Excel/Adobe)\n2. *App restart* → App close karo → dobara open karo → phir file open karo\n3. *Laptop restart* → Laptop restart karo → dobara try karo\n\nAgar app missing hai ya file corrupt hai → *Create Ticket* button dabao — IT team install/recover karega 🎫`,
+
+  overheat:
+    `Laptop bahut garam ho rha hai. Yeh karo:\n\n1. *Table pe rakho* → Laptop ko hard surface pe rakho — bed/sofa pe mat rakho (hawa nahi milti)\n2. *Task Manager* → Ctrl+Shift+Esc → CPU column → heavy apps End Task karo\n3. *Restart* → Laptop restart karo — background processes band ho jaate hain\n4. *Fan check* → Laptop neeche se bahut garam hai aur fan nahi chal rha? Turant band karo\n\nAgar bahut zyada garam ho rha hai ya band ho rha hai → *Create Ticket* button dabao 🎫`,
+
+  battery_issue:
+    `Battery jaldi drain ho rhi hai. Yeh karo:\n\n1. *Power mode* → Taskbar battery icon → "Power saver" ya "Balanced" select karo\n2. *Screen brightness* → Fn+F5/F6 se brightness thodi kam karo\n3. *Apps band karo* → Task Manager → battery zyada use karne wale apps band karo\n\nAgar battery 0% pe bhi charge nahi ho rhi → charger laga ke 10 min wait karo phir on karo.\nAgar phir bhi problem → *Create Ticket* button dabao — IT battery check karega 🎫`,
+
+  battery_not_charging:
+    `Battery charge nahi ho rhi. Yeh try karo:\n\n1. *Charger replug* → Dono taraf se charger nikalo → dobara firmly lagao (laptop side + socket side)\n2. *Alag socket* → Doosra power socket try karo\n3. *Power reset* → Laptop band karo → charger nikalo → power button 30 sec hold karo → charger lagao → on karo\n\nAgar LED light bhi nahi aa rhi charger mein → charger kharab ho sakta hai.\nAgar theek nahi hua → *Create Ticket* button dabao — IT charger/battery replace karega 🎫`,
+
+  touchpad_issue:
+    `Touchpad/cursor kaam nahi kar rha. Yeh try karo:\n\n1. *Fn key check* → Fn + F5/F6/F7 (touchpad lock key) dabao — keyboard pe touchpad icon wali key\n2. *Settings* → Settings → Bluetooth & devices → Touchpad → ON karo\n3. *Restart* → Laptop restart karo\n\nAgar restart ke baad bhi cursor stuck hai ya nahi chal rha → *Create Ticket* button dabao — IT driver fix karega 🎫`,
+
+  camera_issue:
+    `Webcam/Camera kaam nahi kar rha. Yeh try karo:\n\n1. *Privacy settings* → Settings → Privacy & Security → Camera → ON karo\n2. *App settings* → Teams/Zoom → Settings → Video → sahi camera select karo\n3. *Restart app* → App close karo → dobara open karo\n\nAgar privacy ON hai phir bhi nahi aa rha → *Create Ticket* button dabao — IT driver fix karega 🎫`,
+
+  mic_issue:
+    `Microphone kaam nahi kar rha. Yeh try karo:\n\n1. *Privacy settings* → Settings → Privacy & Security → Microphone → ON karo\n2. *App settings* → Teams/Zoom → Settings → Audio → sahi microphone select karo → test karo\n3. *Restart app* → App close karo → dobara open karo\n\nAgar privacy ON hai phir bhi nahi sun rahe → *Create Ticket* button dabao — IT driver fix karega 🎫`,
+
+  sound_none:
+    `Speaker/Audio se awaaz nahi aa rhi. Yeh try karo:\n\n1. *Volume check* → Taskbar speaker icon pe right-click → Open Sound Settings → Volume 0% ya mute toh nahi?\n2. *Output device* → Sound settings → Output → sahi speakers/headphones select karo\n3. *Restart* → Laptop restart karo\n\nAgar headphone lagane ke baad bhi kuch nahi → *Create Ticket* button dabao — IT sound driver fix karega 🎫`,
+
+  screen_black:
+    `Screen black ho gayi. Yeh try karo:\n\n1. *Brightness keys* → Fn+F5 ya Fn+F6 ya Fn+F8 dabao — screen dim ho sakti hai, brightness badhaao\n2. *Force restart* → Power button 10 sec hold karo → band karo → 30 sec wait → dobara on karo\n3. *Charger check* → Battery dead ho sakti hai → charger lagao → 10 min wait karo → on karo\n\nAgar screen ab bhi nahi aayi → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+
+  lan_issue:
+    `LAN/Ethernet cable issue hai. Yeh try karo:\n\n1. *Cable check* → LAN cable dono taraf se nikal ke dobara firmly lagao\n2. *Alag port* → Cable ko dusre LAN port mein lagao (wall ka aur laptop ka dono check karo)\n3. *Restart* → Laptop restart karo — dobara auto-connect ho jaata hai\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT network check karega 🎫`,
+
+  printer_issue:
+    `Printer print nahi kar rha. Yeh try karo:\n\n1. *Printer restart* → Printer band karo → 30 sec → on karo\n2. *Laptop restart* → Laptop restart karo → dobara print try karo\n3. *Default printer* → Settings → Bluetooth & devices → Printers → sahi printer default set karo\n\nAgar printer list mein dikh hi nahi rha → *Create Ticket* button dabao — IT network printer setup karega 🎫`,
+
+  // ── New issues ────────────────────────────────────────────────────────────
+  screen_flicker:
+    `Screen flicker/blink kar rhi hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek hota hai\n2. *External monitor* → HDMI se monitor connect karo — bahar sahi dikh rha hai to laptop screen ka hardware issue hai\n3. *Brightness adjust* → Fn+F5/F6 se brightness adjust karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT directly help karegi 🎫`,
+
+  projector_issue:
+    `Projector/HDMI connect nahi ho rha. Yeh try karo:\n\n1. *Cable check* → HDMI cable dono taraf properly lagi hai?\n2. *Win+P* → Windows key + P dabao → Extend ya Duplicate select karo\n3. *Detect* → Right-click Desktop → Display Settings → Detect\n4. *Restart* → Sab connected rakh ke laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao 🎫`,
+
+  usb_issue:
+    `USB port kaam nahi kar rha. Yeh try karo:\n\n1. *Alag port* → Device ko dusre USB port mein lagao\n2. *Replug* → USB device nikalo → 10 sec ruko → dobara lagao\n3. *Restart* → Laptop restart karo → dobara lagao\n\nAgar koi bhi port kaam nahi kar rha → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+
+  fan_noise:
+    `Fan loud noise kar rha hai. Yeh karo:\n\n1. *Check karo* → Agar smoke, burning smell ya bahut zyada heat → TURANT laptop band karo\n2. *Task Manager* → Ctrl+Shift+Esc → heavy apps End Task karo\n3. *Surface* → Laptop hard table pe rakho, soft surface pe mat\n\nAgar noise band nahi ho rhi → *Create Ticket* button dabao — IT fan check karega 🎫`,
+
+  frequent_disconnect:
+    `WiFi baar baar disconnect ho rhi hai. Yeh try karo:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON → dobara connect karo\n2. *Router ke paas jaao* → Door hone se signal weak hota hai\n3. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → dobara connect (pw: spartans500)\n\nAgar baar baar ho rha hai → *Create Ticket* button dabao — IT network check karega 🎫`,
+
+  door_access:
+    `Door access card issue. Yeh karo:\n\n*Create Ticket* button dabao — IT/Admin department new card issue karega ya existing card reprogram karega.\nTicket mein likho: kaunsa floor/door ka access chahiye. 🎫`,
+
+  mobile_not_working:
+    `Company phone kaam nahi kar rha. Yeh try karo:\n\n1. *Restart* → Phone restart karo\n2. *Charging check* → Battery dead toh nahi? Charger lagao 10 min wait karo\n\nAgar on nahi ho rha → *Create Ticket* button dabao — IT company phone handle karega 🎫`,
+
+  sim_not_working:
+    `Company SIM kaam nahi kar rha. Yeh try karo:\n\n1. *Phone restart karo*\n2. *SIM check* → SIM card properly lagi hai? Nikal ke dobara lagao\n\nAgar network nahi aa rha → *Create Ticket* button dabao — IT sort karega 🎫`,
+
+  mobile_internet:
+    `Company phone par internet nahi chal rha. Yeh try karo:\n\n1. *Airplane mode* → ON karo → 10 sec → OFF karo\n2. *WiFi se try karo* → Office WiFi se connect karo (spartans500)\n3. *Restart* → Phone restart karo\n\nAgar phir bhi nahi → *Create Ticket* button dabao 🎫`,
+
+  email_mobile:
+    `Company phone par Gmail setup karna hai.\n\n*Create Ticket* button dabao — IT aapka company Gmail account phone par setup kar dega.\nTicket mein apna phone model likho. 🎫`,
+
+  mobile_app:
+    `Company phone app nahi chal rha. Yeh try karo:\n\n1. *App restart* → App force close karo → dobara open karo\n2. *Phone restart* → Phone restart karo\n\nAgar install nahi hai ya kaam nahi kar rha → *Create Ticket* button dabao 🎫`,
+
+  mobile_charging:
+    `Company phone charge nahi ho rha. Yeh try karo:\n\n1. *Charger check* → Dono taraf properly laga hai?\n2. *Alag socket* → Dusra socket try karo\n\nAgar charger ya battery kharab → *Create Ticket* button dabao — IT replacement arrange karega 🎫`,
+
+  mobile_screen_damage:
+    `Company phone screen damage hai.\n\n*Create Ticket* button dabao — IT physical damage report karega aur repair/replacement arrange karega.\nTicket mein damage ka details likho. 🎫`,
+
+  google_drive_issue:
+    `Google Drive kaam nahi kar rha. Yeh try karo:\n\n1. *Browser mein kholo* → Chrome mein drive.google.com kholo\n2. *Cache clear* → Ctrl+Shift+Del → All time → Clear\n3. *Incognito try karo* → Ctrl+Shift+N → drive.google.com\n\nAgar access nahi hai → *Create Ticket* button dabao — IT access dega 🎫`,
+
+  shared_drive_issue:
+    `Shared Drive access nahi hai.\n\n*Create Ticket* button dabao — IT aapko shared drive ka access dega.\nTicket mein likho: kaunsa drive/folder chahiye aur kyun. 🎫`,
+
+  file_sync_issue:
+    `Files sync nahi ho rhi. Yeh try karo:\n\n1. *Internet check* → WiFi properly connected hai?\n2. *Browser check* → drive.google.com mein manually dekho\n3. *Sign out/in* → Drive app se sign out → dobara sign in karo\n\nAgar phir bhi nahi → *Create Ticket* button dabao 🎫`,
+
+  storage_full:
+    `Storage/disk full hai. Yeh try karo:\n\n1. *Recycle Bin* → Desktop Recycle Bin → Empty Recycle Bin\n2. *Downloads* → File Explorer → Downloads → jo zaruri nahi delete karo\n3. *Google Drive pe move karo* → Files cloud pe upload karo\n\nAgar space kam hai → *Create Ticket* button dabao — IT storage cleanup karega 🎫`,
+
+  phishing_email:
+    `Phishing/suspicious email aaya hai!\n\n1. *Link mat dabao* → Email mein koi bhi link ya attachment BILKUL mat dabao\n2. *Gmail mein Report* → Email → 3 dots → Report phishing\n3. *IT ko batao* → *Create Ticket* button dabao — IT investigate karega 🎫\n\n⚠️ Agar link dabao diya → TURANT ticket raise karo!`,
+
+  virus_malware:
+    `Virus/Malware suspect ho rha hai!\n\n1. *Internet band karo* → WiFi disconnect karo TURANT\n2. *Create Ticket* → ABHI raise karo — IT directly aayega\n\n⚠️ Kuch bhi mat karo laptop pe — IT aayega 🎫`,
+
+  suspicious_login:
+    `Suspicious login hai — TURANT yeh karo:\n\n1. *Create Ticket* → Abhi raise karo — HIGH priority\n2. *IT ko email* → sajan.kumar@wiom.in\n\nIT aapka account secure karega. Password khud mat badlo — IT karega. 🎫`,
+
+  security_alert:
+    `Security alert aa rha hai.\n\n*Create Ticket* button dabao — IT security investigate karega.\nTicket mein exact alert message likho. 🎫`,
+
+  account_hacked:
+    `Account hack hua hai — EMERGENCY!\n\n1. *Create Ticket ABHI* → CRITICAL priority\n2. *IT ko email* → sajan.kumar@wiom.in\n3. *Kuch bhi mat karo* → Account pe koi changes mat karo\n\nIT turant secure karega. 🎫`,
+
+  burning_smell:
+    `EMERGENCY! Burning smell ya smoke!\n\n1. *TURANT BAND KARO* — Power button hold karo\n2. *CHARGER NIKALO* — Immediately\n3. *DOOR RAHO* — Laptop chhodo safe jagah rakho\n4. *IT ko batao* → sajan.kumar@wiom.in\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
+
+  battery_swelling:
+    `EMERGENCY! Battery swollen/phool gayi!\n\n1. *TURANT BAND KARO* — Power button hold\n2. *CHARGER NIKALO* — Abhi\n3. *LAPTOP DOOR RAKHO* — Fire hazard\n4. *IT ko batao* → sajan.kumar@wiom.in\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
+
+  data_loss:
+    `Files/data missing hain. Yeh try karo:\n\n1. *Recycle Bin* → Desktop Recycle Bin mein dekho\n2. *Google Drive Trash* → drive.google.com → Trash folder\n3. *Search karo* → File Explorer mein file name search karo\n\nAgar nahi mili → *Create Ticket* button dabao — IT data recovery try karega 🎫`,
+
+  physical_damage:
+    `Laptop physically damage hua hai.\n\nSoftware se fix nahi hoga — *Create Ticket* button dabao TURANT.\nIT physically assess aur repair/replace karega.\nTicket mein damage ka description likho. 🎫`,
+
+  liquid_damage:
+    `EMERGENCY! Liquid/Paani gira hai!\n\n1. *TURANT BAND KARO* — Power button hold\n2. *CHARGER NIKALO*\n3. *ULTA RAKHO* → Liquid drain hone do\n4. *Hairdryer mat lagao*\n5. *IT ko batao* → sajan.kumar@wiom.in\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
+
+  device_lost:
+    `Device kho gaya hai ya chori hua hai.\n\n1. *Pehle check karo* → Desk/drawer/aas-paas check karo, colleagues se puchho\n2. *Agar nahi mila* → *Create Ticket* button dabao — HIGH PRIORITY\n3. *IT ko email* → sajan.kumar@wiom.in\n4. *HR ko bhi batao*\n\n⚠️ 24 ghante mein report karna zaruri hai. 🎫`,
 };
 
 const getKBFallback = (problem) => {
