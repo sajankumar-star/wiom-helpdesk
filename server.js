@@ -2184,6 +2184,24 @@ app.listen(PORT, async () => {
  const ASSET_KEYS = ['new_laptop', 'new_mouse', 'new_keyboard', 'new_headphone', 'new_monitor'];
  if (ASSET_KEYS.includes(rawKey)) return;
 
+ // Keys with dedicated action handlers — skip to avoid race condition (both fire in Bolt)
+ const DEDICATED_ACTION_IDS = new Set([
+   'vague_pick_laptop_slow',       // dedicated handler shows auto-fix page
+   'vague_pick_wont_turn_on',      // dedicated handler shows won't turn on modal
+   'vague_pick_charger_issue_menu',// dedicated handler shows charger submenu
+   'vague_pick_charger_damaged',   // dedicated handler shows damaged charger steps
+   'vague_pick_charger_asset_menu',// dedicated handler shows charger asset request
+ ]);
+ if (DEDICATED_ACTION_IDS.has(actionId)) return;
+
+ // Create Ticket button — show ticket notes form, not AI response
+ if (actionId === 'vague_pick_create_ticket') {
+   if (body.view?.id && body.trigger_id) {
+     try { await client.views.push({ trigger_id: body.trigger_id, view: ticketNotesFormView('', 'Medium') }); } catch(e) {}
+   }
+   return;
+ }
+
  const KEY_TO_PROBLEM = {
    laptop_slow: 'laptop bahut slow hai hang ho rha hai', excel_slow: 'Microsoft Excel bahut slow chal rha hai hang ho rha hai freeze ho rha hai',
    blue_screen: 'blue screen bsod error aa rha hai',
@@ -2816,17 +2834,32 @@ app.listen(PORT, async () => {
  };
 
  // ── Quick Action buttons from Home tab ────────────────────────────────
- const homeQuickActions = ['home_quick_wifi_pwd_quick','home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5','home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9','home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14','home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19','home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24','home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29','home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34','home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39','home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44','home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49','home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54','home_quick_55','home_quick_55b','home_quick_56','home_quick_57','home_quick_58','home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_quick_63','home_quick_63b','home_quick_64','home_quick_65','home_quick_66','home_quick_67','home_quick_68','home_quick_69','home_quick_70','home_quick_71','home_quick_72','home_quick_73','home_quick_74','home_quick_75','home_quick_76','home_quick_77','home_sos','home_new_01','home_new_02','home_new_03','home_new_04','home_new_05','home_new_06','home_new_07','home_new_08','home_new_09','home_new_10','home_new_11','home_new_12','home_new_13','home_new_14','home_new_15','cat_laptop','cat_network','cat_msoffice','cat_browser','cat_email','cat_access','cat_asset','go_home_btn','vague_pick_camera_issue','vague_pick_external_monitor','vague_pick_printer_issue','vague_pick_scanner_issue','vague_pick_vpn_issue','vague_pick_lan_issue','vague_pick_dns_issue','vague_pick_network_drive','vague_pick_outlook_sync','vague_pick_edge_issue','vague_pick_browser_slow','vague_pick_pdf_issue','vague_pick_outlook_email','vague_pick_slack_issue','vague_pick_vpn_access','vague_pick_email_access','vague_pick_new_monitor','vague_pick_outlook_issue','vague_pick_excel_issue','vague_pick_excel_slow','vague_pick_word_issue','vague_pick_ppt_issue','vague_pick_office_activation','vague_pick_file_corrupted','vague_pick_gmail_issue','vague_pick_calendar_sync','vague_pick_email_not_sending','vague_pick_email_not_receiving','vague_pick_password_reset','vague_pick_account_locked','vague_pick_shared_folder','vague_pick_software_access','vague_pick_new_laptop','vague_pick_new_charger','vague_pick_new_mouse','vague_pick_new_keyboard','vague_pick_new_headphone','vague_pick_laptop_slow','vague_pick_wont_turn_on','vague_pick_blue_screen','vague_pick_overheat','vague_pick_battery_issue','vague_pick_charger_issue_menu','vague_pick_keys_not_working','vague_pick_touchpad_issue','vague_pick_mic_issue','vague_pick_sound_none','vague_pick_screen_black','vague_pick_wifi_not_connect','vague_pick_internet_slow','vague_pick_chrome_issue','vague_pick_website_blocked','vague_pick_teams_issue','vague_pick_zoom_issue','vague_pick_app_crash','vague_pick_charger_asset_menu','vague_pick_charger_damaged','vague_pick_battery_not_charging','vague_pick_no_internet','vague_pick_email_login',
-'cat_mobile','cat_cloud','cat_security','cat_emergency',
-'vague_pick_screen_flicker','vague_pick_projector_issue','vague_pick_usb_issue','vague_pick_fan_noise',
-'vague_pick_physical_damage','vague_pick_liquid_damage','vague_pick_frequent_disconnect',
-'vague_pick_door_access','vague_pick_mobile_not_working','vague_pick_sim_not_working',
-'vague_pick_mobile_internet','vague_pick_email_mobile','vague_pick_mobile_app',
-'vague_pick_mobile_charging','vague_pick_mobile_screen_damage','vague_pick_google_drive_issue',
-'vague_pick_shared_drive_issue','vague_pick_file_sync_issue','vague_pick_storage_full',
-'vague_pick_phishing_email','vague_pick_virus_malware','vague_pick_suspicious_login',
-'vague_pick_security_alert','vague_pick_account_hacked','vague_pick_burning_smell',
-'vague_pick_battery_swelling','vague_pick_data_loss','vague_pick_battery_not_charging_new'];
+ // homeQuickActions: ONLY home_quick_* and home_new_* and home_sos buttons.
+ // cat_*, go_home_btn, dm_my_tickets, and all vague_pick_* are handled by their OWN dedicated
+ // handlers or regex handlers. DO NOT add them here — it causes both handlers to fire (race condition).
+ const homeQuickActions = [
+   'home_quick_wifi_pwd_quick',
+   'home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5',
+   'home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9',
+   'home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14',
+   'home_quick_15','home_quick_16','home_quick_17','home_quick_18','home_quick_19',
+   'home_quick_20','home_quick_21','home_quick_22','home_quick_23','home_quick_24',
+   'home_quick_25','home_quick_26','home_quick_27','home_quick_28','home_quick_29',
+   'home_quick_30','home_quick_31','home_quick_32','home_quick_33','home_quick_34',
+   'home_quick_35','home_quick_36','home_quick_37','home_quick_38','home_quick_39',
+   'home_quick_40','home_quick_41','home_quick_42','home_quick_43','home_quick_44',
+   'home_quick_45','home_quick_46','home_quick_47','home_quick_48','home_quick_49',
+   'home_quick_50','home_quick_51','home_quick_52','home_quick_53','home_quick_54',
+   'home_quick_55','home_quick_55b','home_quick_56','home_quick_57','home_quick_58',
+   'home_quick_59','home_quick_60','home_quick_61','home_quick_62','home_quick_63',
+   'home_quick_63b','home_quick_64','home_quick_65','home_quick_66','home_quick_67',
+   'home_quick_68','home_quick_69','home_quick_70','home_quick_71','home_quick_72',
+   'home_quick_73','home_quick_74','home_quick_75','home_quick_76','home_quick_77',
+   'home_sos',
+   'home_new_01','home_new_02','home_new_03','home_new_04','home_new_05',
+   'home_new_06','home_new_07','home_new_08','home_new_09','home_new_10',
+   'home_new_11','home_new_12','home_new_13','home_new_14','home_new_15',
+ ];
  homeQuickActions.forEach(actionId => {
  slackApp.action(actionId, async ({ body, ack, client }) => {
  await ack();
@@ -3703,94 +3736,104 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      ],
    };
 
+   // vagueAIMap: value used as button VALUE when shown from DM sub-picker.
+   // NO DUPLICATES — last key wins in JS objects, so only one entry per key.
    const vagueAIMap = {
+     // Screen / Display
      screen_black: 'laptop screen completely black not showing anything',
      screen_flicker: 'screen blinking flickering constantly',
      screen_dim: 'screen too dark dim cannot see properly',
      screen_color: 'screen showing wrong colors or lines',
      screen_no_display: 'screen shows nothing no display at all',
+     // Laptop
      wont_turn_on: "laptop won't turn on at all",
      laptop_slow: 'laptop very slow hanging',
      blue_screen: 'laptop blue screen BSOD error',
      freezing: 'laptop freezing and hanging',
+     overheat: 'laptop overheating getting very hot',
+     laptop_other: 'laptop hardware issue not specified',
+     // Battery / Charging
      battery_issue: 'laptop battery or charging issue',
      battery_not_charging: 'laptop battery not charging at all',
      battery_drain: 'laptop battery draining too fast backup very low',
      battery_stuck: 'laptop battery stuck at 0 percent not charging',
      battery_dead: 'laptop battery completely dead not working',
-     overheat: 'laptop overheating getting very hot',
-     laptop_other: 'laptop hardware issue not specified',
+     charger_issue_menu: 'charger not working or not charging properly',
+     charger_asset_menu: 'charger replacement or new charger needed',
+     charger_damaged: 'charger physically damaged broken needs replacement',
+     // Network
      wifi_not_connect: 'wifi not connecting at all',
      internet_slow: 'internet very slow speed problem',
      wifi_drop: 'wifi keeps disconnecting dropping frequently',
      website_blocked: 'website not opening blocked',
+     lan_issue: 'LAN cable ethernet internet not working',
+     network_drive: 'network drive not accessible shared folder',
+     dns_issue: 'DNS error internet not working',
+     // Audio / Peripherals
      sound_none: 'no sound at all from speakers',
      sound_headphone: 'headphone not working no audio in headphone',
      mic_issue: 'microphone not working in Teams Zoom',
      sound_distorted: 'sound is distorted crackling bad quality',
+     // Keyboard / Input
      keys_not_working: 'keyboard keys not working not typing',
      keys_wrong: 'keyboard typing wrong characters',
      touchpad_issue: 'mouse touchpad not working cursor stuck',
      numlock_issue: 'numlock numpad not working',
+     // Software / Apps
      teams_issue: 'Microsoft Teams not working crashing',
+     zoom_issue: 'Zoom not working cannot join meeting',
+     slack_issue: 'Slack not working notification issue',
      outlook_issue: 'Gmail not working email issue',
      app_crash: 'app crashing not opening',
      windows_update: 'windows update stuck failing',
      software_other: 'software app issue not specified',
-     password_reset: 'forgot laptop Windows password',
-     account_locked: 'account locked cannot login',
-     email_password: 'email Google account password reset',
-     otp_issue: '2FA OTP not received',
-     printer_not_printing: 'printer not printing document stuck in queue',
-     printer_offline: 'printer showing offline cannot print',
-     printer_not_detected: 'printer not detected not showing in devices',
-     printer_quality: 'print quality issue faded blurry printing',
-     email_not_receiving: 'email not receiving emails not coming in gmail',
-     email_not_sending: 'cannot send email gmail not sending',
-     email_mailbox_full: 'gmail mailbox storage full cannot receive',
-     // ── New entries added for cat_ category buttons ──────────────────
+     // Browser
+     chrome_issue: 'Chrome browser not opening or crashing',
+     edge_issue: 'Edge browser not opening',
+     browser_slow: 'browser slow laggy',
+     pdf_issue: 'PDF file not opening',
+     // Office
      excel_issue: 'Microsoft Excel not opening or crashing',
      word_issue: 'Microsoft Word not opening or crashing',
      ppt_issue: 'PowerPoint not opening or crashing',
      office_activation: 'Microsoft Office activation issue license error',
      file_corrupted: 'file is corrupted cannot open',
+     // Email / Calendar
      gmail_issue: 'Gmail not opening email issue',
      email_not_sending: 'cannot send email Gmail not working',
+     email_not_receiving: 'email not receiving emails not coming in gmail',
+     email_mailbox_full: 'gmail mailbox storage full cannot receive',
+     email_password: 'email Google account password reset',
      calendar_sync: 'Google Calendar not syncing',
-     lan_issue: 'LAN cable ethernet internet not working',
+     outlook_sync: 'Gmail email sync issue',
+     outlook_email: 'Gmail email issue',
+     email_access: 'email Gmail access needed',
+     email_login: 'gmail login nahi ho rha email mein access nahi',
+     // Account / Password
+     password_reset: 'forgot laptop Windows password',
+     account_locked: 'account locked cannot login',
+     otp_issue: '2FA OTP not received',
+     // Access
+     shared_folder: 'shared folder access needed',
+     software_access: 'software application access needed',
+     vpn_issue: 'vpn issue — WIOM does not use VPN',
+     vpn_access: 'VPN access — WIOM does not use VPN',
+     // Hardware / Peripherals
+     camera_issue: 'camera not working black screen',
+     external_monitor: 'external monitor not detected HDMI issue',
+     scanner_issue: 'scanner not working not detected',
+     printer_issue: 'printer not working offline',
+     printer_not_printing: 'printer not printing document stuck in queue',
+     printer_offline: 'printer showing offline cannot print',
+     printer_not_detected: 'printer not detected not showing in devices',
+     printer_quality: 'print quality issue faded blurry printing',
+     // Asset Requests
      new_laptop: 'new laptop request',
      new_charger: 'charger replacement request',
      new_mouse: 'new mouse request',
      new_keyboard: 'new keyboard request',
      new_headphone: 'headphone request',
-     charger_issue_menu: 'charger not working or not charging properly',
-     charger_asset_menu: 'charger replacement or new charger needed',
-     charger_damaged: 'charger physically damaged broken needs replacement',
-     shared_folder: 'shared folder access needed',
-     software_access: 'software application access needed',
-     camera_issue: 'camera not working',
-     chrome_issue: 'Chrome browser not opening or crashing',
-     browser_slow: 'browser is very slow or freezing',
-     zoom_issue: 'Zoom not working cannot join meeting',
-     teams_issue: 'Microsoft Teams not working crashing',
-     // ── New entries for FINAL Phase 1 category menus ────────────────────
-     camera_issue: 'camera not working black screen',
-     external_monitor: 'external monitor not detected HDMI issue',
-     printer_issue: 'printer not working offline',
-     scanner_issue: 'scanner not working not detected',
-     vpn_issue: 'vpn issue — WIOM does not use VPN',
-     dns_issue: 'DNS error internet not working',
-     network_drive: 'network drive not accessible shared folder',
-     outlook_sync: 'Gmail email sync issue',
-     edge_issue: 'Edge browser not opening',
-     browser_slow: 'browser slow laggy',
-     pdf_issue: 'PDF file not opening',
-     outlook_email: 'Gmail email issue',
-     slack_issue: 'Slack not working notification issue',
-     vpn_access: 'VPN access — WIOM does not use VPN',
-     email_access: 'email Gmail access needed',
      new_monitor: 'new monitor request',
-     new_headphone: 'headphone request',
    };
 
    const categoryLabels = {
