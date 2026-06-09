@@ -2180,6 +2180,10 @@ app.listen(PORT, async () => {
  const actionId = body.actions[0].action_id;
  const rawKey = body.actions[0].value;
 
+ // Asset request keys — handled by dedicated asset handler above, skip here to avoid duplicate/race
+ const ASSET_KEYS = ['new_laptop', 'new_mouse', 'new_keyboard', 'new_headphone', 'new_monitor'];
+ if (ASSET_KEYS.includes(rawKey)) return;
+
  const KEY_TO_PROBLEM = {
    laptop_slow: 'laptop bahut slow hai hang ho rha hai', excel_slow: 'Microsoft Excel bahut slow chal rha hai hang ho rha hai freeze ho rha hai',
    blue_screen: 'blue screen bsod error aa rha hai',
