@@ -941,13 +941,10 @@ app.listen(PORT, async () => {
            }
 
            // ── Quick Actions — universal shortcuts only ──────────────────────
-           // Order: WiFi (most common) → Password Reset → Email Access → My Tickets → Create Ticket (last)
+           // Order: WiFi → Password Reset → My Tickets → Create Ticket
            blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Password', emoji: true }, action_id: 'home_quick_wifi_pwd_quick', value: 'wifi password', style: 'primary' },
              { type: 'button', text: { type: 'plain_text', text: '🔑 Password Reset', emoji: true }, action_id: 'home_quick_55b', value: 'password reset' },
-             { type: 'button', text: { type: 'plain_text', text: '📧 Email Access', emoji: true }, action_id: 'vague_pick_email_access', value: 'email_access' },
-           ]});
-           blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
              { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket' },
            ]});
@@ -2607,7 +2604,17 @@ app.listen(PORT, async () => {
  slackApp.action('dm_my_tickets', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
-   const channelId = body.channel?.id || userId;
+   // From Home Tab, body.channel is null — use conversations.open to get real DM channel ID
+   let channelId = body.channel?.id;
+   if (!channelId) {
+     try {
+       const dm = await client.conversations.open({ users: userId });
+       channelId = dm.channel.id;
+     } catch (e) {
+       channelId = userId; // last-resort fallback
+       console.error('dm_my_tickets conversations.open error:', e.message);
+     }
+   }
    try {
      const emp = await lookupEmployee(userId, client);
      const tickets = await Ticket.find({
