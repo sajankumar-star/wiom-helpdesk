@@ -887,6 +887,7 @@ app.listen(PORT, async () => {
            blocks.push({ type: 'divider' });
 
            // ── 11 Categories ────────────────────────────────────────────────
+           // Row 1-3: main categories (3 per row)
            blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '💻 Device & Hardware', emoji: true }, action_id: 'cat_laptop', value: 'laptop' },
              { type: 'button', text: { type: 'plain_text', text: '🌐 Network & Internet', emoji: true }, action_id: 'cat_network', value: 'network' },
@@ -902,21 +903,30 @@ app.listen(PORT, async () => {
              { type: 'button', text: { type: 'plain_text', text: '☁️ Cloud & Storage', emoji: true }, action_id: 'cat_cloud', value: 'cloud' },
              { type: 'button', text: { type: 'plain_text', text: '🔒 Security', emoji: true }, action_id: 'cat_security', value: 'security' },
            ]});
+           // Row 4: Emergency — alone, prominent red
+           blocks.push({ type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '🚨 Emergency Support', emoji: true }, action_id: 'cat_emergency', value: 'emergency', style: 'danger' },
+           ]});
+           // Row 5: Asset Requests — last, alone
            blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '📦 Asset Requests', emoji: true }, action_id: 'cat_asset', value: 'asset' },
-             { type: 'button', text: { type: 'plain_text', text: '🚨 Emergency', emoji: true }, action_id: 'cat_emergency', value: 'emergency', style: 'danger' },
            ]});
            blocks.push({ type: 'divider' });
 
-           // ── My Tickets ───────────────────────────────────────────────────
+           // ── My Tickets + Ticket Counter ──────────────────────────────────
            const statEmoji = { 'Open': '🔴', 'In Progress': '🟡', 'Waiting': '🟠', 'Resolved': '🟢', 'Closed': '⚪' };
            const priEmoji2 = { 'Critical': '🔴', 'High': '🟠', 'Medium': '🟡', 'Low': '🟢' };
            const allTickets = myTickets ? myTickets.slice(0, 3) : [];
-           if (allTickets.length > 0) {
-             const openCount = allTickets.filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
+           const openCount = allTickets.filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
+
+           // ── Ticket Counter chip — show when there are open tickets ────────
+           if (openCount > 0) {
              blocks.push({ type: 'section', text: { type: 'mrkdwn', text:
-               `*🎫 My Tickets* — ${openCount > 0 ? '🔴 *'+openCount+' Open*' : '🟢 All Clear'}`
-             }});
+               `🎫 *Open Tickets: ${openCount}* — IT team kaam kar rahi hai`
+             }, accessory: { type: 'button', text: { type: 'plain_text', text: '📋 View', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' }});
+           }
+
+           if (allTickets.length > 0) {
              for (const t of allTickets) {
                const hrs = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
                const timeStr = hrs < 24 ? hrs + 'h ago' : Math.floor(hrs/24) + 'd ago';
@@ -930,21 +940,21 @@ app.listen(PORT, async () => {
              blocks.push({ type: 'divider' });
            }
 
-           // ── Quick Actions ────────────────────────────────────────────────
+           // ── Quick Actions — universal shortcuts only ──────────────────────
+           // Order: WiFi (most common) → Password Reset → Email Access → My Tickets → Create Ticket (last)
            blocks.push({ type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'danger' },
-             { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
              { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Password', emoji: true }, action_id: 'home_quick_wifi_pwd_quick', value: 'wifi password', style: 'primary' },
-           ]});
-           blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '🔑 Password Reset', emoji: true }, action_id: 'home_quick_55b', value: 'password reset' },
              { type: 'button', text: { type: 'plain_text', text: '📧 Email Access', emoji: true }, action_id: 'vague_pick_email_access', value: 'email_access' },
-             { type: 'button', text: { type: 'plain_text', text: '💻 Laptop Slow Fix', emoji: true }, action_id: 'vague_pick_laptop_slow', value: 'laptop_slow' },
+           ]});
+           blocks.push({ type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
+             { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket' },
            ]});
 
            // ── Footer ───────────────────────────────────────────────────────
            blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text:
-             '🕐 *IT Support:* Mon–Fri 9AM–7PM  |  📧 sajan.kumar@wiom.in  |  ⚡ Zivon — 24/7 AI Support'
+             '⚡ *Zivon AI Support* — 24/7 Available  |  📧 sajan.kumar@wiom.in'
            }]});
 
            return blocks;
