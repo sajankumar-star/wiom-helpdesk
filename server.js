@@ -1024,17 +1024,37 @@ app.listen(PORT, async () => {
    type: 'modal',
    callback_id: 'quick_ticket_notes_modal',
    private_metadata: JSON.stringify({ description: description || 'IT support needed', priority: priority || 'Medium' }),
-   title: { type: 'plain_text', text: 'Create Ticket', emoji: true },
-   submit: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true },
+   title: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true },
+   submit: { type: 'plain_text', text: 'Submit Ticket', emoji: true },
    close: { type: 'plain_text', text: 'Cancel', emoji: true },
    blocks: [
-     { type: 'section', text: { type: 'mrkdwn', text: `*Issue:*\n_${(description||'IT support needed').substring(0,100)}_` }},
+     // Issue summary — shown as context chip
+     { type: 'section', text: { type: 'mrkdwn', text: `*📋 Issue Detected:*\n>${(description||'IT support needed').substring(0, 120)}` }},
      { type: 'divider' },
+     // Priority selector
+     { type: 'input', block_id: 'priority_block',
+       optional: false,
+       label: { type: 'plain_text', text: '⚡ Priority', emoji: true },
+       element: {
+         type: 'static_select',
+         action_id: 'priority_select',
+         placeholder: { type: 'plain_text', text: 'Priority select karo...', emoji: true },
+         initial_option: { text: { type: 'plain_text', text: '🟡 Medium', emoji: true }, value: 'Medium' },
+         options: [
+           { text: { type: 'plain_text', text: '🔴 Critical — Kaam bilkul band hai', emoji: true }, value: 'Critical' },
+           { text: { type: 'plain_text', text: '🟠 High — Kaam mushkil se ho rha hai', emoji: true }, value: 'High' },
+           { text: { type: 'plain_text', text: '🟡 Medium — Kaam ho rha hai par dikkat hai', emoji: true }, value: 'Medium' },
+           { text: { type: 'plain_text', text: '🟢 Low — Jab time ho tab theek karo', emoji: true }, value: 'Low' },
+         ]
+       }
+     },
+     // Optional notes
      { type: 'input', block_id: 'notes_block',
        optional: true,
-       label: { type: 'plain_text', text: 'Apni problem describe karo (Optional)', emoji: true },
+       label: { type: 'plain_text', text: '📝 Additional Details (Optional)', emoji: true },
+       hint: { type: 'plain_text', text: 'Jitna zyada detail, utna jaldi fix hoga!', emoji: true },
        element: { type: 'plain_text_input', action_id: 'notes_input', multiline: true,
-         placeholder: { type: 'plain_text', text: 'Koi additional detail add karein... jaise: kab se ho rha hai, kya error aa rha hai, kisi specific file ya app mein ho rha hai...' }
+         placeholder: { type: 'plain_text', text: 'Kab se ho rha hai? Koi error message dikh rha hai? Konsa app/device?' }
        }
      },
    ]
@@ -4759,6 +4779,8 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  slackApp.view('quick_ticket_notes_modal', async ({ body, ack, client, view }) => {
    const userId = body.user.id;
    const notes = view.state.values?.notes_block?.notes_input?.value || '';
+   // Read priority from dropdown — user's selection overrides everything
+   const selectedPriority = view.state.values?.priority_block?.priority_select?.selected_option?.value || null;
    let metadata = {};
    try { metadata = JSON.parse(view.private_metadata || '{}'); } catch {}
 
@@ -4772,7 +4794,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        empId: emp.empId, empName: emp.empName, empEmail: emp.email || 'unknown@wiom.in',
        empDept: emp.dept, empFloor: emp.floor,
        laptop: emp.laptop, laptopSN: emp.laptopSN,
-       category: pending.category || 'Other', priority: pending.priority || metadata.priority || 'Medium',
+       category: pending.category || 'Other', priority: selectedPriority || pending.priority || metadata.priority || 'Medium',
        description: fullDesc.replace(/[*_`]/g, '').substring(0, 500),
        source: 'slack', slackUserId: userId, createdAt: Date.now()
      });
