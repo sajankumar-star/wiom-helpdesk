@@ -919,11 +919,11 @@ app.listen(PORT, async () => {
            const allTickets = myTickets ? myTickets.slice(0, 3) : [];
            const openCount = allTickets.filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
 
-           // ── Ticket Counter chip — show when there are open tickets ────────
+           // ── Ticket Counter — show open ticket count only (no View button)
            if (openCount > 0) {
              blocks.push({ type: 'section', text: { type: 'mrkdwn', text:
                `🎫 *Open Tickets: ${openCount}* — IT team kaam kar rahi hai`
-             }, accessory: { type: 'button', text: { type: 'plain_text', text: '📋 View', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' }});
+             }});
            }
 
            if (allTickets.length > 0) {
@@ -931,21 +931,18 @@ app.listen(PORT, async () => {
                const hrs = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
                const timeStr = hrs < 24 ? hrs + 'h ago' : Math.floor(hrs/24) + 'd ago';
                const statusLine = (statEmoji[t.status]||'🔵') + ' *' + t.status + '*  ' + (priEmoji2[t.priority]||'🟡') + ' ' + t.priority;
+               // No Details button — ticket info visible directly
                blocks.push({
                  type: 'section',
                  text: { type: 'mrkdwn', text: '`' + t.ticketId + '` — ' + statusLine + '\n_' + (t.description||'').substring(0,60) + '..._\n📅 ' + timeStr },
-                 accessory: { type: 'button', text: { type: 'plain_text', text: 'Details', emoji: true }, action_id: 'view_ticket_details', value: t.ticketId }
                });
              }
              blocks.push({ type: 'divider' });
            }
 
-           // ── Quick Actions — universal shortcuts only ──────────────────────
-           // Order: WiFi → Password Reset → My Tickets → Create Ticket
+           // ── Quick Actions — WiFi + Create Ticket only ─────────────────────
            blocks.push({ type: 'actions', elements: [
              { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Password', emoji: true }, action_id: 'home_quick_wifi_pwd_quick', value: 'wifi password', style: 'primary' },
-             { type: 'button', text: { type: 'plain_text', text: '🔑 Password Reset', emoji: true }, action_id: 'home_quick_55b', value: 'password reset' },
-             { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
              { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket' },
            ]});
 
