@@ -1039,11 +1039,12 @@ app.listen(PORT, async () => {
          type: 'static_select',
          action_id: 'priority_select',
          placeholder: { type: 'plain_text', text: 'Priority select karo...', emoji: true },
+         // IMPORTANT: initial_option text MUST exactly match one of the options below
          initial_option: { text: { type: 'plain_text', text: '🟡 Medium', emoji: true }, value: 'Medium' },
          options: [
            { text: { type: 'plain_text', text: '🔴 Critical — Kaam bilkul band hai', emoji: true }, value: 'Critical' },
            { text: { type: 'plain_text', text: '🟠 High — Kaam mushkil se ho rha hai', emoji: true }, value: 'High' },
-           { text: { type: 'plain_text', text: '🟡 Medium — Kaam ho rha hai par dikkat hai', emoji: true }, value: 'Medium' },
+           { text: { type: 'plain_text', text: '🟡 Medium', emoji: true }, value: 'Medium' },
            { text: { type: 'plain_text', text: '🟢 Low — Jab time ho tab theek karo', emoji: true }, value: 'Low' },
          ]
        }
@@ -2228,12 +2229,17 @@ app.listen(PORT, async () => {
  if (actionId === 'vague_pick_create_ticket') {
    if (body.trigger_id) {
      const isInsideModal = body.view?.type === 'modal';
-     if (isInsideModal) {
-       // Inside an existing modal → push on top
-       try { await client.views.push({ trigger_id: body.trigger_id, view: ticketNotesFormView('', 'Medium') }); } catch(e) {}
-     } else {
-       // Home Tab or DM → open fresh modal
-       try { await client.views.open({ trigger_id: body.trigger_id, view: ticketNotesFormView('', 'Medium') }); } catch(e) {}
+     try {
+       if (isInsideModal) {
+         await client.views.push({ trigger_id: body.trigger_id, view: ticketNotesFormView('', 'Medium') });
+       } else {
+         await client.views.open({ trigger_id: body.trigger_id, view: ticketNotesFormView('', 'Medium') });
+       }
+     } catch(e) {
+       console.error('vague_pick_create_ticket modal open error:', e.message);
+       // Fallback: send DM if modal fails
+       await client.chat.postMessage({ channel: userId, text: '🎫 Ticket create karne ke liye yahan click karo: *Apni problem describe karo aur IT ticket raise karo.*\n\nError: Modal nahi khula — IT ko directly email karo: sajan.kumar@wiom.in' })
+         .catch(dmErr => console.error('create_ticket fallback DM error:', dmErr.message));
      }
    }
    return;
@@ -2478,9 +2484,13 @@ app.listen(PORT, async () => {
      await client.chat.postMessage({ channel: userId, text: reply, blocks });
    }
  } catch(err) {
-   console.error('vague_pick error:', err.message);
+   console.error('vague_pick error:', rawKey, err.message);
    if (loadingViewId) {
      try { await client.views.update({ view_id: loadingViewId, view: { type: 'modal', title: { type: 'plain_text', text: 'Error' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Kuch error aa gaya. Dobara try karo.' }}] }}); } catch(e) {}
+   } else {
+     // No modal open (Home Tab context) — send fallback DM
+     await client.chat.postMessage({ channel: userId, text: '❌ Kuch error aa gaya. Thodi der baad try karo ya ticket raise karo: sajan.kumar@wiom.in' })
+       .catch(e => console.error('vague_pick fallback DM error:', e.message));
    }
  }
  });
