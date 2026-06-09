@@ -2073,7 +2073,7 @@ app.listen(PORT, async () => {
  slackApp.action('vague_pick_laptop_slow', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
-   const isFromModal = !!body.view;
+   const isFromModal = body.view?.type === 'modal'; // Home Tab has body.view too (type:'home') — must check type
    const triggerId = body.trigger_id;
    const PORTAL = process.env.API_BASE_URL || 'https://wiom-helpdesk-production.up.railway.app';
 
@@ -2134,7 +2134,7 @@ app.listen(PORT, async () => {
  slackApp.action('vague_pick_wont_turn_on', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
-   const isFromModal = !!body.view;
+   const isFromModal = body.view?.type === 'modal'; // Home Tab has body.view too (type:'home') — must check type
    const triggerId = body.trigger_id;
 
    const blocks = [
@@ -2167,7 +2167,7 @@ app.listen(PORT, async () => {
    await ack();
    const userId = body.user.id;
    const rawKey = body.actions[0].value;
-   const isFromModal = !!body.view;
+   const isFromModal = body.view?.type === 'modal'; // Home Tab has body.view too (type:'home') — must check type
    const triggerId = body.trigger_id;
 
    const itemNames = {
@@ -2226,8 +2226,15 @@ app.listen(PORT, async () => {
 
  // Create Ticket button — show ticket notes form, not AI response
  if (actionId === 'vague_pick_create_ticket') {
-   if (body.view?.id && body.trigger_id) {
-     try { await client.views.push({ trigger_id: body.trigger_id, view: ticketNotesFormView('', 'Medium') }); } catch(e) {}
+   if (body.trigger_id) {
+     const isInsideModal = body.view?.type === 'modal';
+     if (isInsideModal) {
+       // Inside an existing modal → push on top
+       try { await client.views.push({ trigger_id: body.trigger_id, view: ticketNotesFormView('', 'Medium') }); } catch(e) {}
+     } else {
+       // Home Tab or DM → open fresh modal
+       try { await client.views.open({ trigger_id: body.trigger_id, view: ticketNotesFormView('', 'Medium') }); } catch(e) {}
+     }
    }
    return;
  }
@@ -2335,7 +2342,7 @@ app.listen(PORT, async () => {
    return;
  }
 
- const isFromModal = !!body.view;
+ const isFromModal = body.view?.type === 'modal'; // Home Tab has body.view too (type:'home') — must check type
  const triggerId = body.trigger_id;
  let loadingViewId = null;
 
