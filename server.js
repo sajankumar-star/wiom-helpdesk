@@ -917,8 +917,8 @@ app.listen(PORT, async () => {
              { type: 'button', text: { type: 'plain_text', text: '🔐 Access & Identity', emoji: true }, action_id: 'cat_access', value: 'access' },
            ]});
            blocks.push({ type: 'actions', elements: [
+             // Security button removed — Virus/Phishing/Hacking = Emergency issues, moved to 🚨 Emergency Support
              { type: 'button', text: { type: 'plain_text', text: '☁️ Cloud & Storage', emoji: true }, action_id: 'cat_cloud', value: 'cloud' },
-             { type: 'button', text: { type: 'plain_text', text: '🔒 Security', emoji: true }, action_id: 'cat_security', value: 'security' },
            ]});
            // Row 4: Emergency — alone, prominent red
            blocks.push({ type: 'actions', elements: [
@@ -1111,29 +1111,26 @@ app.listen(PORT, async () => {
      .trim();
  };
 
- // ── Detect reply mode — decides which buttons (if any) to show ───────────────
- // 'question' → AI asked a diagnostic question, no buttons needed yet
- // 'ticket'   → AI wants user to confirm ticket with "ha" (only IT Ticket button)
- // 'steps'    → AI gave actual fix steps (Ho gaya + IT Ticket both show)
+ // ── Detect reply mode — decides which buttons to show ───────────────────────
+ // 'ticket' → AI wants user to confirm ticket (only IT Ticket button)
+ // 'steps'  → AI gave fix steps OR any other reply (Ho gaya + IT Ticket both show)
+ // NOTE: 'question' mode REMOVED — Messages Tab is OFF so users can't type replies.
+ //       Showing no buttons = user completely stuck. Always show action buttons.
  const detectReplyMode = (reply, shouldCreateTicket) => {
    const lines = reply.trim().split('\n').filter(l => l.trim());
    const hasNumberedSteps = /^\d+[\.\)]\s/m.test(reply);
    const hasBullets = /^[•\-\*]\s/m.test(reply);
    const hasRealSteps = hasNumberedSteps || hasBullets;
 
-   // Real numbered/bulleted steps → always 'steps' (user may have already tried them)
+   // Real numbered/bulleted steps → 'steps'
    if (hasRealSteps) return 'steps';
 
-   // No real steps but ticket ask → 'ticket' only (nothing is resolved yet — no Ho gaya)
-   // e.g. installation request, physical damage, theft — IT team hasn't come yet
+   // No real steps but ticket ask → 'ticket' only (physical damage, installation, etc.)
    if (shouldCreateTicket) return 'ticket';
 
-   // Short reply with question mark → diagnostic question (no buttons yet)
-   const isQuestion = /\?/.test(reply) && lines.length <= 3;
-   if (isQuestion) return 'question';
-
-   // Multi-line informational reply with no ticket ask → show both buttons as fallback
-   return lines.length >= 4 ? 'steps' : 'question';
+   // Everything else → 'steps' (always show both buttons — user must be able to act)
+   // Previously returned 'question' here which showed NO buttons — fatal UX bug
+   return 'steps';
  };
 
  // ── Build DM response blocks — smart: no buttons for questions, buttons for steps ──
@@ -1162,10 +1159,7 @@ app.listen(PORT, async () => {
    }
 
    // 3️⃣ ACTION BUTTONS — based on mode
-   if (mode === 'question') {
-     // AI is asking a diagnostic question — no buttons, wait for user reply
-     return blocks;
-   }
+   // NOTE: 'question' mode removed — Messages Tab OFF = users cannot type, always show buttons
 
    blocks.push({ type: 'divider' });
 
@@ -1761,10 +1755,9 @@ app.listen(PORT, async () => {
          { text: '🌐 Edge Not Opening',       val: 'edge_issue' },
          { text: '🐌 Browser Slow',           val: 'browser_slow' },
          { text: '❌ Website Not Loading',    val: 'website_blocked' },
-         { text: '📹 Teams Issue',            val: 'teams_issue' },
-         { text: '🎥 Zoom Issue',             val: 'zoom_issue' },
          { text: '📄 Adobe PDF Issue',        val: 'pdf_issue' },
          { text: '❌ Application Crash',      val: 'app_crash' },
+         // Teams/Zoom removed — they are communication tools, already in 📧 Email & Comm
        ]
      },
      cat_email: {
@@ -1820,24 +1813,31 @@ app.listen(PORT, async () => {
          { text: '💾 Storage Full',           val: 'storage_full' },
        ]
      },
+     // cat_security: button removed from Home Tab — all security issues moved to 🚨 Emergency Support
+     // Handler kept here for backward compatibility with old Slack messages that still have Security buttons
      cat_security: {
-       label: '🔒 Security', desc: 'Select your specific issue:',
+       label: '🔒 Security Issues', desc: '⚠️ These are emergency issues — IT team will respond urgently:',
        issues: [
          { text: '🎣 Phishing Email',         val: 'phishing_email' },
-         { text: '🦠 Virus / Malware',        val: 'virus_malware' },
          { text: '🔓 Suspicious Login',       val: 'suspicious_login' },
          { text: '🚨 Security Alert',         val: 'security_alert' },
-         { text: '💀 Account Hacked',         val: 'account_hacked' },
+         // Virus/Malware and Account Hacked removed (duplicates) — both are in 🚨 Emergency Support
        ]
      },
      cat_emergency: {
-       label: '🚨 Emergency Support', desc: '⚠️ HIGH/CRITICAL ticket created immediately:',
+       label: '🚨 Emergency Support', desc: '⚠️ Select your emergency — IT team will respond urgently:',
        issues: [
+         // Hardware Emergencies
          { text: '💧 Water/Liquid Damage',    val: 'liquid_damage' },
-         { text: '📱 Device Lost/Stolen',     val: 'device_lost' },
-         { text: '💀 Account Hacked',         val: 'account_hacked' },
-         { text: '🔥 Burning Smell',          val: 'burning_smell' },
+         { text: '🔥 Burning Smell / Smoke',  val: 'burning_smell' },
          { text: '🔋 Battery Swelling',       val: 'battery_swelling' },
+         // Security Emergencies (moved from 🔒 Security — that button removed from home)
+         { text: '🦠 Virus / Malware',        val: 'virus_malware' },
+         { text: '💀 Account Hacked',         val: 'account_hacked' },
+         { text: '🎣 Phishing Email',         val: 'phishing_email' },
+         { text: '🔓 Suspicious Login',       val: 'suspicious_login' },
+         // Other Emergencies
+         { text: '📱 Device Lost/Stolen',     val: 'device_lost' },
          { text: '💾 Data Loss',              val: 'data_loss' },
        ]
      },
