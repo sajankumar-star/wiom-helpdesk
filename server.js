@@ -2160,6 +2160,8 @@ app.listen(PORT, async () => {
    await ack();
    const userId = body.user.id;
    const rawKey = body.actions[0].value;
+   const triggerId = body.trigger_id;
+   const isInsideModal = body.view?.type === 'modal';
 
    const itemNames = {
      new_laptop: 'New Laptop', new_mouse: 'New Mouse', new_keyboard: 'New Keyboard',
@@ -2169,26 +2171,59 @@ app.listen(PORT, async () => {
    const mailSubject = encodeURIComponent(`${itemName} Request - Approval Required`);
    const mailBody = encodeURIComponent(`Hi,\n\nI am requesting a ${itemName} for my work.\n\nReason: [Please fill reason]\n\nCC: sajan.kumar@wiom.in\n\nThank you`);
 
-   const blocks = [
+   // ── Modal view — no header/url blocks (not supported in Slack modals) ──────
+   const modalBlocks = [
+     { type: 'section', text: { type: 'mrkdwn', text: `*📦 ${itemName} Request*\n\n*Manager approval is required* before IT can process this request.` }},
+     { type: 'divider' },
+     { type: 'section', fields: [
+       { type: 'mrkdwn', text: '*Processing Time:*\n2 Working Days' },
+       { type: 'mrkdwn', text: '*IT Contact:*\nsajan.kumar@wiom.in' },
+     ]},
+     { type: 'divider' },
+     { type: 'section', text: { type: 'mrkdwn', text:
+       `*How to request:*\n1. Get manager approval (email/message)\n2. Email IT: *sajan.kumar@wiom.in*\n   Subject: \`${itemName} Request - Approval Required\`\n3. CC your manager in the email\n4. IT team will arrange within 2 working days`
+     }},
+     { type: 'context', elements: [{ type: 'mrkdwn', text: '_Once approved by your manager, the IT team will arrange it directly._' }]}
+   ];
+
+   // ── DM message blocks — header + mailto url button work fine in messages ──
+   const dmBlocks = [
      { type: 'header', text: { type: 'plain_text', text: `📦 ${itemName} Request`, emoji: true }},
      { type: 'section', text: { type: 'mrkdwn', text: '*Approval Required*\n\nPlease obtain approval from your reporting manager.' }},
      { type: 'divider' },
      { type: 'section', fields: [
        { type: 'mrkdwn', text: '*CC:*\nsajan.kumar@wiom.in' },
-       { type: 'mrkdwn', text: '*Expected Processing Time:*\n2 Working Days' },
+       { type: 'mrkdwn', text: '*Processing Time:*\n2 Working Days' },
      ]},
      { type: 'divider' },
      { type: 'actions', elements: [
        { type: 'button', text: { type: 'plain_text', text: '📧 Send Approval Email', emoji: true }, style: 'primary', url: `mailto:?subject=${mailSubject}&body=${mailBody}`, action_id: `dl_asset_email_${rawKey}` },
-       { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home' },
      ]},
      { type: 'context', elements: [{ type: 'mrkdwn', text: '_Once approved by your manager, the IT team will arrange it directly._' }]}
    ];
 
-   // Always DM — url in button works in DMs but not in modals
-   let dmChannel = userId;
-   try { const dm = await client.conversations.open({ users: userId }); dmChannel = dm.channel.id; } catch(e) {}
-   await client.chat.postMessage({ channel: dmChannel, text: `${itemName} Request`, blocks });
+   if (isInsideModal && triggerId) {
+     // Inside cat_asset modal → push a new modal on top (views.push)
+     try {
+       await client.views.push({
+         trigger_id: triggerId,
+         view: { type: 'modal', title: { type: 'plain_text', text: `📦 ${itemName}`, emoji: true }, close: { type: 'plain_text', text: '← Back', emoji: true }, blocks: modalBlocks }
+       });
+     } catch(e) {
+       console.error(`asset modal push error (${rawKey}):`, e.message);
+       // Fallback: send DM
+       try {
+         const dm = await client.conversations.open({ users: userId });
+         await client.chat.postMessage({ channel: dm.channel.id, text: `${itemName} Request`, blocks: dmBlocks });
+       } catch(dmErr) { console.error('asset DM fallback error:', dmErr.message); }
+     }
+   } else {
+     // Home Tab or DM context → send as DM (url button works in messages)
+     try {
+       const dm = await client.conversations.open({ users: userId });
+       await client.chat.postMessage({ channel: dm.channel.id, text: `${itemName} Request`, blocks: dmBlocks });
+     } catch(e) { console.error(`asset DM error (${rawKey}):`, e.message); }
+   }
  });
 
  slackApp.action(/^vague_pick_/, async ({ body, ack, client, say }) => {
