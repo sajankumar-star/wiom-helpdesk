@@ -588,6 +588,10 @@ const getKBFallback = (problem) => {
   if (pn.includes('edge') && (pn.includes('nahi') || pn.includes('crash') || pn.includes('open')))
     return `Edge browser issue. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → Edge dhundho → End Task\n2. *Dobara open karo*\n3. *Chrome use karo* → Abhi ke liye Chrome browser use karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
+  // Phishing/suspicious email — MUST come before generic email check
+  if (/phishing|suspicious\s*email|suspicious\s*link|spam\s*mail|fake\s*email|fraud\s*email/.test(pn))
+    return `Phishing/suspicious email aaya hai!\n\n1. *Link mat dabao* → Email mein koi bhi link ya attachment BILKUL mat dabao\n2. *Gmail mein Report* → Email → 3 dots → Report phishing\n3. *IT ko batao* → *Create Ticket* button dabao — IT investigate karega 🎫\n\n⚠️ Agar link dabao diya → TURANT ticket raise karo!`;
+
   // WIOM uses Gmail (Google Workspace) — NOT Outlook
   // "email nahi chal rha", "gmail nahi khul rha", "mail nahi aa rha"
   if (pn.includes('outlook')) {
@@ -633,6 +637,19 @@ const getKBFallback = (problem) => {
 
   if (pn.includes('storage') || pn.includes('disk full'))
     return `Storage/disk full issue. Yeh try karo:\n\n1. *Recycle Bin* → Desktop pe Recycle Bin → Empty Recycle Bin\n2. *Downloads folder* → File Explorer → Downloads → jo files zaruri nahi unhe delete karo\n\nAgar ab bhi issue hai → *Create Ticket* button dabao — IT baaki cleanup karega 🎫`;
+
+  // BUG-FIX: VPN check in getKBFallback (was only in detectIntent, returned generic before)
+  if (/\bvpn\b/.test(pn))
+    return `ℹ️ WIOM mein VPN use nahi hota.\n\nKoi aur IT issue hai? Batao — help karunga.`;
+
+  // BUG-FIX: liquid damage — "paani gira", "paani gir gaya" etc. (was returning generic)
+  if (/paani|liquid|pani\s*gir|water\s*(gir|spill|giray)|coffee\s*gir|chai\s*gir/.test(pn))
+    return `EMERGENCY! Liquid/Paani gira hai!\n\n1. *TURANT BAND KARO* — Power button hold karo\n2. *CHARGER NIKALO*\n3. *ULTA RAKHO* → Liquid drain hone do\n4. *Hairdryer mat lagao*\n5. *IT ko batao* → ${ADMIN_EMAIL_KB}\n\n*Create Ticket* button dabao → CRITICAL emergency 🎫`;
+
+  // BUG-FIX: physical damage — "gir gaya", "toot gaya", "damage" (was returning generic)
+  if (/gir\s*gaya|toot\s*gaya|toot\s*gai|phoot\s*gaya|crack|damage|broken|screen\s*toot|crack\s*ho|physical/.test(pn) &&
+      /laptop|screen|display|phone|tablet/.test(pn))
+    return `Laptop physically damage hua hai.\n\nSoftware se fix nahi hoga — *Create Ticket* button dabao TURANT.\nIT physically assess aur repair/replace karega.\nTicket mein damage ka description likho. 🎫`;
 
   if (pn.includes('virus') || pn.includes('malware') || pn.includes('antivirus'))
     return `Possible virus/malware issue. Yeh karo:\n\n1. *Quick Scan* → Windows Security → Virus & threat protection → Quick Scan\n2. *Internet band karo* → agar suspicious activity lag rahi hai\n\n*Create Ticket* button dabao — yeh serious ho sakta hai, IT team directly help karegi 🎫`;
