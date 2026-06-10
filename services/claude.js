@@ -828,7 +828,7 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
 
   // ── INTENT DETECTION — tell AI exactly what category this is ──────────
   const intent = detectIntent(messages);
-  const lastUserQ = messages.filter(m => m.role === 'user').pop()?.content || '';
+  // lastUserQ already declared above (KB pre-check block)
 
   // ── QUESTION READING INSTRUCTION — force AI to understand before answering ──
   const readFirst = `\n\n🔍 EMPLOYEE KA SAWAAL: "${lastUserQ}"\n\nPEHLE YEH SAMJHO:\n- Kya employee kuch MANGWA raha hai? (chahiye/need/request) → equipment/purchase process batao\n- Kya kuch TROUBLESHOOT karna hai? (nahi chal rha/problem) → steps do\n- Kya HOW-TO poochh raha hai? (kaise/how) → seedha batao\n- Kya policy/rule poochh raha hai? → policy se jawab do\nGalat category mein jawab mat do. Sawaal poora padho, phir jawab do.`;
@@ -843,7 +843,7 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
 
   // ── Routing: Groq 70b → Groq 8b (auto in callGroq) → Gemini → KB ──────────
   let raw;
-  const lastMsg = history.filter(m => m.role === 'user').pop()?.content || '';
+  const lastMsg = lastUserQ;
 
   // Timeout wrapper — prevents hanging if AI API is slow/down
   const withTimeout = (promise, ms, label) => Promise.race([
