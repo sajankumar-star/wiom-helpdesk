@@ -196,6 +196,22 @@
   ::-webkit-scrollbar-track { background:var(--bg); }
   ::-webkit-scrollbar-thumb { background:rgba(232,25,125,0.3); border-radius:3px; }
   ::-webkit-scrollbar-thumb:hover { background:var(--pink); }
+
+  /* ── Mobile Responsive ── */
+  @media (max-width: 768px) {
+    .sidebar { transform: translateX(-100%); transition: transform .3s; z-index: 300; }
+    .sidebar.open { transform: translateX(0); }
+    .main-content { margin-left: 0 !important; padding: 16px; }
+    .stats-grid { grid-template-columns: 1fr 1fr !important; gap: 10px; }
+    .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .topbar-right { flex-wrap: wrap; gap: 8px; }
+    table { font-size: 12px; }
+    th, td { padding: 8px 10px; }
+    .modal { width: 95vw !important; padding: 20px; }
+    .filters { gap: 6px; }
+    .filter-btn { padding: 5px 10px; font-size: 12px; }
+    #menuToggle { display: block !important; }
+  }
 </style>
 </head>
 <body>
@@ -239,6 +255,7 @@
     <div class="nav-item" onclick="showTab('kb')"><span class="icon">📚</span> Knowledge Base</div>
     <div class="nav-item" onclick="showTab('import')"><span class="icon">📥</span> Bulk Import</div>
     <div class="nav-item" onclick="showTab('learning')"><span class="icon">🧠</span> Learning Queue</div>
+    <div class="nav-item" onclick="showTab('settings')"><span class="icon">⚙️</span> Settings</div>
   </div>
 
   <!-- Main Content -->
@@ -251,7 +268,10 @@
       <div class="topbar-right">
         <span class="badge" id="adminNameBadge">Admin</span>
         <div id="autoRefreshTimer" style="font-size:12px;color:var(--muted);padding:5px 10px;background:rgba(232,25,125,0.06);border:1px solid var(--border);border-radius:8px;min-width:80px;text-align:center;"></div>
+        <button id="menuToggle" onclick="document.querySelector('.sidebar').classList.toggle('open')"
+          style="display:none;padding:7px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:18px;">☰</button>
         <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
+        <button onclick="openNewTicketModal()" style="padding:7px 14px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));border:none;border-radius:8px;color:#fff;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;font-weight:600;">➕ New Ticket</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
       </div>
     </div>
@@ -621,6 +641,29 @@
       </div>
     </div><!-- /tab-learning -->
 
+    <!-- ── SETTINGS TAB ── -->
+    <div id="tab-settings" class="tab-content">
+      <div class="card" style="max-width:500px;">
+        <div class="card-header"><h3>⚙️ Change Password</h3></div>
+        <div class="card-body" style="padding:24px;">
+          <div style="margin-bottom:12px;">
+            <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px;">Current Password</label>
+            <input id="settingsCurPass" type="password" class="search-box" style="width:100%;" placeholder="Enter current password"/>
+          </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px;">New Password</label>
+            <input id="settingsNewPass" type="password" class="search-box" style="width:100%;" placeholder="Min 8 characters"/>
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px;">Confirm New Password</label>
+            <input id="settingsConfirmPass" type="password" class="search-box" style="width:100%;" placeholder="Repeat new password"/>
+          </div>
+          <button onclick="changePassword()" style="padding:10px 24px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">🔐 Change Password</button>
+          <div id="settingsResult" style="margin-top:14px;font-size:13px;"></div>
+        </div>
+      </div>
+    </div><!-- /tab-settings -->
+
   </div><!-- /main-content -->
 </div><!-- /mainPage -->
 
@@ -651,6 +694,48 @@
       <button id="modalDeleteBtn" onclick="deleteTicket()" style="padding:10px 20px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);border-radius:8px;color:#f87171;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;">🗑 Delete</button>
       <button class="btn-close" onclick="closeModal()">Close</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ NEW TICKET MODAL ═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="newTicketModal">
+  <div class="modal" style="width:560px;">
+    <button class="modal-close" onclick="document.getElementById('newTicketModal').classList.remove('show')">✕</button>
+    <h3>➕ Create New Ticket</h3>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px;">Employee Search</label>
+      <input id="newTicketEmpSearch" class="search-box" style="width:100%;" placeholder="Type name or Emp ID to search..." oninput="filterNewTicketEmp()"/>
+      <div id="newTicketEmpResults" style="max-height:160px;overflow-y:auto;margin-top:4px;background:rgba(17,7,9,0.98);border:1px solid var(--border);border-radius:8px;display:none;"></div>
+      <div id="newTicketSelectedEmp" style="margin-top:6px;font-size:13px;color:var(--pink);"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div>
+        <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px;">Category</label>
+        <select id="newTicketCategory" class="filter-select" style="width:100%;">
+          <option value="Hardware">Hardware</option>
+          <option value="Software">Software</option>
+          <option value="Network">Network</option>
+          <option value="Account">Account</option>
+          <option value="Purchase">Purchase</option>
+          <option value="Other" selected>Other</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px;">Priority</label>
+        <select id="newTicketPriority" class="filter-select" style="width:100%;">
+          <option value="Critical">Critical</option>
+          <option value="High">High</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="Low">Low</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;display:block;margin-bottom:4px;">Description</label>
+      <textarea id="newTicketDesc" class="note-box" style="min-height:90px;" placeholder="Describe the issue in detail..."></textarea>
+    </div>
+    <button onclick="submitNewTicket()" style="padding:10px 24px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">🎫 Create Ticket</button>
+    <div id="newTicketResult" style="margin-top:12px;font-size:13px;"></div>
   </div>
 </div>
 
@@ -835,7 +920,7 @@ function showTab(tab) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   event.currentTarget.classList.add('active');
-  const titles = { dashboard:'Dashboard', tickets:'All Tickets', open:'Open Tickets', employees:'Employees', report:'Today Report', analytics:'Analytics', broadcast:'Broadcast', team:'IT Team', kb:'Knowledge Base', import:'Bulk Import', learning:'Learning Queue' };
+  const titles = { dashboard:'Dashboard', tickets:'All Tickets', open:'Open Tickets', employees:'Employees', report:'Today Report', analytics:'Analytics', broadcast:'Broadcast', team:'IT Team', kb:'Knowledge Base', import:'Bulk Import', learning:'Learning Queue', settings:'Settings' };
   document.getElementById('pageTitle').textContent = titles[tab] || tab;
   if (tab === 'report')    loadReport();
   if (tab === 'open')      loadOpenTickets();
@@ -1524,6 +1609,7 @@ document.getElementById('password').addEventListener('keypress', e => { if (e.ke
 // Close modals on overlay click
 document.getElementById('ticketModal').addEventListener('click', e => { if(e.target===e.currentTarget) closeModal(); });
 document.getElementById('empModal').addEventListener('click',    e => { if(e.target===e.currentTarget) document.getElementById('empModal').classList.remove('show'); });
+document.getElementById('newTicketModal').addEventListener('click', e => { if(e.target===e.currentTarget) document.getElementById('newTicketModal').classList.remove('show'); });
 
 // ── ANALYTICS ────────────────────────────────────────────────────────────────
 let chartInstances = {};
@@ -1850,6 +1936,109 @@ async function rejectLQ(id) {
     await loadLearningQueue('pending');
     await loadLearningStats();
   } catch(e) { alert('Error: ' + e.message); }
+}
+
+// ── CHANGE PASSWORD ───────────────────────────────────────────────────────────
+async function changePassword() {
+  const res = document.getElementById('settingsResult');
+  const cur  = document.getElementById('settingsCurPass').value;
+  const nw   = document.getElementById('settingsNewPass').value;
+  const conf = document.getElementById('settingsConfirmPass').value;
+  if (!cur || !nw || !conf) { res.innerHTML = '<span style="color:#f87171;">❌ Sab fields bharo!</span>'; return; }
+  if (nw !== conf) { res.innerHTML = '<span style="color:#f87171;">❌ New passwords match nahi kar rahe!</span>'; return; }
+  if (nw.length < 8) { res.innerHTML = '<span style="color:#f87171;">❌ Password min 8 characters ka hona chahiye!</span>'; return; }
+  res.innerHTML = '⏳ Change ho raha hai...';
+  try {
+    const d = await (await fetch(`${API}/api/auth/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ currentPassword: cur, newPassword: nw })
+    })).json();
+    if (d.success) {
+      res.innerHTML = '<span style="color:#34d399;">✅ Password change ho gaya! Dobara login karein.</span>';
+      ['settingsCurPass','settingsNewPass','settingsConfirmPass'].forEach(id => document.getElementById(id).value = '');
+    } else {
+      res.innerHTML = `<span style="color:#f87171;">❌ ${d.error}</span>`;
+    }
+  } catch(e) { res.innerHTML = `<span style="color:#f87171;">❌ ${e.message}</span>`; }
+}
+
+// ── NEW TICKET MODAL ──────────────────────────────────────────────────────────
+let newTicketSelectedEmployee = null;
+
+function openNewTicketModal() {
+  newTicketSelectedEmployee = null;
+  document.getElementById('newTicketEmpSearch').value = '';
+  document.getElementById('newTicketEmpResults').style.display = 'none';
+  document.getElementById('newTicketEmpResults').innerHTML = '';
+  document.getElementById('newTicketSelectedEmp').textContent = '';
+  document.getElementById('newTicketDesc').value = '';
+  document.getElementById('newTicketResult').textContent = '';
+  document.getElementById('newTicketCategory').value = 'Other';
+  document.getElementById('newTicketPriority').value = 'Medium';
+  document.getElementById('newTicketModal').classList.add('show');
+}
+
+function filterNewTicketEmp() {
+  const q = document.getElementById('newTicketEmpSearch').value.toLowerCase().trim();
+  const resultsEl = document.getElementById('newTicketEmpResults');
+  if (!q) { resultsEl.style.display = 'none'; resultsEl.innerHTML = ''; return; }
+  const matches = allEmployees.filter(e =>
+    (e.name||'').toLowerCase().includes(q) ||
+    (e.empId||'').toLowerCase().includes(q)
+  ).slice(0, 8);
+  if (!matches.length) { resultsEl.style.display = 'none'; return; }
+  resultsEl.style.display = 'block';
+  resultsEl.innerHTML = matches.map(e => `
+    <div onclick="selectNewTicketEmp(${JSON.stringify(e).replace(/"/g,'&quot;')})"
+      style="padding:8px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border);color:var(--text);"
+      onmouseover="this.style.background='rgba(232,25,125,0.08)'" onmouseout="this.style.background='transparent'">
+      <b style="color:#E8197D;">${e.empId}</b> — ${e.name} <span style="color:var(--muted);font-size:11px;">(${e.department||'—'})</span>
+    </div>`).join('');
+}
+
+function selectNewTicketEmp(emp) {
+  newTicketSelectedEmployee = emp;
+  document.getElementById('newTicketEmpSearch').value = `${emp.empId} — ${emp.name}`;
+  document.getElementById('newTicketEmpResults').style.display = 'none';
+  document.getElementById('newTicketSelectedEmp').textContent = `Selected: ${emp.name} (${emp.empId}) · ${emp.department||'—'} · ${emp.floor||'—'}`;
+}
+
+async function submitNewTicket() {
+  const res = document.getElementById('newTicketResult');
+  if (!newTicketSelectedEmployee) { res.innerHTML = '<span style="color:#f87171;">❌ Employee select karo!</span>'; return; }
+  const desc = document.getElementById('newTicketDesc').value.trim();
+  if (!desc) { res.innerHTML = '<span style="color:#f87171;">❌ Description bharo!</span>'; return; }
+  const category = document.getElementById('newTicketCategory').value;
+  const priority = document.getElementById('newTicketPriority').value;
+  const emp = newTicketSelectedEmployee;
+  res.innerHTML = '⏳ Ticket ban raha hai...';
+  try {
+    const d = await (await fetch(`${API}/api/tickets`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({
+        empId       : emp.empId,
+        empName     : emp.name,
+        empEmail    : emp.email || '',
+        empDept     : emp.department || '',
+        empFloor    : emp.floor || '',
+        laptop      : emp.laptop || '',
+        category,
+        priority,
+        description : desc,
+        source      : 'admin',
+        skipDuplicateCheck: true
+      })
+    })).json();
+    if (d.success || d.ticket) {
+      res.innerHTML = `<span style="color:#34d399;">✅ Ticket ${d.ticket?.ticketId || ''} create ho gaya!</span>`;
+      await loadAllTickets();
+      setTimeout(() => document.getElementById('newTicketModal').classList.remove('show'), 1500);
+    } else {
+      res.innerHTML = `<span style="color:#f87171;">❌ ${d.error || 'Failed'}</span>`;
+    }
+  } catch(e) { res.innerHTML = `<span style="color:#f87171;">❌ ${e.message}</span>`; }
 }
 </script>
 </body>

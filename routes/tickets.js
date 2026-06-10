@@ -226,6 +226,34 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
       }
     }
 
+    // ── Slack DM for other status changes (In Progress, Waiting, Open) ────────
+    if (req.body.status && !['Resolved', 'Closed'].includes(req.body.status) && ticket.slackUserId && slackClient) {
+      const statusEmoji = { 'In Progress': '🔄', 'Waiting': '⏸️', 'Open': '🔓' };
+      const emoji = statusEmoji[req.body.status] || '📋';
+      const msg = `${emoji} Ticket \`${ticket.ticketId}\` ka status update hua: *${req.body.status}*`;
+      slackClient.chat.postMessage({
+        channel: ticket.slackUserId,
+        text: msg,
+        blocks: [
+          { type: 'section', text: { type: 'mrkdwn', text: msg }},
+          { type: 'context', elements: [{ type: 'mrkdwn', text: `_Assigned to: ${ticket.assignedTo || 'IT Team'}_` }]}
+        ]
+      }).catch(() => {});
+    }
+
+    // ── Slack DM when ticket is assigned/reassigned ──────────────────────────
+    if (req.body.assignedTo && ticket.slackUserId && slackClient) {
+      const assignMsg = `👤 Aapka ticket \`${ticket.ticketId}\` assign hua: *${req.body.assignedTo}* handle karega.`;
+      slackClient.chat.postMessage({
+        channel: ticket.slackUserId,
+        text: assignMsg,
+        blocks: [
+          { type: 'section', text: { type: 'mrkdwn', text: assignMsg }},
+          { type: 'context', elements: [{ type: 'mrkdwn', text: `_Category: ${ticket.category} | Priority: ${ticket.priority}_` }]}
+        ]
+      }).catch(() => {});
+    }
+
     if (comment) {
       ticket.comments.push({
         author : req.admin?.name || 'IT Team',

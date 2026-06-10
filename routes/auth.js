@@ -2,6 +2,7 @@ const router   = require('express').Router();
 const jwt      = require('jsonwebtoken');
 const Admin    = require('../models/Admin');
 const Employee = require('../models/Employee');
+const { verifyAdmin } = require('../middleware/auth');
 
 const sign = (payload, expiresIn = '24h') =>
   jwt.sign(payload, process.env.JWT_SECRET, { expiresIn });
@@ -92,6 +93,30 @@ router.post('/setup-admin', async (req, res) => {
     });
 
     res.json({ message: 'Admin created successfully', username: admin.username });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── POST /api/auth/change-password ────────────────────────────────────────────
+router.post('/change-password', verifyAdmin, async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    if (!currentPassword || !newPassword)
+      return res.status(400).json({ error: 'currentPassword and newPassword required' });
+    if (newPassword.length < 8)
+      return res.status(400).json({ error: 'New password must be at least 8 characters' });
+
+    const admin = await Admin.findById(req.admin._id || req.admin.id);
+    if (!admin) return res.status(404).json({ error: 'Admin not found' });
+
+    const ok = await admin.comparePassword(currentPassword);
+    if (!ok) return res.status(401).json({ error: 'Current password is incorrect' });
+
+    admin.passwordHash = newPassword; // pre-save hook will hash it
+    await admin.save();
+
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

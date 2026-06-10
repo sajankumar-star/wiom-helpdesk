@@ -3207,6 +3207,11 @@ app.listen(PORT, async () => {
  // Try static KB first — instant, no API call needed
  let reply = claudeSvc.getKBAnswer ? claudeSvc.getKBAnswer(problem) : null;
 
+ // Try MongoDB KB as second-level lookup before calling AI
+ if (!reply && claudeSvc.getKBAnswerDB) {
+   reply = await claudeSvc.getKBAnswerDB(problem).catch(() => null);
+ }
+
  if (!reply) {
  // KB miss → call AI with minimal context (no session history for speed)
  const quickMessages = [{ role: 'user', content: problem }];
@@ -4545,8 +4550,9 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      if (question && question.length > 3) {
        const claudeSvc = require('./services/claude');
 
-       // Try KB first, then AI
+       // Try KB first (static), then MongoDB KB, then AI
        let reply = claudeSvc.getKBAnswer ? claudeSvc.getKBAnswer(question) : null;
+       if (!reply && claudeSvc.getKBAnswerDB) reply = await claudeSvc.getKBAnswerDB(question).catch(() => null);
        if (!reply) {
          const fixMessages = [{ role: 'user', content: question }];
          const empInfo = { empId: emp?.empId || userId, empName: empName, source: 'slack',

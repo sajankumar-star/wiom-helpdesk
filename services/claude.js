@@ -1059,8 +1059,41 @@ const quickReply = async (userMessage, empName = 'Employee', laptop = null, lapt
   return (typeof parsed.reply === 'string' ? parsed.reply : raw) || userMessage;
 };
 
-// ── getKBAnswer removed — AI handles all queries directly ────────────────────
-// (Previously: large KB lookup function; now handled by Groq/Gemini AI)
+// ── getKBAnswer: sync DIRECT_KB lookup (kept for backward compat) ─────────────
+const getKBAnswer = (problem) => {
+  if (!problem) return null;
+  const p = problem.toLowerCase().trim();
+  // Check DIRECT_KB keys by exact match first, then partial substring match
+  for (const [key, answer] of Object.entries(DIRECT_KB)) {
+    const keyWords = key.replace(/_/g, ' ');
+    if (p.includes(keyWords) || keyWords.includes(p)) return answer;
+  }
+  return null;
+};
+
+// ── getKBAnswerDB: async MongoDB KB lookup (fallback after DIRECT_KB miss) ────
+const mongoose = require('mongoose');
+const getKBAnswerDB = async (problem) => {
+  if (!problem) return null;
+  try {
+    const KnowledgeBase = mongoose.models.KnowledgeBase || require('../models/KnowledgeBase');
+    const entry = await KnowledgeBase.findOne({
+      $or: [
+        { keywords: { $elemMatch: { $regex: problem.substring(0, 30), $options: 'i' } } },
+        { question: { $regex: problem.substring(0, 30), $options: 'i' } }
+      ],
+      isActive: { $ne: false }
+    }).sort({ useCount: -1 }).lean();
+    if (entry) {
+      // Increment usage count in background
+      KnowledgeBase.findByIdAndUpdate(entry._id, { $inc: { useCount: 1 } }).catch(() => {});
+      return entry.answer;
+    }
+  } catch (err) {
+    console.warn('⚠️ getKBAnswerDB error:', err.message);
+  }
+  return null;
+};
 
 // ── Lightweight stubs for detectQueryIntent / processQuery (used by routes) ──
 const detectQueryIntent = (problem) => {
@@ -1079,5 +1112,5 @@ const processQuery = (problem, empInfo = {}) => {
   return { intent, confidence, category, kbAnswer: null };
 };
 
-module.exports = { chat, chatStream, quickReply, detectQueryIntent, processQuery, getKBFallback, DIRECT_KB };
+module.exports = { chat, chatStream, quickReply, detectQueryIntent, processQuery, getKBFallback, getKBAnswer, getKBAnswerDB, DIRECT_KB };
 

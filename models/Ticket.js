@@ -1,5 +1,8 @@
 const mongoose = require('mongoose');
 
+const counterSchema = new mongoose.Schema({ _id: String, seq: { type: Number, default: 0 } });
+const Counter = mongoose.models.Counter || mongoose.model('Counter', counterSchema);
+
 const commentSchema = new mongoose.Schema({
   author  : { type: String, required: true },
   role    : { type: String, enum: ['employee','admin','bot'], default: 'admin' },
@@ -79,8 +82,12 @@ const ticketSchema = new mongoose.Schema({
 // ── Auto-generate ticket ID ──────────────────────────────────────────────────
 ticketSchema.pre('save', async function (next) {
   if (!this.ticketId) {
-    const count = await mongoose.model('Ticket').countDocuments();
-    this.ticketId = `WIOM-TKT-${String(count + 1).padStart(4, '0')}`;
+    const counter = await Counter.findOneAndUpdate(
+      { _id: 'ticketId' },
+      { $inc: { seq: 1 } },
+      { upsert: true, new: true }
+    );
+    this.ticketId = `WIOM-TKT-${String(counter.seq).padStart(4, '0')}`;
   }
 
   // Auto-set SLA hours from priority
