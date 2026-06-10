@@ -354,25 +354,25 @@ const DIRECT_KB = {
     `Door access card issue. Yeh karo:\n\n*Create Ticket* button dabao — IT/Admin department new card issue karega ya existing card reprogram karega.\nTicket mein likho: kaunsa floor/door ka access chahiye. 🎫`,
 
   mobile_not_working:
-    `Company phone kaam nahi kar rha. Yeh try karo:\n\n1. *Restart* → Phone restart karo\n2. *Charging check* → Battery dead toh nahi? Charger lagao 10 min wait karo\n\nAgar on nahi ho rha → *Create Ticket* button dabao — IT company phone handle karega 🎫`,
+    `**Company Phone Not Working**\n\nYour company phone needs IT support. Please raise a ticket.\n\n**What to include in your ticket:**\n- Phone model and IMEI number\n- Exact problem (won't turn on / screen issue / software problem)\n- When the issue started\n\nIT team will resolve it promptly.`,
 
   sim_not_working:
-    `Company SIM kaam nahi kar rha. Yeh try karo:\n\n1. *Phone restart karo*\n2. *SIM check* → SIM card properly lagi hai? Nikal ke dobara lagao\n\nAgar network nahi aa rha → *Create Ticket* button dabao — IT sort karega 🎫`,
+    `**Company SIM Not Working**\n\nSIM issues need IT support.\n\n**What to include in your ticket:**\n- Your SIM number (printed on SIM card)\n- Network provider\n- Problem (no signal / calls not working / data not working)\n\nIT team will contact the carrier and resolve it.`,
 
   mobile_internet:
-    `Company phone par internet nahi chal rha. Yeh try karo:\n\n1. *Airplane mode* → ON karo → 10 sec → OFF karo\n2. *WiFi se try karo* → Office WiFi se connect karo (spartans500)\n3. *Restart* → Phone restart karo\n\nAgar phir bhi nahi → *Create Ticket* button dabao 🎫`,
+    `**Mobile Internet Not Working**\n\nTry these steps first:\n1. Toggle Airplane Mode ON → wait 10 seconds → OFF\n2. Settings → Mobile Data → ensure it's ON\n3. APN settings — check with IT if unsure\n4. Restart your phone\n\nIf still not working, raise a ticket with your phone model and carrier.`,
 
   email_mobile:
-    `Company phone par Gmail setup karna hai.\n\n*Create Ticket* button dabao — IT aapka company Gmail account phone par setup kar dega.\nTicket mein apna phone model likho. 🎫`,
+    `**Setting Up Company Email on Phone**\n\nCompany email setup requires IT assistance.\n\n**Required:**\n- Your company email address\n- Phone model (Android/iPhone)\n- IT will configure Google Workspace/Gmail on your device\n\nRaise a ticket and IT will set it up for you.`,
 
   mobile_app:
-    `Company phone app nahi chal rha. Yeh try karo:\n\n1. *App restart* → App force close karo → dobara open karo\n2. *Phone restart* → Phone restart karo\n\nAgar install nahi hai ya kaam nahi kar rha → *Create Ticket* button dabao 🎫`,
+    `**Company Mobile App Not Working**\n\nTry these steps:\n1. Force close the app → reopen\n2. Clear app cache: Settings → Apps → [App Name] → Clear Cache\n3. Restart your phone\n4. Uninstall and reinstall the app\n\nIf still failing, raise a ticket with: app name, phone model, error message screenshot.`,
 
   mobile_charging:
-    `Company phone charge nahi ho rha. Yeh try karo:\n\n1. *Charger check* → Dono taraf properly laga hai?\n2. *Alag socket* → Dusra socket try karo\n\nAgar charger ya battery kharab → *Create Ticket* button dabao — IT replacement arrange karega 🎫`,
+    `**Company Phone Not Charging**\n\n1. Try a different USB cable\n2. Try a different charger/power adapter\n3. Clean the charging port gently with a dry brush\n4. Try wireless charging if supported\n\nIf the phone still won't charge, raise a ticket — IT will arrange a replacement charger or send the phone for repair.`,
 
   mobile_screen_damage:
-    `Company phone screen damage hai.\n\n*Create Ticket* button dabao — IT physical damage report karega aur repair/replacement arrange karega.\nTicket mein damage ka details likho. 🎫`,
+    `**Company Phone Screen Damaged**\n\nScreen damage requires IT assessment.\n\n**Do not attempt self-repair.**\n\nRaise a ticket immediately with:\n- Photo of the damage\n- How it happened\n- Whether the phone is still functional\n\nIT will arrange repair or replacement per company policy.`,
 
   google_drive_issue:
     `Google Drive kaam nahi kar rha. Yeh try karo:\n\n1. *Browser mein kholo* → Chrome mein drive.google.com kholo\n2. *Cache clear* → Ctrl+Shift+Del → All time → Clear\n3. *Incognito try karo* → Ctrl+Shift+N → drive.google.com\n\nAgar access nahi hai → *Create Ticket* button dabao — IT access dega 🎫`,

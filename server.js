@@ -164,7 +164,7 @@ cron.schedule('0 * * * *', async () => {
  { type:'mrkdwn', text:`* Category*\n${t.category||'Other'}` }
  ]},
  { type:'section', text:{ type:'mrkdwn', text:`* Issue:*\n${t.description}` }},
- { type:'context', elements:[{ type:'mrkdwn', text:`_Abhi tak resolve nahi hua please check karo!_` }]}
+ { type:'context', elements:[{ type:'mrkdwn', text:`_Still not resolved — please check!_` }]}
  ]
  }]
  });
@@ -203,17 +203,17 @@ cron.schedule('30 * * * *', async () => {
  try {
  await slackClient.chat.postMessage({
  channel: t.slackUserId,
- text : `⏳ Aapka ticket ${t.ticketId} abhi bhi open hai IT team kaam kar rahi hai!`,
+ text : `⏳ Your ticket ${t.ticketId} is still open — IT team is working on it!`,
  blocks : [
  { type:'section', text:{ type:'mrkdwn', text:
- `⏳ *Aapka ticket abhi bhi open hai!*\n\n` +
+ `⏳ *Your ticket is still open!*\n\n` +
  `* Ticket:* \`${t.ticketId}\`\n` +
  `*${priEmoji[t.priority]||''} Priority:* ${t.priority}\n` +
  `* Problem:* ${(t.description||'').substring(0,80)}${(t.description||'').length>80?'...':''}\n` +
- `*⏱ Open Since:* ${hoursOld} ghante pehle`
+ `*⏱ Open Since:* ${hoursOld} hours ago`
  }},
  { type:'context', elements:[{ type:'mrkdwn', text:
- `_IT team aapke ticket par kaam kar rahi hai Jaldi solve ho jayega!_\nUrgent ho toh call karein: *IT Helpdesk (Slack)*`
+ `_IT team is working on your ticket and will resolve it soon!_\nIf urgent, please contact: *IT Helpdesk (Slack)*`
  }]}
  ]
  });
@@ -286,13 +286,13 @@ cron.schedule('*/30 * * * *', async () => {
 
  await slackClient.chat.postMessage({
  channel: adminId,
- text : `⚠️ ${g.count} employees same problem report kar rahe hain: ${g._id}`,
+ text : `⚠️ ${g.count} employees reported the same problem: ${g._id}`,
  blocks : [
  { type:'header', text:{ type:'plain_text', text:`⚠️ Recurring Issue Alert`, emoji:true }},
  { type:'section', text:{ type:'mrkdwn', text:
- `*${g.count} employees ne last 1 hour mein same issue report kiya!*\n\n*Category:* ${g._id}\n*Employees:* ${g.employees.slice(0,5).join(', ')}${g.count > 5 ? ` +${g.count-5} more` : ''}`
+ `*${g.count} employees reported the same issue in the last 1 hour!*\n\n*Category:* ${g._id}\n*Employees:* ${g.employees.slice(0,5).join(', ')}${g.count > 5 ? ` +${g.count-5} more` : ''}`
  }},
- { type:'context', elements:[{ type:'mrkdwn', text:`_Systemic problem ho sakta hai please investigate!_` }]}
+ { type:'context', elements:[{ type:'mrkdwn', text:`_This may be a systemic problem — please investigate!_` }]}
  ]
  });
  console.log(`⚠️ Recurring issue alert sent for category: ${g._id} (${g.count} tickets)`);
@@ -922,7 +922,7 @@ app.listen(PORT, async () => {
            // ── Ticket Counter — show open ticket count only (no View button)
            if (openCount > 0) {
              blocks.push({ type: 'section', text: { type: 'mrkdwn', text:
-               `🎫 *Open Tickets: ${openCount}* — IT team kaam kar rahi hai`
+               `🎫 *Open Tickets: ${openCount}* — IT team is actively working on these`
              }});
            }
 
@@ -967,7 +967,7 @@ app.listen(PORT, async () => {
  const buildGreetingBlocks = (firstName = 'there') => ([
    {
      type: 'section',
-     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\nMain *Zivon* hoon — WIOM ka IT assistant.\nLaptop, WiFi, software, password — koi bhi problem batao, abhi fix karunga!\n\n_Category choose karo — Zivon abhi fix karega!_` },
+     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\nI'm *Zivon* — WIOM's AI IT Assistant.\nLaptop, WiFi, software, password — tell me your problem and I'll fix it right away!\n\n_Select a category below — Zivon will help you instantly!_` },
      accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/images/zivon-robot.gif', alt_text: 'Zivon' }
    },
    { type: 'divider' },
@@ -999,8 +999,8 @@ app.listen(PORT, async () => {
    blocks: [{
      type: 'section',
      text: { type: 'mrkdwn', text:
-       '✅ *Bahut accha! Issue resolve ho gaya!*\n\n' +
-       '_Is window ko close karo. Koi aur IT problem ho toh Home tab pe jaao._'
+       '✅ *Great! Issue resolved!*\n\n' +
+       '_You can close this window. For any other IT problem, go to the Home tab._'
      }
    }]
  });
@@ -1010,7 +1010,7 @@ app.listen(PORT, async () => {
    type: 'modal',
    title: { type: 'plain_text', text: 'Creating Ticket...', emoji: true },
    close: { type: 'plain_text', text: 'Close', emoji: true },
-   blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Ticket create ho rha hai — ek second..._' }}]
+   blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Creating your ticket — one moment..._' }}]
  });
 
  // ── Shared: Notes form before ticket creation ─────────────────────────────────
@@ -1032,14 +1032,14 @@ app.listen(PORT, async () => {
        element: {
          type: 'static_select',
          action_id: 'priority_select',
-         placeholder: { type: 'plain_text', text: 'Priority select karo...', emoji: true },
+         placeholder: { type: 'plain_text', text: 'Select priority...', emoji: true },
          // IMPORTANT: initial_option text MUST exactly match one of the options below
-         initial_option: { text: { type: 'plain_text', text: '🟡 Medium', emoji: true }, value: 'Medium' },
+         initial_option: { text: { type: 'plain_text', text: '🟡 Medium — Partial impact on work', emoji: true }, value: 'Medium' },
          options: [
-           { text: { type: 'plain_text', text: '🔴 Critical — Kaam bilkul band hai', emoji: true }, value: 'Critical' },
-           { text: { type: 'plain_text', text: '🟠 High — Kaam mushkil se ho rha hai', emoji: true }, value: 'High' },
-           { text: { type: 'plain_text', text: '🟡 Medium', emoji: true }, value: 'Medium' },
-           { text: { type: 'plain_text', text: '🟢 Low — Jab time ho tab theek karo', emoji: true }, value: 'Low' },
+           { text: { type: 'plain_text', text: '🔴 Critical — Work completely stopped', emoji: true }, value: 'Critical' },
+           { text: { type: 'plain_text', text: '🟠 High — Work severely impacted', emoji: true }, value: 'High' },
+           { text: { type: 'plain_text', text: '🟡 Medium — Partial impact on work', emoji: true }, value: 'Medium' },
+           { text: { type: 'plain_text', text: '🟢 Low — Minor issue, fix when possible', emoji: true }, value: 'Low' },
          ]
        }
      },
@@ -1047,9 +1047,9 @@ app.listen(PORT, async () => {
      { type: 'input', block_id: 'notes_block',
        optional: true,
        label: { type: 'plain_text', text: '📝 Additional Details (Optional)', emoji: true },
-       hint: { type: 'plain_text', text: 'Jitna zyada detail, utna jaldi fix hoga!', emoji: true },
+       hint: { type: 'plain_text', text: 'More details = faster resolution!', emoji: true },
        element: { type: 'plain_text_input', action_id: 'notes_input', multiline: true,
-         placeholder: { type: 'plain_text', text: 'Kab se ho rha hai? Koi error message dikh rha hai? Konsa app/device?' }
+         placeholder: { type: 'plain_text', text: 'How long has this been happening? Any error message? Which app/device?' }
        }
      },
    ]
@@ -1063,9 +1063,9 @@ app.listen(PORT, async () => {
    blocks: [{
      type: 'section',
      text: { type: 'mrkdwn', text:
-       '*IT Ticket Create Ho Gaya!*\n\n' +
+       '*IT Ticket Created!*\n\n' +
        `*Ticket ID:* \`${result.ticketId}\`\n\n` +
-       'IT team jald se jald madad karegi.\n_Is window ko close karo._'
+       'The IT team will reach out to you shortly.\n_You can close this window._'
      }
    }]
  });
@@ -1073,8 +1073,8 @@ app.listen(PORT, async () => {
  // ── Shared: "Resolved" DM message — same for every problem ──────────────────
  const resolvedDMBlocks = () => ([
    { type: 'section', text: { type: 'mrkdwn', text:
-     '✅ *Bahut accha! Issue resolve ho gaya!*\n\n' +
-     '_Koi aur IT problem ho toh Home tab pe jaao aur category select karo._'
+     '✅ *Great! Issue resolved!*\n\n' +
+     '_For any other IT problem, go to the Home tab and select a category._'
    }},
    { type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' }
@@ -1360,8 +1360,8 @@ app.listen(PORT, async () => {
 
  if (!text) {
  await respond({ response_type: 'ephemeral', blocks:[
- { type:'section', text:{ type:'mrkdwn', text:'* WIOM IT Helpdesk*\nApni IT problem batao!\n\n*Examples:*\n `/helpdesk wifi nahi chal raha`\n `/helpdesk laptop slow hai`\n `/helpdesk gmail nahi khul rhi`\n\n_Apne tickets dekhne ke liye:_ `/helpdesk status`' }}
- ], text:'WIOM IT Helpdesk apni problem batao' });
+ { type:'section', text:{ type:'mrkdwn', text:'* WIOM IT Helpdesk*\nDescribe your IT problem!\n\n*Examples:*\n `/helpdesk wifi not working`\n `/helpdesk laptop is slow`\n `/helpdesk gmail not opening`\n\n_To view your tickets:_ `/helpdesk status`' }}
+ ], text:'WIOM IT Helpdesk — describe your problem' });
  return;
  }
 
@@ -1374,14 +1374,14 @@ app.listen(PORT, async () => {
  }).sort({ createdAt: -1 }).limit(5);
 
  if (!tickets.length) {
- await respond({ response_type: 'ephemeral', text: 'Koi open ticket nahi hai! Sab kuch theek hai.' });
+ await respond({ response_type: 'ephemeral', text: 'No open tickets! Everything looks good.' });
  return;
  }
 
  const priEmoji = { Critical:'', High:'', Medium:'', Low:'' };
  const statEmoji = { Open:'⏳', 'In Progress':'', Waiting:'⏸', Resolved:'✅', Closed:'' };
  const blocks = [
- { type:'section', text:{ type:'mrkdwn', text:`* Aapke Tickets (${tickets.length})*` }},
+ { type:'section', text:{ type:'mrkdwn', text:`* Your Tickets (${tickets.length})*` }},
  { type:'divider' }
  ];
  tickets.forEach(t => {
@@ -1392,11 +1392,11 @@ app.listen(PORT, async () => {
  ]});
  blocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`_${(t.description||'').substring(0,70)}..._` }]});
  });
- await respond({ response_type: 'ephemeral', text: `Aapke ${tickets.length} ticket(s)`, blocks });
+ await respond({ response_type: 'ephemeral', text: `Your ${tickets.length} ticket(s)`, blocks });
  return;
  }
 
- await respond({ text: '_Soch raha hoon..._ ek second!', response_type: 'ephemeral' });
+ await respond({ text: '_Thinking..._ one moment!', response_type: 'ephemeral' });
 
  const emp = await lookupEmployee(userId, client);
  const conv = await getSlackSession(userId, emp);
@@ -1559,7 +1559,7 @@ app.listen(PORT, async () => {
  } else {
  await client.chat.postMessage({
  channel: userId,
- text : '❌ Ticket create karne mein problem aayi. Please try again or contact IT directly.'
+ text : '❌ There was a problem creating your ticket. Please try again or contact IT directly.'
  });
  }
  } catch (err) {
@@ -1582,7 +1582,7 @@ app.listen(PORT, async () => {
  if (!adminId || adminId === 'FILL_KARO' || command.user_id !== adminId) {
  await client.chat.postEphemeral({
  channel: command.channel_id, user: command.user_id,
- text: '❌ Sirf IT broadcast kar sakta hai!'
+ text: '❌ Only IT admin can send broadcasts!'
  });
  return;
  }
@@ -1596,7 +1596,7 @@ app.listen(PORT, async () => {
  submit: { type: 'plain_text', text: 'Send to All' },
  close: { type: 'plain_text', text: 'Cancel' },
  blocks: [
- { type: 'section', text: { type: 'mrkdwn', text: '*Yeh message SABHI employees ko Slack DM mein milega!* 📢' }},
+ { type: 'section', text: { type: 'mrkdwn', text: '*This message will be sent to ALL employees via Slack DM!* 📢' }},
  { type: 'input', block_id: 'msg_block', label: { type: 'plain_text', text: 'Message' },
  element: { type: 'plain_text_input', action_id: 'msg_input', multiline: true,
  placeholder: { type: 'plain_text', text: 'e.g. Server maintenance tonight 11pm-1am. Save your work!' }}},
@@ -1768,7 +1768,6 @@ app.listen(PORT, async () => {
          { text: '🔑 Password Reset',         val: 'password_reset' },
          { text: '🔒 Account Locked',         val: 'account_locked' },
          { text: '📧 Email Access',           val: 'email_access' },
-         { text: '💾 Application Access',     val: 'software_access' },
          { text: '🚪 Door Access Card',       val: 'door_access' },
        ]
      },
@@ -1898,11 +1897,11 @@ app.listen(PORT, async () => {
        title: { type: 'plain_text', text: '🔌 Charger Issue', emoji: true },
        close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '*🔌 Charger Issue*\n\nKya problem hai?' }},
+         { type: 'section', text: { type: 'mrkdwn', text: '*🔌 Charger Issue*\n\nWhat is the problem?' }},
          { type: 'divider' },
          { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '💥 Charger Damage/Toota Hai', emoji: true }, action_id: 'vague_pick_charger_damaged', value: 'charger_damaged', style: 'danger' },
-           { type: 'button', text: { type: 'plain_text', text: '❌ Charger Kaam Nahi Kar Rha', emoji: true }, action_id: 'vague_pick_battery_not_charging', value: 'battery_not_charging' },
+           { type: 'button', text: { type: 'plain_text', text: '💥 Charger Physically Damaged', emoji: true }, action_id: 'vague_pick_charger_damaged', value: 'charger_damaged', style: 'danger' },
+           { type: 'button', text: { type: 'plain_text', text: '❌ Charger Not Working', emoji: true }, action_id: 'vague_pick_battery_not_charging', value: 'battery_not_charging' },
          ]},
        ]
      }
@@ -1921,7 +1920,7 @@ app.listen(PORT, async () => {
        await client.views.open({ trigger_id: triggerId, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Ticket Not Found' },
          close: { type: 'plain_text', text: 'Close' },
-         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Ticket `' + ticketId + '` nahi mili.' }}]
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Ticket `' + ticketId + '` not found.' }}]
        }});
        return;
      }
@@ -1960,10 +1959,10 @@ app.listen(PORT, async () => {
        title: { type: 'plain_text', text: '💥 Charger Damaged', emoji: true },
        close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '💥 *Charger physically damage/toota hai*\n\nIT team replacement arrange karegi. Neeche ticket raise karo:' }},
+         { type: 'section', text: { type: 'mrkdwn', text: '💥 *Charger is physically damaged*\n\nIT team will arrange a replacement. Please raise a ticket below:' }},
          { type: 'divider' },
          { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '🎫 IT Ticket Banao', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Charger physically damaged - replacement needed' },
+           { type: 'button', text: { type: 'plain_text', text: '🎫 Raise IT Ticket', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Charger physically damaged - replacement needed' },
          ]},
        ]
      }
@@ -1982,11 +1981,11 @@ app.listen(PORT, async () => {
        title: { type: 'plain_text', text: '🔌 Charger Request', emoji: true },
        close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '*🔌 Charger Request*\n\nKya problem hai?' }},
+         { type: 'section', text: { type: 'mrkdwn', text: '*🔌 Charger Request*\n\nWhat is the problem?' }},
          { type: 'divider' },
          { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '💥 Charger Damage/Toota Hai', emoji: true }, action_id: 'vague_pick_charger_damaged', value: 'charger_damaged', style: 'danger' },
-           { type: 'button', text: { type: 'plain_text', text: '❌ Kaam Nahi Kar Rha', emoji: true }, action_id: 'vague_pick_battery_not_charging', value: 'battery_not_charging' },
+           { type: 'button', text: { type: 'plain_text', text: '💥 Charger Physically Damaged', emoji: true }, action_id: 'vague_pick_charger_damaged', value: 'charger_damaged', style: 'danger' },
+           { type: 'button', text: { type: 'plain_text', text: '❌ Charger Not Working', emoji: true }, action_id: 'vague_pick_battery_not_charging', value: 'battery_not_charging' },
          ]},
        ]
      }
@@ -2008,7 +2007,7 @@ app.listen(PORT, async () => {
        await client.views.update({ view_id: body.view.id, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Home Tab', emoji: true },
          close: { type: 'plain_text', text: 'Close', emoji: true },
-         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Home tab refresh ho gaya!\n\n*Is window ko close karo* aur upar *Home* tab pe click karo.' }}]
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Home tab refreshed!\n\n*Close this window* and click on the *Home* tab above.' }}]
        }}).catch(() => {});
      }
    } catch (err) { console.error('go_home_btn error:', err.message); }
@@ -2074,30 +2073,30 @@ app.listen(PORT, async () => {
 
    const blocks = [
      { type: 'section', text: { type: 'mrkdwn', text:
-       `*🐢 Laptop Slow/Hang*\n\nPehle yeh 3 steps try karo:\n\n` +
+       `*🐢 Laptop Slow/Hang*\n\nTry these 3 steps first:\n\n` +
        `1. *Task Manager* → Ctrl+Shift+Esc → CPU column → heavy app → End Task\n` +
-       `2. *Browser tabs* → extra Chrome/Edge tabs band karo\n` +
-       `3. *Restart* → Properly shut down karo (restart, sleep nahi)`
+       `2. *Browser tabs* → close extra Chrome/Edge tabs\n` +
+       `3. *Restart* → Properly shut down (restart, not sleep)`
      }},
      { type: 'divider' },
      { type: 'section', text: { type: 'mrkdwn', text:
-       `*⚡ Auto Fix*\n\nYeh script automatically yeh karega:\n\n` +
+       `*⚡ Auto Fix*\n\nThis script will automatically:\n\n` +
        `✓ Clear temporary files\n` +
        `✓ Refresh performance settings\n` +
        `✓ Restart Windows Explorer\n` +
        `✓ Clean junk files\n\n` +
        `*Estimated Time:* 2 minutes\n` +
        `*Success Rate:* 85%\n\n` +
-       `_Safe hai — koi data delete nahi hoga_`
+       `_Safe to run — no data will be deleted_`
      }},
      { type: 'actions', elements: [
        { type: 'button', text: { type: 'plain_text', text: '🔧 Download & Run Auto Fix', emoji: true }, style: 'primary', url: `${PORTAL}/scripts/fix-slow-laptop.bat`, action_id: 'dl_slow_laptop' }
      ]},
      { type: 'divider' },
-     { type: 'section', text: { type: 'mrkdwn', text: '*Auto Fix ke baad — resolved hua?*' }},
+     { type: 'section', text: { type: 'mrkdwn', text: '*After running Auto Fix — is it resolved?*' }},
      { type: 'actions', elements: [
        { type: 'button', text: { type: 'plain_text', text: '🟢 Yes, Fixed!', emoji: true }, action_id: 'laptop_slow_fixed', style: 'primary', value: 'laptop_slow' },
-       { type: 'button', text: { type: 'plain_text', text: '🔴 No, Still Issue', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Laptop slow hai — Auto Fix se bhi theek nahi hua, RAM ya SSD check karni hai' },
+       { type: 'button', text: { type: 'plain_text', text: '🔴 No, Still Issue', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Laptop still slow — Auto Fix did not resolve it, RAM or SSD check needed' },
      ]}
    ];
 
@@ -2134,11 +2133,11 @@ app.listen(PORT, async () => {
 
    const blocks = [
      { type: 'section', text: { type: 'mrkdwn', text:
-       `❌ *Laptop Not Starting* — yeh try karo:\n\n` +
-       `1. *Charger check karo* — charger properly laga hai? Alag socket mein try karo\n` +
-       `2. *10 second hold* — power button 10 sec tak dabao → chhoddo → 30 sec wait → dobara try karo\n` +
-       `3. *Charger nikaal ke try karo* — charger hatao → power button 30 sec hold → charger lagao → on karo\n\n` +
-       `Agar in teeno se bhi nahi khula — laptop hardware issue hai, IT physically check karega.`
+       `❌ *Laptop Not Starting* — try these steps:\n\n` +
+       `1. *Check charger* — is the charger properly connected? Try a different socket\n` +
+       `2. *10 second hold* — hold power button 10 sec → release → wait 30 sec → try again\n` +
+       `3. *Try without charger* — remove charger → hold power button 30 sec → plug charger back → turn on\n\n` +
+       `If none of these work — laptop has a hardware issue, IT will physically inspect it.`
      }},
      { type: 'divider' },
      { type: 'actions', elements: [
@@ -2162,8 +2161,6 @@ app.listen(PORT, async () => {
    await ack();
    const userId = body.user.id;
    const rawKey = body.actions[0].value;
-   const isFromModal = body.view?.type === 'modal'; // Home Tab has body.view too (type:'home') — must check type
-   const triggerId = body.trigger_id;
 
    const itemNames = {
      new_laptop: 'New Laptop', new_mouse: 'New Mouse', new_keyboard: 'New Keyboard',
@@ -2186,17 +2183,13 @@ app.listen(PORT, async () => {
        { type: 'button', text: { type: 'plain_text', text: '📧 Send Approval Email', emoji: true }, style: 'primary', url: `mailto:?subject=${mailSubject}&body=${mailBody}`, action_id: `dl_asset_email_${rawKey}` },
        { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home' },
      ]},
-     { type: 'context', elements: [{ type: 'mrkdwn', text: '_Manager approval ke baad IT team directly arrange karegi._' }]}
+     { type: 'context', elements: [{ type: 'mrkdwn', text: '_Once approved by your manager, the IT team will arrange it directly._' }]}
    ];
 
-   const modalView = { type: 'modal', title: { type: 'plain_text', text: `📦 ${itemName}`, emoji: true }, close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true }, blocks };
-
-   if (isFromModal && triggerId) {
-     try { await client.views.push({ trigger_id: triggerId, view: modalView }); }
-     catch(e) { await client.chat.postMessage({ channel: userId, text: `${itemName} Request`, blocks }); }
-   } else {
-     await client.chat.postMessage({ channel: userId, text: `${itemName} Request`, blocks });
-   }
+   // Always DM — url in button works in DMs but not in modals
+   let dmChannel = userId;
+   try { const dm = await client.conversations.open({ users: userId }); dmChannel = dm.channel.id; } catch(e) {}
+   await client.chat.postMessage({ channel: dmChannel, text: `${itemName} Request`, blocks });
  });
 
  slackApp.action(/^vague_pick_/, async ({ body, ack, client, say }) => {
@@ -2232,7 +2225,7 @@ app.listen(PORT, async () => {
      } catch(e) {
        console.error('vague_pick_create_ticket modal open error:', e.message);
        // Fallback: send DM if modal fails
-       await client.chat.postMessage({ channel: userId, text: '🎫 Ticket create karne ke liye yahan click karo: *Apni problem describe karo aur IT ticket raise karo.*\n\nError: Modal nahi khula — IT ko directly email karo: sajan.kumar@wiom.in' })
+       await client.chat.postMessage({ channel: userId, text: '🎫 To create a ticket, please describe your issue and raise it via the Create Ticket button. Or email IT directly: sajan.kumar@wiom.in' })
          .catch(dmErr => console.error('create_ticket fallback DM error:', dmErr.message));
      }
    }
@@ -2297,50 +2290,6 @@ app.listen(PORT, async () => {
    data_loss: 'important files delete ho gayi hain data missing hai',
    device_lost: 'laptop ya device kho gaya hai ya chori ho gaya',
  };
-
- // ── Special case: "Create Ticket" button → open /ticket modal directly ─
- if (actionId === 'vague_pick_create_ticket') {
-   try {
-     await client.views.open({
-       trigger_id: body.trigger_id,
-       view: {
-         type: 'modal', callback_id: 'ticket_modal',
-         title: { type: 'plain_text', text: 'New IT Ticket', emoji: true },
-         submit: { type: 'plain_text', text: 'Submit Ticket ✅', emoji: true },
-         close: { type: 'plain_text', text: 'Cancel', emoji: true },
-         blocks: [
-           { type: 'input', block_id: 'description_block',
-             label: { type: 'plain_text', text: 'Describe your problem:' },
-             element: { type: 'plain_text_input', action_id: 'description_input', multiline: true, min_length: 10,
-               placeholder: { type: 'plain_text', text: 'e.g. Laptop not turning on, WiFi not working, Forgot password...' }}},
-           { type: 'input', block_id: 'category_block',
-             label: { type: 'plain_text', text: 'Category' },
-             element: { type: 'static_select', action_id: 'category_input',
-               placeholder: { type: 'plain_text', text: 'Select a category' },
-               options: [
-                 { text: { type: 'plain_text', text: 'Hardware - Laptop, keyboard, mouse, screen' }, value: 'Hardware' },
-                 { text: { type: 'plain_text', text: 'Software - App, Windows, Office' }, value: 'Software' },
-                 { text: { type: 'plain_text', text: 'Network - WiFi, internet' }, value: 'Network' },
-                 { text: { type: 'plain_text', text: 'Account - Password, login, email' }, value: 'Account' },
-                 { text: { type: 'plain_text', text: 'Purchase - New equipment request' }, value: 'Purchase' },
-                 { text: { type: 'plain_text', text: '❓ Other - Something else' }, value: 'Other' }
-               ]}},
-           { type: 'input', block_id: 'priority_block',
-             label: { type: 'plain_text', text: 'How Urgent Is It?' },
-             element: { type: 'static_select', action_id: 'priority_input',
-               initial_option: { text: { type: 'plain_text', text: 'Medium - Normal problem' }, value: 'Medium' },
-               options: [
-                 { text: { type: 'plain_text', text: 'Critical - Work completely stopped' }, value: 'Critical' },
-                 { text: { type: 'plain_text', text: 'High - Very urgent, needed ASAP' }, value: 'High' },
-                 { text: { type: 'plain_text', text: 'Medium - Normal issue, can partially work' }, value: 'Medium' },
-                 { text: { type: 'plain_text', text: 'Low - Minor issue, fix when possible' }, value: 'Low' }
-               ]}}
-         ]
-       }
-     });
-   } catch (err) { console.error('vague_pick_create_ticket modal error:', err.message); }
-   return;
- }
 
  const isFromModal = body.view?.type === 'modal'; // Home Tab has body.view too (type:'home') — must check type
  const triggerId = body.trigger_id;
@@ -2473,10 +2422,10 @@ app.listen(PORT, async () => {
    };
 
    if (autoFix) {
-     const steps = AUTO_FIX_STEPS[rawKey] || '✓ Issue diagnose karna\n✓ Settings reset karna\n✓ Driver/service refresh karna\n✓ Temporary files clean karna';
+     const steps = AUTO_FIX_STEPS[rawKey] || '✓ Diagnose issue\n✓ Reset settings\n✓ Refresh driver/service\n✓ Clean temporary files';
      blocks.push({
        type: 'section',
-       text: { type: 'mrkdwn', text: `*⚡ Auto Fix*\n\nYeh script automatically yeh karega:\n\n${steps}\n\n*Estimated Time:* 1-2 minutes\n*Success Rate:* 80%+\n\n_Safe hai — koi data delete nahi hoga_` }
+       text: { type: 'mrkdwn', text: `*⚡ Auto Fix*\n\nThis script will automatically:\n\n${steps}\n\n*Estimated Time:* 1-2 minutes\n*Success Rate:* 80%+\n\n_Safe to run — no data will be deleted_` }
      });
      blocks.push({ type: 'actions', elements: [{
        type: 'button',
@@ -2486,7 +2435,7 @@ app.listen(PORT, async () => {
        action_id: `dl_autofix_${rawKey}`
      }]});
      blocks.push({ type: 'divider' });
-     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*Auto Fix ke baad — resolved hua?*' }});
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*After running Auto Fix — is it resolved?*' }});
      blocks.push({ type: 'actions', elements: [
        { type: 'button', text: { type: 'plain_text', text: '🟢 Yes, Fixed!', emoji: true }, action_id: 'resolved_yes_btn', style: 'primary', value: 'Medium' },
        { type: 'button', text: { type: 'plain_text', text: '🔴 No, Still Issue', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: naturalProblem },
@@ -2511,10 +2460,10 @@ app.listen(PORT, async () => {
  } catch(err) {
    console.error('vague_pick error:', rawKey, err.message);
    if (loadingViewId) {
-     try { await client.views.update({ view_id: loadingViewId, view: { type: 'modal', title: { type: 'plain_text', text: 'Error' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Kuch error aa gaya. Dobara try karo.' }}] }}); } catch(e) {}
+     try { await client.views.update({ view_id: loadingViewId, view: { type: 'modal', title: { type: 'plain_text', text: 'Error' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Something went wrong. Please try again.' }}] }}); } catch(e) {}
    } else {
      // No modal open (Home Tab context) — send fallback DM
-     await client.chat.postMessage({ channel: userId, text: '❌ Kuch error aa gaya. Thodi der baad try karo ya ticket raise karo: sajan.kumar@wiom.in' })
+     await client.chat.postMessage({ channel: userId, text: '❌ Something went wrong. Please try again or email IT: sajan.kumar@wiom.in' })
        .catch(e => console.error('vague_pick fallback DM error:', e.message));
    }
  }
@@ -2622,7 +2571,7 @@ app.listen(PORT, async () => {
  const channelId = dm.channel.id;
  const emp = await lookupEmployee(userId, client).catch(() => null);
  const firstName = (emp?.empName || 'there').split(' ')[0];
- await client.chat.postMessage({ channel: channelId, text: `Hey ${firstName}! Main Zivon hoon ⚡`, blocks: buildGreetingBlocks(firstName) });
+ await client.chat.postMessage({ channel: channelId, text: `Hey ${firstName}! I'm Zivon ⚡`, blocks: buildGreetingBlocks(firstName) });
  } catch (err) {
  console.error('home_open_dm error:', err.message);
  }
@@ -2653,10 +2602,10 @@ app.listen(PORT, async () => {
      if (!tickets.length) {
        await client.chat.postMessage({
          channel: channelId,
-         text: 'Koi pending ticket nahi hai!',
+         text: 'No pending tickets!',
          blocks: [
-           { type: 'section', text: { type: 'mrkdwn', text: `✅ *Koi pending ticket nahi hai!*\n\nSab theek chal raha hai — koi nayi problem ho toh seedha batao! 😊` } },
-           { type: 'context', elements: [{ type: 'mrkdwn', text: '_Zivon 24/7 available hai — Anytime, Anywhere ✦_' }] }
+           { type: 'section', text: { type: 'mrkdwn', text: `✅ *No pending tickets!*\n\nAll clear — if you have a new problem, just select a category from the Home tab! 😊` } },
+           { type: 'context', elements: [{ type: 'mrkdwn', text: '_Zivon is available 24/7 — Anytime, Anywhere ✦_' }] }
          ]
        });
        return;
@@ -2664,18 +2613,18 @@ app.listen(PORT, async () => {
 
      const priEmoji = { Critical: '🔴', High: '🟠', Medium: '🟡', Low: '🟢' };
      const statEmoji = { Open: '⏳', 'In Progress': '🔧', Waiting: '⏸️', Resolved: '✅' };
-     let ticketText = `*📋 Aapke Pending Tickets (${tickets.length}):*\n\n`;
+     let ticketText = `*📋 Your Pending Tickets (${tickets.length}):*\n\n`;
      tickets.forEach(t => {
        const hrs = Math.round((Date.now() - new Date(t.createdAt)) / 3600000);
        const days = hrs >= 24 ? `${Math.floor(hrs/24)}d ${hrs%24}h` : `${hrs}h`;
-       ticketText += `${priEmoji[t.priority] || '🟡'} *\`${t.ticketId}\`*  ${statEmoji[t.status] || '⏳'} *${t.status}*  _${days} pehle_\n`;
+       ticketText += `${priEmoji[t.priority] || '🟡'} *\`${t.ticketId}\`*  ${statEmoji[t.status] || '⏳'} *${t.status}*  _${days} ago_\n`;
        ticketText += `> ${(t.description || '').replace(/\n/g, ' ').substring(0, 70)}...\n\n`;
      });
 
      const hasCritical = tickets.some(t => t.priority === 'Critical' || t.priority === 'High');
      const urgencyMsg = hasCritical
-       ? `_🚨 Aapka ek *High/Critical* ticket hai — IT team turant dekh rahi hai!_`
-       : `_IT team inhe jaldi resolve karegi — agar urgent lage toh seedha batao!_`;
+       ? `_🚨 You have a *High/Critical* ticket — IT team is looking into it urgently!_`
+       : `_IT team will resolve these shortly — if urgent, please raise ticket priority!_`;
 
      await client.chat.postMessage({
        channel: channelId,
@@ -2688,7 +2637,7 @@ app.listen(PORT, async () => {
      });
    } catch (err) {
      console.error('dm_my_tickets error:', err.message);
-     await client.chat.postMessage({ channel: channelId, text: '❌ Tickets load nahi ho sake. Dobara try karo.' });
+     await client.chat.postMessage({ channel: channelId, text: '❌ Could not load tickets. Please try again.' });
    }
  });
 
@@ -2714,9 +2663,9 @@ app.listen(PORT, async () => {
  title: { type: 'plain_text', text: '📞 Contact IT', emoji: true },
  close: { type: 'plain_text', text: 'Close', emoji: true },
  blocks: [
- { type: 'section', text: { type: 'mrkdwn', text: '*IT se seedha baat karo:*' }},
+ { type: 'section', text: { type: 'mrkdwn', text: '*Contact IT directly:*' }},
  { type: 'divider' },
- { type: 'section', text: { type: 'mrkdwn', text: '💬 *Slack:*\nSajan Kumar ko Slack pe DM karo' }},
+ { type: 'section', text: { type: 'mrkdwn', text: '💬 *Slack:*\nSend a DM to Sajan Kumar on Slack' }},
  { type: 'section', text: { type: 'mrkdwn', text: '📧 *Email:*\nsajan.kumar@wiom.in' }},
  ]
  }
@@ -2770,12 +2719,12 @@ app.listen(PORT, async () => {
  text: `🆘 SOS raised: ${issueType}`,
  blocks: [
  { type: 'header', text: { type: 'plain_text', text: '🆘 SOS Emergency Registered!', emoji: true }},
- { type: 'section', text: { type: 'mrkdwn', text: `*${name}, aapka SOS register ho gaya!*\n*Issue:* ${issueType.split(' — ')[0]}` }},
+ { type: 'section', text: { type: 'mrkdwn', text: `*${name}, your SOS has been registered!*\n*Issue:* ${issueType.split(' — ')[0]}` }},
  { type: 'divider' },
- { type: 'section', text: { type: 'mrkdwn', text: `📧 *IT se ABHI contact karo:*\nEmail: sajan.kumar@wiom.in | Slack: Sajan Kumar ko DM karo` }},
+ { type: 'section', text: { type: 'mrkdwn', text: `📧 *Contact IT NOW:*\nEmail: sajan.kumar@wiom.in | Slack: DM Sajan Kumar` }},
  ticketId
- ? { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ Ticket auto-created: \`${ticketId}\` | Priority: *${priority}* | IT ko alert bhej diya gaya hai!` }]}
- : { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ IT ko alert bhej diya gaya hai! Woh jald aayenge.` }]}
+ ? { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ Ticket auto-created: \`${ticketId}\` | Priority: *${priority}* | IT has been alerted!` }]}
+ : { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ IT has been alerted! They will reach out shortly.` }]}
  ]
  });
 
@@ -2862,12 +2811,12 @@ app.listen(PORT, async () => {
  blocks.push({
  type: 'section',
  text: { type: 'mrkdwn', text:
- ' *EMERGENCY Turant yeh karo:*\n' +
- '1. *TURANT laptop band karo* Power button 10 sec hold karo\n' +
- '2. Charger aur USB sab nikaalo\n' +
- '3. Laptop *ulta rakh do* (keyboard neeche)\n' +
- '4. *MAT chalaao* circuit damage hoga\n' +
- '5. IT ko call karo: *IT Helpdesk (Slack)*'
+ ' *EMERGENCY — Do this immediately:*\n' +
+ '1. *IMMEDIATELY SHUT DOWN* — hold power button 10 sec\n' +
+ '2. Remove charger and all USB devices\n' +
+ '3. *Flip laptop upside down* (keyboard facing down)\n' +
+ '4. *Do NOT turn it on* — circuit damage will occur\n' +
+ '5. Contact IT: *IT Helpdesk (Slack)*'
  }
  });
  return blocks;
@@ -2879,14 +2828,14 @@ app.listen(PORT, async () => {
  type: 'section',
  text: { type: 'mrkdwn', text:
  '*️ New Monitor Request*\n\n' +
- 'Naye equipment ke liye *Functional Head ki approval* zaroori hai.\n\n' +
- '*Kya karna hai:*\n' +
- '1. Apne *Reporting Manager* ko email karo\n' +
- '2. CC mein dono add karo:\n' +
+ 'New equipment requires *Functional Head approval*.\n\n' +
+ '*Steps:*\n' +
+ '1. Email your *Reporting Manager*\n' +
+ '2. CC both:\n' +
  ' *sajan.kumar@wiom.in*\n' +
- ' Apne *Functional Head*\n' +
- '3. Email mein likho item ki zaroorat kyun hai\n\n' +
- '*Timeline: Functional Head ki approval ke baad 4 working days*'
+ ' Your *Functional Head*\n' +
+ '3. Explain in the email why the item is needed\n\n' +
+ '*Timeline: 4 working days after Functional Head approval*'
  }
  });
  return blocks;
@@ -2904,10 +2853,10 @@ app.listen(PORT, async () => {
  type: 'section',
  text: { type: 'mrkdwn', text:
  `*${item} Replacement Request*\n\n` +
- '*Kya karna hai:*\n' +
- '1. Apne *Reporting Manager* ko email karo\n' +
- '2. CC mein add karo: *sajan.kumar@wiom.in*\n' +
- '3. Email mein likho kya problem hai aur replacement kyun chahiye\n\n' +
+ '*Steps:*\n' +
+ '1. Email your *Reporting Manager*\n' +
+ '2. CC: *sajan.kumar@wiom.in*\n' +
+ '3. Describe the problem and why a replacement is needed\n\n' +
  '*Timeline: 2 working days*'
  }
  });
@@ -2962,7 +2911,7 @@ app.listen(PORT, async () => {
  close: { type: 'plain_text', text: 'Close', emoji: true },
  blocks: [
  { type: 'section', text: { type: 'mrkdwn', text:
- '*Email / Google Account Password Reset*\n\nWIOM company Gmail account ka password *sirf IT reset kar sakta hai* — employees khud reset nahi kar sakte.\n\n_IT team aapka password jaldi reset kar degi. Neeche ticket raise karo:_'
+ '*Email / Google Account Password Reset*\n\nWIOM company Gmail account password can *only be reset by IT* — employees cannot reset it themselves.\n\n_IT team will reset your password quickly. Please raise a ticket below:_'
  }},
  { type: 'divider' },
  { type: 'actions', elements: [{
@@ -2987,7 +2936,7 @@ app.listen(PORT, async () => {
  title: { type: 'plain_text', text: '🆘 SOS IT Emergency', emoji: true },
  close: { type: 'plain_text', text: 'Close', emoji: true },
  blocks: [
- { type: 'section', text: { type: 'mrkdwn', text: '*Apna emergency issue select karo — IT ko turant alert jayega:*' }},
+ { type: 'section', text: { type: 'mrkdwn', text: '*Select your emergency issue type — IT will be alerted immediately:*' }},
  { type: 'divider' },
  {
  type: 'actions',
@@ -4708,14 +4657,14 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      try {
        await client.chat.postMessage({
          channel: channelId,
-         text: '⚡ Script download ho gayi!',
+         text: '⚡ Script Downloaded!',
          blocks: [
            { type:'section', text:{ type:'mrkdwn',
-             text:`⚡ *Script download ho gayi!*\n\nScript run karo (Double-click ya Admin mode mein) aur 1-2 min wait karo.\n\n_Ho gaya ya nahi? Batao 👇_` }},
+             text:`⚡ *Script Downloaded!*\n\nRun the script (Double-click or run as Administrator) and wait 1-2 minutes.\n\n_Was it resolved? Let us know 👇_` }},
            { type:'actions', elements: [
-             { type:'button', text:{ type:'plain_text', text:'✅ Script se ho gaya!', emoji:true },
+             { type:'button', text:{ type:'plain_text', text:'✅ Yes, Fixed by Script!', emoji:true },
                action_id:'resolved_yes_btn', style:'primary', value:'script' },
-             { type:'button', text:{ type:'plain_text', text:'❌ Script se bhi nahi hua', emoji:true },
+             { type:'button', text:{ type:'plain_text', text:'❌ No, Still Not Fixed', emoji:true },
                action_id:'not_resolved_btn', value:'script' }
            ]}
          ]
