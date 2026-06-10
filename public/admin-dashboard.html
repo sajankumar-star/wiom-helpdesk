@@ -103,6 +103,7 @@
   .status { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
   .status.Open        { background:rgba(232,25,125,0.15); color:#f08ab0; }
   .status.In-Progress { background:rgba(139,92,246,0.2); color:#c4b5fd; }
+  .status.Waiting     { background:rgba(251,191,36,0.15); color:#fbbf24; }
   .status.Resolved    { background:#14532d; color:#86efac; }
   .status.Closed      { background:#1f2937; color:#6b7280; }
 
@@ -112,8 +113,9 @@
   .cat.Software { background:#1e1a4a; color:#c4b5fd; }
   .cat.Network  { background:#0d2b1a; color:#6ee7b7; }
   .cat.Account  { background:#2a1f0a; color:#fcd34d; }
-  .cat.Purchase { background:#2a0a1a; color:#f9a8d4; }
-  .cat.Other    { background:#1f2937; color:#9ca3af; }
+  .cat.Purchase    { background:#2a0a1a; color:#f9a8d4; }
+  .cat.Theft-Loss  { background:#3b1515; color:#fca5a5; }
+  .cat.Other       { background:#1f2937; color:#9ca3af; }
 
   /* ── Asset Box ── */
   .asset-box { background:rgba(232,25,125,0.04); border:1px solid rgba(232,25,125,0.12); border-radius:8px; padding:10px 12px; margin-top:8px; }
@@ -308,13 +310,16 @@
           <option value="Network">📶 Network</option>
           <option value="Account">🔑 Account</option>
           <option value="Purchase">🛒 Purchase</option>
+          <option value="Theft/Loss">🚨 Theft/Loss</option>
           <option value="Other">❓ Other</option>
         </select>
         <div class="filters" style="margin-bottom:0;">
           <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
           <button class="filter-btn" onclick="setFilter('Open',this)">Open</button>
           <button class="filter-btn" onclick="setFilter('In Progress',this)">In Progress</button>
+          <button class="filter-btn" onclick="setFilter('Waiting',this)">⏸ Waiting</button>
           <button class="filter-btn" onclick="setFilter('Resolved',this)">Resolved</button>
+          <button class="filter-btn" onclick="setFilter('Closed',this)">Closed</button>
           <button class="filter-btn" onclick="setFilter('Critical',this)">🔴 Critical</button>
           <button class="filter-btn" onclick="setFilter('High',this)">🟠 High</button>
         </div>
@@ -334,6 +339,7 @@
             <thead><tr><th class="check-col"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)"/></th><th>Ticket ID</th><th>Employee</th><th>Category</th><th>Issue</th><th>Priority</th><th>Status</th><th>Assigned</th><th>Created</th><th>Action</th></tr></thead>
             <tbody id="allTicketsBody"><tr class="empty-row"><td colspan="9">Loading...</td></tr></tbody>
           </table>
+          <div id="ticketPagination"></div>
         </div>
       </div>
     </div>
@@ -382,9 +388,10 @@
         </div>
         <div class="card-body">
           <table>
-            <thead><tr><th>Emp ID</th><th>Name</th><th>Department</th><th>Floor</th><th>Laptop Model</th><th>Serial No</th><th>Tickets</th></tr></thead>
-            <tbody id="empBody"><tr class="empty-row"><td colspan="7">Loading...</td></tr></tbody>
+            <thead><tr><th>Emp ID</th><th>Name</th><th>Department</th><th>Floor</th><th>Laptop Model</th><th>Serial No</th><th>Slack</th><th>Tickets</th></tr></thead>
+            <tbody id="empBody"><tr class="empty-row"><td colspan="8">Loading...</td></tr></tbody>
           </table>
+          <div id="empPagination"></div>
         </div>
       </div>
     </div>
@@ -623,9 +630,16 @@
     <button class="modal-close" onclick="closeModal()">✕</button>
     <h3 id="modalTitle">Ticket Details</h3>
     <div id="modalBody"></div>
-    <!-- Notes Section -->
+    <!-- Send Message to Employee -->
     <div style="margin-top:16px;border-top:1px solid rgba(232,25,125,0.12);padding-top:14px;">
-      <label style="font-size:10px;color:#8a6b76;text-transform:uppercase;letter-spacing:.6px;">📝 Add Note / Resolution</label>
+      <label style="font-size:10px;color:#8a6b76;text-transform:uppercase;letter-spacing:.6px;">💬 Employee ko Slack Message Bhejo</label>
+      <textarea class="note-box" id="slackMsgInput" placeholder="Employee ko kya kehna hai? (Ye message unke Slack pe jaayega)" style="min-height:60px;margin-top:6px;border-color:rgba(99,102,241,0.3);"></textarea>
+      <button onclick="sendMsgToEmployee()" style="margin-top:8px;padding:7px 16px;background:rgba(99,102,241,0.2);border:1px solid rgba(99,102,241,0.4);border-radius:6px;color:#a5b4fc;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;font-weight:500;">📤 Slack pe Bhejo</button>
+      <span id="msgSendResult" style="margin-left:10px;font-size:12px;"></span>
+    </div>
+    <!-- Internal Note -->
+    <div style="margin-top:12px;">
+      <label style="font-size:10px;color:#8a6b76;text-transform:uppercase;letter-spacing:.6px;">📝 Internal Note (Employee ko nahi dikhayi dega)</label>
       <textarea class="note-box" id="noteInput" placeholder="Kya kiya, kya dekha — internal note..."></textarea>
       <button onclick="saveNote()" style="margin-top:8px;padding:7px 14px;background:rgba(232,25,125,0.15);border:1px solid rgba(232,25,125,0.3);border-radius:6px;color:#E8197D;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;font-weight:500;">💾 Save Note</button>
     </div>
@@ -633,6 +647,8 @@
     <div class="modal-actions">
       <button class="btn-resolve" id="modalResolveBtn" onclick="resolveTicket()">✅ Mark Resolved</button>
       <button class="btn-inprog"  id="modalInProgBtn"  onclick="markInProgress()">🔄 In Progress</button>
+      <button id="modalWaitingBtn" onclick="setWaiting()" style="padding:10px 20px;background:rgba(251,191,36,0.15);border:1px solid rgba(251,191,36,0.4);border-radius:8px;color:#fbbf24;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;">⏸ Waiting</button>
+      <button id="modalDeleteBtn" onclick="deleteTicket()" style="padding:10px 20px;background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.3);border-radius:8px;color:#f87171;font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;">🗑 Delete</button>
       <button class="btn-close" onclick="closeModal()">Close</button>
     </div>
   </div>
@@ -656,10 +672,15 @@ let allEmployees = [];
 let currentFilter = 'all';
 let currentCategoryFilter = '';
 let currentTicketId = '';
+let currentTicketSlackId = ''; // for send-message
 let autoRefreshInterval = null;
 let countdownInterval = null;
 let lastTicketCount = 0;
 let notifPermission = false;
+// Pagination
+let ticketPage = 1; const TICKET_PAGE_SIZE = 50;
+let empPage = 1;    const EMP_PAGE_SIZE = 50;
+window._teamMembers = ['Sajan Kumar']; // loaded from team API on login
 
 // ── SOUND ALERT (Web Audio API — no file needed) ───────────────────────────
 function playAlert(type = 'new') {
@@ -765,6 +786,7 @@ async function doLogin() {
       loadDashboard();
       loadAllTickets();
       loadEmployees();
+      loadTeamMembers(); // load team names for Assigned To dropdown
       requestNotifPermission();
       startAutoRefresh();
       const now = new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
@@ -906,6 +928,8 @@ function renderAllTickets() {
   tickets.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
   const tbody = document.getElementById('allTicketsBody');
   if (!tickets.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="10">Koi ticket nahi mila</td></tr>'; return; }
+  const totalTickets = tickets.length;
+  tickets = tickets.slice((ticketPage-1)*TICKET_PAGE_SIZE, ticketPage*TICKET_PAGE_SIZE);
   tbody.innerHTML = tickets.map(t => {
     const isOpen = t.status !== 'Resolved' && t.status !== 'Closed';
     const desc = (t.description||'').substring(0,35) + ((t.description||'').length>35?'…':'');
@@ -926,10 +950,13 @@ function renderAllTickets() {
         ${isOpen ? `<button class="action-btn resolve" onclick="quickResolve('${t._id}','${t.ticketId}')">✅</button>` : ''}
       </td>
     </tr>`}).join('');
+  renderPagination('ticketPagination', ticketPage, totalTickets, TICKET_PAGE_SIZE, 'goToTicketPage');
 }
 
+function goToTicketPage(p) { ticketPage = p; renderAllTickets(); }
 function setFilter(f, btn) {
   currentFilter = f;
+  ticketPage = 1;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   renderAllTickets();
@@ -1007,9 +1034,12 @@ function renderEmployees() {
   if (floor) emps = emps.filter(e => (e.floor||'') === floor);
   document.getElementById('empCount').textContent = emps.length;
   const tbody = document.getElementById('empBody');
-  if (!emps.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="7">Koi employee nahi mila.</td></tr>'; return; }
+  if (!emps.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Koi employee nahi mila.</td></tr>'; return; }
+  const totalEmps = emps.length;
+  emps = emps.slice((empPage-1)*EMP_PAGE_SIZE, empPage*EMP_PAGE_SIZE);
   tbody.innerHTML = emps.map(e => {
     const tktCount = allTickets.filter(t => t.empId === e.empId).length;
+    const slackConnected = !!e.slackUserId;
     return `
     <tr>
       <td><b>${e.empId}</b></td>
@@ -1018,11 +1048,15 @@ function renderEmployees() {
       <td><span style="padding:2px 8px;border-radius:12px;font-size:11px;background:${e.floor==='2nd Floor'?'rgba(232,25,125,0.15)':'#1a3320'};color:${e.floor==='2nd Floor'?'#f08ab0':'#86efac'};">${e.floor||'—'}</span></td>
       <td style="font-size:11px;">${e.laptop||'—'}</td>
       <td style="font-family:monospace;font-size:12px;color:#E8197D;">${e.laptopSN||'—'}</td>
+      <td title="${slackConnected?'Bot se connected':'Bot se connected nahi'}"><span style="padding:2px 8px;border-radius:12px;font-size:11px;background:${slackConnected?'rgba(52,211,153,0.1)':'rgba(248,113,113,0.08)'};color:${slackConnected?'#34d399':'#f87171'};">${slackConnected?'✅ Connected':'❌ Not yet'}</span></td>
       <td><span style="color:${tktCount>0?'#fbbf24':'#5a3f48'};font-weight:${tktCount>0?'600':'400'};">${tktCount}</span></td>
     </tr>`}).join('');
+  renderPagination('empPagination', empPage, totalEmps, EMP_PAGE_SIZE, 'goToEmpPage');
 }
 
-function filterEmployees() { renderEmployees(); }
+function goToEmpPage(p) { empPage = p; renderEmployees(); }
+function filterEmployees() { empPage = 1; renderEmployees(); }
+
 
 // ── REPORT ─────────────────────────────────────────────────────────────────
 function loadReport() {
@@ -1070,11 +1104,20 @@ function viewTicket(id) {
   const t = allTickets.find(x => x._id === id);
   if (!t) return;
   currentTicketId = id;
+  // capture slackUserId for send-message feature
+  const empRec2 = allEmployees.find(e => e.empId === t.empId);
+  currentTicketSlackId = t.slackUserId || empRec2?.slackUserId || '';
   const isDone = t.status === 'Resolved' || t.status === 'Closed';
   document.getElementById('modalTitle').textContent = `🎫 ${t.ticketId}`;
   document.getElementById('modalResolveBtn').style.display = isDone ? 'none' : 'inline-block';
   document.getElementById('modalInProgBtn').style.display  = (t.status === 'Open') ? 'inline-block' : 'none';
+  document.getElementById('modalWaitingBtn').style.display = isDone ? 'none' : 'inline-block';
+  document.getElementById('modalDeleteBtn').style.display  = 'inline-block';
   document.getElementById('noteInput').value = '';
+  const msgEl = document.getElementById('slackMsgInput');
+  if (msgEl) msgEl.value = '';
+  const resEl = document.getElementById('msgSendResult');
+  if (resEl) resEl.textContent = '';
 
   const slaHours = t.slaHours || 24;
   const elapsed  = (Date.now() - new Date(t.createdAt)) / 3600000;
@@ -1126,11 +1169,7 @@ function viewTicket(id) {
       <div class="modal-field"><label>👤 Assigned To</label>
         <select id="assignSelect" style="padding:3px 7px;background:rgba(232,25,125,0.08);border:1px solid rgba(232,25,125,0.2);border-radius:6px;color:#f5e8ee;font-size:12px;cursor:pointer;font-family:'Inter',sans-serif;" onchange="changeAssign('${t.ticketId}',this.value)">
           <option value="">— Unassigned —</option>
-          <option ${(t.assignedTo||'')==='Sajan Kumar'?'selected':''}>Sajan Kumar</option>
-          <option ${(t.assignedTo||'')==='Rahul'?'selected':''}>Rahul</option>
-          <option ${(t.assignedTo||'')==='Priya'?'selected':''}>Priya</option>
-          <option ${(t.assignedTo||'')==='Amit'?'selected':''}>Amit</option>
-          <option ${(t.assignedTo||'')==='Ravi'?'selected':''}>Ravi</option>
+          ${(window._teamMembers||['Sajan Kumar']).map(name=>`<option ${(t.assignedTo||'')===name?'selected':''}>${name}</option>`).join('')}
         </select>
       </div>
       <div class="modal-field"><label>Created</label><span style="font-size:12px;">${new Date(t.createdAt).toLocaleString('en-IN')}</span></div>
@@ -1192,10 +1231,95 @@ async function saveNote() {
     await apiPatch(`/api/tickets/${t.ticketId}`, { comment: note });
     document.getElementById('noteInput').value = '';
     await loadAllTickets();
-    // Refresh modal
     viewTicket(currentTicketId);
     alert('✅ Note save ho gaya!');
   } catch(e) { alert('❌ Error: ' + e.message); }
+}
+
+// ── SEND SLACK MESSAGE TO EMPLOYEE ─────────────────────────────────────────
+async function sendMsgToEmployee() {
+  const t = allTickets.find(x => x._id === currentTicketId);
+  const msg = document.getElementById('slackMsgInput')?.value?.trim();
+  const res = document.getElementById('msgSendResult');
+  if (!msg) { res.innerHTML = '<span style="color:#f87171;">Message khali hai!</span>'; return; }
+  if (!currentTicketSlackId) { res.innerHTML = '<span style="color:#f87171;">❌ Employee ka Slack ID nahi mila (bot se connect nahi hai)</span>'; return; }
+  res.innerHTML = '⏳ Bhej raha hoon...';
+  try {
+    const d = await (await fetch(`${API}/api/admin/send-message`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ slackUserId: currentTicketSlackId, message: msg, ticketId: t?.ticketId })
+    })).json();
+    if (d.success) {
+      res.innerHTML = '<span style="color:#34d399;">✅ Message bhej diya!</span>';
+      document.getElementById('slackMsgInput').value = '';
+      await loadAllTickets();
+      viewTicket(currentTicketId);
+    } else {
+      res.innerHTML = `<span style="color:#f87171;">❌ ${d.error}</span>`;
+    }
+  } catch(e) { res.innerHTML = `<span style="color:#f87171;">❌ ${e.message}</span>`; }
+}
+
+// ── SET WAITING ────────────────────────────────────────────────────────────
+async function setWaiting() {
+  const t = allTickets.find(x => x._id === currentTicketId);
+  if (!t) return;
+  if (!confirm(`Ticket ${t.ticketId} ko "Waiting" mark karna hai?`)) return;
+  try {
+    await apiPatch(`/api/tickets/${t.ticketId}`, { status: 'Waiting' });
+    closeModal();
+    await loadAllTickets();
+  } catch(e) { alert('❌ Error: ' + e.message); }
+}
+
+// ── DELETE TICKET ──────────────────────────────────────────────────────────
+async function deleteTicket() {
+  const t = allTickets.find(x => x._id === currentTicketId);
+  if (!t) return;
+  if (!confirm(`⚠️ Ticket ${t.ticketId} permanently delete karna hai? Yeh undo nahi hoga!`)) return;
+  try {
+    const res = await fetch(`${API}/api/tickets/${t.ticketId}`, {
+      method: 'DELETE',
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (res.ok) {
+      closeModal();
+      await loadAllTickets();
+      alert(`✅ Ticket ${t.ticketId} delete ho gaya.`);
+    } else {
+      const d = await res.json();
+      alert('❌ Delete failed: ' + (d.error || res.status));
+    }
+  } catch(e) { alert('❌ Error: ' + e.message); }
+}
+
+// ── LOAD TEAM MEMBERS for Assigned To dropdown ─────────────────────────────
+async function loadTeamMembers() {
+  try {
+    const d = await apiGet('/api/admin/team');
+    const admins = d.admins || [];
+    if (admins.length) {
+      window._teamMembers = admins.filter(a => a.isActive !== false).map(a => a.name);
+      if (!window._teamMembers.includes('Sajan Kumar')) window._teamMembers.unshift('Sajan Kumar');
+    }
+  } catch(e) { /* silently fallback to default */ }
+}
+
+// ── PAGINATION ─────────────────────────────────────────────────────────────
+function renderPagination(containerId, page, total, pageSize, onPageChange) {
+  const totalPages = Math.ceil(total / pageSize);
+  if (totalPages <= 1) { const el = document.getElementById(containerId); if(el) el.innerHTML=''; return; }
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  let html = `<div style="display:flex;align-items:center;gap:8px;padding:12px 16px;font-size:13px;color:var(--muted);">`;
+  html += `<span>${(page-1)*pageSize+1}–${Math.min(page*pageSize,total)} of ${total}</span>`;
+  html += `<div style="display:flex;gap:4px;margin-left:auto;">`;
+  if (page > 1) html += `<button onclick="${onPageChange}(${page-1})" style="padding:4px 10px;background:rgba(232,25,125,0.1);border:1px solid rgba(232,25,125,0.2);border-radius:6px;color:#E8197D;cursor:pointer;font-family:'Inter',sans-serif;">◀ Prev</button>`;
+  html += `<span style="padding:4px 12px;background:rgba(232,25,125,0.2);border-radius:6px;color:#fff;">Page ${page}/${totalPages}</span>`;
+  if (page < totalPages) html += `<button onclick="${onPageChange}(${page+1})" style="padding:4px 10px;background:rgba(232,25,125,0.1);border:1px solid rgba(232,25,125,0.2);border-radius:6px;color:#E8197D;cursor:pointer;font-family:'Inter',sans-serif;">Next ▶</button>`;
+  html += `</div></div>`;
+  el.innerHTML = html;
 }
 
 // ── EMPLOYEE HISTORY MODAL ──────────────────────────────────────────────────

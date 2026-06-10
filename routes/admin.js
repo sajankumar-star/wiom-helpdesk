@@ -45,6 +45,41 @@ router.post('/broadcast', verifyAdmin, async (req, res) => {
   }
 });
 
+// ── POST /api/admin/send-message  — Send Slack DM to one employee ────────────
+router.post('/send-message', verifyAdmin, async (req, res) => {
+  try {
+    const { slackUserId, message, ticketId } = req.body;
+    if (!slackUserId || !message) return res.status(400).json({ error: 'slackUserId aur message required hai' });
+
+    const slackClient = req.app.locals.slackClient;
+    if (!slackClient) return res.status(503).json({ error: 'Slack bot connected nahi hai' });
+
+    const adminName = req.admin?.name || 'IT Team';
+    const ticketRef = ticketId ? ` (Ticket: \`${ticketId}\`)` : '';
+
+    await slackClient.chat.postMessage({
+      channel: slackUserId,
+      text: `💬 IT Team: ${message}`,
+      blocks: [
+        { type: 'section', text: { type: 'mrkdwn', text: `💬 *WIOM IT Helpdesk — Message${ticketRef}*\n\n${message}` }},
+        { type: 'context', elements: [{ type: 'mrkdwn', text: `_Bheja by: ${adminName} · IT Support_` }]}
+      ]
+    });
+
+    // Save as comment on ticket if ticketId provided
+    if (ticketId) {
+      await Ticket.findOneAndUpdate(
+        { ticketId },
+        { $push: { comments: { author: adminName, role: 'admin', message: `[Slack Reply] ${message}`, addedAt: new Date() } } }
+      ).catch(() => {});
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/admin/team  — List all admins ────────────────────────────────────
 router.get('/team', verifyAdmin, async (req, res) => {
   try {
