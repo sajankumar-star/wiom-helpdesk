@@ -899,7 +899,6 @@ app.listen(PORT, async () => {
              { type: 'button', text: { type: 'plain_text', text: '🔐 Access & Identity', emoji: true }, action_id: 'cat_access', value: 'access' },
            ]});
            blocks.push({ type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '📱 Mobile & SIM', emoji: true }, action_id: 'cat_mobile', value: 'mobile' },
              { type: 'button', text: { type: 'plain_text', text: '☁️ Cloud & Storage', emoji: true }, action_id: 'cat_cloud', value: 'cloud' },
              { type: 'button', text: { type: 'plain_text', text: '🔒 Security', emoji: true }, action_id: 'cat_security', value: 'security' },
            ]});
