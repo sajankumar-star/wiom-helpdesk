@@ -54,6 +54,9 @@ const ticketSchema = new mongoose.Schema({
   resolution    : { type: String },
   resolvedAt    : { type: Date },
   closedAt      : { type: Date },
+  closedReason  : { type: String },                   // e.g. 'Cancelled by employee via Slack'
+  reopenedAt    : { type: Date },
+  reopenedBy    : { type: String },                   // Slack user ID who reopened
   userRating    : { type: Number, min: 1, max: 5 },
   userFeedback  : { type: String },
 

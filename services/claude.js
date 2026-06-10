@@ -454,6 +454,9 @@ const DIRECT_KB = {
 
   otp_issue:
     `**OTP / Two-Factor Authentication Not Working**\n\n1. Check phone signal — OTP needs network to arrive\n2. OTP expires in 30-60 seconds — enter it immediately after it arrives\n3. Check if your phone time/date is correct (wrong time = wrong OTP in authenticator apps)\n4. Use the "Resend OTP" button and try again\n5. If using Google Authenticator app: open app → tap 3 dots → Sync now (fixes time drift)\n\nIf your registered phone number has changed → *Create Ticket* button dabao — IT will update it 🎫`,
+
+  software_access:
+    `**Software / Application Access Required**\n\nAccess to software and applications is granted by IT — you cannot request it directly from the vendor.\n\n*Raise a ticket* and include:\n- Software/application name (e.g. Tally, AutoCAD, Adobe, VPN, etc.)\n- Your employee ID and department\n- Business reason / who asked you to use it\n- Your manager's name (approval may be required)\n\nIT will set up access within 1 working day.\n\n*Create Ticket* button dabao 🎫`,
 };
 
 const getKBFallback = (problem) => {

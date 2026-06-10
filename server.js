@@ -3009,6 +3009,7 @@ app.listen(PORT, async () => {
  const userId = body.user.id;
  const problem = body.actions[0].value;
  const triggerId = body.trigger_id;
+ let loadingViewId = null; // captured after views.open so catch block can update it
  try {
  // ── FIX: Open modals IMMEDIATELY before any DB call ───────────
  // Slack trigger_id expires in 3 seconds — DB calls can push past that
@@ -3192,6 +3193,7 @@ app.listen(PORT, async () => {
  ]
  }
  });
+ loadingViewId = loadingView?.view?.id || null; // capture for catch block
 
  // ── Get AI response — try KB first (instant), then AI ───────────
  // Run DB cleanup in background (don't await — saves ~200ms)
@@ -3303,7 +3305,7 @@ app.listen(PORT, async () => {
  console.error('Home quick action error:', err.message);
  // Try to update loading modal with fallback — DM nahi (messages_tab_disabled)
  try {
-   const loadingViewId = err._loadingViewId; // may be undefined
+   // loadingViewId captured before try block — not from error object
    const fallbackView = {
      type: 'modal',
      title: { type: 'plain_text', text: 'IT Help', emoji: true },
@@ -3331,6 +3333,16 @@ app.listen(PORT, async () => {
  slackApp.action('raise_ticket_email_pwd', async ({ body, ack, client }) => {
  await ack();
  const userId = body.user.id;
+ const viewId = body.view?.id;
+ const triggerId = body.trigger_id;
+ // Show loading in modal immediately
+ if (viewId) {
+   await client.views.update({ view_id: viewId, view: {
+     type: 'modal', title: { type: 'plain_text', text: 'Creating Ticket...', emoji: true },
+     close: { type: 'plain_text', text: 'Close', emoji: true },
+     blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Ticket create ho raha hai... please wait._' }}]
+   }}).catch(() => {});
+ }
  try {
  const emp = await lookupEmployee(userId, client);
  const result = await createTicketSlack({
@@ -3341,24 +3353,36 @@ app.listen(PORT, async () => {
  category: 'Account', priority: 'High',
  source: 'slack', slackUserId: userId
  });
- if (result && !result._duplicate) {
- await client.chat.postMessage({
- channel: userId,
- text: `Ticket ${result.ticketId} create ho gaya!`,
- blocks: [
- { type: 'section', fields: [
- { type: 'mrkdwn', text: `* Ticket:*\n\`${result.ticketId}\`` },
- { type: 'mrkdwn', text: `* Priority:*\nHigh` }
- ]},
- { type: 'context', elements: [{ type: 'mrkdwn', text: '✅ IT team password reset kar degi jaldi respond karenge ' }]}
- ]
- });
- await notifyAdmin(client, result, emp);
- } else if (result?._duplicate) {
- await client.chat.postMessage({ channel: userId, text: `⚠️ ${result.message}` });
+ const successView = result && !result._duplicate ? {
+   type: 'modal', title: { type: 'plain_text', text: '✅ Ticket Created!', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
+   blocks: [
+     { type: 'section', fields: [
+       { type: 'mrkdwn', text: `*🎫 Ticket:*\n\`${result.ticketId}\`` },
+       { type: 'mrkdwn', text: `*🔴 Priority:*\nHigh` }
+     ]},
+     { type: 'context', elements: [{ type: 'mrkdwn', text: '✅ IT team password reset kar degi — jaldi respond karenge.' }]}
+   ]
+ } : {
+   type: 'modal', title: { type: 'plain_text', text: result?._duplicate ? '⚠️ Already Exists' : '❌ Error', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
+   blocks: [{ type: 'section', text: { type: 'mrkdwn', text: result?._duplicate ? `⚠️ ${result.message}` : `❌ Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
+ };
+ if (viewId) {
+   await client.views.update({ view_id: viewId, view: successView }).catch(() => {});
+ } else if (triggerId) {
+   await client.views.open({ trigger_id: triggerId, view: successView }).catch(() => {});
  }
+ if (result && !result._duplicate) await notifyAdmin(client, result, emp);
  } catch (err) {
  console.error('Email pwd ticket error:', err.message);
+ if (viewId) {
+   await client.views.update({ view_id: viewId, view: {
+     type: 'modal', title: { type: 'plain_text', text: 'Error' },
+     close: { type: 'plain_text', text: 'Close' },
+     blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
+   }}).catch(() => {});
+ }
  }
  });
  // ── Warranty / diagnostic / support link buttons just ack ──────────
@@ -4751,7 +4775,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
            ]}
          ]
        }}).catch(() => {});
-     } else {
+     } else if (thinkMsg) {
        try {
          await client.chat.update({
            channel: thinkMsg.channel, ts: thinkMsg.ts, text: fallbackText,
@@ -4760,6 +4784,8 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        } catch {
          await client.chat.postMessage({ channel: channelId, text: fallbackText }).catch(() => {});
        }
+     } else if (channelId) {
+       await client.chat.postMessage({ channel: channelId, text: fallbackText }).catch(() => {});
      }
    }
  });
@@ -5003,7 +5029,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `🔄 Ticket \`${ticketId}\` has been reopened.\n\nIT team has been notified and will follow up shortly.` }}]
      });
      const adminId = process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
-     if (adminId) await client.chat.postMessage({ channel: adminId, text: `🔄 Ticket \`${ticketId}\` reopened by employee (<@${userId}>)` }).catch(() => {});
+     if (adminId && adminId !== 'FILL_KARO') await client.chat.postMessage({ channel: adminId, text: `🔄 Ticket \`${ticketId}\` reopened by employee (<@${userId}>)` }).catch(() => {});
    } catch(err) { console.error('reopen_ticket error:', err.message); }
  });
 
@@ -5033,7 +5059,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `⬆️ Ticket \`${ticketId}\` priority updated to *${newPriority}*.\n\nIT team has been notified.` }}]
      });
      const adminId = process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
-     if (adminId) await client.chat.postMessage({ channel: adminId, text: `⬆️ Ticket \`${ticketId}\` escalated to *${newPriority}* by employee (<@${userId}>)` }).catch(() => {});
+     if (adminId && adminId !== 'FILL_KARO') await client.chat.postMessage({ channel: adminId, text: `⬆️ Ticket \`${ticketId}\` escalated to *${newPriority}* by employee (<@${userId}>)` }).catch(() => {});
    } catch(err) { console.error('bump_priority error:', err.message); }
  });
 
@@ -5069,20 +5095,42 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  });
 
  slackApp.view('add_comment_modal', async ({ body, ack, client, view }) => {
-   await ack();
    const userId = body.user.id;
    const ticketId = view.private_metadata;
    const comment = view.state.values?.comment_block?.comment_input?.value || '';
    try {
      const ticket = await Ticket.findOne({ ticketId });
-     if (!ticket) return;
-     const updatedDesc = (ticket.description || '') + `\n\n--- Employee Update ---\n${comment}`;
-     await Ticket.findOneAndUpdate({ ticketId }, { description: updatedDesc.substring(0, 1000), updatedAt: new Date() });
+     if (!ticket) {
+       await ack({ response_action: 'update', view: {
+         type: 'modal', title: { type: 'plain_text', text: 'Not Found' },
+         close: { type: 'plain_text', text: 'Close' },
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket \`${ticketId}\` not found.` }}]
+       }});
+       return;
+     }
+     const updatedDesc = (ticket.description || '') + `\n\n--- Employee Update (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})}) ---\n${comment}`;
+     await Ticket.findOneAndUpdate({ ticketId }, { description: updatedDesc.substring(0, 1000) });
+     // Show success confirmation inside modal
+     await ack({ response_action: 'update', view: {
+       type: 'modal', title: { type: 'plain_text', text: '✅ Update Sent!', emoji: true },
+       close: { type: 'plain_text', text: 'Close', emoji: true },
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `✅ Your update for ticket \`${ticketId}\` has been sent to IT!\n\n_IT team will review your update and respond shortly._` }},
+         { type: 'context', elements: [{ type: 'mrkdwn', text: `💬 Update: "${comment.substring(0, 100)}${comment.length > 100 ? '...' : ''}"` }]}
+       ]
+     }});
      const adminId = process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
-     if (adminId) {
+     if (adminId && adminId !== 'FILL_KARO') {
        await client.chat.postMessage({ channel: adminId, text: `💬 Update on ticket \`${ticketId}\` from <@${userId}>:\n${comment}` }).catch(() => {});
      }
-   } catch(err) { console.error('add_comment submit error:', err.message); }
+   } catch(err) {
+     console.error('add_comment submit error:', err.message);
+     await ack({ response_action: 'update', view: {
+       type: 'modal', title: { type: 'plain_text', text: 'Error' },
+       close: { type: 'plain_text', text: 'Close' },
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Update nahi ja saka. Dobara try karo.` }}]
+     }}).catch(() => {});
+   }
  });
 
  // ── Start Slack App ───────────────────────────────────────────────────
@@ -5095,7 +5143,10 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  const adminSlackId = (process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID);
  if (adminSlackId && adminSlackId !== 'FILL_KARO') {
  await Employee.findOneAndUpdate(
- { name: { $regex: 'ADMIN_EMAIL', $options: 'i' } },
+ { $or: [
+     { email: (process.env.ADMIN_EMAIL || 'sajan.kumar@wiom.in').toLowerCase() },
+     { name: { $regex: 'sajan', $options: 'i' } }
+ ]},
  { slackUserId: adminSlackId },
  { new: true }
  ).catch(() => {});
