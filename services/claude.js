@@ -17,6 +17,11 @@ const anthropic = process.env.ANTHROPIC_API_KEY
 let modelLogged = false;
 const activeModel = () => 'Groq llama-3.3-70b → Groq llama-3.1-8b → Claude claude-3-haiku → KB';
 
+// ── WiFi password env vars (moved out of source code) ───────────────────────
+const WIFI_PASSWORD       = process.env.WIFI_PASSWORD       || 'spartans500';
+const WIFI_PASSWORD_SAKET = process.env.WIFI_PASSWORD_SAKET || 'Password@12345';
+const ADMIN_EMAIL_KB      = process.env.ADMIN_EMAIL         || 'sajan.kumar@wiom.in';
+
 // ── WIOM IT System Prompt ─────────────────────────────────────────────────────
 const SYSTEM_PROMPT = `You are Zivon — WIOM IT Support AI for 300 non-technical office employees.
 
@@ -28,18 +33,18 @@ RULES (follow strictly):
 - NEVER say ticket is already raised/sent — user must click the button.
 - NEVER give phone numbers.
 - Physical damage (cracked/water) → NO steps → "Create Ticket button dabao — IT team physically replace karegi 🎫"
-- Theft/Loss → "Pehle desk/aas-paas check karo. Agar nahi mila → sajan.kumar@wiom.in ko email karo, Create Ticket button dabao."
+- Theft/Loss → "Pehle desk/aas-paas check karo. Agar nahi mila → ${ADMIN_EMAIL_KB} ko email karo, Create Ticket button dabao."
 
 WIOM FACTS:
-- WiFi password: spartans500 | Special: "Wiomnet-Saket" → Password@12345
+- WiFi password: ${WIFI_PASSWORD} | Special: "Wiomnet-Saket" → ${WIFI_PASSWORD_SAKET}
 - Email: GMAIL only — NEVER suggest Outlook. NEVER say outlook.office365.com
 - NO VPN at WIOM
-- IT: Sajan Kumar | sajan.kumar@wiom.in
+- IT: Sajan Kumar | ${ADMIN_EMAIL_KB}
 - Software install/activation/password reset → TICKET ONLY (no admin rights)
 - Non-IT (AC, lights, pantry, personal phone) → "Yeh IT scope mein nahi — Admin/Facilities se contact karo."
 
 COMMON FIXES (give these steps directly):
-- WiFi not working: Toggle OFF→ON → Forget & reconnect "Wiom office" (pw: spartans500) → Restart
+- WiFi not working: Toggle OFF→ON → Forget & reconnect "Wiom office" (pw: ${WIFI_PASSWORD}) → Restart
 - Laptop slow: Task Manager (Ctrl+Shift+Esc) → End heavy tasks → Close extra tabs → Restart
 - Black screen: Fn+F5/F8 brightness → 10sec power hold restart → HDMI external monitor test
 - Slack: System tray right-click Quit → Reopen → Help→Troubleshooting→Clear Cache
@@ -232,7 +237,7 @@ const extractTriedSteps = (messages) => {
 // These bypass AI entirely: guaranteed correct answer, zero tokens, instant
 const DIRECT_KB = {
   wifi_not_connect:
-    `WiFi nahi chal rha. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi icon → OFF → 10 sec ruko → ON → "Wiom office" se connect karo (password: spartans500)\n2. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → dobara connect karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+    `WiFi nahi chal rha. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi icon → OFF → 10 sec ruko → ON → "Wiom office" se connect karo (password: ${WIFI_PASSWORD})\n2. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → dobara connect karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
 
   no_internet:
     `Internet nahi chal rha (WiFi connected hai). Yeh try karo:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Chrome reopen* → Chrome band karo → dobara open karo → gmail.com try karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
@@ -348,7 +353,7 @@ const DIRECT_KB = {
     `Fan loud noise kar rha hai. Yeh karo:\n\n1. *Check karo* → Agar smoke, burning smell ya bahut zyada heat → TURANT laptop band karo\n2. *Task Manager* → Ctrl+Shift+Esc → heavy apps End Task karo\n3. *Surface* → Laptop hard table pe rakho, soft surface pe mat\n\nAgar noise band nahi ho rhi → *Create Ticket* button dabao — IT fan check karega 🎫`,
 
   frequent_disconnect:
-    `WiFi baar baar disconnect ho rhi hai. Yeh try karo:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON → dobara connect karo\n2. *Router ke paas jaao* → Door hone se signal weak hota hai\n3. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → dobara connect (pw: spartans500)\n\nAgar baar baar ho rha hai → *Create Ticket* button dabao — IT network check karega 🎫`,
+    `WiFi baar baar disconnect ho rhi hai. Yeh try karo:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON → dobara connect karo\n2. *Router ke paas jaao* → Door hone se signal weak hota hai\n3. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → dobara connect (pw: ${WIFI_PASSWORD})\n\nAgar baar baar ho rha hai → *Create Ticket* button dabao — IT network check karega 🎫`,
 
   door_access:
     `Door access card issue. Yeh karo:\n\n*Create Ticket* button dabao — IT/Admin department new card issue karega ya existing card reprogram karega.\nTicket mein likho: kaunsa floor/door ka access chahiye. 🎫`,
@@ -393,19 +398,19 @@ const DIRECT_KB = {
     `Virus/Malware suspect ho rha hai!\n\n1. *Internet band karo* → WiFi disconnect karo TURANT\n2. *Create Ticket* → ABHI raise karo — IT directly aayega\n\n⚠️ Kuch bhi mat karo laptop pe — IT aayega 🎫`,
 
   suspicious_login:
-    `Suspicious login hai — TURANT yeh karo:\n\n1. *Create Ticket* → Abhi raise karo — HIGH priority\n2. *IT ko email* → sajan.kumar@wiom.in\n\nIT aapka account secure karega. Password khud mat badlo — IT karega. 🎫`,
+    `Suspicious login hai — TURANT yeh karo:\n\n1. *Create Ticket* → Abhi raise karo — HIGH priority\n2. *IT ko email* → ${ADMIN_EMAIL_KB}\n\nIT aapka account secure karega. Password khud mat badlo — IT karega. 🎫`,
 
   security_alert:
     `Security alert aa rha hai.\n\n*Create Ticket* button dabao — IT security investigate karega.\nTicket mein exact alert message likho. 🎫`,
 
   account_hacked:
-    `Account hack hua hai — EMERGENCY!\n\n1. *Create Ticket ABHI* → CRITICAL priority\n2. *IT ko email* → sajan.kumar@wiom.in\n3. *Kuch bhi mat karo* → Account pe koi changes mat karo\n\nIT turant secure karega. 🎫`,
+    `Account hack hua hai — EMERGENCY!\n\n1. *Create Ticket ABHI* → CRITICAL priority\n2. *IT ko email* → ${ADMIN_EMAIL_KB}\n3. *Kuch bhi mat karo* → Account pe koi changes mat karo\n\nIT turant secure karega. 🎫`,
 
   burning_smell:
-    `EMERGENCY! Burning smell ya smoke!\n\n1. *TURANT BAND KARO* — Power button hold karo\n2. *CHARGER NIKALO* — Immediately\n3. *DOOR RAHO* — Laptop chhodo safe jagah rakho\n4. *IT ko batao* → sajan.kumar@wiom.in\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
+    `EMERGENCY! Burning smell ya smoke!\n\n1. *TURANT BAND KARO* — Power button hold karo\n2. *CHARGER NIKALO* — Immediately\n3. *DOOR RAHO* — Laptop chhodo safe jagah rakho\n4. *IT ko batao* → ${ADMIN_EMAIL_KB}\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
 
   battery_swelling:
-    `EMERGENCY! Battery swollen/phool gayi!\n\n1. *TURANT BAND KARO* — Power button hold\n2. *CHARGER NIKALO* — Abhi\n3. *LAPTOP DOOR RAKHO* — Fire hazard\n4. *IT ko batao* → sajan.kumar@wiom.in\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
+    `EMERGENCY! Battery swollen/phool gayi!\n\n1. *TURANT BAND KARO* — Power button hold\n2. *CHARGER NIKALO* — Abhi\n3. *LAPTOP DOOR RAKHO* — Fire hazard\n4. *IT ko batao* → ${ADMIN_EMAIL_KB}\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
 
   data_loss:
     `Files/data missing hain. Yeh try karo:\n\n1. *Recycle Bin* → Desktop Recycle Bin mein dekho\n2. *Google Drive Trash* → drive.google.com → Trash folder\n3. *Search karo* → File Explorer mein file name search karo\n\nAgar nahi mili → *Create Ticket* button dabao — IT data recovery try karega 🎫`,
@@ -414,10 +419,41 @@ const DIRECT_KB = {
     `Laptop physically damage hua hai.\n\nSoftware se fix nahi hoga — *Create Ticket* button dabao TURANT.\nIT physically assess aur repair/replace karega.\nTicket mein damage ka description likho. 🎫`,
 
   liquid_damage:
-    `EMERGENCY! Liquid/Paani gira hai!\n\n1. *TURANT BAND KARO* — Power button hold\n2. *CHARGER NIKALO*\n3. *ULTA RAKHO* → Liquid drain hone do\n4. *Hairdryer mat lagao*\n5. *IT ko batao* → sajan.kumar@wiom.in\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
+    `EMERGENCY! Liquid/Paani gira hai!\n\n1. *TURANT BAND KARO* — Power button hold\n2. *CHARGER NIKALO*\n3. *ULTA RAKHO* → Liquid drain hone do\n4. *Hairdryer mat lagao*\n5. *IT ko batao* → ${ADMIN_EMAIL_KB}\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
 
   device_lost:
-    `Device kho gaya hai ya chori hua hai.\n\n1. *Pehle check karo* → Desk/drawer/aas-paas check karo, colleagues se puchho\n2. *Agar nahi mila* → *Create Ticket* button dabao — HIGH PRIORITY\n3. *IT ko email* → sajan.kumar@wiom.in\n4. *HR ko bhi batao*\n\n⚠️ 24 ghante mein report karna zaruri hai. 🎫`,
+    `Device kho gaya hai ya chori hua hai.\n\n1. *Pehle check karo* → Desk/drawer/aas-paas check karo, colleagues se puchho\n2. *Agar nahi mila* → *Create Ticket* button dabao — HIGH PRIORITY\n3. *IT ko email* → ${ADMIN_EMAIL_KB}\n4. *HR ko bhi batao*\n\n⚠️ 24 ghante mein report karna zaruri hai. 🎫`,
+
+  // ── Additional DIRECT_KB entries — bypasses AI for common issues ─────────────
+  excel_slow:
+    `**Excel Running Slow or Freezing**\n\n1. Close unnecessary Chrome tabs and other applications first\n2. Disable add-ins: Excel → File → Options → Add-ins → Manage: COM Add-ins → Go → uncheck all → OK → restart Excel\n3. Remove heavy conditional formatting: Home → Conditional Formatting → Clear Rules → Clear Rules from Entire Sheet\n4. Save as .xlsx (File → Save As → choose .xlsx format — old .xls format is slower)\n5. If file is very large (>5MB): raise a ticket — IT will check RAM\n\nAgar ab bhi slow hai → *Create Ticket* button dabao 🎫`,
+
+  chrome_issue:
+    `**Google Chrome Not Working**\n\n1. Hard refresh: Ctrl + Shift + R (force reload)\n2. Clear cache: Ctrl + Shift + Delete → select "All time" → tick "Cached images and files" + "Cookies" → Clear data\n3. Disable extensions: Menu (⋮) → More tools → Extensions → toggle all OFF → restart Chrome\n4. If Chrome won't open: Ctrl+Shift+Esc → Task Manager → find all "chrome.exe" → End Task → reopen Chrome\n5. Reset Chrome settings: Settings → scroll down → Reset settings → Restore settings to defaults\n\nAgar ab bhi nahi chal rha → *Create Ticket* button dabao 🎫`,
+
+  edge_issue:
+    `**Microsoft Edge Not Working**\n\n1. Hard refresh: Ctrl + Shift + R\n2. Clear cache: Ctrl + Shift + Delete → All time → Clear data\n3. Disable extensions: Menu (…) → Extensions → Manage extensions → disable all → restart Edge\n4. Reset Edge: Settings → Reset settings → Restore settings to defaults → Reset\n5. If Edge keeps crashing: raise a ticket — may need reinstall\n\nAgar ab bhi nahi chal rha → *Create Ticket* button dabao 🎫`,
+
+  slack_issue:
+    `**Slack Not Working**\n\n1. Quit Slack completely: System tray (bottom-right) → right-click Slack icon → Quit\n2. Reopen Slack from desktop/taskbar\n3. If messages not loading: Slack → Help → Troubleshooting → Clear Cache and Restart\n4. Check internet: open Chrome → try gmail.com — if that also fails, WiFi issue hai\n5. Try Slack Web as backup: open Chrome → slack.com → log in\n\nAgar Slack bilkul nahi khulta → *Create Ticket* button dabao 🎫`,
+
+  password_reset:
+    `**Password Reset**\n\n⚠️ Company passwords can only be reset by IT — employees cannot self-reset.\n\n*Raise a ticket* and IT will reset your password within 30 minutes during office hours.\n\n*Include in your ticket:*\n- Which account (Windows login / Gmail / other app)\n- Your employee ID\n- Is your work completely stopped?\n\n*Create Ticket* button dabao — IT turant help karega 🎫`,
+
+  account_locked:
+    `**Account Locked**\n\nYour account has been locked due to multiple failed login attempts.\n\n⚠️ Only IT can unlock accounts — you cannot do this yourself.\n\n*Raise a ticket immediately* — IT will unlock within 15 minutes during office hours.\n\n*Include in your ticket:*\n- Which account is locked (Windows / Gmail / app name)\n- Your employee ID\n- Error message you are seeing\n\n*Create Ticket* button dabao — URGENT! 🎫`,
+
+  email_access:
+    `**Company Email Access Issue**\n\nNew email account setup or existing access issues are handled by IT only.\n\n*Raise a ticket* with:\n- Your full name and employee ID\n- Type of request (new account / can't login / password reset / other)\n- Is this blocking your work completely?\n\nIT will set up or restore access within 1 working day.\n\n*Create Ticket* button dabao 🎫`,
+
+  shared_folder:
+    `**Shared Folder / Drive Access**\n\nShared folder and drive access is managed by IT — you cannot grant it yourself.\n\n*Raise a ticket* with:\n- Name of the shared folder or drive\n- Type of access needed (view only / edit / full access)\n- Your manager's name (manager approval is required)\n\nIT will grant access within 1 working day after manager confirmation.\n\n*Create Ticket* button dabao 🎫`,
+
+  outlook_email:
+    `**Email Issue**\n\n⚠️ WIOM uses Gmail (Google Workspace) — NOT Outlook.\n\n*For Gmail issues:*\n1. Go to gmail.com in Chrome and sign in with your company email\n2. If you can't sign in → raise a ticket for IT to reset your password\n3. If Gmail is slow → clear cache: Ctrl+Shift+Delete → All time → Clear data\n4. Check Spam/Junk folder if emails are missing\n\nStill having issues? *Create Ticket* button dabao 🎫`,
+
+  otp_issue:
+    `**OTP / Two-Factor Authentication Not Working**\n\n1. Check phone signal — OTP needs network to arrive\n2. OTP expires in 30-60 seconds — enter it immediately after it arrives\n3. Check if your phone time/date is correct (wrong time = wrong OTP in authenticator apps)\n4. Use the "Resend OTP" button and try again\n5. If using Google Authenticator app: open app → tap 3 dots → Sync now (fixes time drift)\n\nIf your registered phone number has changed → *Create Ticket* button dabao — IT will update it 🎫`,
 };
 
 const getKBFallback = (problem) => {
@@ -471,7 +507,7 @@ const getKBFallback = (problem) => {
 
   if (pn.includes('wifi') || pn.includes('internet') || pn.includes('network') ||
       /\bnet\b/.test(pn) || pn.includes('net band') || pn.includes('signal nahi') || pn.includes('no internet'))
-    return `WiFi/Internet issue. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi → OFF → 10 sec → ON → "Wiom office" se connect karo (password: spartans500)\n2. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `WiFi/Internet issue. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi → OFF → 10 sec → ON → "Wiom office" se connect karo (password: ${WIFI_PASSWORD})\n2. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // Laptop won't start / boot / turn on
   // ISSUE 5 fix: added English boot phrases ("won't turn on", "not turning on", "laptop dead")
@@ -613,7 +649,7 @@ const getKBFallback = (problem) => {
   // FIX: "sajan" only for contact-intent, not when user introduces themselves
   if ((pn.includes('sajan') && /contact|email|se\s*baat|number|kaun\s*hai|it\s*wala/.test(pn)) ||
       pn.includes('it head') || pn.includes('phone number') || pn.includes('number do'))
-    return 'IT contact: *Sajan Kumar* | 📧 sajan.kumar@wiom.in';
+    return `IT contact: *Sajan Kumar* | 📧 ${ADMIN_EMAIL_KB}`;
 
   // Conversational / non-IT responses
   if (/^(bye|goodbye|exit|quit|close|band\s*karo|niklo|alvida|baad\s*mein|chalte\s*hain|nikalta\s*hoon|nikal\s*rha)\s*[!.]*$/i.test(pn.trim()))
@@ -941,6 +977,9 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
 
 // ── Streaming chat — sends chunks via onChunk callback, returns fullText ─────
 const chatStream = async (messages, { empId, empName, source, laptop, laptopSN, dept, floor }, onChunk) => {
+  // FIX: lastUserMsg must be defined here — NOT inherited from outer scope (was ReferenceError)
+  const lastUserMsg = messages.filter(m => m.role === 'user').pop()?.content || '';
+
   const history = messages.slice(-30).map(m => ({
     role: m.role === 'assistant' ? 'assistant' : 'user',
     content: m.content

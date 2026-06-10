@@ -353,12 +353,30 @@ app.listen(PORT, async () => {
  appToken : process.env.SLACK_APP_TOKEN
  });
 
+ // ── Admin email — single source of truth (set in .env) ──────────────────────
+ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'sajan.kumar@wiom.in';
+
  // ── In-memory store for pending ticket confirmations (short-lived) ─────
  const pendingTickets  = new Map(); // slackUserId -> ticketData (with createdAt)
  const processingUsers = new Set(); // Fix 8: per-user lock — prevents race conditions
  const expandedHomeMap = new Map(); // slackUserId -> Set<categoryKey>
  const failedAttempts  = new Map(); // slackUserId -> { count, lastTime } — tracks "Nahi hua" clicks
  const unknownAttempts = new Map(); // userId → { count, lastQuery, lastTime } — unknown query escalation
+
+ // ── Proactive cleanup: prevent memory leaks in long-running process ──────────
+ setInterval(() => {
+   const now = Date.now();
+   const THIRTY_MIN = 30 * 60 * 1000;
+   for (const [uid, data] of pendingTickets.entries()) {
+     if (data.ts && (now - data.ts) > THIRTY_MIN) pendingTickets.delete(uid);
+   }
+   for (const [uid, data] of failedAttempts.entries()) {
+     if (data.lastTime && (now - data.lastTime) > THIRTY_MIN) failedAttempts.delete(uid);
+   }
+   for (const [uid, data] of unknownAttempts.entries()) {
+     if (data.lastTime && (now - data.lastTime) > THIRTY_MIN) unknownAttempts.delete(uid);
+   }
+ }, 30 * 60 * 1000); // runs every 30 minutes
 
  // ── Brand detection helpers ───────────────────────────────────────────
  const detectBrand = (laptopName) => {
@@ -947,7 +965,7 @@ app.listen(PORT, async () => {
 
            // ── Footer ───────────────────────────────────────────────────────
            blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text:
-             '⚡ *Zivon AI Support* — 24/7 Available  |  📧 sajan.kumar@wiom.in'
+             `⚡ *Zivon AI Support* — 24/7 Available  |  📧 ${ADMIN_EMAIL}`
            }]});
 
            return blocks;
@@ -1940,7 +1958,7 @@ app.listen(PORT, async () => {
          ]},
          { type: 'divider' },
          { type: 'section', text: { type: 'mrkdwn', text: '*Issue Description:*\n' + (t.description||'No description') }},
-         { type: 'context', elements: [{ type: 'mrkdwn', text: 'IT team working on this. Contact: sajan.kumar@wiom.in' }]}
+         { type: 'context', elements: [{ type: 'mrkdwn', text: `IT team working on this. Contact: ${ADMIN_EMAIL}` }]}
        ]
      }});
    } catch(err) { console.error('view_ticket_details error:', err.message); }
@@ -2169,7 +2187,7 @@ app.listen(PORT, async () => {
    };
    const itemName = itemNames[rawKey] || 'Equipment';
    const mailSubject = encodeURIComponent(`${itemName} Request - Approval Required`);
-   const mailBody = encodeURIComponent(`Hi,\n\nI am requesting a ${itemName} for my work.\n\nReason: [Please fill reason]\n\nCC: sajan.kumar@wiom.in\n\nThank you`);
+   const mailBody = encodeURIComponent(`Hi,\n\nI am requesting a ${itemName} for my work.\n\nReason: [Please fill reason]\n\nCC: ${ADMIN_EMAIL}\n\nThank you`);
 
    // ── Modal view — no header/url blocks (not supported in Slack modals) ──────
    const modalBlocks = [
@@ -2177,11 +2195,11 @@ app.listen(PORT, async () => {
      { type: 'divider' },
      { type: 'section', fields: [
        { type: 'mrkdwn', text: '*Processing Time:*\n2 Working Days' },
-       { type: 'mrkdwn', text: '*IT Contact:*\nsajan.kumar@wiom.in' },
+       { type: 'mrkdwn', text: `*IT Contact:*\n${ADMIN_EMAIL}` },
      ]},
      { type: 'divider' },
      { type: 'section', text: { type: 'mrkdwn', text:
-       `*How to request:*\n1. Get manager approval (email/message)\n2. Email IT: *sajan.kumar@wiom.in*\n   Subject: \`${itemName} Request - Approval Required\`\n3. CC your manager in the email\n4. IT team will arrange within 2 working days`
+       `*How to request:*\n1. Get manager approval (email/message)\n2. Email IT: *${ADMIN_EMAIL}*\n   Subject: \`${itemName} Request - Approval Required\`\n3. CC your manager in the email\n4. IT team will arrange within 2 working days`
      }},
      { type: 'context', elements: [{ type: 'mrkdwn', text: '_Once approved by your manager, the IT team will arrange it directly._' }]}
    ];
@@ -2192,7 +2210,7 @@ app.listen(PORT, async () => {
      { type: 'section', text: { type: 'mrkdwn', text: '*Approval Required*\n\nPlease obtain approval from your reporting manager.' }},
      { type: 'divider' },
      { type: 'section', fields: [
-       { type: 'mrkdwn', text: '*CC:*\nsajan.kumar@wiom.in' },
+       { type: 'mrkdwn', text: `*CC:*\n${ADMIN_EMAIL}` },
        { type: 'mrkdwn', text: '*Processing Time:*\n2 Working Days' },
      ]},
      { type: 'divider' },
@@ -2259,7 +2277,7 @@ app.listen(PORT, async () => {
      } catch(e) {
        console.error('vague_pick_create_ticket modal open error:', e.message);
        // Fallback: send DM if modal fails
-       await client.chat.postMessage({ channel: userId, text: '🎫 To create a ticket, please describe your issue and raise it via the Create Ticket button. Or email IT directly: sajan.kumar@wiom.in' })
+       await client.chat.postMessage({ channel: userId, text: `🎫 To create a ticket, please describe your issue and raise it via the Create Ticket button. Or email IT directly: ${ADMIN_EMAIL}` })
          .catch(dmErr => console.error('create_ticket fallback DM error:', dmErr.message));
      }
    }
@@ -2497,7 +2515,7 @@ app.listen(PORT, async () => {
      try { await client.views.update({ view_id: loadingViewId, view: { type: 'modal', title: { type: 'plain_text', text: 'Error' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Something went wrong. Please try again.' }}] }}); } catch(e) {}
    } else {
      // No modal open (Home Tab context) — send fallback DM
-     await client.chat.postMessage({ channel: userId, text: '❌ Something went wrong. Please try again or email IT: sajan.kumar@wiom.in' })
+     await client.chat.postMessage({ channel: userId, text: `❌ Something went wrong. Please try again or email IT: ${ADMIN_EMAIL}` })
        .catch(e => console.error('vague_pick fallback DM error:', e.message));
    }
  }
@@ -2647,27 +2665,42 @@ app.listen(PORT, async () => {
 
      const priEmoji = { Critical: '🔴', High: '🟠', Medium: '🟡', Low: '🟢' };
      const statEmoji = { Open: '⏳', 'In Progress': '🔧', Waiting: '⏸️', Resolved: '✅' };
-     let ticketText = `*📋 Your Pending Tickets (${tickets.length}):*\n\n`;
+
+     // Build blocks with per-ticket action buttons (Cancel / Escalate / Add Update)
+     const ticketBlocks = [];
+     ticketBlocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📋 Your Pending Tickets (${tickets.length}):*` }});
+     ticketBlocks.push({ type: 'divider' });
+
      tickets.forEach(t => {
        const hrs = Math.round((Date.now() - new Date(t.createdAt)) / 3600000);
-       const days = hrs >= 24 ? `${Math.floor(hrs/24)}d ${hrs%24}h` : `${hrs}h`;
-       ticketText += `${priEmoji[t.priority] || '🟡'} *\`${t.ticketId}\`*  ${statEmoji[t.status] || '⏳'} *${t.status}*  _${days} ago_\n`;
-       ticketText += `> ${(t.description || '').replace(/\n/g, ' ').substring(0, 70)}...\n\n`;
+       const age = hrs >= 24 ? `${Math.floor(hrs/24)}d ${hrs%24}h` : `${hrs}h`;
+       ticketBlocks.push({ type: 'section', text: { type: 'mrkdwn', text:
+         `${priEmoji[t.priority] || '🟡'} *\`${t.ticketId}\`*  ${statEmoji[t.status] || '⏳'} *${t.status}*  _${age} ago_\n` +
+         `> ${(t.description || '').replace(/\n/g, ' ').substring(0, 80)}`
+       }});
+       // Action buttons per ticket
+       const actionBtns = [];
+       if (['Open', 'Waiting'].includes(t.status)) {
+         actionBtns.push({ type: 'button', text: { type: 'plain_text', text: '❌ Cancel', emoji: true }, style: 'danger', action_id: `cancel_ticket_${t.ticketId}`, value: t.ticketId });
+       }
+       if (!['Resolved','Closed'].includes(t.status) && t.priority !== 'Critical') {
+         actionBtns.push({ type: 'button', text: { type: 'plain_text', text: '⬆️ Escalate', emoji: true }, action_id: `bump_priority_${t.ticketId}`, value: t.ticketId });
+       }
+       actionBtns.push({ type: 'button', text: { type: 'plain_text', text: '💬 Add Update', emoji: true }, style: 'primary', action_id: `add_comment_ticket_${t.ticketId}`, value: t.ticketId });
+       if (actionBtns.length) ticketBlocks.push({ type: 'actions', elements: actionBtns });
+       ticketBlocks.push({ type: 'divider' });
      });
 
      const hasCritical = tickets.some(t => t.priority === 'Critical' || t.priority === 'High');
      const urgencyMsg = hasCritical
        ? `_🚨 You have a *High/Critical* ticket — IT team is looking into it urgently!_`
-       : `_IT team will resolve these shortly — if urgent, please raise ticket priority!_`;
+       : `_IT team will resolve these shortly — use ⬆️ Escalate if it becomes urgent!_`;
+     ticketBlocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: urgencyMsg }] });
 
      await client.chat.postMessage({
        channel: channelId,
        text: `Aapke ${tickets.length} pending ticket(s)`,
-       blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: ticketText } },
-         { type: 'divider' },
-         { type: 'context', elements: [{ type: 'mrkdwn', text: urgencyMsg }] }
-       ]
+       blocks: ticketBlocks
      });
    } catch (err) {
      console.error('dm_my_tickets error:', err.message);
@@ -2700,7 +2733,7 @@ app.listen(PORT, async () => {
  { type: 'section', text: { type: 'mrkdwn', text: '*Contact IT directly:*' }},
  { type: 'divider' },
  { type: 'section', text: { type: 'mrkdwn', text: '💬 *Slack:*\nSend a DM to Sajan Kumar on Slack' }},
- { type: 'section', text: { type: 'mrkdwn', text: '📧 *Email:*\nsajan.kumar@wiom.in' }},
+ { type: 'section', text: { type: 'mrkdwn', text: `📧 *Email:*\n${ADMIN_EMAIL}` }},
  ]
  }
  });
@@ -2709,77 +2742,87 @@ app.listen(PORT, async () => {
  }
  });
 
- // ── SOS Issue selected → DM employee + alert admin + auto-ticket ─────
+ // ── SOS Issue selected → show confirmation in modal + alert admin + auto-ticket
+ // FIX: Was sending DM (invisible with Messages Tab OFF). Now updates the SOS modal directly.
  slackApp.action('sos_issue', async ({ body, ack, client }) => {
- await ack();
- const userId = body.user.id;
- const issueType = body.actions[0].value;
- try {
- const emp = await Employee.findOne({ slackUserId: userId });
- const name = emp?.name?.split(' ')[0] || 'Employee';
+   await ack();
+   const userId = body.user.id;
+   const issueType = body.actions[0].value;
+   const viewId = body.view?.id; // SOS modal is already open
+   try {
+     const emp = await Employee.findOne({ slackUserId: userId });
+     const name = emp?.name?.split(' ')[0] || 'Employee';
 
- // Detect category and priority from issue type
- const isHardware = /laptop|water|liquid|overheat|fan|blue screen|screen/i.test(issueType);
- const isSecurity = /virus|ransomware|hack|data lost/i.test(issueType);
- const isNetwork  = /internet|vpn|network/i.test(issueType);
- const category   = isSecurity ? 'Software' : isNetwork ? 'Network' : 'Hardware';
- const priority   = /water|liquid|virus|ransomware|data lost|dead/i.test(issueType) ? 'Critical' : 'High';
+     const isSecurity = /virus|ransomware|hack|data lost/i.test(issueType);
+     const isNetwork  = /internet|vpn|network/i.test(issueType);
+     const category   = isSecurity ? 'Software' : isNetwork ? 'Network' : 'Hardware';
+     const priority   = /water|liquid|virus|ransomware|data lost|dead/i.test(issueType) ? 'Critical' : 'High';
 
- // Auto-create ticket for ALL SOS issues
- let ticketId = null;
- if (emp?.empId) {
- try {
- const result = await createTicketSlack({
- empId: emp.empId, empName: emp.empName, empEmail: emp.email,
- empDept: emp.dept, empFloor: emp.floor,
- laptop: emp.laptop, laptopSN: emp.laptopSN,
- description: `🆘 SOS: ${issueType}`,
- category, priority,
- source: 'slack-sos', slackUserId: userId
- });
- if (result && !result._duplicate) {
- ticketId = result.ticketId;
- await notifyAdmin(client, result, emp);
- }
- } catch (ticketErr) {
- console.error('SOS ticket error:', ticketErr.message);
- }
- }
+     // Auto-create ticket
+     let ticketId = null;
+     if (emp?.empId) {
+       try {
+         const result = await createTicketSlack({
+           empId: emp.empId, empName: emp.empName || emp.name, empEmail: emp.email,
+           empDept: emp.dept, empFloor: emp.floor,
+           laptop: emp.laptop, laptopSN: emp.laptopSN,
+           description: `🆘 SOS: ${issueType}`,
+           category, priority,
+           source: 'slack-sos', slackUserId: userId
+         });
+         if (result && !result._duplicate) {
+           ticketId = result.ticketId;
+           await notifyAdmin(client, result, emp);
+         }
+       } catch (ticketErr) {
+         console.error('SOS ticket error:', ticketErr.message);
+       }
+     }
 
- // Send DM to employee
- const dm = await client.conversations.open({ users: userId });
- await client.chat.postMessage({
- channel: dm.channel.id,
- text: `🆘 SOS raised: ${issueType}`,
- blocks: [
- { type: 'header', text: { type: 'plain_text', text: '🆘 SOS Emergency Registered!', emoji: true }},
- { type: 'section', text: { type: 'mrkdwn', text: `*${name}, your SOS has been registered!*\n*Issue:* ${issueType.split(' — ')[0]}` }},
- { type: 'divider' },
- { type: 'section', text: { type: 'mrkdwn', text: `📧 *Contact IT NOW:*\nEmail: sajan.kumar@wiom.in | Slack: DM Sajan Kumar` }},
- ticketId
- ? { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ Ticket auto-created: \`${ticketId}\` | Priority: *${priority}* | IT has been alerted!` }]}
- : { type: 'context', elements: [{ type: 'mrkdwn', text: `✅ IT has been alerted! They will reach out shortly.` }]}
- ]
- });
+     // Show confirmation INSIDE the modal (visible regardless of Messages Tab setting)
+     if (viewId) {
+       await client.views.update({ view_id: viewId, view: {
+         type: 'modal',
+         title: { type: 'plain_text', text: '🆘 SOS Registered!', emoji: true },
+         close: { type: 'plain_text', text: 'Close', emoji: true },
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text:
+             `🆘 *${name}, your emergency has been registered!*\n\n` +
+             `*Issue:* ${issueType.split(' — ')[0]}\n` +
+             `*Priority:* 🔴 ${priority}\n\n` +
+             (ticketId ? `✅ *Ticket Created:* \`${ticketId}\`` : '✅ *IT team has been alerted!*')
+           }},
+           { type: 'divider' },
+           { type: 'context', elements: [{ type: 'mrkdwn', text: `📧 IT Direct: ${ADMIN_EMAIL} | 💬 Slack: DM Sajan Kumar` }]}
+         ]
+       }}).catch(e => console.error('sos modal update error:', e.message));
+     }
 
- // Emergency Slack alert to admin (in addition to ticket DM)
- const adminId = (process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID);
- if (adminId) {
- await client.chat.postMessage({
- channel: adminId,
- text: `🆘 SOS Alert from ${emp?.name || userId}: ${issueType}`,
- blocks: [
- { type: 'header', text: { type: 'plain_text', text: '🆘 SOS EMERGENCY ALERT!', emoji: true }},
- { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${emp?.name || userId}\n*Emp ID:* ${emp?.empId || '-'}\n*Dept:* ${emp?.department || '-'}\n*Floor:* ${emp?.floor || '-'}\n*Issue:* 🔴 *${issueType.split(' — ')[0]}*\n*Detail:* ${issueType.split(' — ')[1] || '-'}` }},
- ticketId
- ? { type: 'context', elements: [{ type: 'mrkdwn', text: `Ticket: \`${ticketId}\` | Priority: *${priority}* | Category: ${category}` }]}
- : { type: 'context', elements: [{ type: 'mrkdwn', text: `⚠️ Ticket auto-create failed — manual ticket banana hoga` }]}
- ]
- });
- }
- } catch (err) {
- console.error('sos_issue error:', err.message);
- }
+     // Emergency alert to admin
+     const adminId = (process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID);
+     if (adminId) {
+       await client.chat.postMessage({
+         channel: adminId,
+         text: `🆘 SOS Alert from ${emp?.name || userId}: ${issueType}`,
+         blocks: [
+           { type: 'header', text: { type: 'plain_text', text: '🆘 SOS EMERGENCY ALERT!', emoji: true }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${emp?.name || userId}\n*Emp ID:* ${emp?.empId || '-'}\n*Dept:* ${emp?.department || '-'}\n*Floor:* ${emp?.floor || '-'}\n*Issue:* 🔴 *${issueType.split(' — ')[0]}*\n*Detail:* ${issueType.split(' — ')[1] || '-'}` }},
+           ticketId
+             ? { type: 'context', elements: [{ type: 'mrkdwn', text: `Ticket: \`${ticketId}\` | Priority: *${priority}* | Category: ${category}` }]}
+             : { type: 'context', elements: [{ type: 'mrkdwn', text: `⚠️ Ticket auto-create failed — manual ticket banana hoga` }]}
+         ]
+       }).catch(e => console.error('sos admin alert error:', e.message));
+     }
+   } catch (err) {
+     console.error('sos_issue error:', err.message);
+     if (viewId) {
+       await client.views.update({ view_id: viewId, view: {
+         type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },
+         close: { type: 'plain_text', text: 'Close', emoji: true },
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ SOS registration failed. Contact IT directly: ${ADMIN_EMAIL}` }}]
+       }}).catch(() => {});
+     }
+   }
  });
 
  // ── DM category expand handlers — UPDATE message (no duplicate) ──────
@@ -2832,6 +2875,54 @@ app.listen(PORT, async () => {
  });
  });
 
+ // ── FIX: dm_cat_network + dm_cat_access — greeting DM buttons had no handlers ─
+ // LEGACY_CATEGORIES loop registers dm_cat_network_legacy and dm_cat_access_legacy
+ // but the greeting DM buttons use dm_cat_network and dm_cat_access (without _legacy suffix).
+ // Adding dedicated handlers here to route to the correct LEGACY_CATEGORIES entry.
+ ['dm_cat_network', 'dm_cat_access'].forEach(actionId => {
+   const legacyKey = actionId === 'dm_cat_network' ? 'network_legacy' : 'access_legacy';
+   slackApp.action(actionId, async ({ body, ack, client }) => {
+     await ack();
+     const userId = body.user.id;
+     const channelId = body.channel?.id || userId;
+     const msgTs = body.message?.ts;
+     try {
+       const cat = LEGACY_CATEGORIES.find(c => c.key === legacyKey);
+       if (!cat) return;
+       const catBlocks = [
+         { type: 'section', text: { type: 'mrkdwn', text: `*${cat.label}* — select your issue:` }},
+       ];
+       for (const row of cat.rows) {
+         catBlocks.push({
+           type: 'actions',
+           elements: row.map(btn => ({
+             type: 'button',
+             text: { type: 'plain_text', text: btn.text, emoji: true },
+             value: btn.value,
+             action_id: btn.id
+           }))
+         });
+       }
+       catBlocks.push({ type: 'divider' });
+       catBlocks.push({
+         type: 'actions',
+         elements: [{ type: 'button', text: { type: 'plain_text', text: '↩ Back to Categories', emoji: true }, action_id: 'dm_back_to_categories', value: 'back' }]
+       });
+       if (msgTs) {
+         try {
+           await client.chat.update({ channel: channelId, ts: msgTs, text: cat.label, blocks: catBlocks });
+         } catch {
+           await client.chat.postMessage({ channel: userId, text: cat.label, blocks: catBlocks });
+         }
+       } else {
+         await client.chat.postMessage({ channel: userId, text: cat.label, blocks: catBlocks });
+       }
+     } catch (err) {
+       console.error(`${actionId} handler error:`, err.message);
+     }
+   });
+ });
+
  // ── Hardware Replacement / Emergency special IDs ─────────────────────
  const HARDWARE_SPECIAL_IDS = new Set(['home_quick_37','home_quick_60','home_quick_61','home_quick_62','home_quick_70']);
 
@@ -2861,15 +2952,7 @@ app.listen(PORT, async () => {
  blocks.push({
  type: 'section',
  text: { type: 'mrkdwn', text:
- '*️ New Monitor Request*\n\n' +
- 'New equipment requires *Functional Head approval*.\n\n' +
- '*Steps:*\n' +
- '1. Email your *Reporting Manager*\n' +
- '2. CC both:\n' +
- ' *sajan.kumar@wiom.in*\n' +
- ' Your *Functional Head*\n' +
- '3. Explain in the email why the item is needed\n\n' +
- '*Timeline: 4 working days after Functional Head approval*'
+ `*️ New Monitor Request*\n\nNew equipment requires *Functional Head approval*.\n\n*Steps:*\n1. Email your *Reporting Manager*\n2. CC both:\n *${ADMIN_EMAIL}*\n Your *Functional Head*\n3. Explain in the email why the item is needed\n\n*Timeline: 4 working days after Functional Head approval*`
  }
  });
  return blocks;
@@ -2886,12 +2969,7 @@ app.listen(PORT, async () => {
  blocks.push({
  type: 'section',
  text: { type: 'mrkdwn', text:
- `*${item} Replacement Request*\n\n` +
- '*Steps:*\n' +
- '1. Email your *Reporting Manager*\n' +
- '2. CC: *sajan.kumar@wiom.in*\n' +
- '3. Describe the problem and why a replacement is needed\n\n' +
- '*Timeline: 2 working days*'
+ `*${item} Replacement Request*\n\n*Steps:*\n1. Email your *Reporting Manager*\n2. CC: *${ADMIN_EMAIL}*\n3. Describe the problem and why a replacement is needed\n\n*Timeline: 2 working days*`
  }
  });
 
@@ -3008,7 +3086,7 @@ app.listen(PORT, async () => {
  ]
  },
  { type: 'divider' },
- { type: 'section', text: { type: 'mrkdwn', text: '📧 *IT Direct:*  sajan.kumar@wiom.in  |  💬 Slack: Sajan Kumar' }}
+ { type: 'section', text: { type: 'mrkdwn', text: `📧 *IT Direct:*  ${ADMIN_EMAIL}  |  💬 Slack: Sajan Kumar` }}
  ]
  }
  });
@@ -4398,18 +4476,25 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    await ack();
    const userId = body.user.id;
    const viewId = body.view?.id;
-   const channelId = body.channel?.id || body.container?.channel_id || userId;
-   console.log(`✅ resolved_yes_btn: userId=${userId} viewId=${viewId} channelId=${channelId}`);
+   const viewType = body.view?.type; // 'modal', 'home', or undefined (message context)
+   const triggerId = body.trigger_id;
+   console.log(`✅ resolved_yes_btn: userId=${userId} viewType=${viewType} viewId=${viewId}`);
    failedAttempts.delete(userId);
    pendingTickets.delete(userId);
 
-   if (viewId) {
+   if (viewType === 'modal' && viewId) {
+     // Inside a modal — update it in-place
      await client.views.update({ view_id: viewId, view: resolvedModalView() })
        .then(() => console.log('✅ resolved modal updated OK'))
-       .catch(e => console.error('resolved_yes_btn modal err:', e.message));
-   } else {
-     await client.chat.postMessage({ channel: channelId, text: 'Issue Resolved!', blocks: resolvedDMBlocks() });
+       .catch(e => console.error('resolved_yes_btn modal update err:', e.message));
+   } else if (triggerId) {
+     // From Home Tab or message — open a new confirmation modal
+     // (Messages Tab OFF means chat.postMessage is invisible — modal is always visible)
+     await client.views.open({ trigger_id: triggerId, view: resolvedModalView() })
+       .then(() => console.log('✅ resolved modal opened OK'))
+       .catch(e => console.error('resolved_yes_btn modal open err:', e.message));
    }
+   // No fallback DM — Messages Tab is OFF, DMs are invisible to users
  });
 
  // ── ❌ Kaam Nahi Aaya — auto-learn: generate better answer + save to DB ────────
@@ -4801,26 +4886,36 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        await client.views.update({ view_id: viewId, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },
          close: { type: 'plain_text', text: 'Close', emoji: true },
-         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Ticket nahi ban saka. IT ko email karo: sajan.kumar@wiom.in' }}]
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
        }}).catch(() => {});
      } else {
        await client.chat.postEphemeral({ channel: channelId, user: userId,
-         text: 'Ticket nahi ban saka. IT ko email karo: sajan.kumar@wiom.in' });
+         text: `Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` });
      }
    }
  }); // end quick_ticket_btn
 
  // ── Ticket Notes Form Submission ─────────────────────────────────────────────
+ // CRITICAL FIX: ack() called FIRST — before any async DB/API calls.
+ // Slack requires ack within 3 seconds. DB + API easily exceeds that.
+ // After ack(), use views.update to show result in the existing modal.
  slackApp.view('quick_ticket_notes_modal', async ({ body, ack, client, view }) => {
+   await ack(); // ← MUST be first line — Slack 3-sec timeout
+
    const userId = body.user.id;
+   const viewId = body.view?.id;
    const notes = view.state.values?.notes_block?.notes_input?.value || '';
-   // Read priority from dropdown — user's selection overrides everything
    const selectedPriority = view.state.values?.priority_block?.priority_select?.selected_option?.value || null;
    let metadata = {};
    try { metadata = JSON.parse(view.private_metadata || '{}'); } catch {}
 
    const baseDesc = metadata.description || 'IT support needed';
    const fullDesc = baseDesc + (notes.trim() ? '\n\nEmployee Notes: ' + notes.trim() : '');
+
+   // Show loading state immediately so user sees something while we hit DB
+   if (viewId) {
+     await client.views.update({ view_id: viewId, view: creatingTicketModalView() }).catch(() => {});
+   }
 
    try {
      const emp = await lookupEmployee(userId, client).catch(() => ({ empId: userId, empName: 'User', email: 'unknown@wiom.in' }));
@@ -4831,34 +4926,163 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        laptop: emp.laptop, laptopSN: emp.laptopSN,
        category: pending.category || 'Other', priority: selectedPriority || pending.priority || metadata.priority || 'Medium',
        description: fullDesc.replace(/[*_`]/g, '').substring(0, 500),
-       source: 'slack', slackUserId: userId, createdAt: Date.now()
+       source: 'slack', slackUserId: userId
      });
 
      if (result?._duplicate) {
-       await ack({ response_action: 'update', view: {
+       if (viewId) await client.views.update({ view_id: viewId, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Already Open', emoji: true },
          close: { type: 'plain_text', text: 'Close', emoji: true },
          blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `⚠️ ${result.message}` }}]
-       }});
+       }}).catch(() => {});
      } else if (result) {
        pendingTickets.delete(userId);
-       await ack({ response_action: 'update', view: ticketCreatedModalView(result) });
+       if (viewId) await client.views.update({ view_id: viewId, view: ticketCreatedModalView(result) }).catch(() => {});
        await notifyAdmin(client, result, emp);
      } else {
-       await ack({ response_action: 'update', view: {
+       if (viewId) await client.views.update({ view_id: viewId, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },
          close: { type: 'plain_text', text: 'Close', emoji: true },
-         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Ticket nahi ban saka. IT ko email karo: sajan.kumar@wiom.in' }}]
-       }});
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
+       }}).catch(() => {});
      }
    } catch(err) {
      console.error('quick_ticket_notes_modal submission error:', err.message);
-     await ack({ response_action: 'update', view: {
+     if (viewId) await client.views.update({ view_id: viewId, view: {
        type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },
        close: { type: 'plain_text', text: 'Close', emoji: true },
-       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'Ticket nahi ban saka. IT ko email karo: sajan.kumar@wiom.in' }}]
-     }});
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
+     }}).catch(() => {});
    }
+ });
+
+ // ── NEW FEATURE: Cancel Ticket — employee cancels their own open ticket ────────
+ slackApp.action(/^cancel_ticket_/, async ({ body, ack, client }) => {
+   await ack();
+   const userId = body.user.id;
+   const ticketId = body.actions[0].value;
+   const viewId = body.view?.id;
+   const triggerId = body.trigger_id;
+   const showModal = async (view) => {
+     if (viewId) await client.views.update({ view_id: viewId, view }).catch(() => {});
+     else if (triggerId) await client.views.open({ trigger_id: triggerId, view }).catch(() => {});
+   };
+   try {
+     const ticket = await Ticket.findOne({ ticketId });
+     if (!ticket) {
+       return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Not Found' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket \`${ticketId}\` not found.` }}] });
+     }
+     if (['Resolved','Closed'].includes(ticket.status)) {
+       return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Already Closed' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `Ticket \`${ticketId}\` is already ${ticket.status}.` }}] });
+     }
+     await Ticket.findOneAndUpdate({ ticketId }, { status: 'Closed', resolvedAt: new Date(), closedReason: 'Cancelled by employee via Slack' });
+     await showModal({ type: 'modal', title: { type: 'plain_text', text: '✅ Ticket Cancelled', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true },
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `✅ Ticket \`${ticketId}\` has been cancelled.\n\nIf the issue comes back, create a new ticket from the Home tab.` }}]
+     });
+   } catch(err) { console.error('cancel_ticket error:', err.message); }
+ });
+
+ // ── NEW FEATURE: Reopen Ticket — employee reopens a recently resolved ticket ──
+ slackApp.action(/^reopen_ticket_/, async ({ body, ack, client }) => {
+   await ack();
+   const userId = body.user.id;
+   const ticketId = body.actions[0].value;
+   const viewId = body.view?.id;
+   const triggerId = body.trigger_id;
+   const showModal = async (view) => {
+     if (viewId) await client.views.update({ view_id: viewId, view }).catch(() => {});
+     else if (triggerId) await client.views.open({ trigger_id: triggerId, view }).catch(() => {});
+   };
+   try {
+     const ticket = await Ticket.findOne({ ticketId });
+     if (!ticket || !['Resolved','Closed'].includes(ticket.status)) {
+       return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Cannot Reopen' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'This ticket is not closed/resolved or was not found.' }}] });
+     }
+     await Ticket.findOneAndUpdate({ ticketId }, { status: 'Open', resolvedAt: null, closedReason: null, reopenedAt: new Date(), reopenedBy: userId });
+     await showModal({ type: 'modal', title: { type: 'plain_text', text: '🔄 Ticket Reopened', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true },
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `🔄 Ticket \`${ticketId}\` has been reopened.\n\nIT team has been notified and will follow up shortly.` }}]
+     });
+     const adminId = process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
+     if (adminId) await client.chat.postMessage({ channel: adminId, text: `🔄 Ticket \`${ticketId}\` reopened by employee (<@${userId}>)` }).catch(() => {});
+   } catch(err) { console.error('reopen_ticket error:', err.message); }
+ });
+
+ // ── NEW FEATURE: Bump Priority — employee escalates their ticket priority ──────
+ slackApp.action(/^bump_priority_/, async ({ body, ack, client }) => {
+   await ack();
+   const userId = body.user.id;
+   const ticketId = body.actions[0].value;
+   const viewId = body.view?.id;
+   const triggerId = body.trigger_id;
+   const showModal = async (view) => {
+     if (viewId) await client.views.update({ view_id: viewId, view }).catch(() => {});
+     else if (triggerId) await client.views.open({ trigger_id: triggerId, view }).catch(() => {});
+   };
+   try {
+     const ticket = await Ticket.findOne({ ticketId });
+     if (!ticket || ['Resolved','Closed'].includes(ticket.status)) {
+       return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Cannot Update' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'This ticket is already closed or not found.' }}] });
+     }
+     if (ticket.priority === 'Critical') {
+       return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Already Critical 🔴', emoji: true }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'This ticket is already *Critical* — the highest priority. IT team is handling it.' }}] });
+     }
+     const priorityLadder = { Low: 'Medium', Medium: 'High', High: 'Critical' };
+     const newPriority = priorityLadder[ticket.priority] || 'High';
+     await Ticket.findOneAndUpdate({ ticketId }, { priority: newPriority, escalatedAt: new Date() });
+     await showModal({ type: 'modal', title: { type: 'plain_text', text: '⬆️ Priority Updated', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true },
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `⬆️ Ticket \`${ticketId}\` priority updated to *${newPriority}*.\n\nIT team has been notified.` }}]
+     });
+     const adminId = process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
+     if (adminId) await client.chat.postMessage({ channel: adminId, text: `⬆️ Ticket \`${ticketId}\` escalated to *${newPriority}* by employee (<@${userId}>)` }).catch(() => {});
+   } catch(err) { console.error('bump_priority error:', err.message); }
+ });
+
+ // ── NEW FEATURE: Add Comment — employee adds update/info to existing ticket ────
+ slackApp.action(/^add_comment_ticket_/, async ({ body, ack, client }) => {
+   await ack();
+   const ticketId = body.actions[0].value;
+   const triggerId = body.trigger_id;
+   const viewId = body.view?.id;
+   if (!triggerId) return;
+   try {
+     const pushOrOpen = viewId
+       ? (v) => client.views.push({ trigger_id: triggerId, view: v })
+       : (v) => client.views.open({ trigger_id: triggerId, view: v });
+     await pushOrOpen({
+       type: 'modal',
+       callback_id: 'add_comment_modal',
+       private_metadata: ticketId,
+       title: { type: 'plain_text', text: '💬 Add Update', emoji: true },
+       submit: { type: 'plain_text', text: 'Send Update', emoji: true },
+       close: { type: 'plain_text', text: 'Cancel', emoji: true },
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `Adding update to ticket \`${ticketId}\`` }},
+         { type: 'input', block_id: 'comment_block',
+           label: { type: 'plain_text', text: 'What has changed or what additional info do you want to add?', emoji: true },
+           element: { type: 'plain_text_input', action_id: 'comment_input', multiline: true,
+             placeholder: { type: 'plain_text', text: 'e.g. The issue started happening after Windows update. Error message: ...' }
+           }
+         }
+       ]
+     });
+   } catch(e) { console.error('add_comment modal error:', e.message); }
+ });
+
+ slackApp.view('add_comment_modal', async ({ body, ack, client, view }) => {
+   await ack();
+   const userId = body.user.id;
+   const ticketId = view.private_metadata;
+   const comment = view.state.values?.comment_block?.comment_input?.value || '';
+   try {
+     const ticket = await Ticket.findOne({ ticketId });
+     if (!ticket) return;
+     const updatedDesc = (ticket.description || '') + `\n\n--- Employee Update ---\n${comment}`;
+     await Ticket.findOneAndUpdate({ ticketId }, { description: updatedDesc.substring(0, 1000), updatedAt: new Date() });
+     const adminId = process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
+     if (adminId) {
+       await client.chat.postMessage({ channel: adminId, text: `💬 Update on ticket \`${ticketId}\` from <@${userId}>:\n${comment}` }).catch(() => {});
+     }
+   } catch(err) { console.error('add_comment submit error:', err.message); }
  });
 
  // ── Start Slack App ───────────────────────────────────────────────────
