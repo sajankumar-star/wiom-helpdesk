@@ -1,7 +1,19 @@
 const nodemailer = require('nodemailer');
 
+// ── Email enabled? (only if SMTP_PASS is a real value, not placeholder) ───────
+const EMAIL_ENABLED = !!(
+  process.env.SMTP_PASS &&
+  process.env.SMTP_PASS !== 'FILL_KARO' &&
+  process.env.SMTP_PASS.length > 8 &&
+  process.env.SMTP_USER
+);
+
+if (!EMAIL_ENABLED) {
+  console.log('📧 Email: DISABLED (SMTP_PASS not configured — Slack notifications active)');
+}
+
 // ── Transporter (Gmail App Password or SendGrid SMTP) ─────────────────────────
-const transporter = nodemailer.createTransport({
+const transporter = EMAIL_ENABLED ? nodemailer.createTransport({
   host  : process.env.SMTP_HOST   || 'smtp.gmail.com',
   port  : process.env.SMTP_PORT   || 587,
   secure: false,
@@ -9,7 +21,7 @@ const transporter = nodemailer.createTransport({
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   }
-});
+}) : null;
 
 const FROM    = `"WIOM IT Helpdesk" <${process.env.SMTP_USER}>`;
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'it@wiom.in';
@@ -35,7 +47,7 @@ const wrap = (body) => `
 
 // ── Send ticket confirmation to employee ──────────────────────────────────────
 const sendTicketConfirmation = async (ticket) => {
-  if (!ticket.empEmail) return;
+  if (!EMAIL_ENABLED || !ticket.empEmail) return;
 
   const color = priColor[ticket.priority] || '#6b7280';
   const html  = wrap(`
@@ -71,6 +83,7 @@ const sendTicketConfirmation = async (ticket) => {
 
 // ── Send alert to ADMIN_EMAIL ───────────────────────────────────────────────────────
 const sendAdminAlert = async (ticket) => {
+  if (!EMAIL_ENABLED) return;
   const color = priColor[ticket.priority] || '#6b7280';
   const isCrit = ticket.priority === 'Critical' || ticket.priority === 'High';
 
@@ -121,7 +134,7 @@ const sendAdminAlert = async (ticket) => {
 
 // ── Send resolution notification to employee ──────────────────────────────────
 const sendResolutionEmail = async (ticket) => {
-  if (!ticket.empEmail) return;
+  if (!EMAIL_ENABLED || !ticket.empEmail) return;
 
   const html = wrap(`
     <p style="color:#374151">Hi <strong>${ticket.empName || ticket.empId}</strong>,</p>
@@ -149,6 +162,7 @@ const sendResolutionEmail = async (ticket) => {
 
 // ── Send SLA breach warning to ADMIN_EMAIL ─────────────────────────────────────────
 const sendSLABreachAlert = async (ticket) => {
+  if (!EMAIL_ENABLED) return;
   const html = wrap(`
     <div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:16px;text-align:center;margin-bottom:16px">
       <div style="font-size:28px">⏰</div>
@@ -178,6 +192,7 @@ const sendSLABreachAlert = async (ticket) => {
 };
 
 const sendEscalationAlert = async ({ empId, empName, empEmail, dept, floor, laptop, issue }) => {
+  if (!EMAIL_ENABLED) return;
   const html = wrap(`
     <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:12px;margin-bottom:16px;text-align:center">
       <strong style="color:#92400e">🧑‍💼 Employee wants to TALK TO A HUMAN</strong>
