@@ -729,7 +729,7 @@ const callGroq = async (systemPrompt, history) => {
       const completion = await groq.chat.completions.create({
         model,
         messages   : [{ role: 'system', content: systemPrompt }, ...history],
-        temperature: 0.55,
+        temperature: 0.25,
         max_tokens : 500
       });
       const text = completion.choices?.[0]?.message?.content?.trim();
@@ -782,11 +782,31 @@ const getFallbackResponse = (query, intent, category) => {
   return `Yeh issue meri knowledge base mein nahi hai. IT team better help kar sakti hai.\n\nYeh share karo:\n• *Kaunsa app/device* — exactly kya problem hai?\n• *Error message* — screen pe kya likha hai?\n• *Kab se* — pehle theek tha?\n\n*Create Ticket* button dabao — IT team directly help karegi 🎫`;
 };
 
+// Generic KB fallback string — used to detect when getKBFallback has no specific answer
+const KB_GENERIC = `Apni problem thodi detail mein batao`;
+
 // ── Main chat function ────────────────────────────────────────────────────────
 const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, floor }) => {
   if (!modelLogged) {
     console.log(`🤖 AI Model: ${activeModel()}`);
     modelLogged = true;
+  }
+
+  // ── KB PRE-CHECK: for known issues, return instantly — no AI needed ──────
+  // Only on first/simple messages (not mid-conversation follow-ups like "nahi hua")
+  const lastUserQ = messages.filter(m => m.role === 'user').pop()?.content || '';
+  const isFollowUp = messages.filter(m => m.role === 'assistant').length >= 1 &&
+    /theek nahi hua|nahi hua|still|phir bhi|abhi bhi|aur kuch|dobara|same|work nahi|kaam nahi/i.test(lastUserQ);
+  if (!isFollowUp) {
+    const kbAnswer = getKBFallback(lastUserQ);
+    if (kbAnswer && !kbAnswer.startsWith(KB_GENERIC)) {
+      console.log('⚡ KB pre-check hit — skipping AI');
+      return {
+        reply             : kbAnswer,
+        shouldCreateTicket: kbAnswer.includes('Create Ticket'),
+        ticketData        : null
+      };
+    }
   }
 
   // Last 30 messages for full context (was 20 before)
@@ -1006,7 +1026,7 @@ const chatStream = async (messages, { empId, empName, source, laptop, laptopSN, 
     const stream = await groq.chat.completions.create({
       model      : 'llama-3.3-70b-versatile',
       messages   : [{ role: 'system', content: systemPrompt }, ...history],
-      temperature: 0.3,
+      temperature: 0.25,
       max_tokens : 300,
       stream     : true
     });
