@@ -1002,7 +1002,21 @@ app.listen(PORT, async () => {
 
    blocks.push({ type: 'divider' });
 
-   // ── 8. Bottom Action Buttons ──────────────────────────────────────────
+   // ── 8. Ask Zivon AI ───────────────────────────────────────────────────
+   blocks.push({
+     type: 'section',
+     text: { type: 'mrkdwn', text: `*🤖 Ask Zivon AI*\n_WiFi, laptop, software, password — koi bhi IT sawaal puchho, instant answer milega!_` },
+     accessory: {
+       type: 'button',
+       text: { type: 'plain_text', text: '🤖 Ask Zivon AI', emoji: true },
+       action_id: 'zivon_modal_ask',
+       value: 'ask_ai',
+       style: 'primary'
+     }
+   });
+   blocks.push({ type: 'divider' });
+
+   // ── 9. Bottom Action Buttons ──────────────────────────────────────────
    blocks.push({ type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '🎫 New Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
      { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
@@ -2771,6 +2785,199 @@ app.listen(PORT, async () => {
      const firstName = (emp?.empName || 'there').split(' ')[0];
      await client.chat.postMessage({ channel: userId, text: `Hey ${firstName}! Main Zivon hoon ⚡`, blocks: buildGreetingBlocks(firstName) });
    } catch (err) { console.error('home_chat_ai error:', err.message); }
+ });
+
+ // ═══════════════════════════════════════════════════════════════════════
+ // ASK ZIVON AI — Modal chatbot on Home Tab
+ // ═══════════════════════════════════════════════════════════════════════
+
+ const buildAskZivonInputModal = () => ({
+   type: 'modal',
+   callback_id: 'zivon_modal_submit',
+   title: { type: 'plain_text', text: '🤖 Ask Zivon AI', emoji: true },
+   submit: { type: 'plain_text', text: '🔍 Answer Chahiye', emoji: true },
+   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   blocks: [
+     {
+       type: 'section',
+       text: { type: 'mrkdwn', text: 'WiFi, laptop, software, password — *koi bhi IT sawaal* puchho! Zivon AI instant jawab dega. 🚀' }
+     },
+     {
+       type: 'input',
+       block_id: 'zivon_q_block',
+       label: { type: 'plain_text', text: 'Apna IT sawaal likhein:', emoji: true },
+       element: {
+         type: 'plain_text_input',
+         action_id: 'zivon_q_input',
+         placeholder: { type: 'plain_text', text: 'e.g. WiFi nahi chal rha, laptop slow hai, password bhul gaya...' },
+         multiline: true,
+         min_length: 5,
+         max_length: 400
+       }
+     }
+   ]
+ });
+
+ const buildZivonLoadingModal = () => ({
+   type: 'modal',
+   callback_id: 'zivon_modal_loading',
+   title: { type: 'plain_text', text: '🤖 Zivon AI', emoji: true },
+   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   blocks: [{
+     type: 'section',
+     text: { type: 'mrkdwn', text: '*Soch raha hoon...* ⏳\n\n_Aapke sawaal ka jawab dhundh raha hoon..._\n_Thoda wait karein — kuch seconds mein answer aa jayega!_ ✨' }
+   }]
+ });
+
+ const buildZivonAnswerModal = (question, answer) => ({
+   type: 'modal',
+   callback_id: 'zivon_modal_answer',
+   title: { type: 'plain_text', text: '🤖 Zivon AI', emoji: true },
+   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   blocks: [
+     {
+       type: 'section',
+       text: { type: 'mrkdwn', text: `*Sawaal:*\n_${question.substring(0, 120).replace(/[*_`]/g, '')}_` }
+     },
+     { type: 'divider' },
+     {
+       type: 'section',
+       text: { type: 'mrkdwn', text: answer.substring(0, 2900) }
+     },
+     { type: 'divider' },
+     {
+       type: 'section',
+       text: { type: 'mrkdwn', text: '_Problem solve nahi hui? Ticket raise karo — IT team personally help karegi._' }
+     },
+     {
+       type: 'actions',
+       elements: [
+         {
+           type: 'button',
+           text: { type: 'plain_text', text: '🔄 Aur Puchho', emoji: true },
+           action_id: 'zivon_modal_more',
+           value: 'ask_more'
+         },
+         {
+           type: 'button',
+           text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true },
+           action_id: 'vague_pick_create_ticket',
+           value: 'create ticket',
+           style: 'primary'
+         }
+       ]
+     }
+   ]
+ });
+
+ const buildZivonErrorModal = () => ({
+   type: 'modal',
+   callback_id: 'zivon_modal_error',
+   title: { type: 'plain_text', text: '🤖 Zivon AI', emoji: true },
+   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   blocks: [
+     {
+       type: 'section',
+       text: { type: 'mrkdwn', text: '⚠️ *Technical issue aa gaya.*\n\nDobara try karo — ya ticket raise karo, IT team directly help karegi! 🎫' }
+     },
+     {
+       type: 'actions',
+       elements: [
+         {
+           type: 'button',
+           text: { type: 'plain_text', text: '🔄 Dobara Try Karo', emoji: true },
+           action_id: 'zivon_modal_more',
+           value: 'ask_more'
+         },
+         {
+           type: 'button',
+           text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true },
+           action_id: 'vague_pick_create_ticket',
+           value: 'create ticket',
+           style: 'primary'
+         }
+       ]
+     }
+   ]
+ });
+
+ // ── Button click on Home Tab → open input modal ──────────────────────────
+ slackApp.action('zivon_modal_ask', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     await client.views.open({ trigger_id: body.trigger_id, view: buildAskZivonInputModal() });
+   } catch (err) {
+     console.error('zivon_modal_ask open error:', err.message);
+   }
+ });
+
+ // ── "Aur Puchho" button → reset back to fresh input form ────────────────
+ slackApp.action('zivon_modal_more', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     await client.views.update({ view_id: body.view.id, view: buildAskZivonInputModal() });
+   } catch (err) {
+     console.error('zivon_modal_more error:', err.message);
+   }
+ });
+
+ // ── Modal submit → loading → KB/AI → answer ──────────────────────────────
+ slackApp.view('zivon_modal_submit', async ({ body, ack, view, client }) => {
+   const question = (view.state.values?.zivon_q_block?.zivon_q_input?.value || '').trim();
+   const userId = body.user.id;
+   const viewId = view.id;
+
+   // Short query guard (Slack min_length=5 should catch it, this is a belt-and-suspenders check)
+   if (question.length < 5) {
+     await ack({ response_action: 'errors', errors: { zivon_q_block: 'Thoda detail mein batao (min 5 characters)' } });
+     return;
+   }
+
+   // Show loading modal immediately (acks the view submission at the same time)
+   await ack({ response_action: 'update', view: buildZivonLoadingModal() });
+
+   // Double-click / race protection
+   if (processingUsers.has(userId)) return;
+   processingUsers.add(userId);
+
+   try {
+     const emp = await Employee.findOne({ slackUserId: userId })
+       .select('empId name empName laptop laptopSN dept floor').lean().catch(() => null);
+
+     // KB pre-check first — instant, no AI call if answer is found
+     const KB_GENERIC = 'Apni problem thodi detail mein batao';
+     const kbAnswer = claudeSvc.getKBFallback ? claudeSvc.getKBFallback(question) : null;
+     let answer;
+
+     if (kbAnswer && !kbAnswer.startsWith(KB_GENERIC) && kbAnswer.length > 30) {
+       answer = kbAnswer;
+     } else {
+       // AI call (Groq with KB fallback built in)
+       const result = await claudeSvc.chat(
+         [{ role: 'user', content: question }],
+         {
+           empId   : emp?.empId    || userId,
+           empName : emp?.name     || emp?.empName || 'Employee',
+           laptop  : emp?.laptop   || null,
+           laptopSN: emp?.laptopSN || null,
+           source  : 'modal'
+         }
+       );
+       answer = result?.reply || 'Sorry, answer nahi aa paya. Ticket raise karo — IT team help karegi! 🎫';
+     }
+
+     if (answer.length > 2900) answer = answer.substring(0, 2897) + '...';
+
+     await client.views.update({ view_id: viewId, view: buildZivonAnswerModal(question, answer) });
+
+   } catch (err) {
+     console.error('zivon_modal_submit error:', err.message);
+     try {
+       await client.views.update({ view_id: viewId, view: buildZivonErrorModal() });
+     } catch { /* user closed modal — ignore */ }
+   } finally {
+     processingUsers.delete(userId);
+   }
  });
 
  slackApp.action('home_contact_it', async ({ body, ack, client }) => {
