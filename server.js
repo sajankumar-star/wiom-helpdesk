@@ -933,6 +933,9 @@ app.listen(PORT, async () => {
    blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Actions*' } });
    blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '🔍 Diagnose My Laptop', emoji: true }, action_id: 'home_quick_diagnose_laptop', value: 'diagnose', style: 'primary' }
+   ]});
+   blocks.push({ type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true }, action_id: 'home_quick_office_net_down', value: 'office_net_down', style: 'danger' },
      { type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
      { type: 'button', text: { type: 'plain_text', text: '🔑 Reset Password', emoji: true }, action_id: 'home_quick_14', value: 'Forgot password need to reset it' },
@@ -2880,6 +2883,97 @@ app.listen(PORT, async () => {
    }
  });
 
+ // ════════════════════════════════════════════════════════════════════════
+ // DIAGNOSE MY LAPTOP
+ // ════════════════════════════════════════════════════════════════════════
+
+ const DIAGNOSE_SYMPTOMS = {
+   slow:    { label: '🐢 Laptop slow / hang hota hai',     fix: '• Laptop restart karo\n• Task Manager mein heavy apps band karo *(Ctrl+Shift+Esc)*\n• Chrome ke extra tabs band karo' },
+   disk:    { label: '💾 Storage / disk space kam hai',    fix: '• Downloads folder mein purani files delete karo\n• Recycle Bin empty karo (right-click → Empty)\n• Desktop pe unnecessary files hatao' },
+   internet:{ label: '📶 Internet nahi chal raha',        fix: '• Taskbar mein WiFi icon → off then on karo\n• Airplane mode OFF hai check karo\n• Laptop restart karo', autoVal: 'WiFi not working no internet connection' },
+   teams:   { label: '👥 Teams nahi chal raha / crash',   fix: '• Task Manager se Teams close karo *(Ctrl+Shift+Esc → Teams → End Task)*\n• Dobara kholo\n• Internet check karo', autoVal: 'Microsoft Teams not working call dropping or not opening' },
+   outlook: { label: '📧 Outlook / Gmail nahi khul raha', fix: '• Application band karke dobara kholo\n• Internet connection check karo\n• Browser mein Gmail.com try karo' },
+   camera:  { label: '📷 Camera nahi chal raha',          fix: '• Windows Settings → Privacy → Camera → Allow ON karo\n• Teams/Zoom mein camera permission check karo\n• Laptop restart karo', autoVal: 'Laptop camera not working in Teams Zoom or Meet' },
+   sound:   { label: '🔇 Sound / speaker nahi chal raha', fix: '• Taskbar mein speaker icon — mute toh nahi?\n• Headphone plug/unplug karo\n• Volume max check karo', autoVal: 'No sound coming from laptop speakers audio not working' },
+   heat:    { label: '🔥 Laptop garam / fan bahut noise',  fix: '• Laptop hard flat surface pe rakhho\n• Fan area block mat karo\n• Heavy apps band karo aur 5 min rest do' },
+   battery: { label: '🔋 Battery jaldi khatam hoti hai',  fix: '• Screen brightness kam karo (taskbar)\n• Battery Saver mode on karo (taskbar battery icon)\n• Background apps band karo' },
+   screen:  { label: '💻 Screen / display issue',         fix: '• *Win+P* dabao → display mode check karo\n• External monitor cable check karo\n• Brightness settings check karo', autoVal: 'Laptop screen is flickering blinking or flashing' },
+ };
+
+ const buildDiagnoseInputModal = () => ({
+   type: 'modal',
+   callback_id: 'diagnose_laptop_submit',
+   title: { type: 'plain_text', text: '🔍 Diagnose My Laptop', emoji: true },
+   submit: { type: 'plain_text', text: '🔍 Diagnose Karo', emoji: true },
+   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   blocks: [
+     { type: 'section', text: { type: 'mrkdwn', text: '*Aapke laptop mein kya ho raha hai?*\nJo bhi problem ho sab select karo 👇' } },
+     { type: 'divider' },
+     { type: 'input', block_id: 'diagnose_block',
+       label: { type: 'plain_text', text: 'Problems select karo:', emoji: true },
+       element: { type: 'checkboxes', action_id: 'symptoms_select',
+         options: Object.entries(DIAGNOSE_SYMPTOMS).map(([val, s]) => ({
+           text: { type: 'plain_text', text: s.label, emoji: true }, value: val
+         }))
+       }
+     }
+   ]
+ });
+
+ const buildDiagnoseResultModal = (symptoms) => {
+   const blocks = [];
+   if (!symptoms.length) {
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '✅ *Koi major issue nahi dikha!*\nAapka laptop theek lag raha hai. Koi specific problem ke liye Zivon AI se puchho.' } });
+     return { type: 'modal', title: { type: 'plain_text', text: '🔍 Diagnosis Result', emoji: true }, close: { type: 'plain_text', text: 'Band Karo', emoji: true }, blocks };
+   }
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*🔍 Diagnosis Complete — ${symptoms.length} problem${symptoms.length > 1 ? 's' : ''} mila*\nFix steps niche hain 👇` } });
+   for (const key of symptoms) {
+     const s = DIAGNOSE_SYMPTOMS[key];
+     if (!s) continue;
+     blocks.push({ type: 'divider' });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*${s.label}*\n\n${s.fix}` } });
+     if (s.autoVal) blocks.push({ type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🔧 Fix Automatically', emoji: true }, action_id: 'diagnose_auto_fix', value: s.autoVal, style: 'primary' }]});
+   }
+   blocks.push({ type: 'divider' });
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '_Steps ke baad bhi issue hai? Ticket raise karo._' } });
+   blocks.push({ type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'danger' }]});
+   return { type: 'modal', callback_id: 'diagnose_laptop_result', title: { type: 'plain_text', text: '🔍 Diagnosis Result', emoji: true }, close: { type: 'plain_text', text: 'Band Karo', emoji: true }, blocks };
+ };
+
+ // ── Diagnose submit ───────────────────────────────────────────────────────
+ slackApp.view('diagnose_laptop_submit', async ({ ack, view }) => {
+   const selected = view.state.values?.diagnose_block?.symptoms_select?.selected_options || [];
+   await ack({ response_action: 'update', view: buildDiagnoseResultModal(selected.map(o => o.value)) });
+ });
+
+ // ── Fix Automatically → KB answer as DM ──────────────────────────────────
+ slackApp.action('diagnose_auto_fix', async ({ body, ack, client }) => {
+   await ack();
+   const userId  = body.user.id;
+   const problem = body.actions[0].value;
+   const viewId  = body.view?.id;
+
+   try {
+     const kbAnswer = claudeSvc.getKBFallback ? claudeSvc.getKBFallback(problem) : null;
+     const dmRes = await client.conversations.open({ users: userId });
+     await client.chat.postMessage({
+       channel: dmRes.channel.id,
+       text: '🔧 Auto-Fix Steps',
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: '*🔧 Auto-Fix Steps — Follow karo:*' } },
+         { type: 'divider' },
+         { type: 'section', text: { type: 'mrkdwn', text: kbAnswer || 'Laptop restart karo. Agar nahi bana toh ticket raise karo.' } },
+         { type: 'divider' },
+         { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]}
+       ]
+     });
+   } catch (err) { console.error('diagnose_auto_fix DM:', err.message); }
+
+   try {
+     if (viewId) await client.views.update({ view_id: viewId, view: { type: 'modal', title: { type: 'plain_text', text: '🔧 Fix Steps', emoji: true }, close: { type: 'plain_text', text: 'Band Karo', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '✅ *Fix steps aapke Slack DM mein bhej diye!*\nDM check karo aur steps follow karo.\n\n_Phir bhi issue hai? Ticket raise karo._' } }, { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]}] } });
+   } catch { /* modal closed */ }
+ });
+
  // ── "Aur Puchho" button → reset back to fresh input form ────────────────
  slackApp.action('zivon_modal_more', async ({ body, ack, client }) => {
    await ack();
@@ -3263,6 +3357,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  // cat_*, go_home_btn, dm_my_tickets, and all vague_pick_* are handled by their OWN dedicated
  // handlers or regex handlers. DO NOT add them here — it causes both handlers to fire (race condition).
  const homeQuickActions = [
+  'home_quick_diagnose_laptop',
   'home_quick_office_net_down',
    'home_quick_wifi_pwd_quick',
    'home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5',
@@ -3315,6 +3410,12 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    }
  });
  return;
+ }
+
+ // ── Diagnose My Laptop ────────────────────────────────────────────
+ if (actionId === 'home_quick_diagnose_laptop') {
+   await client.views.open({ trigger_id: triggerId, view: buildDiagnoseInputModal() });
+   return;
  }
 
  // ── Office Net Down — floor picker modal ─────────────────────────
