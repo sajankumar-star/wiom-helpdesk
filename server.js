@@ -926,7 +926,7 @@ app.listen(PORT, async () => {
    // ── 1. Header ─────────────────────────────────────────────────────────
    blocks.push({
      type: 'section',
-     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n_Welcome to WIOM IT Helpdesk — Get instant support, manage assets, and track your requests._` },
+     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n_Welcome to WIOM IT Helpdesk — Get instant support._` },
      accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/wiom-logo.webp', alt_text: 'WIOM' }
    });
 
