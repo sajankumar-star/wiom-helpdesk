@@ -3272,6 +3272,26 @@ app.listen(PORT, async () => {
  // ── FIX: Open modals IMMEDIATELY before any DB call ───────────
  // Slack trigger_id expires in 3 seconds — DB calls can push past that
 
+ // ── WiFi Password — show directly, no AI needed ───────────────
+ if (actionId === 'home_quick_wifi_pwd_quick') {
+ await client.views.open({
+   trigger_id: triggerId,
+   view: {
+     type: 'modal',
+     title: { type: 'plain_text', text: '📶 WiFi Password', emoji: true },
+     close: { type: 'plain_text', text: 'Close', emoji: true },
+     blocks: [
+       { type: 'section', text: { type: 'mrkdwn', text: `*WIOM Office WiFi Password:*\n\n🔑 Network: *Wiom office*\n🔐 Password: \`${process.env.WIFI_PASSWORD || 'spartans500'}\`` }},
+       { type: 'divider' },
+       { type: 'section', text: { type: 'mrkdwn', text: `*Saket Office WiFi:*\n🔑 Network: *Wiomnet-Saket*\n🔐 Password: \`${process.env.WIFI_PASSWORD_SAKET || 'Password@12345'}\`` }},
+       { type: 'divider' },
+       { type: 'context', elements: [{ type: 'mrkdwn', text: '_WiFi connect nahi ho rha? 📶 WiFi Fix button dabao — IT steps milenge._' }]}
+     ]
+   }
+ });
+ return;
+ }
+
  // ── Email Password Reset modal ────────────────────────────────
  if (actionId === 'home_quick_59') {
  await client.views.open({

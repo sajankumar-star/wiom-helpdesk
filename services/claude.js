@@ -538,6 +538,10 @@ const getKBFallback = (problem) => {
       !/damage|crack|toot|phoot|gir\s*gaya|girna|broken|toota|tooti/.test(pn))
     return `Aapko screen ki zarurat hai, lekin yeh clear nahi hai ki aapko *extra screen chahiye* ya *aapka current screen theek se kaam nahi kar raha* hai.\n\n🖥️ *Extra screen chahiye?*\n→ Yeh IT scope mein nahi aata. *Admin/Facilities se contact karein* — aur pehle *Reporting Manager ka approval* lena hoga.\n\n⚠️ *Current screen theek se kaam nahi kar rha?*\n→ Laptop on hai (power LED dikh raha)? Ya screen bilkul black hai?\n1. *Brightness keys* → Fn+F5 ya Fn+F8 dabao\n2. *Force restart* → Power button 10 sec hold karo → band karo → dobara on karo\n3. *Charger check* → Battery dead ho sakti hai → charger lagao → 10 min wait\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
+  // Laptop won't boot / startup error / stuck on boot screen
+  if (/\b(boot|startup|start\s*up)\b.*(nahi|nhi|error|stuck|atak|fail|loop)|(nahi|nhi).*(boot|start\s*up|startup)|(laptop|pc|computer).*(start\s*nahi|on\s*nahi\s*ho|boot\s*nahi)|windows.*(load\s*nahi|start\s*nahi|aata\s*nahi|nahi\s*aa\s*rha)|stuck.*logo|logo.*stuck/.test(pn))
+    return `Laptop boot/startup issue. Yeh try karo:\n\n1. *Force shutdown* → Power button 10 sec hold karo → band ho jaaye → 30 sec ruko\n2. *Dobara on karo* → Power button dabao — Windows ab sahi load ho sakta hai\n3. *Charger check* → Battery dead ho sakti hai → charger lagao → 5 min wait karo → on karo\n4. *Baar baar ho rha hai?* → Windows update chal rhi ho sakti hai — wait karo 15-20 min, band mat karo\n\nAgar 3 baar try karne ke baad bhi boot nahi hua → *Create Ticket* button dabao — IT team aayegi 🎫`;
+
   // Windows update / OS crash / restart loop
   if (/windows\s*(crash|restart|update|stuck|atak|loop|hang)|update\s*(stuck|atak|hang|nahi|ruka)|restart\s*(bar\s*bar|baar\s*baar|loop|hota\s*rha|ho\s*rha\s*bar)|os\s*(crash|hang|stuck)/.test(pn))
     return `Windows issue hai. Yeh try karo:\n\n1. *Restart* → Power button se properly shut down karo → dobara on karo\n2. *Wait* → Agar Windows update chal rahi hai → wait karo, band mat karo\n\nAgar 3 baar se zyada restart ho raha hai ya nahi ruk raha → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
@@ -581,6 +585,12 @@ const getKBFallback = (problem) => {
 
   if (pn.includes('teams'))
     return `Teams issue. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar pe Teams icon right-click → Quit → dobara open karo\n2. *Browser mein try karo* → teams.microsoft.com Chrome mein open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
+  if (pn.includes('zoom') && (pn.includes('mic') || pn.includes('audio') || pn.includes('awaaz') || pn.includes('sound') || pn.includes('sun') || pn.includes('nahi sun')))
+    return `Zoom microphone/audio issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Microphone → Zoom ko allow karo\n2. *Zoom Audio settings* → Zoom → Settings → Audio → correct microphone select karo → Test karo\n3. *Call mein check* → Zoom mein ⬆️ arrow (Mute button ke paas) → correct mic select karo\n4. *Restart karo* → Zoom quit → dobara join karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
+  if (pn.includes('zoom') && (pn.includes('video') || pn.includes('camera') || pn.includes('cam') || pn.includes('black') || pn.includes('nahi dikh')))
+    return `Zoom camera/video issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Camera → Zoom ko allow karo\n2. *Zoom Video settings* → Zoom → Settings → Video → correct camera select karo\n3. *Call mein check* → Zoom mein ⬆️ arrow (Video button ke paas) → correct camera select karo\n4. *Restart karo* → Zoom quit → dobara join karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   if (pn.includes('zoom'))
     return `Zoom issue. Yeh try karo:\n\n1. *Restart karo* → Zoom close karo → dobara open karo\n2. *Browser mein try karo* → zoom.us/wc/join Chrome mein kholo\n3. *Settings* → Zoom Settings → correct device select karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
