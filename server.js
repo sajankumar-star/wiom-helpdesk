@@ -3448,41 +3448,14 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    } catch (err) { console.error('software_request_submit error:', err.message); }
  });
 
- // ── Diagnose My Laptop — standalone handler ──────────────────────────────
- slackApp.action('home_quick_diagnose_laptop', async ({ body, ack, client }) => {
-   await ack();
-   try {
-     await client.views.open({ trigger_id: body.trigger_id, view: buildDiagnoseInputModal() });
-   } catch (err) { console.error('diagnose open error:', err.message); }
- });
-
- // ── Office Net Down — send DM with floor buttons (no modal) ──────────────
- slackApp.action('home_quick_office_net_down', async ({ body, ack, client }) => {
-   await ack();
-   const userId = body.user.id;
-   try {
-     const dmRes = await client.conversations.open({ users: userId });
-     await client.chat.postMessage({
-       channel: dmRes.channel.id,
-       text: '🌐 Office Net Down — Konsa floor?',
-       blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nKonsa floor affected hai? Button dabao 👇' } },
-         { type: 'divider' },
-         { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '🏢 Ground Floor', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
-           { type: 'button', text: { type: 'plain_text', text: '🏢 3rd Floor', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
-         ]}
-       ]
-     });
-   } catch (err) { console.error('office_net_down DM error:', err.message); }
- });
-
  // ── Quick Action buttons from Home tab ────────────────────────────────
  // homeQuickActions: ONLY home_quick_* and home_new_* and home_sos buttons.
  // cat_*, go_home_btn, dm_my_tickets, and all vague_pick_* are handled by their OWN dedicated
  // handlers or regex handlers. DO NOT add them here — it causes both handlers to fire (race condition).
  const homeQuickActions = [
    'home_quick_wifi_pwd_quick',
+   'home_quick_office_net_down',
+   'home_quick_diagnose_laptop',
    'home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5',
    'home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9',
    'home_quick_10','home_quick_11','home_quick_12','home_quick_13','home_quick_14',
@@ -3533,6 +3506,30 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    }
  });
  return;
+ }
+
+ // ── Office Net Down — DM with floor buttons ──────────────────
+ if (actionId === 'home_quick_office_net_down') {
+   const dmRes = await client.conversations.open({ users: userId });
+   await client.chat.postMessage({
+     channel: dmRes.channel.id,
+     text: '🌐 Office Net Down — Konsa floor?',
+     blocks: [
+       { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nKonsa floor affected hai? Button dabao 👇' } },
+       { type: 'divider' },
+       { type: 'actions', elements: [
+         { type: 'button', text: { type: 'plain_text', text: '🏢 Ground Floor', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
+         { type: 'button', text: { type: 'plain_text', text: '🏢 3rd Floor', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
+       ]}
+     ]
+   });
+   return;
+ }
+
+ // ── Diagnose My Laptop — open symptom selector modal ─────────
+ if (actionId === 'home_quick_diagnose_laptop') {
+   await client.views.open({ trigger_id: triggerId, view: buildDiagnoseInputModal() });
+   return;
  }
 
  // ── Email Password Reset modal ────────────────────────────────
