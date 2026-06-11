@@ -3456,32 +3456,25 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    } catch (err) { console.error('diagnose open error:', err.message); }
  });
 
- // ── Office Net Down — standalone handler ─────────────────────────────────
+ // ── Office Net Down — send DM with floor buttons (no modal) ──────────────
  slackApp.action('home_quick_office_net_down', async ({ body, ack, client }) => {
    await ack();
+   const userId = body.user.id;
    try {
-     await client.views.open({
-       trigger_id: body.trigger_id,
-       view: {
-         type: 'modal',
-         callback_id: 'office_net_floor_modal',
-         title: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true },
-         close: { type: 'plain_text', text: 'Band Karo', emoji: true },
-         blocks: [
-           { type: 'section', text: { type: 'mrkdwn', text: '*Konsa floor ka internet down hai?*\nButton dabao — turant Slack message aayega. 👇' } },
-           { type: 'divider' },
-           { type: 'section', fields: [
-             { type: 'mrkdwn', text: '*🏢 Ground Floor*\nGround floor internet issue' },
-             { type: 'mrkdwn', text: '*🏢 3rd Floor*\n3rd floor internet issue' }
-           ]},
-           { type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '🔴 Not Working', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
-             { type: 'button', text: { type: 'plain_text', text: '🔴 Not Working', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
-           ]}
-         ]
-       }
+     const dmRes = await client.conversations.open({ users: userId });
+     await client.chat.postMessage({
+       channel: dmRes.channel.id,
+       text: '🌐 Office Net Down — Konsa floor?',
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nKonsa floor affected hai? Button dabao 👇' } },
+         { type: 'divider' },
+         { type: 'actions', elements: [
+           { type: 'button', text: { type: 'plain_text', text: '🏢 Ground Floor', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
+           { type: 'button', text: { type: 'plain_text', text: '🏢 3rd Floor', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
+         ]}
+       ]
      });
-   } catch (err) { console.error('office_net_down open error:', err.message); }
+   } catch (err) { console.error('office_net_down DM error:', err.message); }
  });
 
  // ── Quick Action buttons from Home tab ────────────────────────────────
