@@ -3051,37 +3051,35 @@ app.listen(PORT, async () => {
  });
 
  // ── Office Net Down — floor selected → DM first, modal update separate ──
-slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
+slackApp.action('office_net_floor_select', async ({ body, ack, respond, client }) => {
   await ack();
-  const userId  = body.user.id;
-  const floor   = body.actions[0].value;
-  const channel = body.channel?.id;
-  const msgTs   = body.message?.ts;
+  const userId = body.user.id;
+  const floor  = body.actions[0].value;
 
-  // 1. Update the original DM message — replace floor buttons with confirmation
+  const confirmBlocks = [
+    { type: 'section', text: { type: 'mrkdwn', text: `*🌐 Office Internet Issue — ${floor}* ✅` } },
+    { type: 'divider' },
+    { type: 'section', text: { type: 'mrkdwn', text: `*${floor}* par internet issue report ho gaya.\n\n*Abhi kya karein:*\n• 📶 WiFi disconnect → dobara connect karein\n• 🔌 LAN cable use kar rahe ho toh cable check karein\n• ⏳ IT team resolve kar rahi hai — thoda wait karein` } },
+    { type: 'divider' },
+    { type: 'context', elements: [{ type: 'mrkdwn', text: '_Kaam urgent hai toh ticket raise karo 👇_' }] },
+    { type: 'actions', elements: [
+      { type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }
+    ]}
+  ];
+
+  // Update original message in-place using respond (uses response_url — most reliable)
   try {
-    if (channel && msgTs) {
-      await client.chat.update({
-        channel,
-        ts: msgTs,
-        text: `✅ ${floor} — IT ko report ho gaya`,
-        blocks: [
-          { type: 'section', text: { type: 'mrkdwn', text: `*🌐 Office Internet Issue — ${floor}*` } },
-          { type: 'divider' },
-          { type: 'section', text: { type: 'mrkdwn', text: `*${floor}* par internet issue report ho gaya. ✅\n\n*Abhi kya karein:*\n• 📶 WiFi disconnect → dobara connect karein\n• 🔌 LAN cable use kar rahe ho toh cable check karein\n• ⏳ IT team resolve kar rahi hai — thoda wait karein` } },
-          { type: 'divider' },
-          { type: 'context', elements: [{ type: 'mrkdwn', text: '_Kaam urgent hai toh ticket raise karo 👇_' }] },
-          { type: 'actions', elements: [
-            { type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }
-          ]}
-        ]
-      });
-    }
+    await respond({ replace_original: true, text: `✅ ${floor} — IT ko report ho gaya`, blocks: confirmBlocks });
   } catch (err) {
-    console.error('office_net_floor_select update error:', err.message);
+    console.error('office_net_floor_select respond error:', err.message);
+    // Fallback: post new message
+    try {
+      const channel = body.channel?.id;
+      if (channel) await client.chat.postMessage({ channel, text: `✅ ${floor} — IT ko report ho gaya`, blocks: confirmBlocks });
+    } catch (e2) { console.error('office_net_floor_select fallback error:', e2.message); }
   }
 
-  // 2. Alert IT admin about the floor issue
+  // Alert IT admin
   try {
     const adminId = process.env.ADMIN_SLACK_USER_ID;
     if (adminId) {
@@ -3096,9 +3094,7 @@ slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
         ]
       });
     }
-  } catch (err) {
-    console.error('office_net_floor_select admin alert error:', err.message);
-  }
+  } catch (err) { console.error('office_net_floor_select admin alert error:', err.message); }
 });
 
 slackApp.action('home_contact_it', async ({ body, ack, client }) => {
