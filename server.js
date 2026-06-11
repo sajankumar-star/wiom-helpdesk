@@ -892,84 +892,128 @@ app.listen(PORT, async () => {
    printer:     { icon: '🩵 🖨️', label: 'Printer & Peripheral',    desc: 'Mouse · Keyboard · USB devices' },
  };
 
- // ── Build Home Tab blocks — FINAL Phase 1 design ────────────────────────────────────────
-         const buildHomeBlocks = (emp, myTickets, expandedSet) => {
-           const blocks = [];
+ // ── Build Home Tab blocks — Advanced Design ──────────────────────────────────
+ const IT_TIPS = [
+   '💡 Har hafte laptop restart karo — speed badhti hai aur crashes kam hote hain.',
+   '💡 Password kabhi share mat karo — har employee ka alag password hona chahiye.',
+   '💡 WiFi slow lage toh router ke paas jaao — door hone se signal weak hota hai.',
+   '💡 Browser slow hai? Ctrl+Shift+Del se cache clear karo — bahut fast ho jaayega.',
+   '💡 Laptop charge karte waqt hard table pe rakho — soft surface pe battery garam hoti hai.',
+   '💡 Suspicious email mein link mat dabao — pehle IT ko batao: Create Ticket dabao.',
+   '💡 Camera nahi chal rha? Settings → Privacy → Camera ON karo.',
+   '💡 Koi bhi software install karne ke liye IT se ticket raise karo — admin rights chahiye.',
+   '💡 Laptop screen dim? Fn+F5 ya Fn+F6 se brightness badhaao.',
+   '💡 PDF file nahi khul rhi? Chrome mein drag karke drop karo — direct open ho jaayegi.',
+   '💡 Excel slow? File → Options → Add-ins → COM Add-ins → sab uncheck karo.',
+   '💡 Printer offline? Pehle printer restart karo, phir laptop restart karo.',
+   '💡 WIOM WiFi password: spartans500  |  Saket office: Password@12345',
+   '💡 Laptop bahut garam? Hard table pe rakho, ventilation holes band mat karo.',
+   '💡 Google Calendar sync issue? Chrome cache clear karo — Ctrl+Shift+Del.',
+ ];
 
-           // ── Header ────────────────────────────────────────────────────────
-           blocks.push({
-             type: 'section',
-             text: { type: 'mrkdwn', text: '*🛠 Wiom IT Helpdesk*\nSelect your issue category below.\n_Most common issues can be resolved automatically._' },
-             accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/wiom-logo.webp', alt_text: 'WIOM' }
-           });
-           blocks.push({ type: 'divider' });
+ const buildHomeBlocks = (emp, myTickets, expandedSet, stats = {}) => {
+   const blocks = [];
+   const firstName = (emp?.name || emp?.empName || 'there').split(' ')[0];
 
-           // ── 11 Categories ────────────────────────────────────────────────
-           // Row 1-3: main categories (3 per row)
-           blocks.push({ type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '💻 Device & Hardware', emoji: true }, action_id: 'cat_laptop', value: 'laptop' },
-             { type: 'button', text: { type: 'plain_text', text: '🌐 Network & Internet', emoji: true }, action_id: 'cat_network', value: 'network' },
-             { type: 'button', text: { type: 'plain_text', text: '📊 Microsoft Office', emoji: true }, action_id: 'cat_msoffice', value: 'office' },
-           ]});
-           blocks.push({ type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '🌍 Browser & Apps', emoji: true }, action_id: 'cat_browser', value: 'browser' },
-             { type: 'button', text: { type: 'plain_text', text: '📧 Email & Comm', emoji: true }, action_id: 'cat_email', value: 'email' },
-             { type: 'button', text: { type: 'plain_text', text: '🔐 Access & Identity', emoji: true }, action_id: 'cat_access', value: 'access' },
-           ]});
-           blocks.push({ type: 'actions', elements: [
-             // Security button removed — Virus/Phishing/Hacking = Emergency issues, moved to 🚨 Emergency Support
-             { type: 'button', text: { type: 'plain_text', text: '☁️ Cloud & Storage', emoji: true }, action_id: 'cat_cloud', value: 'cloud' },
-           ]});
-           // Row 4: Emergency — alone, prominent red
-           blocks.push({ type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '🚨 Emergency Support', emoji: true }, action_id: 'cat_emergency', value: 'emergency', style: 'danger' },
-           ]});
-           // Row 5: Asset Requests — last, alone
-           blocks.push({ type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '📦 Asset Requests', emoji: true }, action_id: 'cat_asset', value: 'asset' },
-           ]});
-           blocks.push({ type: 'divider' });
+   // IST time-based greeting
+   const istMins = (new Date().getUTCHours() * 60 + new Date().getUTCMinutes()) + 330;
+   const istHour = Math.floor(istMins / 60) % 24;
+   const greeting = istHour < 12 ? 'Good morning' : istHour < 17 ? 'Good afternoon' : 'Good evening';
 
-           // ── My Tickets + Ticket Counter ──────────────────────────────────
-           const statEmoji = { 'Open': '🔴', 'In Progress': '🟡', 'Waiting': '🟠', 'Resolved': '🟢', 'Closed': '⚪' };
-           const priEmoji2 = { 'Critical': '🔴', 'High': '🟠', 'Medium': '🟡', 'Low': '🟢' };
-           const allTickets = myTickets ? myTickets.slice(0, 3) : [];
-           const openCount = allTickets.filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
+   // ── 1. Personalized Header ───────────────────────────────────────────
+   const laptopLine = emp?.laptop ? `  •  💻 ${emp.laptop}` : '';
+   blocks.push({
+     type: 'section',
+     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n_WIOM IT Helpdesk — 24/7 Support${laptopLine}_` },
+     accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/wiom-logo.webp', alt_text: 'WIOM' }
+   });
 
-           // ── Ticket Counter — show open ticket count only (no View button)
-           if (openCount > 0) {
-             blocks.push({ type: 'section', text: { type: 'mrkdwn', text:
-               `🎫 *Open Tickets: ${openCount}* — IT team is actively working on these`
-             }});
-           }
+   // ── 2. Personal Stats ────────────────────────────────────────────────
+   const openCount = (myTickets||[]).filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
+   const resolvedCount = stats.resolvedCount || 0;
+   const avgHrs = stats.avgHrs || 0;
+   blocks.push({
+     type: 'section',
+     fields: [
+       { type: 'mrkdwn', text: `*${openCount}*\n🔴 Open Tickets` },
+       { type: 'mrkdwn', text: `*${resolvedCount}*\n✅ Resolved` },
+       { type: 'mrkdwn', text: `*${avgHrs > 0 ? avgHrs + 'h' : '—'}*\n⚡ Avg Fix Time` },
+     ]
+   });
+   blocks.push({ type: 'divider' });
 
-           if (allTickets.length > 0) {
-             for (const t of allTickets) {
-               const hrs = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
-               const timeStr = hrs < 24 ? hrs + 'h ago' : Math.floor(hrs/24) + 'd ago';
-               const statusLine = (statEmoji[t.status]||'🔵') + ' *' + t.status + '*  ' + (priEmoji2[t.priority]||'🟡') + ' ' + t.priority;
-               // No Details button — ticket info visible directly
-               blocks.push({
-                 type: 'section',
-                 text: { type: 'mrkdwn', text: '`' + t.ticketId + '` — ' + statusLine + '\n_' + (t.description||'').substring(0,60) + '..._\n📅 ' + timeStr },
-               });
-             }
-             blocks.push({ type: 'divider' });
-           }
+   // ── 3. Quick Fixes ────────────────────────────────────────────────────
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Fixes — Sabse Common Issues*' } });
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Fix', emoji: true }, action_id: 'home_quick_11', value: 'WiFi not working no internet connection' },
+     { type: 'button', text: { type: 'plain_text', text: '🐢 Laptop Slow', emoji: true }, action_id: 'home_quick_1', value: 'My laptop is very slow what should I do' },
+     { type: 'button', text: { type: 'plain_text', text: '🔑 Password Reset', emoji: true }, action_id: 'home_quick_14', value: 'Forgot password need to reset it' },
+     { type: 'button', text: { type: 'plain_text', text: '📷 Camera Fix', emoji: true }, action_id: 'home_quick_20', value: 'Laptop camera not working in Teams Zoom or Meet' },
+   ]});
+   blocks.push({ type: 'divider' });
 
-           // ── Quick Actions — WiFi + Create Ticket only ─────────────────────
-           blocks.push({ type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Password', emoji: true }, action_id: 'home_quick_wifi_pwd_quick', value: 'wifi password', style: 'primary' },
-             { type: 'button', text: { type: 'plain_text', text: '🎫 Create Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket' },
-           ]});
+   // ── 4. All Categories ─────────────────────────────────────────────────
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*📂 All Categories*' } });
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '💻 Device & Hardware', emoji: true }, action_id: 'cat_laptop', value: 'laptop' },
+     { type: 'button', text: { type: 'plain_text', text: '🌐 Network & Internet', emoji: true }, action_id: 'cat_network', value: 'network' },
+     { type: 'button', text: { type: 'plain_text', text: '📊 Microsoft Office', emoji: true }, action_id: 'cat_msoffice', value: 'office' },
+   ]});
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '🌍 Browser & Apps', emoji: true }, action_id: 'cat_browser', value: 'browser' },
+     { type: 'button', text: { type: 'plain_text', text: '📧 Email & Comm', emoji: true }, action_id: 'cat_email', value: 'email' },
+     { type: 'button', text: { type: 'plain_text', text: '🔐 Access & Identity', emoji: true }, action_id: 'cat_access', value: 'access' },
+   ]});
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '☁️ Cloud & Storage', emoji: true }, action_id: 'cat_cloud', value: 'cloud' },
+     { type: 'button', text: { type: 'plain_text', text: '📦 Asset Requests', emoji: true }, action_id: 'cat_asset', value: 'asset' },
+     { type: 'button', text: { type: 'plain_text', text: '🚨 Emergency', emoji: true }, action_id: 'cat_emergency', value: 'emergency', style: 'danger' },
+   ]});
+   blocks.push({ type: 'divider' });
 
-           // ── Footer ───────────────────────────────────────────────────────
-           blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text:
-             `⚡ *Zivon AI Support* — 24/7 Available  |  📧 ${ADMIN_EMAIL}`
-           }]});
+   // ── 5. Open Tickets — no SLA timer ───────────────────────────────────
+   if (openCount > 0 && myTickets.length > 0) {
+     const statEmoji  = { 'Open': '🔴', 'In Progress': '🟡', 'Waiting': '🟠' };
+     const priEmoji2  = { 'Critical': '🔴', 'High': '🟠', 'Medium': '🟡', 'Low': '🟢' };
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*🎫 My Open Tickets (${openCount})*` } });
+     for (const t of myTickets.slice(0, 3)) {
+       const hrs     = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
+       const timeStr = hrs < 24 ? hrs + 'h ago' : Math.floor(hrs / 24) + 'd ago';
+       blocks.push({
+         type: 'section',
+         text: { type: 'mrkdwn', text:
+           `\`${t.ticketId}\`  ${statEmoji[t.status]||'🔵'} *${t.status}*  ${priEmoji2[t.priority]||'🟡'} ${t.priority}\n_${(t.description||'').substring(0,60)}..._\n📅 ${timeStr}`
+         }
+       });
+     }
+     blocks.push({ type: 'divider' });
+   }
 
-           return blocks;
-         };
+   // ── 6. IT Tip of the Day ──────────────────────────────────────────────
+   const tipOfDay = IT_TIPS[Math.floor(Date.now() / 86400000) % IT_TIPS.length];
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📚 IT Tip of the Day*\n${tipOfDay}` } });
+
+   // ── 7. IT Announcement (optional — set IT_ANNOUNCEMENT env var) ───────
+   const announcement = process.env.IT_ANNOUNCEMENT;
+   if (announcement) {
+     blocks.push({ type: 'divider' });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📢 IT Announcement*\n${announcement}` } });
+   }
+
+   blocks.push({ type: 'divider' });
+
+   // ── 8. Bottom Action Buttons ──────────────────────────────────────────
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '🎫 New Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
+     { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
+     { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Password', emoji: true }, action_id: 'home_quick_wifi_pwd_quick', value: 'wifi password' },
+   ]});
+
+   // ── Footer ────────────────────────────────────────────────────────────
+   blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: `⚡ *Zivon AI* — 24/7 Available  |  📧 ${ADMIN_EMAIL}` }] });
+
+   return blocks;
+ };
 
          // ── FEATURE 5: Office hours check (IST = UTC+5:30) ────────────────────
  const isOfficeHours = () => {
@@ -2567,12 +2611,21 @@ app.listen(PORT, async () => {
  try {
  const userId = event.user;
  const emp = await Employee.findOne({ $or: [{ slackUserId: userId }, { empId: userId }] });
- let myTickets = [];
+ let myTickets = [], resolvedCount = 0, avgHrs = 0;
  if (emp?.empId) {
- myTickets = await Ticket.find({ empId: emp.empId, status: { $in: ['Open', 'In Progress', 'Waiting'] } }).sort({ createdAt: -1 }).limit(3).lean();
+   const [openTickets, resolvedTickets] = await Promise.all([
+     Ticket.find({ empId: emp.empId, status: { $in: ['Open', 'In Progress', 'Waiting'] } }).sort({ createdAt: -1 }).limit(3).lean(),
+     Ticket.find({ empId: emp.empId, status: { $in: ['Resolved', 'Closed'] }, resolvedAt: { $exists: true } }).select('resolvedAt createdAt').lean()
+   ]);
+   myTickets = openTickets;
+   resolvedCount = resolvedTickets.length;
+   if (resolvedCount > 0) {
+     const totalHrs = resolvedTickets.reduce((sum, t) => sum + (new Date(t.resolvedAt) - new Date(t.createdAt)) / 3600000, 0);
+     avgHrs = Math.round(totalHrs / resolvedCount);
+   }
  }
  const expandedSet = expandedHomeMap.get(userId) || new Set();
- const blocks = buildHomeBlocks(emp, myTickets, expandedSet);
+ const blocks = buildHomeBlocks(emp, myTickets, expandedSet, { resolvedCount, avgHrs });
  await client.views.publish({ user_id: userId, view: { type: 'home', blocks } });
 
  // Send greeting DM once per session when user opens Home Tab
