@@ -933,10 +933,8 @@ app.listen(PORT, async () => {
    blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Actions*' } });
    blocks.push({ type: 'actions', elements: [
-     { type: 'button', text: { type: 'plain_text', text: '🔍 Diagnose My Laptop', emoji: true }, action_id: 'home_quick_diagnose_laptop', value: 'diagnose', style: 'primary' }
    ]});
    blocks.push({ type: 'actions', elements: [
-     { type: 'button', text: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true }, action_id: 'home_quick_office_net_down', value: 'office_net_down', style: 'danger' },
      { type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
      { type: 'button', text: { type: 'plain_text', text: '🔑 Reset Password', emoji: true }, action_id: 'home_quick_14', value: 'Forgot password need to reset it' },
    ]});
@@ -3352,13 +3350,47 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  return blocks;
  };
 
+ // ── Diagnose My Laptop — standalone handler ──────────────────────────────
+ slackApp.action('home_quick_diagnose_laptop', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     await client.views.open({ trigger_id: body.trigger_id, view: buildDiagnoseInputModal() });
+   } catch (err) { console.error('diagnose open error:', err.message); }
+ });
+
+ // ── Office Net Down — standalone handler ─────────────────────────────────
+ slackApp.action('home_quick_office_net_down', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     await client.views.open({
+       trigger_id: body.trigger_id,
+       view: {
+         type: 'modal',
+         callback_id: 'office_net_floor_modal',
+         title: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true },
+         close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: '*Konsa floor ka internet down hai?*\nButton dabao — turant Slack message aayega. 👇' } },
+           { type: 'divider' },
+           { type: 'section', fields: [
+             { type: 'mrkdwn', text: '*🏢 Ground Floor*\nGround floor internet issue' },
+             { type: 'mrkdwn', text: '*🏢 3rd Floor*\n3rd floor internet issue' }
+           ]},
+           { type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '🔴 Not Working', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
+             { type: 'button', text: { type: 'plain_text', text: '🔴 Not Working', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
+           ]}
+         ]
+       }
+     });
+   } catch (err) { console.error('office_net_down open error:', err.message); }
+ });
+
  // ── Quick Action buttons from Home tab ────────────────────────────────
  // homeQuickActions: ONLY home_quick_* and home_new_* and home_sos buttons.
  // cat_*, go_home_btn, dm_my_tickets, and all vague_pick_* are handled by their OWN dedicated
  // handlers or regex handlers. DO NOT add them here — it causes both handlers to fire (race condition).
  const homeQuickActions = [
-  'home_quick_diagnose_laptop',
-  'home_quick_office_net_down',
    'home_quick_wifi_pwd_quick',
    'home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5',
    'home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9',
@@ -3410,38 +3442,6 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    }
  });
  return;
- }
-
- // ── Diagnose My Laptop ────────────────────────────────────────────
- if (actionId === 'home_quick_diagnose_laptop') {
-   await client.views.open({ trigger_id: triggerId, view: buildDiagnoseInputModal() });
-   return;
- }
-
- // ── Office Net Down — floor picker modal ─────────────────────────
- if (actionId === 'home_quick_office_net_down') {
-   await client.views.open({
-     trigger_id: triggerId,
-     view: {
-       type: 'modal',
-       callback_id: 'office_net_floor_modal',
-       title: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true },
-       close: { type: 'plain_text', text: 'Band Karo', emoji: true },
-       blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '*Konsa floor ka internet down hai?*\nButton dabao — turant Slack message aayega. 👇' } },
-         { type: 'divider' },
-         { type: 'section', fields: [
-           { type: 'mrkdwn', text: '*🏢 Ground Floor*\nGround floor internet issue' },
-           { type: 'mrkdwn', text: '*🏢 3rd Floor*\n3rd floor internet issue' }
-         ]},
-         { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '🔴 Not Working', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
-           { type: 'button', text: { type: 'plain_text', text: '🔴 Not Working', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
-         ]}
-       ]
-     }
-   });
-   return;
  }
 
  // ── Email Password Reset modal ────────────────────────────────
