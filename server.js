@@ -920,12 +920,28 @@ app.listen(PORT, async () => {
    const istHour = Math.floor(istMins / 60) % 24;
    const greeting = istHour < 12 ? 'Good morning' : istHour < 17 ? 'Good afternoon' : 'Good evening';
 
+   const openCount = (myTickets||[]).filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
+
    // ── 1. Personalized Header ───────────────────────────────────────────
    const laptopLine = emp?.laptop ? `  •  💻 ${emp.laptop}` : '';
    blocks.push({
      type: 'section',
      text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n_WIOM IT Helpdesk — 24/7 Support${laptopLine}_` },
      accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/wiom-logo.webp', alt_text: 'WIOM' }
+   });
+
+   // ── 2. Ask Zivon AI — top position ────────────────────────────────────
+   blocks.push({ type: 'divider' });
+   blocks.push({
+     type: 'section',
+     text: { type: 'mrkdwn', text: `*🤖 Ask Zivon AI*\n_WiFi, laptop, software, password — koi bhi IT sawaal puchho, instant answer milega!_` },
+     accessory: {
+       type: 'button',
+       text: { type: 'plain_text', text: '🤖 Ask Zivon AI', emoji: true },
+       action_id: 'zivon_modal_ask',
+       value: 'ask_ai',
+       style: 'primary'
+     }
    });
 
    blocks.push({ type: 'divider' });
@@ -990,21 +1006,7 @@ app.listen(PORT, async () => {
 
    blocks.push({ type: 'divider' });
 
-   // ── 8. Ask Zivon AI ───────────────────────────────────────────────────
-   blocks.push({
-     type: 'section',
-     text: { type: 'mrkdwn', text: `*🤖 Ask Zivon AI*\n_WiFi, laptop, software, password — koi bhi IT sawaal puchho, instant answer milega!_` },
-     accessory: {
-       type: 'button',
-       text: { type: 'plain_text', text: '🤖 Ask Zivon AI', emoji: true },
-       action_id: 'zivon_modal_ask',
-       value: 'ask_ai',
-       style: 'primary'
-     }
-   });
-   blocks.push({ type: 'divider' });
-
-   // ── 9. Bottom Action Buttons ──────────────────────────────────────────
+   // ── 8. Bottom Action Buttons ──────────────────────────────────────────
    blocks.push({ type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '🎫 New Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
      { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
