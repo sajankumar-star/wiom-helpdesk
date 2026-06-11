@@ -1019,14 +1019,6 @@ app.listen(PORT, async () => {
      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📚 IT Tip of the Day*\n${tipOfDay}` } });
    }
 
-   // ── 10. Bottom buttons ────────────────────────────────────────────────
-   blocks.push({ type: 'divider' });
-   blocks.push({ type: 'actions', elements: [
-     { type: 'button', text: { type: 'plain_text', text: '🎫 New Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
-     { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
-     { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Password', emoji: true }, action_id: 'home_quick_wifi_pwd_quick', value: 'wifi password' },
-   ]});
-
    // ── Footer ────────────────────────────────────────────────────────────
    blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: `⚡ *Zivon AI* — 24/7 Available  |  📧 ${ADMIN_EMAIL}` }] });
 
