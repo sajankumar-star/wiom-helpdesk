@@ -2956,26 +2956,15 @@ app.listen(PORT, async () => {
    }
  });
 
- // ── Office Net Down — floor selected → close modal + send DM ────────────
+ // ── Office Net Down — floor selected → DM first, modal update separate ──
 slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
   await ack();
   const userId = body.user.id;
-  const floor  = body.actions[0].value; // 'Ground Floor' or '3rd Floor'
+  const floor  = body.actions[0].value;
   const viewId = body.view?.id;
+
+  // 1. Send DM immediately — this is the most important step
   try {
-    // Close the modal
-    if (viewId) {
-      await client.views.update({
-        view_id: viewId,
-        view: {
-          type: 'modal',
-          title: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true },
-          close: { type: 'plain_text', text: 'Band Karo', emoji: true },
-          blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `✅ *${floor} — Message bhej diya gaya!*\nApne Slack DM mein dekho.` } }]
-        }
-      });
-    }
-    // Send DM instantly
     const dmRes = await client.conversations.open({ users: userId });
     await client.chat.postMessage({
       channel: dmRes.channel.id,
@@ -2983,7 +2972,7 @@ slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
       blocks: [
         { type: 'section', text: { type: 'mrkdwn', text: `*🌐 Office Internet Issue — ${floor}*` } },
         { type: 'divider' },
-        { type: 'section', text: { type: 'mrkdwn', text: `*${floor}* par internet/network issue reported hai. IT team is par kaam kar rahi hai.\n\n*Aap abhi kya karein:*\n• 📶 WiFi disconnect karke dobara connect karein\n• 🔌 LAN cable use kar rahe hain toh cable check karein\n• ⏳ Thoda wait karein — issue resolve ho raha hai` } },
+        { type: 'section', text: { type: 'mrkdwn', text: `*${floor}* par internet/network issue report ho gaya.\n\n*Aap abhi kya karein:*\n• 📶 WiFi disconnect karke dobara connect karein\n• 🔌 LAN cable use kar rahe hain toh cable check karein\n• ⏳ Thoda wait karein — IT team resolve kar rahi hai` } },
         { type: 'divider' },
         { type: 'section', text: { type: 'mrkdwn', text: '_Kaam urgent hai? Ticket raise karo — IT team directly help karegi._' } },
         { type: 'actions', elements: [
@@ -2992,8 +2981,25 @@ slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
       ]
     });
   } catch (err) {
-    console.error('office_net_floor_select error:', err.message);
+    console.error('office_net_floor_select DM error:', err.message);
   }
+
+  // 2. Update modal to show confirmation (separate try — DM already sent above)
+  try {
+    if (viewId) {
+      await client.views.update({
+        view_id: viewId,
+        view: {
+          type: 'modal',
+          title: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true },
+          close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+          blocks: [
+            { type: 'section', text: { type: 'mrkdwn', text: `✅ *Message bhej diya gaya!*\n\n*${floor}* ka issue report ho gaya.\nApne Slack DM mein message dekho. 👇` } }
+          ]
+        }
+      });
+    }
+  } catch { /* modal already closed — ignore */ }
 });
 
 slackApp.action('home_contact_it', async ({ body, ack, client }) => {
@@ -3321,11 +3327,15 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
        title: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true },
        close: { type: 'plain_text', text: 'Band Karo', emoji: true },
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '*Konsa floor affected hai?*\nSelect karo — turant message aayega.' } },
+         { type: 'section', text: { type: 'mrkdwn', text: '*Konsa floor ka internet down hai?*\nButton dabao — turant Slack message aayega. 👇' } },
          { type: 'divider' },
+         { type: 'section', fields: [
+           { type: 'mrkdwn', text: '*🏢 Ground Floor*\nGround floor internet issue' },
+           { type: 'mrkdwn', text: '*🏢 3rd Floor*\n3rd floor internet issue' }
+         ]},
          { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '🏢 Ground Floor', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'primary' },
-           { type: 'button', text: { type: 'plain_text', text: '🏢 3rd Floor', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'primary' },
+           { type: 'button', text: { type: 'plain_text', text: '🔴 Not Working', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
+           { type: 'button', text: { type: 'plain_text', text: '🔴 Not Working', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
          ]}
        ]
      }
