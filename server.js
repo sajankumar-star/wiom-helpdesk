@@ -933,14 +933,14 @@ app.listen(PORT, async () => {
    blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Actions*' } });
    blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true }, action_id: 'home_quick_office_net_down', value: 'office_net_down', style: 'danger' },
      { type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
      { type: 'button', text: { type: 'plain_text', text: '🔑 Reset Password', emoji: true }, action_id: 'home_quick_14', value: 'Forgot password need to reset it' },
-     { type: 'button', text: { type: 'plain_text', text: '📦 Asset Request', emoji: true }, action_id: 'cat_asset', value: 'asset' },
    ]});
    blocks.push({ type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Fix', emoji: true }, action_id: 'home_quick_11', value: 'WiFi not working no internet connection' },
      { type: 'button', text: { type: 'plain_text', text: '🐢 Laptop Slow', emoji: true }, action_id: 'home_quick_1', value: 'My laptop is very slow what should I do' },
-     { type: 'button', text: { type: 'plain_text', text: '📚 Knowledge Base', emoji: true }, action_id: 'home_quick_wifi_pwd_quick', value: 'wifi password' },
+     { type: 'button', text: { type: 'plain_text', text: '📦 Asset Request', emoji: true }, action_id: 'cat_asset', value: 'asset' },
    ]});
 
    // ── 6. All Categories ─────────────────────────────────────────────────
@@ -3217,6 +3217,7 @@ app.listen(PORT, async () => {
  // cat_*, go_home_btn, dm_my_tickets, and all vague_pick_* are handled by their OWN dedicated
  // handlers or regex handlers. DO NOT add them here — it causes both handlers to fire (race condition).
  const homeQuickActions = [
+  'home_quick_office_net_down',
    'home_quick_wifi_pwd_quick',
    'home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5',
    'home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9',
@@ -3268,6 +3269,26 @@ app.listen(PORT, async () => {
    }
  });
  return;
+ }
+
+ // ── Office Net Down — instant DM, no AI ──────────────────────────
+ if (actionId === 'home_quick_office_net_down') {
+   const dmRes = await client.conversations.open({ users: userId });
+   await client.chat.postMessage({
+     channel: dmRes.channel.id,
+     text: '🌐 Office Net Down — Ground Floor & 3rd Floor',
+     blocks: [
+       { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Issue — Ground Floor & 3rd Floor*' } },
+       { type: 'divider' },
+       { type: 'section', text: { type: 'mrkdwn', text: 'Ground Floor aur 3rd Floor par internet/network issue reported hai.\nIT team is issue par kaam kar rahi hai.\n\n*Aap abhi kya karein:*\n• 📶 WiFi disconnect karke dobara connect karein\n• 🔌 LAN cable use kar rahe hain toh cable check karein\n• ⏳ Thoda wait karein — issue resolve ho raha hai' } },
+       { type: 'divider' },
+       { type: 'section', text: { type: 'mrkdwn', text: '_Agar kaam urgent hai toh ticket raise karo — IT team directly contact karegi._' } },
+       { type: 'actions', elements: [
+         { type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }
+       ]}
+     ]
+   });
+   return;
  }
 
  // ── Email Password Reset modal ────────────────────────────────
