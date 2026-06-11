@@ -533,7 +533,9 @@ const getKBFallback = (problem) => {
     return `Screen color/display issue hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek ho jaata hai\n2. *External monitor test* → HDMI se monitor connect karo — bahar sahi dikh raha toh laptop screen hardware issue hai\n\nAgar restart se theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // Screen / Monitor — generic disambiguation (extra screen vs current screen broken)
-  if (/\b(screen|monitor|display)\b/.test(pn))
+  // NOTE: physical damage (crack/toot/damage) is excluded here — falls through to physical damage check below
+  if (/\b(screen|monitor|display)\b/.test(pn) &&
+      !/damage|crack|toot|phoot|gir\s*gaya|girna|broken|toota|tooti/.test(pn))
     return `Aapko screen ki zarurat hai, lekin yeh clear nahi hai ki aapko *extra screen chahiye* ya *aapka current screen theek se kaam nahi kar raha* hai.\n\n🖥️ *Extra screen chahiye?*\n→ Yeh IT scope mein nahi aata. *Admin/Facilities se contact karein* — aur pehle *Reporting Manager ka approval* lena hoga.\n\n⚠️ *Current screen theek se kaam nahi kar rha?*\n→ Laptop on hai (power LED dikh raha)? Ya screen bilkul black hai?\n1. *Brightness keys* → Fn+F5 ya Fn+F8 dabao\n2. *Force restart* → Power button 10 sec hold karo → band karo → dobara on karo\n3. *Charger check* → Battery dead ho sakti hai → charger lagao → 10 min wait\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
   // Windows update / OS crash / restart loop
