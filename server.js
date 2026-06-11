@@ -3053,47 +3053,52 @@ app.listen(PORT, async () => {
  // ── Office Net Down — floor selected → DM first, modal update separate ──
 slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
   await ack();
-  const userId = body.user.id;
-  const floor  = body.actions[0].value;
-  const viewId = body.view?.id;
+  const userId  = body.user.id;
+  const floor   = body.actions[0].value;
+  const channel = body.channel?.id;
+  const msgTs   = body.message?.ts;
 
-  // 1. Send DM immediately — this is the most important step
+  // 1. Update the original DM message — replace floor buttons with confirmation
   try {
-    const dmRes = await client.conversations.open({ users: userId });
-    await client.chat.postMessage({
-      channel: dmRes.channel.id,
-      text: `🌐 Office Net Down — ${floor}`,
-      blocks: [
-        { type: 'section', text: { type: 'mrkdwn', text: `*🌐 Office Internet Issue — ${floor}*` } },
-        { type: 'divider' },
-        { type: 'section', text: { type: 'mrkdwn', text: `*${floor}* par internet/network issue report ho gaya.\n\n*Aap abhi kya karein:*\n• 📶 WiFi disconnect karke dobara connect karein\n• 🔌 LAN cable use kar rahe hain toh cable check karein\n• ⏳ Thoda wait karein — IT team resolve kar rahi hai` } },
-        { type: 'divider' },
-        { type: 'section', text: { type: 'mrkdwn', text: '_Kaam urgent hai? Ticket raise karo — IT team directly help karegi._' } },
-        { type: 'actions', elements: [
-          { type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }
-        ]}
-      ]
-    });
-  } catch (err) {
-    console.error('office_net_floor_select DM error:', err.message);
-  }
-
-  // 2. Update modal to show confirmation (separate try — DM already sent above)
-  try {
-    if (viewId) {
-      await client.views.update({
-        view_id: viewId,
-        view: {
-          type: 'modal',
-          title: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true },
-          close: { type: 'plain_text', text: 'Band Karo', emoji: true },
-          blocks: [
-            { type: 'section', text: { type: 'mrkdwn', text: `✅ *Message bhej diya gaya!*\n\n*${floor}* ka issue report ho gaya.\nApne Slack DM mein message dekho. 👇` } }
-          ]
-        }
+    if (channel && msgTs) {
+      await client.chat.update({
+        channel,
+        ts: msgTs,
+        text: `✅ ${floor} — IT ko report ho gaya`,
+        blocks: [
+          { type: 'section', text: { type: 'mrkdwn', text: `*🌐 Office Internet Issue — ${floor}*` } },
+          { type: 'divider' },
+          { type: 'section', text: { type: 'mrkdwn', text: `*${floor}* par internet issue report ho gaya. ✅\n\n*Abhi kya karein:*\n• 📶 WiFi disconnect → dobara connect karein\n• 🔌 LAN cable use kar rahe ho toh cable check karein\n• ⏳ IT team resolve kar rahi hai — thoda wait karein` } },
+          { type: 'divider' },
+          { type: 'context', elements: [{ type: 'mrkdwn', text: '_Kaam urgent hai toh ticket raise karo 👇_' }] },
+          { type: 'actions', elements: [
+            { type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }
+          ]}
+        ]
       });
     }
-  } catch { /* modal already closed — ignore */ }
+  } catch (err) {
+    console.error('office_net_floor_select update error:', err.message);
+  }
+
+  // 2. Alert IT admin about the floor issue
+  try {
+    const adminId = process.env.ADMIN_SLACK_USER_ID;
+    if (adminId) {
+      const emp = await Employee.findOne({ slackUserId: userId });
+      const reporter = emp?.name || emp?.empName || userId;
+      const adminDm = await client.conversations.open({ users: adminId });
+      await client.chat.postMessage({
+        channel: adminDm.channel.id,
+        text: `🚨 Office Net Down — ${floor}`,
+        blocks: [
+          { type: 'section', text: { type: 'mrkdwn', text: `*🚨 Office Net Down Alert*\n\n*Floor:* ${floor}\n*Reported by:* ${reporter}\n\nEmployee ne internet issue report kiya hai. Please check karo.` } }
+        ]
+      });
+    }
+  } catch (err) {
+    console.error('office_net_floor_select admin alert error:', err.message);
+  }
 });
 
 slackApp.action('home_contact_it', async ({ body, ack, client }) => {
