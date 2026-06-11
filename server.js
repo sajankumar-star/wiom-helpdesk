@@ -915,26 +915,49 @@ app.listen(PORT, async () => {
    const blocks = [];
    const firstName = (emp?.name || emp?.empName || 'there').split(' ')[0];
 
-   // IST time-based greeting
    const istMins = (new Date().getUTCHours() * 60 + new Date().getUTCMinutes()) + 330;
    const istHour = Math.floor(istMins / 60) % 24;
    const greeting = istHour < 12 ? 'Good morning' : istHour < 17 ? 'Good afternoon' : 'Good evening';
 
-   const openCount = (myTickets||[]).filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
+   const tickets = myTickets || [];
+   const openCount    = tickets.filter(t => t.status === 'Open').length;
+   const pendingCount = tickets.filter(t => ['In Progress','Waiting'].includes(t.status)).length;
 
-   // ── 1. Personalized Header ───────────────────────────────────────────
-   const laptopLine = emp?.laptop ? `  •  💻 ${emp.laptop}` : '';
+   // ── 1. Header ─────────────────────────────────────────────────────────
    blocks.push({
      type: 'section',
-     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n_WIOM IT Helpdesk — 24/7 Support${laptopLine}_` },
+     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n_Welcome to WIOM IT Helpdesk — Get instant support, manage assets, and track your requests._` },
      accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/wiom-logo.webp', alt_text: 'WIOM' }
    });
 
-   // ── 2. Ask Zivon AI — top position ────────────────────────────────────
+   // ── 2. Stats row ──────────────────────────────────────────────────────
+   blocks.push({ type: 'divider' });
+   const deviceHealth = emp?.laptop ? '💚 Good' : '❓ Unknown';
+   blocks.push({
+     type: 'section',
+     fields: [
+       { type: 'mrkdwn', text: `🎫 *Open Tickets*\n*${openCount}*` },
+       { type: 'mrkdwn', text: `📋 *Pending Requests*\n*${pendingCount}*` },
+       { type: 'mrkdwn', text: `💻 *Device Health*\n${deviceHealth}` },
+     ]
+   });
+
+   // ── 3. My Device ──────────────────────────────────────────────────────
+   if (emp?.laptop) {
+     blocks.push({ type: 'divider' });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*💻 My Assigned Device*' } });
+     const snPart = emp.laptopSN ? `  •  S/N: \`${emp.laptopSN}\`` : '';
+     blocks.push({
+       type: 'section',
+       text: { type: 'mrkdwn', text: `*${emp.laptop}*${snPart}\n💚 Device Status: *Healthy*` }
+     });
+   }
+
+   // ── 4. Zivon AI ───────────────────────────────────────────────────────
    blocks.push({ type: 'divider' });
    blocks.push({
      type: 'section',
-     text: { type: 'mrkdwn', text: `*🤖 Ask Zivon AI — Aapka Personal IT Expert*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLaptop slow? WiFi nahi? Password bhula?\n⚡ *Instant jawab — 24/7 Available*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━` },
+     text: { type: 'mrkdwn', text: `*🤖 Zivon AI Assistant*\n_Get instant help for your IT issues_\n\n✓ WiFi & Network Issues\n✓ Laptop & Performance Problems\n✓ Software Installation\n✓ Password Reset\n✓ VPN & Access Issues\n✓ And much more...` },
      accessory: {
        type: 'image',
        image_url: 'https://wiom-helpdesk-production.up.railway.app/images/zivon-robot.gif',
@@ -945,26 +968,33 @@ app.listen(PORT, async () => {
      type: 'actions',
      elements: [{
        type: 'button',
-       text: { type: 'plain_text', text: '🤖 Ask Zivon AI — Click Karo', emoji: true },
+       text: { type: 'plain_text', text: '🤖 Start Chat with Zivon AI →', emoji: true },
        action_id: 'zivon_modal_ask',
        value: 'ask_ai',
        style: 'primary'
      }]
    });
+   blocks.push({
+     type: 'context',
+     elements: [{ type: 'mrkdwn', text: '_Available 24/7  •  Instant Support_' }]
+   });
 
+   // ── 5. Quick Actions ──────────────────────────────────────────────────
    blocks.push({ type: 'divider' });
-
-   // ── 3. Quick Fixes ────────────────────────────────────────────────────
-   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Fixes — Sabse Common Issues*' } });
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Actions*' } });
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
+     { type: 'button', text: { type: 'plain_text', text: '🔑 Reset Password', emoji: true }, action_id: 'home_quick_14', value: 'Forgot password need to reset it' },
+     { type: 'button', text: { type: 'plain_text', text: '📦 Asset Request', emoji: true }, action_id: 'cat_asset', value: 'asset' },
+   ]});
    blocks.push({ type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Fix', emoji: true }, action_id: 'home_quick_11', value: 'WiFi not working no internet connection' },
      { type: 'button', text: { type: 'plain_text', text: '🐢 Laptop Slow', emoji: true }, action_id: 'home_quick_1', value: 'My laptop is very slow what should I do' },
-     { type: 'button', text: { type: 'plain_text', text: '🔑 Password Reset', emoji: true }, action_id: 'home_quick_14', value: 'Forgot password need to reset it' },
-     { type: 'button', text: { type: 'plain_text', text: '📷 Camera Fix', emoji: true }, action_id: 'home_quick_20', value: 'Laptop camera not working in Teams Zoom or Meet' },
+     { type: 'button', text: { type: 'plain_text', text: '📚 Knowledge Base', emoji: true }, action_id: 'home_quick_wifi_pwd_quick', value: 'wifi password' },
    ]});
-   blocks.push({ type: 'divider' });
 
-   // ── 4. All Categories ─────────────────────────────────────────────────
+   // ── 6. All Categories ─────────────────────────────────────────────────
+   blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*📂 All Categories*' } });
    blocks.push({ type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '💻 Device & Hardware', emoji: true }, action_id: 'cat_laptop', value: 'laptop' },
@@ -981,40 +1011,39 @@ app.listen(PORT, async () => {
      { type: 'button', text: { type: 'plain_text', text: '📦 Asset Requests', emoji: true }, action_id: 'cat_asset', value: 'asset' },
      { type: 'button', text: { type: 'plain_text', text: '🚨 Emergency', emoji: true }, action_id: 'cat_emergency', value: 'emergency', style: 'danger' },
    ]});
-   blocks.push({ type: 'divider' });
 
-   // ── 5. Open Tickets — no SLA timer ───────────────────────────────────
-   if (openCount > 0 && myTickets.length > 0) {
-     const statEmoji  = { 'Open': '🔴', 'In Progress': '🟡', 'Waiting': '🟠' };
-     const priEmoji2  = { 'Critical': '🔴', 'High': '🟠', 'Medium': '🟡', 'Low': '🟢' };
-     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*🎫 My Open Tickets (${openCount})*` } });
-     for (const t of myTickets.slice(0, 3)) {
+   // ── 7. Recent Tickets ─────────────────────────────────────────────────
+   if (tickets.length > 0) {
+     blocks.push({ type: 'divider' });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*🎫 Recent Tickets*` } });
+     const statEmoji = { 'Open': '🔴', 'In Progress': '🟡', 'Waiting': '🟠', 'Resolved': '✅', 'Closed': '⚫' };
+     for (const t of tickets.slice(0, 3)) {
        const hrs     = Math.floor((Date.now() - new Date(t.createdAt)) / 3600000);
        const timeStr = hrs < 24 ? hrs + 'h ago' : Math.floor(hrs / 24) + 'd ago';
        blocks.push({
          type: 'section',
-         text: { type: 'mrkdwn', text:
-           `\`${t.ticketId}\`  ${statEmoji[t.status]||'🔵'} *${t.status}*  ${priEmoji2[t.priority]||'🟡'} ${t.priority}\n_${(t.description||'').substring(0,60)}..._\n📅 ${timeStr}`
-         }
+         text: { type: 'mrkdwn', text: `\`${t.ticketId}\`  ${statEmoji[t.status]||'🔵'} *${t.status}*\n_${(t.description||'').substring(0,65)}_\n📅 ${timeStr}` }
        });
      }
-     blocks.push({ type: 'divider' });
    }
 
-   // ── 6. IT Tip of the Day ──────────────────────────────────────────────
-   const tipOfDay = IT_TIPS[Math.floor(Date.now() / 86400000) % IT_TIPS.length];
-   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📚 IT Tip of the Day*\n${tipOfDay}` } });
-
-   // ── 7. IT Announcement (optional — set IT_ANNOUNCEMENT env var) ───────
+   // ── 8. Announcements ──────────────────────────────────────────────────
    const announcement = process.env.IT_ANNOUNCEMENT;
    if (announcement) {
      blocks.push({ type: 'divider' });
-     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📢 IT Announcement*\n${announcement}` } });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📢 Announcements*` } });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: announcement } });
    }
 
-   blocks.push({ type: 'divider' });
+   // ── 9. IT Tip ─────────────────────────────────────────────────────────
+   const tipOfDay = IT_TIPS?.length > 0 ? IT_TIPS[Math.floor(Date.now() / 86400000) % IT_TIPS.length] : null;
+   if (tipOfDay) {
+     blocks.push({ type: 'divider' });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📚 IT Tip of the Day*\n${tipOfDay}` } });
+   }
 
-   // ── 8. Bottom Action Buttons ──────────────────────────────────────────
+   // ── 10. Bottom buttons ────────────────────────────────────────────────
+   blocks.push({ type: 'divider' });
    blocks.push({ type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '🎫 New Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
      { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
