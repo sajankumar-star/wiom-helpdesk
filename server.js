@@ -934,14 +934,22 @@ app.listen(PORT, async () => {
    blocks.push({ type: 'divider' });
    blocks.push({
      type: 'section',
-     text: { type: 'mrkdwn', text: `*🤖 Ask Zivon AI*\n_WiFi, laptop, software, password — koi bhi IT sawaal puchho, instant answer milega!_` },
+     text: { type: 'mrkdwn', text: `*🤖 Ask Zivon AI — Aapka Personal IT Expert*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nLaptop slow? WiFi nahi? Password bhula?\n⚡ *Instant jawab — 24/7 Available*\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━` },
      accessory: {
+       type: 'image',
+       image_url: 'https://wiom-helpdesk-production.up.railway.app/images/zivon-robot.gif',
+       alt_text: 'Zivon AI'
+     }
+   });
+   blocks.push({
+     type: 'actions',
+     elements: [{
        type: 'button',
-       text: { type: 'plain_text', text: '🤖 Ask Zivon AI', emoji: true },
+       text: { type: 'plain_text', text: '🤖 Ask Zivon AI — Click Karo', emoji: true },
        action_id: 'zivon_modal_ask',
        value: 'ask_ai',
        style: 'primary'
-     }
+     }]
    });
 
    blocks.push({ type: 'divider' });
