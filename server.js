@@ -930,30 +930,7 @@ app.listen(PORT, async () => {
      accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/wiom-logo.webp', alt_text: 'WIOM' }
    });
 
-   // ── 2. Stats row ──────────────────────────────────────────────────────
-   blocks.push({ type: 'divider' });
-   const deviceHealth = emp?.laptop ? '💚 Good' : '❓ Unknown';
-   blocks.push({
-     type: 'section',
-     fields: [
-       { type: 'mrkdwn', text: `🎫 *Open Tickets*\n*${openCount}*` },
-       { type: 'mrkdwn', text: `📋 *Pending Requests*\n*${pendingCount}*` },
-       { type: 'mrkdwn', text: `💻 *Device Health*\n${deviceHealth}` },
-     ]
-   });
-
-   // ── 3. My Device ──────────────────────────────────────────────────────
-   if (emp?.laptop) {
-     blocks.push({ type: 'divider' });
-     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*💻 My Assigned Device*' } });
-     const snPart = emp.laptopSN ? `  •  S/N: \`${emp.laptopSN}\`` : '';
-     blocks.push({
-       type: 'section',
-       text: { type: 'mrkdwn', text: `*${emp.laptop}*${snPart}\n💚 Device Status: *Healthy*` }
-     });
-   }
-
-   // ── 4. Zivon AI ───────────────────────────────────────────────────────
+   // ── 2. Zivon AI ───────────────────────────────────────────────────────
    blocks.push({ type: 'divider' });
    blocks.push({
      type: 'section',
