@@ -941,7 +941,7 @@ app.listen(PORT, async () => {
    blocks.push({ type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Fix', emoji: true }, action_id: 'home_quick_11', value: 'WiFi not working no internet connection' },
      { type: 'button', text: { type: 'plain_text', text: '🐢 Laptop Slow', emoji: true }, action_id: 'home_quick_1', value: 'My laptop is very slow what should I do' },
-     { type: 'button', text: { type: 'plain_text', text: '📦 Asset Request', emoji: true }, action_id: 'cat_asset', value: 'asset' },
+     { type: 'button', text: { type: 'plain_text', text: '💿 Software Request', emoji: true }, action_id: 'home_software_request', value: 'software_request' },
    ]});
 
    // ── 6. All Categories ─────────────────────────────────────────────────
@@ -2885,17 +2885,18 @@ app.listen(PORT, async () => {
  // DIAGNOSE MY LAPTOP
  // ════════════════════════════════════════════════════════════════════════
 
+ const SCRIPTS_URL = process.env.API_BASE_URL || 'https://wiom-helpdesk-production.up.railway.app';
  const DIAGNOSE_SYMPTOMS = {
-   slow:    { label: '🐢 Laptop slow / hang hota hai',     fix: '• Laptop restart karo\n• Task Manager mein heavy apps band karo *(Ctrl+Shift+Esc)*\n• Chrome ke extra tabs band karo' },
-   disk:    { label: '💾 Storage / disk space kam hai',    fix: '• Downloads folder mein purani files delete karo\n• Recycle Bin empty karo (right-click → Empty)\n• Desktop pe unnecessary files hatao' },
-   internet:{ label: '📶 Internet nahi chal raha',        fix: '• Taskbar mein WiFi icon → off then on karo\n• Airplane mode OFF hai check karo\n• Laptop restart karo', autoVal: 'WiFi not working no internet connection' },
-   teams:   { label: '👥 Teams nahi chal raha / crash',   fix: '• Task Manager se Teams close karo *(Ctrl+Shift+Esc → Teams → End Task)*\n• Dobara kholo\n• Internet check karo', autoVal: 'Microsoft Teams not working call dropping or not opening' },
-   outlook: { label: '📧 Outlook / Gmail nahi khul raha', fix: '• Application band karke dobara kholo\n• Internet connection check karo\n• Browser mein Gmail.com try karo' },
-   camera:  { label: '📷 Camera nahi chal raha',          fix: '• Windows Settings → Privacy → Camera → Allow ON karo\n• Teams/Zoom mein camera permission check karo\n• Laptop restart karo', autoVal: 'Laptop camera not working in Teams Zoom or Meet' },
-   sound:   { label: '🔇 Sound / speaker nahi chal raha', fix: '• Taskbar mein speaker icon — mute toh nahi?\n• Headphone plug/unplug karo\n• Volume max check karo', autoVal: 'No sound coming from laptop speakers audio not working' },
-   heat:    { label: '🔥 Laptop garam / fan bahut noise',  fix: '• Laptop hard flat surface pe rakhho\n• Fan area block mat karo\n• Heavy apps band karo aur 5 min rest do' },
-   battery: { label: '🔋 Battery jaldi khatam hoti hai',  fix: '• Screen brightness kam karo (taskbar)\n• Battery Saver mode on karo (taskbar battery icon)\n• Background apps band karo' },
-   screen:  { label: '💻 Screen / display issue',         fix: '• *Win+P* dabao → display mode check karo\n• External monitor cable check karo\n• Brightness settings check karo', autoVal: 'Laptop screen is flickering blinking or flashing' },
+   slow:    { label: '🐢 Laptop slow / hang hota hai',     fix: '• Laptop restart karo\n• Task Manager mein heavy apps band karo *(Ctrl+Shift+Esc)*\n• Chrome ke extra tabs band karo',                    bat: `${SCRIPTS_URL}/scripts/fix-slow-laptop.bat`,   batLabel: '⬇️ Slow Laptop Fix Script' },
+   disk:    { label: '💾 Storage / disk space kam hai',    fix: '• Downloads folder mein purani files delete karo\n• Recycle Bin empty karo (right-click → Empty)\n• Desktop pe unnecessary files hatao', bat: `${SCRIPTS_URL}/scripts/fix-storage.bat`,       batLabel: '⬇️ Storage Cleanup Script' },
+   internet:{ label: '📶 Internet nahi chal raha',        fix: '• Taskbar mein WiFi icon → off then on karo\n• Airplane mode OFF hai check karo\n• Laptop restart karo',                                    bat: `${SCRIPTS_URL}/scripts/fix-wifi.bat`,          batLabel: '⬇️ WiFi Fix Script',       autoVal: 'WiFi not working no internet connection' },
+   teams:   { label: '👥 Teams nahi chal raha / crash',   fix: '• Task Manager se Teams close karo *(Ctrl+Shift+Esc → Teams → End Task)*\n• Dobara kholo\n• Internet check karo',                          bat: `${SCRIPTS_URL}/scripts/fix-teams.bat`,         batLabel: '⬇️ Teams Fix Script',      autoVal: 'Microsoft Teams not working call dropping or not opening' },
+   outlook: { label: '📧 Outlook / Gmail nahi khul raha', fix: '• Application band karke dobara kholo\n• Internet connection check karo\n• Browser mein Gmail.com try karo',                              bat: `${SCRIPTS_URL}/scripts/fix-outlook.bat`,       batLabel: '⬇️ Outlook Fix Script' },
+   camera:  { label: '📷 Camera nahi chal raha',          fix: '• Windows Settings → Privacy → Camera → Allow ON karo\n• Teams/Zoom mein camera permission check karo\n• Laptop restart karo',            bat: `${SCRIPTS_URL}/scripts/fix-camera.bat`,        batLabel: '⬇️ Camera Fix Script',     autoVal: 'Laptop camera not working in Teams Zoom or Meet' },
+   sound:   { label: '🔇 Sound / speaker nahi chal raha', fix: '• Taskbar mein speaker icon — mute toh nahi?\n• Headphone plug/unplug karo\n• Volume max check karo',                                     bat: `${SCRIPTS_URL}/scripts/fix-sound.bat`,         batLabel: '⬇️ Sound Fix Script',      autoVal: 'No sound coming from laptop speakers audio not working' },
+   heat:    { label: '🔥 Laptop garam / fan bahut noise',  fix: '• Laptop hard flat surface pe rakhho\n• Fan area block mat karo\n• Heavy apps band karo aur 5 min rest do',                               bat: `${SCRIPTS_URL}/scripts/fix-overheating.bat`,   batLabel: '⬇️ Overheating Fix Script' },
+   battery: { label: '🔋 Battery jaldi khatam hoti hai',  fix: '• Screen brightness kam karo (taskbar)\n• Battery Saver mode on karo (taskbar battery icon)\n• Background apps band karo',                bat: `${SCRIPTS_URL}/scripts/fix-battery.bat`,       batLabel: '⬇️ Battery Fix Script' },
+   screen:  { label: '💻 Screen / display issue',         fix: '• *Win+P* dabao → display mode check karo\n• External monitor cable check karo\n• Brightness settings check karo',                        bat: `${SCRIPTS_URL}/scripts/fix-screen-flicker.bat`,batLabel: '⬇️ Screen Fix Script',     autoVal: 'Laptop screen is flickering blinking or flashing' },
  };
 
  const buildDiagnoseInputModal = () => ({
@@ -2930,7 +2931,10 @@ app.listen(PORT, async () => {
      if (!s) continue;
      blocks.push({ type: 'divider' });
      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*${s.label}*\n\n${s.fix}` } });
-     if (s.autoVal) blocks.push({ type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🔧 Fix Automatically', emoji: true }, action_id: 'diagnose_auto_fix', value: s.autoVal, style: 'primary' }]});
+     const btnElements = [];
+     if (s.bat) btnElements.push({ type: 'button', text: { type: 'plain_text', text: s.batLabel, emoji: true }, url: s.bat, action_id: `bat_dl_${key}` });
+     if (s.autoVal) btnElements.push({ type: 'button', text: { type: 'plain_text', text: '🤖 AI Se Puchho', emoji: true }, action_id: 'diagnose_auto_fix', value: s.autoVal });
+     if (btnElements.length) blocks.push({ type: 'actions', elements: btnElements });
    }
    blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '_Steps ke baad bhi issue hai? Ticket raise karo._' } });
@@ -3349,6 +3353,102 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
 
  return blocks;
  };
+
+ // ════════════════════════════════════════════════════════════════════════
+ // SOFTWARE REQUEST FLOW
+ // ════════════════════════════════════════════════════════════════════════
+
+ const SOFTWARE_LIST = [
+   { label: '🔍 Google Chrome',         value: 'Google Chrome' },
+   { label: '📹 Zoom',                  value: 'Zoom' },
+   { label: '👥 Microsoft Teams',       value: 'Microsoft Teams' },
+   { label: '📄 Adobe Acrobat Reader',  value: 'Adobe Acrobat Reader' },
+   { label: '📦 7-Zip / WinRAR',        value: '7-Zip / WinRAR' },
+   { label: '🎵 VLC Media Player',      value: 'VLC Media Player' },
+   { label: '📝 Notepad++',             value: 'Notepad++' },
+   { label: '📊 Microsoft Office',      value: 'Microsoft Office (Word/Excel/PPT)' },
+   { label: '💬 WhatsApp Desktop',      value: 'WhatsApp Desktop' },
+   { label: '🔐 Any VPN Software',      value: 'VPN Software' },
+ ];
+
+ const buildSoftwareRequestModal = () => ({
+   type: 'modal',
+   callback_id: 'software_request_submit',
+   title: { type: 'plain_text', text: '💿 Software Request', emoji: true },
+   submit: { type: 'plain_text', text: '📩 Request Bhejo', emoji: true },
+   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   blocks: [
+     { type: 'section', text: { type: 'mrkdwn', text: '*Konsa software chahiye?*\nSelect karo 👇\n_Note: Manager approval ke baad IT install karega._' } },
+     { type: 'divider' },
+     { type: 'input', block_id: 'software_block',
+       label: { type: 'plain_text', text: 'Software select karo:', emoji: true },
+       element: { type: 'checkboxes', action_id: 'software_select',
+         options: SOFTWARE_LIST.map(s => ({ text: { type: 'plain_text', text: s.label, emoji: true }, value: s.value }))
+       }
+     },
+     { type: 'input', block_id: 'software_other_block', optional: true,
+       label: { type: 'plain_text', text: 'Koi aur software (naam likhein):', emoji: true },
+       element: { type: 'plain_text_input', action_id: 'software_other', placeholder: { type: 'plain_text', text: 'e.g. Figma, Postman, VS Code...' }, max_length: 200 }
+     },
+     { type: 'input', block_id: 'software_reason_block', optional: true,
+       label: { type: 'plain_text', text: 'Kyon chahiye? (optional):', emoji: true },
+       element: { type: 'plain_text_input', action_id: 'software_reason', placeholder: { type: 'plain_text', text: 'e.g. Project ke liye zaroori hai...' }, max_length: 300 }
+     }
+   ]
+ });
+
+ slackApp.action('home_software_request', async ({ body, ack, client }) => {
+   await ack();
+   try { await client.views.open({ trigger_id: body.trigger_id, view: buildSoftwareRequestModal() }); }
+   catch (err) { console.error('software_request open error:', err.message); }
+ });
+
+ slackApp.view('software_request_submit', async ({ body, ack, view, client }) => {
+   await ack({ response_action: 'update', view: { type: 'modal', title: { type: 'plain_text', text: '💿 Software Request', emoji: true }, close: { type: 'plain_text', text: 'Band Karo', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ *Request bhej raha hoon...*' } }] } });
+
+   const userId   = body.user.id;
+   const selected = view.state.values?.software_block?.software_select?.selected_options || [];
+   const other    = view.state.values?.software_other_block?.software_other?.value || '';
+   const reason   = view.state.values?.software_reason_block?.software_reason?.value || '';
+
+   const softwareList = [...selected.map(o => o.value), ...(other ? [other] : [])];
+   if (!softwareList.length) return;
+
+   try {
+     const emp = await Employee.findOne({ slackUserId: userId }).select('empId name empName dept floor empEmail').lean().catch(() => null);
+     const empId   = emp?.empId   || userId;
+     const empName = emp?.name    || emp?.empName || 'Employee';
+
+     const desc = `Software Request:\n• ${softwareList.join('\n• ')}${reason ? `\n\nKarana: ${reason}` : ''}\n\n⚠️ Manager approval ke baad IT install karega.`;
+
+     const ticket = await createTicketSlack({ empId, empName, empDept: emp?.dept, empFloor: emp?.floor, empEmail: emp?.empEmail, description: desc, category: 'Software Request', priority: 'Low', source: 'slack' });
+
+     // DM to employee
+     const dmRes = await client.conversations.open({ users: userId });
+     await client.chat.postMessage({
+       channel: dmRes.channel.id,
+       text: `✅ Software Request submitted${ticket ? ` — Ticket \`${ticket.ticketId}\`` : ''}`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*✅ Software Request Submit Ho Gaya!*\n\n*Software Requested:*\n• ${softwareList.join('\n• ')}` } },
+         { type: 'divider' },
+         { type: 'section', text: { type: 'mrkdwn', text: ticket ? `*Ticket ID:* \`${ticket.ticketId}\`\n\n*Next Steps:*\n1. Manager se approval lena hoga\n2. Manager approval ke baad IT install karega\n3. Aapko Slack DM milega jab software ready ho` : '*Next Steps:*\n1. Manager se approval lein\n2. IT team se Slack pe confirm karein' } },
+         { type: 'context', elements: [{ type: 'mrkdwn', text: '_Koi sawaal? IT Helpdesk se sampark karein._' }] }
+       ]
+     });
+
+     // Alert to admin
+     const adminDm = await client.conversations.open({ users: process.env.ADMIN_SLACK_USER_ID || userId });
+     await client.chat.postMessage({
+       channel: adminDm.channel.id,
+       text: `💿 Software Request: ${empName}`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*💿 Software Request*\n*Employee:* ${empName} (${empId})\n*Dept:* ${emp?.dept || 'N/A'} — Floor ${emp?.floor || 'N/A'}` } },
+         { type: 'section', text: { type: 'mrkdwn', text: `*Software Requested:*\n• ${softwareList.join('\n• ')}${reason ? `\n\n*Reason:* ${reason}` : ''}` } },
+         { type: 'section', text: { type: 'mrkdwn', text: ticket ? `*Ticket:* \`${ticket.ticketId}\`` : '_Ticket creation failed_' } }
+       ]
+     });
+   } catch (err) { console.error('software_request_submit error:', err.message); }
+ });
 
  // ── Diagnose My Laptop — standalone handler ──────────────────────────────
  slackApp.action('home_quick_diagnose_laptop', async ({ body, ack, client }) => {
