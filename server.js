@@ -993,8 +993,6 @@ app.listen(PORT, async () => {
      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📚 IT Tip of the Day*\n${tipOfDay}` } });
    }
 
-   // ── Footer ────────────────────────────────────────────────────────────
-   blocks.push({ type: 'context', elements: [{ type: 'mrkdwn', text: `⚡ *Zivon AI* — 24/7 Available  |  📧 ${ADMIN_EMAIL}` }] });
 
    return blocks;
  };
