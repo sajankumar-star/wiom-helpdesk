@@ -2923,18 +2923,21 @@ app.listen(PORT, async () => {
    const userId = body.user.id;
    const viewId = view.id;
 
-   // Short query guard (Slack min_length=5 should catch it, this is a belt-and-suspenders check)
+   // Short query guard
    if (question.length < 5) {
      await ack({ response_action: 'errors', errors: { zivon_q_block: 'Thoda detail mein batao (min 5 characters)' } });
      return;
    }
 
-   // Show loading modal immediately (acks the view submission at the same time)
-   await ack({ response_action: 'update', view: buildZivonLoadingModal() });
-
-   // Double-click / race protection
-   if (processingUsers.has(userId)) return;
+   // Double-click protection BEFORE ack — prevents stuck loading modal on race
+   if (processingUsers.has(userId)) {
+     await ack({ response_action: 'update', view: buildZivonLoadingModal() });
+     return;
+   }
    processingUsers.add(userId);
+
+   // Show loading modal immediately
+   await ack({ response_action: 'update', view: buildZivonLoadingModal() });
 
    try {
      const emp = await Employee.findOne({ slackUserId: userId })
@@ -2948,8 +2951,8 @@ app.listen(PORT, async () => {
      if (kbAnswer && !kbAnswer.startsWith(KB_GENERIC) && kbAnswer.length > 30) {
        answer = kbAnswer;
      } else {
-       // AI call (Groq with KB fallback built in)
-       const result = await claudeSvc.chat(
+       // AI call with 20-second hard timeout — prevents stuck loading modal
+       const aiCall = claudeSvc.chat(
          [{ role: 'user', content: question }],
          {
            empId   : emp?.empId    || userId,
@@ -2959,6 +2962,10 @@ app.listen(PORT, async () => {
            source  : 'modal'
          }
        );
+       const timeout = new Promise((_, reject) =>
+         setTimeout(() => reject(new Error('AI_TIMEOUT')), 20000)
+       );
+       const result = await Promise.race([aiCall, timeout]);
        answer = result?.reply || 'Sorry, answer nahi aa paya. Ticket raise karo — IT team help karegi! 🎫';
      }
 
