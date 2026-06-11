@@ -899,7 +899,7 @@ app.listen(PORT, async () => {
    '💡 WiFi slow lage toh router ke paas jaao — door hone se signal weak hota hai.',
    '💡 Browser slow hai? Ctrl+Shift+Del se cache clear karo — bahut fast ho jaayega.',
    '💡 Laptop charge karte waqt hard table pe rakho — soft surface pe battery garam hoti hai.',
-   '💡 Suspicious email mein link mat dabao — pehle IT ko batao: Create Ticket dabao.',
+   '💡 Suspicious email mein link mat dabao — pehle IT ko batao.',
    '💡 Camera nahi chal rha? Settings → Privacy → Camera ON karo.',
    '💡 Koi bhi software install karne ke liye IT se ticket raise karo — admin rights chahiye.',
    '💡 Laptop screen dim? Fn+F5 ya Fn+F6 se brightness badhaao.',
