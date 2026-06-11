@@ -532,6 +532,10 @@ const getKBFallback = (problem) => {
       /screen|display|monitor|laptop/.test(pn))
     return `Screen color/display issue hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek ho jaata hai\n2. *External monitor test* → HDMI se monitor connect karo — bahar sahi dikh raha toh laptop screen hardware issue hai\n\nAgar restart se theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
 
+  // Screen / Monitor — generic disambiguation (extra screen vs current screen broken)
+  if (/\b(screen|monitor|display)\b/.test(pn))
+    return `Aapko screen ki zarurat hai, lekin yeh clear nahi hai ki aapko *extra screen chahiye* ya *aapka current screen theek se kaam nahi kar raha* hai.\n\n🖥️ *Extra screen chahiye?*\n→ Yeh IT scope mein nahi aata. *Admin/Facilities se contact karein* — aur pehle *Reporting Manager ka approval* lena hoga.\n\n⚠️ *Current screen theek se kaam nahi kar rha?*\n→ Laptop on hai (power LED dikh raha)? Ya screen bilkul black hai?\n1. *Brightness keys* → Fn+F5 ya Fn+F8 dabao\n2. *Force restart* → Power button 10 sec hold karo → band karo → dobara on karo\n3. *Charger check* → Battery dead ho sakti hai → charger lagao → 10 min wait\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+
   // Windows update / OS crash / restart loop
   if (/windows\s*(crash|restart|update|stuck|atak|loop|hang)|update\s*(stuck|atak|hang|nahi|ruka)|restart\s*(bar\s*bar|baar\s*baar|loop|hota\s*rha|ho\s*rha\s*bar)|os\s*(crash|hang|stuck)/.test(pn))
     return `Windows issue hai. Yeh try karo:\n\n1. *Restart* → Power button se properly shut down karo → dobara on karo\n2. *Wait* → Agar Windows update chal rahi hai → wait karo, band mat karo\n\nAgar 3 baar se zyada restart ho raha hai ya nahi ruk raha → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
