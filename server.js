@@ -928,18 +928,6 @@ app.listen(PORT, async () => {
      accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/wiom-logo.webp', alt_text: 'WIOM' }
    });
 
-   // ── 2. Personal Stats ────────────────────────────────────────────────
-   const openCount = (myTickets||[]).filter(t => ['Open','In Progress','Waiting'].includes(t.status)).length;
-   const resolvedCount = stats.resolvedCount || 0;
-   const avgHrs = stats.avgHrs || 0;
-   blocks.push({
-     type: 'section',
-     fields: [
-       { type: 'mrkdwn', text: `*${openCount}*\n🔴 Open Tickets` },
-       { type: 'mrkdwn', text: `*${resolvedCount}*\n✅ Resolved` },
-       { type: 'mrkdwn', text: `*${avgHrs > 0 ? avgHrs + 'h' : '—'}*\n⚡ Avg Fix Time` },
-     ]
-   });
    blocks.push({ type: 'divider' });
 
    // ── 3. Quick Fixes ────────────────────────────────────────────────────
