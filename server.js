@@ -929,32 +929,6 @@ app.listen(PORT, async () => {
      text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n_Welcome to WIOM IT Helpdesk — Get instant support._` },
    });
 
-   // ── 2. Zivon AI ───────────────────────────────────────────────────────
-   blocks.push({ type: 'divider' });
-   blocks.push({
-     type: 'section',
-     text: { type: 'mrkdwn', text: `*🤖 Zivon AI Assistant*\n_Get instant help for your IT issues_\n\n✓ WiFi & Network Issues\n✓ Laptop & Performance Problems\n✓ Software Installation\n✓ Password Reset\n✓ VPN & Access Issues\n✓ And much more...` },
-     accessory: {
-       type: 'image',
-       image_url: 'https://wiom-helpdesk-production.up.railway.app/images/zivon-robot.gif',
-       alt_text: 'Zivon AI'
-     }
-   });
-   blocks.push({
-     type: 'actions',
-     elements: [{
-       type: 'button',
-       text: { type: 'plain_text', text: '🤖 Start Chat with Zivon AI →', emoji: true },
-       action_id: 'zivon_modal_ask',
-       value: 'ask_ai',
-       style: 'primary'
-     }]
-   });
-   blocks.push({
-     type: 'context',
-     elements: [{ type: 'mrkdwn', text: '_Available 24/7  •  Instant Support_' }]
-   });
-
    // ── 5. Quick Actions ──────────────────────────────────────────────────
    blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Actions*' } });
