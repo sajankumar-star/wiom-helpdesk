@@ -23,17 +23,17 @@ const WIFI_PASSWORD_SAKET = process.env.WIFI_PASSWORD_SAKET || 'Password@12345';
 const ADMIN_EMAIL_KB      = process.env.ADMIN_EMAIL         || 'sajan.kumar@wiom.in';
 
 // ── WIOM IT System Prompt ─────────────────────────────────────────────────────
-const SYSTEM_PROMPT = `You are Zivon — WIOM IT Support AI for 300 non-technical office employees.
+const SYSTEM_PROMPT = `You are WIOM IT Assistant — WIOM IT Support AI for 300 non-technical office employees.
 
 RULES (follow strictly):
-- Language: Reply in same language as user (English/Hindi/Hinglish). Never mix.
+- Language: Always reply in English only. Never use Hindi or Hinglish.
 - Steps: Max 3-4 SIMPLE steps only. NO CMD, Safe Mode, Device Manager, BIOS, chkdsk — employees have NO admin rights.
-- End every troubleshooting reply: "Agar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi."
-- NEVER say "type karo" — Messages Tab is disabled, users click buttons only.
+- End every troubleshooting reply: "If not resolved → click the *Create Ticket* button — IT team will help you directly."
+- NEVER say "type here" or similar — Messages Tab is disabled, users click buttons only.
 - NEVER say ticket is already raised/sent — user must click the button.
 - NEVER give phone numbers.
-- Physical damage (cracked/water) → NO steps → "Create Ticket button dabao — IT team physically replace karegi 🎫"
-- Theft/Loss → "Pehle desk/aas-paas check karo. Agar nahi mila → ${ADMIN_EMAIL_KB} ko email karo, Create Ticket button dabao."
+- Physical damage (cracked/water) → NO steps → "Click the Create Ticket button — IT team will physically replace it 🎫"
+- Theft/Loss → "First check your desk and surroundings. If not found → email ${ADMIN_EMAIL_KB}, click Create Ticket button."
 
 WIOM FACTS:
 - WiFi password: ${WIFI_PASSWORD} | Special: "Wiomnet-Saket" → ${WIFI_PASSWORD_SAKET}
@@ -41,7 +41,7 @@ WIOM FACTS:
 - NO VPN at WIOM
 - IT: Sajan Kumar | ${ADMIN_EMAIL_KB}
 - Software install/activation/password reset → TICKET ONLY (no admin rights)
-- Non-IT (AC, lights, pantry, personal phone) → "Yeh IT scope mein nahi — Admin/Facilities se contact karo."
+- Non-IT (AC, lights, pantry, personal phone) → "This is outside IT scope — please contact Admin/Facilities."
 
 COMMON FIXES (give these steps directly):
 - WiFi not working: Toggle OFF→ON → Forget & reconnect "Wiom office" (pw: ${WIFI_PASSWORD}) → Restart
@@ -74,7 +74,7 @@ const detectIntent = (messages) => {
 
   // WiFi connected but no internet
   if (/connect(ed)?.*(nahi chal|work nahi|internet nahi|chal nahi|nahi work|not working)|wifi.*(connected|chal raha).*(internet nahi|nahi chal|no internet)|(no internet|internet nahi).*(connected|chal raha)|wifi connected.*but|but.*wifi connected/.test(recentText))
-    return { category: 'NETWORK_CONNECTED', hint: 'WiFi connected but no internet. Max 3 steps: 1) Toggle WiFi off/on. 2) Check if only one site is blocked — try gmail.com and another site. 3) If all sites fail → restart laptop. Agar resolve nahi hua → tell user to click Create Ticket button. Do NOT suggest CMD or ipconfig.' };
+    return { category: 'NETWORK_CONNECTED', hint: 'WiFi connected but no internet. Max 3 steps: 1) Toggle WiFi off/on. 2) Check if only one site is blocked — try gmail.com and another site. 3) If all sites fail → restart laptop. If not resolved → tell user to click Create Ticket button. Do NOT suggest CMD or ipconfig.' };
 
   // Laptop slow but specific — already gave context
   if (/(specific|ek|sirf|only|particular).*(app|game|software).*(slow|hang)|(slow|hang).*(specific|ek|sirf)/.test(recentText))
@@ -82,20 +82,20 @@ const detectIntent = (messages) => {
 
   // Screen black but laptop is on
   if (/(black|kali|blank).*(screen|display).*(on|chal|power)|(on|chal|power).*(black|kali|blank).*(screen|display)/.test(recentText))
-    return { category: 'DISPLAY_BLACK_ON', hint: 'User says screen is black but laptop is ON. SKIP question — give steps: 1. Fn+F5 ya Fn+F8 (brightness keys) dabao 2. Win+P dabao → "Extend" select karo 3. Power button 10sec hold → restart. No questions.' };
+    return { category: 'DISPLAY_BLACK_ON', hint: 'User says screen is black but laptop is ON. SKIP question — give steps: 1. Press Fn+F5 or Fn+F8 (brightness keys) 2. Press Win+P → select "Extend" 3. Hold power button 10sec → restart. No questions.' };
 
   // Password forgot — specific type
   if (/(windows|laptop|login|pc).*(password|bhool|forgot)|(password|bhool|forgot).*(windows|laptop|login|pc)/.test(recentText))
-    return { category: 'ACCOUNT_WINDOWS', hint: 'Windows login password issue. SKIP question. Say directly: "Windows password sirf IT reset kar sakta hai — *Create Ticket* button dabao, IT team jaldi reset kar degi."' };
+    return { category: 'ACCOUNT_WINDOWS', hint: 'Windows login password issue. SKIP question. Say directly: "Windows login password can only be reset by IT — click the *Create Ticket* button, IT team will reset it quickly."' };
 
   // Outlook/Teams specific error
   if (/(gmail|email|teams).*(nahi khul|not opening|crash|band ho|error|loading|nahi aa rha|nahi chal)/.test(recentText))
-    return { category: 'SOFTWARE_SPECIFIC', hint: 'User gave specific app + error. SKIP question. WIOM uses Gmail NOT Outlook. Gmail fix: incognito test → clear Chrome cache → try different browser. Teams fix: system tray quit → reopen. If Teams still fails → tell user to click Create Ticket button (IT cache clear karega). MAX 3 steps. NO %appdata% paths.' };
+    return { category: 'SOFTWARE_SPECIFIC', hint: 'User gave specific app + error. SKIP question. WIOM uses Gmail NOT Outlook. Gmail fix: incognito test → clear Chrome cache → try different browser. Teams fix: system tray quit → reopen. If Teams still fails → tell user to click Create Ticket button (IT will clear cache). MAX 3 steps. NO %appdata% paths.' };
 
   // ── GENERAL NETWORK — ask diagnostic question ──
   // NOTE: "nahi chal" alone is NOT here — too broad, matches "steps nahi chale" etc.
   if (/\bnet\b|\bwifi\b|wi-fi|internet|network|connect(ion)?|hotspot|broadband|no internet|net band|data nahi|signal nahi|connection nahi/.test(recentText))
-    return { category: 'NETWORK', hint: 'NETWORK ISSUE. Your FIRST message MUST be: "WiFi icon taskbar mein dikh raha hai? Connected hai ya \'No Internet\' likh raha?" — ABSOLUTELY DO NOT say restart laptop. Ask this exact question first, then wait.' };
+    return { category: 'NETWORK', hint: 'NETWORK ISSUE. Your FIRST message MUST be: "Is the WiFi icon showing in the taskbar? Is it connected or showing \'No Internet\'?" — ABSOLUTELY DO NOT say restart laptop. Ask this exact question first, then wait.' };
 
   // PERFORMANCE — slow, hang, freeze
   if (/slow|hang\b|lagg|freez|speed|fast karo|\bram\b|\bcpu\b|processor|heavy|battery drain|alag hai|dheema|dheere|aahista/.test(recentText))
@@ -103,7 +103,7 @@ const detectIntent = (messages) => {
 
   // DISPLAY COLOR DISTORTION — colorful screen, color lines, tint
   if (/colorful|colorfull|colour|color\s*aa|rang\s*aa|pink\s*screen|green\s*screen|tint|lines?\s*aa|lines?\s*dikh|screen.*lines?|horizontal\s*line|vertical\s*line|screen\s*pe\s*rang|display.*rang|rang.*display/.test(recentText))
-    return { category: 'DISPLAY_COLOR', hint: 'Screen color issue. Step 1: Restart laptop (driver glitch usually fixes on restart). Step 2: If external monitor available, test HDMI — if external fine, laptop screen hardware issue. Agar nahi hua → ticket.' };
+    return { category: 'DISPLAY_COLOR', hint: 'Screen color issue. Step 1: Restart laptop (driver glitch usually fixes on restart). Step 2: If external monitor available, test HDMI — if external fine, laptop screen hardware issue. If not resolved → ticket.' };
 
   // SIMPLE HOW-TO — brightness/wallpaper/zoom-in: answer directly, no diagnostic questions
   if (/brightness|screen.*bright|bright.*screen|\bdim\b|wallpaper|zoom\s*in\s*ho|sab.*bada/i.test(recentText))
@@ -111,15 +111,15 @@ const detectIntent = (messages) => {
 
   // DISPLAY — screen, black, blue screen
   if (/screen|display|black screen|nahi dikh|dikhna band|blue screen|bsod|flicker|bright|dim|resolution|monitor|hdmi|kala ho gaya|screen kali/.test(recentText))
-    return { category: 'DISPLAY', hint: 'DISPLAY ISSUE. First ask: "Laptop on hai (power LED dikh raha)? Ya screen bilkul black hai?" — never suggest network steps for display.' };
+    return { category: 'DISPLAY', hint: 'DISPLAY ISSUE. First ask: "Is the laptop on (can you see the power LED)? Or is the screen completely black?" — never suggest network steps for display.' };
 
   // CAMERA
   if (/camera|camra|webcam|\bcam\b|video nahi|camera band/.test(recentText))
-    return { category: 'CAMERA', hint: 'CAMERA ISSUE. First ask: "Kaunsa app mein nahi chal raha — Teams, Zoom, ya sab mein?" — then Settings→Privacy→Camera.' };
+    return { category: 'CAMERA', hint: 'CAMERA ISSUE. First ask: "Which app is it not working in — Teams, Zoom, or all apps?" — then Settings→Privacy→Camera.' };
 
   // AUDIO
   if (/sound|audio|speaker|headphone|\bmic\b|microphone|awaaz|awaaz nahi|volume|sunai nahi/.test(recentText))
-    return { category: 'AUDIO', hint: 'AUDIO ISSUE. First ask: "Headphone laga hai? Taskbar pe speaker icon mein X toh nahi?" — check output device.' };
+    return { category: 'AUDIO', hint: 'AUDIO ISSUE. First ask: "Is a headphone plugged in? Is there an X on the speaker icon in the taskbar?" — check output device.' };
 
   // MICROSOFT OFFICE — all variants including 365, xlsx, docx
   if (/(ms\s*office|microsoft\s*office|office\s*365|office365|ms365|\bword\b|\bexcel\b|powerpoint|\bppt\b|xlsx|xls|docx|pptx|ms\s*word|ms\s*excel)/.test(recentText) &&
@@ -144,7 +144,7 @@ const detectIntent = (messages) => {
 
   // VPN — WIOM has no VPN
   if (/\bvpn\b/.test(recentText))
-    return { category: 'VPN', hint: 'VPN: WIOM mein VPN use nahi hota. Tell user directly: "WIOM mein VPN use nahi hota. Koi aur IT issue?"' };
+    return { category: 'VPN', hint: 'VPN: WIOM does not use VPN. Tell user directly: "WIOM does not use VPN. Any other IT issue?"' };
 
   // GMAIL / EMAIL
   if (/(gmail|email|mail)/.test(recentText) && /(nahi|not|issue|open|login|password|send|receive|full)/.test(recentText))
@@ -156,19 +156,19 @@ const detectIntent = (messages) => {
 
   // PDF
   if (/\bpdf\b/.test(recentText) && /(nahi|not|open|issue|convert|print)/.test(recentText))
-    return { category: 'PDF', hint: 'PDF ISSUE. Open with Chrome/Edge drag-drop. For PDF to Word → Word open karo → File → Open → select PDF. No Adobe install needed.' };
+    return { category: 'PDF', hint: 'PDF ISSUE. Open with Chrome/Edge drag-drop. For PDF to Word → open Word → File → Open → select PDF. No Adobe install needed.' };
 
   // SOFTWARE
   if (/teams|zoom|outlook|email|\bchrome\b|\boffice\b|\bword\b|\bexcel\b|onedrive|pdf|app nahi|software|install\s+\w+|\w+\s+install|crash|error aa raha|error aa rahi/.test(recentText))
-    return { category: 'SOFTWARE', hint: 'SOFTWARE/APP ISSUE. First ask: "Kya exact error message aa raha hai? Screen pe kya likh raha hai?" — give app-specific fix only. If outlook mentioned: WIOM uses Gmail not Outlook — redirect to Gmail. NO %appdata% paths, NO CMD.' };
+    return { category: 'SOFTWARE', hint: 'SOFTWARE/APP ISSUE. First ask: "What is the exact error message? What does the screen say?" — give app-specific fix only. If outlook mentioned: WIOM uses Gmail not Outlook — redirect to Gmail. NO %appdata% paths, NO CMD.' };
 
   // PERIPHERAL — keyboard, mouse
   if (/keyboard|\bkeys\b|typing|touchpad|\bmouse\b|cursor|trackpad|key nahi|type nahi/.test(recentText))
-    return { category: 'PERIPHERAL', hint: 'KEYBOARD/TOUCHPAD ISSUE. First ask: "Restart ke baad bhi same hai? Ya sirf koi specific key kaam nahi kar rahi?" — hardware steps only.' };
+    return { category: 'PERIPHERAL', hint: 'KEYBOARD/TOUCHPAD ISSUE. First ask: "Is it the same after restart? Or is only one specific key not working?" — hardware steps only.' };
 
   // PRINTER
   if (/printer|print|printing/.test(recentText))
-    return { category: 'PRINTER', hint: 'PRINTER ISSUE. First ask: "Printer ON hai aur connected hai? Koi error message dikh raha screen pe?" — then: printer restart karo, restart laptop, IT ticket if unresolved.' };
+    return { category: 'PRINTER', hint: 'PRINTER ISSUE. First ask: "Is the printer on and connected? Any error message on screen?" — then: restart the printer, restart laptop, IT ticket if unresolved.' };
 
   // ACCOUNT / PASSWORD
   if (/password|login|locked|account|access|sign in|signin|password bhool|bhool gaya password/.test(recentText))
@@ -176,30 +176,30 @@ const detectIntent = (messages) => {
 
   // SECURITY
   if (/virus|malware|hack|ransomware|suspicious|phishing|data\s*leak|unauthorized|breach|credential/.test(recentText))
-    return { category: 'SECURITY', hint: 'SECURITY ISSUE. Urgent — say "Windows Security → Quick Scan karo, aur internet disconnect karo agar serious lage." Then ticket. If query is ambiguous (single word, or unclear context), ask ONE specific clarifying question. If query is clear (has device/app/symptom), give answer directly without asking.' };
+    return { category: 'SECURITY', hint: 'SECURITY ISSUE. Urgent — say "Windows Security → Virus & threat protection → Quick Scan, and disconnect internet if it seems serious." Then ticket. If query is ambiguous (single word, or unclear context), ask ONE specific clarifying question. If query is clear (has device/app/symptom), give answer directly without asking.' };
 
   // BATTERY / CHARGING — typo-tolerant: battry, battey, week=weak, backup kam
   if (/batter[yi]?|battry|battey|batr[yi]|\bbatt\b|charg|plug.*power|low.*power|backup\s*(nahi|low|kam)|draining|week.*batt|batt.*week/.test(recentText)) {
     const isChargingIssue = /charg|plug|not charg|chal nahi|percent\s*(nahi|stuck|0)|0\s*%|nahi chal rha/.test(recentText);
     const isDrainIssue = /drain|backup\s*(kam|nahi|low)|jaldi\s*(khatam|kha)|low backup|week\s*batt|batt.*week/.test(recentText);
     if (isDrainIssue && !isChargingIssue) {
-      return { category: 'BATTERY_DRAIN', hint: 'BATTERY DRAIN ISSUE (not charging). User says battery drains fast or backup is poor.\nFirst ask: "Ek charge pe kitna time chal raha hai? Kaunse apps mostly open rehte hain?"\nThen suggest: Settings → Battery Saver → Power Mode: Balanced → Ctrl+Shift+Esc → End Task heavy apps.\nDo NOT give charger steps — that is wrong for this issue.' };
+      return { category: 'BATTERY_DRAIN', hint: 'BATTERY DRAIN ISSUE (not charging). User says battery drains fast or backup is poor.\nFirst ask: "How long does one charge last? Which apps are mostly open?"\nThen suggest: Settings → Battery Saver → Power Mode: Balanced → Ctrl+Shift+Esc → End Task heavy apps.\nDo NOT give charger steps — that is wrong for this issue.' };
     }
-    return { category: 'BATTERY', hint: 'BATTERY/CHARGING ISSUE. User may have typed "battry" or "week" (weak). Give steps directly:\n1. Charger dono taraf firmly lagao (laptop side + socket side)\n2. Alag power socket try karo\n3. Laptop band karo → charger nikalo → power button 30 sec hold → charger lagao → on karo\n4. Agar battery 0% pe stuck hai → ticket raise karo\nDo NOT ask diagnostic question — give these steps now.' };
+    return { category: 'BATTERY', hint: 'BATTERY/CHARGING ISSUE. User may have typed "battry" or "week" (weak). Give steps directly:\n1. Plug charger firmly on both sides (laptop side + socket side)\n2. Try a different power socket\n3. Shut down laptop → unplug charger → hold power button 30 sec → plug charger → turn on\n4. If battery stuck at 0% → raise ticket\nDo NOT ask diagnostic question — give these steps now.' };
   }
 
   // HARDWARE / PORTS — LAN, USB hub, docking station, ports
   if (/\b(lan\s*port|ethernet|rj45|docking|dock\s*station|hub|port\s*me\s*prob|port\s*kaam\s*nahi|port\s*nahi|usb\s*hub|type\s*c)\b/i.test(recentText))
-    return { category: 'HARDWARE_PORT', hint: 'HARDWARE PORT ISSUE. Give steps: 1) Cable check karo (click sound) 2) Alag cable try karo 3) Alag port try karo 4) Restart karo. If port physically damaged → IT ticket. NO Device Manager steps.' };
+    return { category: 'HARDWARE_PORT', hint: 'HARDWARE PORT ISSUE. Give steps: 1) Check cable (should click in firmly) 2) Try a different cable 3) Try a different port 4) Restart. If port physically damaged → IT ticket. NO Device Manager steps.' };
 
   // GENERAL — try to answer directly rather than asking "batao"
   // Confidence scoring: short/vague queries → ask clarifying question
   const lastQ = recentText.trim().split(/\s+/).filter(Boolean);
   const hasSpecificKeyword = /\b(wifi|laptop|internet|bluetooth|keyboard|touchpad|mouse|screen|display|camera|mic|microphone|speaker|audio|printer|teams|zoom|chrome|browser|password|windows|excel|word|onedrive|usb|battery|charger|network|slow|hang|crash|headphone|projector|hdmi|monitor|fan)\b/i.test(recentText);
   if (lastQ.length <= 3 && !hasSpecificKeyword) {
-    return { category: 'GENERAL_VAGUE', hint: 'Query is ambiguous (3 words or fewer, no specific IT keyword). Ask ONE specific clarifying question: "Kya problem ho rahi hai — laptop, WiFi, software, ya kuch aur?" — do NOT give steps or guess.' };
+    return { category: 'GENERAL_VAGUE', hint: 'Query is ambiguous (3 words or fewer, no specific IT keyword). Ask ONE specific clarifying question: "What is the problem — laptop, WiFi, software, or something else?" — do NOT give steps or guess.' };
   }
-  return { category: 'GENERAL', hint: 'You are a Desktop Support Engineer. Even if the issue is vague, USE YOUR IT KNOWLEDGE to give a helpful response. Do NOT just say "Thoda aur batao". If you can identify the issue from context — give steps. If truly unclear — ask ONE very specific question like "Kaunsi app mein problem hai?" or "Kab se ho raha hai?" — never a generic "batao". If query is ambiguous (single word, or unclear context), ask ONE specific clarifying question. If query is clear (has device/app/symptom), give answer directly without asking.' };
+  return { category: 'GENERAL', hint: 'You are a Desktop Support Engineer. Even if the issue is vague, USE YOUR IT KNOWLEDGE to give a helpful response. Do NOT just say "Tell me more". If you can identify the issue from context — give steps. If truly unclear — ask ONE very specific question like "Which app has the problem?" or "When did this start?" — never a generic question. If query is ambiguous (single word, or unclear context), ask ONE specific clarifying question. If query is clear (has device/app/symptom), give answer directly without asking.' };
 };
 
 // ── Extract steps already tried (to prevent repeats) ─────────────────────────
@@ -237,126 +237,126 @@ const extractTriedSteps = (messages) => {
 // These bypass AI entirely: guaranteed correct answer, zero tokens, instant
 const DIRECT_KB = {
   wifi_not_connect:
-    `WiFi nahi chal rha. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi icon → OFF → 10 sec ruko → ON → "Wiom office" se connect karo (password: ${WIFI_PASSWORD})\n2. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → dobara connect karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+    `WiFi not working. Try these steps:\n\n1. *Toggle* → Taskbar WiFi icon → OFF → wait 10 sec → ON → connect to "Wiom office" (password: ${WIFI_PASSWORD})\n2. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → reconnect\n3. *Restart* → Restart your laptop\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`,
 
   no_internet:
-    `Internet nahi chal rha (WiFi connected hai). Yeh try karo:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Chrome reopen* → Chrome band karo → dobara open karo → gmail.com try karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+    `No internet (WiFi is connected). Try these steps:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Reopen Chrome* → Close Chrome → reopen → try gmail.com\n3. *Restart* → Restart your laptop\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`,
 
   internet_slow:
-    `Internet slow chal rha hai. Yeh try karo:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON → dobara connect karo\n2. *Chrome tabs* → Extra tabs band karo — zyada tabs se net slow hota hai\n3. *Restart* → Laptop restart karo\n4. *Jagah badlo* → Router ke paas jaao — door hone se signal weak hota hai\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+    `Internet is slow. Try these steps:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON → reconnect\n2. *Close tabs* → Close extra Chrome tabs — too many tabs slows the connection\n3. *Restart* → Restart your laptop\n4. *Move closer* → Move closer to the router — distance weakens the signal\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`,
 
   keys_not_working:
-    `Keyboard kaam nahi kar rha. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — aksar restart se theek ho jaata hai\n2. *NumLock check* → NumLock button dabao (agar numbers type ho rahe hain letters ki jagah)\n3. *On-Screen Keyboard* → Start menu → "On-Screen Keyboard" search karo → kaam chalao\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team driver fix karega 🎫`,
+    `Keyboard not working. Try these steps:\n\n1. *Restart* → Restart your laptop — usually fixes on restart\n2. *NumLock check* → Press NumLock (if numbers are typing instead of letters)\n3. *On-Screen Keyboard* → Start menu → search "On-Screen Keyboard" → use it temporarily\n\nIf not resolved → click *Create Ticket* button — IT team will fix the driver 🎫`,
 
   blue_screen:
-    `Blue Screen (BSOD) aa rha hai. Yeh karo:\n\n1. *Error code note karo* → Screen pe jo code likha tha (jaise: MEMORY_MANAGEMENT, DRIVER_IRQL etc.)\n2. *Restart karo* → Power button 10 sec hold karo → band karo → dobara on karo\n3. *Baar baar aa rha hai?* → Ticket raise karo turant\n\nAgar theek nahi hua ya 3 baar se zyada aaya → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+    `Blue Screen (BSOD) is appearing. Do this:\n\n1. *Note the error code* → Write down what was on the screen (e.g. MEMORY_MANAGEMENT, DRIVER_IRQL etc.)\n2. *Restart* → Hold power button 10 sec → shut down → turn back on\n3. *Happening repeatedly?* → Raise a ticket immediately\n\nIf not resolved or appears more than 3 times → click *Create Ticket* button — IT team will help you directly 🎫`,
 
   external_monitor:
-    `External monitor detect nahi ho rha. Yeh try karo:\n\n1. *Cable check karo* → HDMI cable dono taraf properly lagi hai? Nikal ke dobara lagao\n2. *Win+P* → Windows key + P dabao → "Extend" ya "Duplicate" select karo\n3. *Monitor ON* → External monitor ka power button check karo — on hai?\n4. *Restart* → Sab connected rakhke laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+    `External monitor not detected. Try these steps:\n\n1. *Check cable* → Is the HDMI cable properly connected on both ends? Unplug and replug\n2. *Win+P* → Press Windows key + P → select "Extend" or "Duplicate"\n3. *Monitor ON* → Check the power button on the external monitor — is it on?\n4. *Restart* → Keep everything connected and restart your laptop\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`,
 
   scanner_issue:
-    `Scanner kaam nahi kar rha. Yeh try karo:\n\n1. *Scanner restart* → Scanner band karo → 30 sec ruko → on karo\n2. *USB cable check* → Cable properly lagi hai? Nikal ke dobara lagao\n3. *Laptop restart* → Laptop restart karo → dobara scan try karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT driver install karega 🎫`,
+    `Scanner not working. Try these steps:\n\n1. *Restart scanner* → Turn scanner off → wait 30 sec → turn back on\n2. *Check USB cable* → Is the cable properly connected? Unplug and replug\n3. *Restart laptop* → Restart your laptop → try scanning again\n\nIf not resolved → click *Create Ticket* button — IT will install the driver 🎫`,
 
   file_corrupted:
-    `File nahi khul rhi. Yeh try karo:\n\n1. *Right-click → Open With* → File pe right-click karo → Open With → sahi app select karo (Word/Excel/Adobe)\n2. *App restart* → App close karo → dobara open karo → phir file open karo\n3. *Laptop restart* → Laptop restart karo → dobara try karo\n\nAgar app missing hai ya file corrupt hai → *Create Ticket* button dabao — IT team install/recover karega 🎫`,
+    `File not opening. Try these steps:\n\n1. *Right-click → Open With* → Right-click the file → Open With → select the correct app (Word/Excel/Adobe)\n2. *Restart app* → Close the app → reopen it → try opening the file again\n3. *Restart laptop* → Restart your laptop → try again\n\nIf the app is missing or the file is corrupted → click *Create Ticket* button — IT team will install/recover it 🎫`,
 
   overheat:
-    `Laptop bahut garam ho rha hai. Yeh karo:\n\n1. *Table pe rakho* → Laptop ko hard surface pe rakho — bed/sofa pe mat rakho (hawa nahi milti)\n2. *Task Manager* → Ctrl+Shift+Esc → CPU column → heavy apps End Task karo\n3. *Restart* → Laptop restart karo — background processes band ho jaate hain\n4. *Fan check* → Laptop neeche se bahut garam hai aur fan nahi chal rha? Turant band karo\n\nAgar bahut zyada garam ho rha hai ya band ho rha hai → *Create Ticket* button dabao 🎫`,
+    `Laptop is overheating. Do this:\n\n1. *Place on a table* → Put the laptop on a hard flat surface — not on a bed/sofa (blocks airflow)\n2. *Task Manager* → Ctrl+Shift+Esc → CPU column → End Task heavy apps\n3. *Restart* → Restart your laptop — stops background processes\n4. *Fan check* → Is the bottom very hot and the fan not spinning? Turn it off immediately\n\nIf overheating badly or shutting off → click *Create Ticket* button 🎫`,
 
   battery_issue:
-    `Battery jaldi drain ho rhi hai. Yeh karo:\n\n1. *Power mode* → Taskbar battery icon → "Power saver" ya "Balanced" select karo\n2. *Screen brightness* → Fn+F5/F6 se brightness thodi kam karo\n3. *Apps band karo* → Task Manager → battery zyada use karne wale apps band karo\n\nAgar battery 0% pe bhi charge nahi ho rhi → charger laga ke 10 min wait karo phir on karo.\nAgar phir bhi problem → *Create Ticket* button dabao — IT battery check karega 🎫`,
+    `Battery drains quickly. Do this:\n\n1. *Power mode* → Click battery icon in taskbar → select "Power saver" or "Balanced"\n2. *Screen brightness* → Press Fn+F5/F6 to lower the brightness a bit\n3. *Close apps* → Task Manager → close apps that use a lot of battery\n\nIf battery stuck at 0% and not charging → plug in the charger and wait 10 min then turn on.\nIf still a problem → click *Create Ticket* button — IT will check the battery 🎫`,
 
   battery_not_charging:
-    `Battery charge nahi ho rhi. Yeh try karo:\n\n1. *Charger replug* → Dono taraf se charger nikalo → dobara firmly lagao (laptop side + socket side)\n2. *Alag socket* → Doosra power socket try karo\n3. *Power reset* → Laptop band karo → charger nikalo → power button 30 sec hold karo → charger lagao → on karo\n\nAgar LED light bhi nahi aa rhi charger mein → charger kharab ho sakta hai.\nAgar theek nahi hua → *Create Ticket* button dabao — IT charger/battery replace karega 🎫`,
+    `Battery not charging. Try these steps:\n\n1. *Replug charger* → Unplug charger from both ends → plug back in firmly (laptop side + socket side)\n2. *Different socket* → Try a different power socket\n3. *Power reset* → Shut down laptop → unplug charger → hold power button 30 sec → plug charger → turn on\n\nIf the charger LED is also not lighting up → charger may be faulty.\nIf not resolved → click *Create Ticket* button — IT will replace the charger/battery 🎫`,
 
   touchpad_issue:
-    `Touchpad/cursor kaam nahi kar rha. Yeh try karo:\n\n1. *Fn key check* → Fn + F5/F6/F7 (touchpad lock key) dabao — keyboard pe touchpad icon wali key\n2. *Settings* → Settings → Bluetooth & devices → Touchpad → ON karo\n3. *Restart* → Laptop restart karo\n\nAgar restart ke baad bhi cursor stuck hai ya nahi chal rha → *Create Ticket* button dabao — IT driver fix karega 🎫`,
+    `Touchpad/cursor not working. Try these steps:\n\n1. *Fn key check* → Press Fn + F5/F6/F7 (touchpad lock key) — the key with the touchpad icon on keyboard\n2. *Settings* → Settings → Bluetooth & devices → Touchpad → turn ON\n3. *Restart* → Restart your laptop\n\nIf cursor is still stuck after restart → click *Create Ticket* button — IT will fix the driver 🎫`,
 
   camera_issue:
-    `Webcam/Camera kaam nahi kar rha. Yeh try karo:\n\n1. *Privacy settings* → Settings → Privacy & Security → Camera → ON karo\n2. *App settings* → Teams/Zoom → Settings → Video → sahi camera select karo\n3. *Restart app* → App close karo → dobara open karo\n\nAgar privacy ON hai phir bhi nahi aa rha → *Create Ticket* button dabao — IT driver fix karega 🎫`,
+    `Webcam/Camera not working. Try these steps:\n\n1. *Privacy settings* → Settings → Privacy & Security → Camera → turn ON\n2. *App settings* → Teams/Zoom → Settings → Video → select the correct camera\n3. *Restart app* → Close the app → reopen it\n\nIf privacy is ON and still not working → click *Create Ticket* button — IT will fix the driver 🎫`,
 
   mic_issue:
-    `Microphone kaam nahi kar rha. Yeh try karo:\n\n1. *Privacy settings* → Settings → Privacy & Security → Microphone → ON karo\n2. *App settings* → Teams/Zoom → Settings → Audio → sahi microphone select karo → test karo\n3. *Restart app* → App close karo → dobara open karo\n\nAgar privacy ON hai phir bhi nahi sun rahe → *Create Ticket* button dabao — IT driver fix karega 🎫`,
+    `Microphone not working. Try these steps:\n\n1. *Privacy settings* → Settings → Privacy & Security → Microphone → turn ON\n2. *App settings* → Teams/Zoom → Settings → Audio → select the correct microphone → test it\n3. *Restart app* → Close the app → reopen it\n\nIf privacy is ON and still not audible → click *Create Ticket* button — IT will fix the driver 🎫`,
 
   sound_none:
-    `Speaker/Audio se awaaz nahi aa rhi. Yeh try karo:\n\n1. *Volume check* → Taskbar speaker icon pe right-click → Open Sound Settings → Volume 0% ya mute toh nahi?\n2. *Output device* → Sound settings → Output → sahi speakers/headphones select karo\n3. *Restart* → Laptop restart karo\n\nAgar headphone lagane ke baad bhi kuch nahi → *Create Ticket* button dabao — IT sound driver fix karega 🎫`,
+    `No sound from speakers/audio. Try these steps:\n\n1. *Volume check* → Right-click speaker icon in taskbar → Open Sound Settings → is volume at 0% or muted?\n2. *Output device* → Sound settings → Output → select the correct speakers/headphones\n3. *Restart* → Restart your laptop\n\nIf still no sound after plugging in headphones → click *Create Ticket* button — IT will fix the sound driver 🎫`,
 
   screen_black:
-    `Screen black ho gayi. Yeh try karo:\n\n1. *Brightness keys* → Fn+F5 ya Fn+F6 ya Fn+F8 dabao — screen dim ho sakti hai, brightness badhaao\n2. *Force restart* → Power button 10 sec hold karo → band karo → 30 sec wait → dobara on karo\n3. *Charger check* → Battery dead ho sakti hai → charger lagao → 10 min wait karo → on karo\n\nAgar screen ab bhi nahi aayi → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+    `Screen went black. Try these steps:\n\n1. *Brightness keys* → Press Fn+F5 or Fn+F6 or Fn+F8 — screen may be dimmed, increase brightness\n2. *Force restart* → Hold power button 10 sec → shut down → wait 30 sec → turn back on\n3. *Check charger* → Battery may be dead → plug in charger → wait 10 min → turn on\n\nIf screen still does not come back → click *Create Ticket* button — IT team will help you directly 🎫`,
 
   lan_issue:
-    `LAN/Ethernet cable issue hai. Yeh try karo:\n\n1. *Cable check* → LAN cable dono taraf se nikal ke dobara firmly lagao\n2. *Alag port* → Cable ko dusre LAN port mein lagao (wall ka aur laptop ka dono check karo)\n3. *Restart* → Laptop restart karo — dobara auto-connect ho jaata hai\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT network check karega 🎫`,
+    `LAN/Ethernet cable issue. Try these steps:\n\n1. *Check cable* → Unplug the LAN cable from both ends and firmly plug back in\n2. *Different port* → Try a different LAN port (check both wall and laptop ports)\n3. *Restart* → Restart your laptop — it will auto-connect again\n\nIf not resolved → click *Create Ticket* button — IT will check the network 🎫`,
 
   printer_issue:
-    `Printer print nahi kar rha. Yeh try karo:\n\n1. *Printer restart* → Printer band karo → 30 sec → on karo\n2. *Laptop restart* → Laptop restart karo → dobara print try karo\n3. *Default printer* → Settings → Bluetooth & devices → Printers → sahi printer default set karo\n\nAgar printer list mein dikh hi nahi rha → *Create Ticket* button dabao — IT network printer setup karega 🎫`,
+    `Printer not printing. Try these steps:\n\n1. *Restart printer* → Turn printer off → wait 30 sec → turn back on\n2. *Restart laptop* → Restart your laptop → try printing again\n3. *Default printer* → Settings → Bluetooth & devices → Printers → set the correct printer as default\n\nIf printer not showing in the list at all → click *Create Ticket* button — IT will set up the network printer 🎫`,
 
   website_blocked:
-    `Website load nahi ho rhi. Yeh try karo:\n\n1. *Doosri website check karo* → google.com ya gmail.com kholo — woh open hoti hai?\n2. *Incognito try karo* → Ctrl+Shift+N → website dobara kholo\n3. *Cache clear karo* → Ctrl+Shift+Del → All time → Cached images → Clear → website try karo\n4. *Baad mein try karo* → Agar sirf yeh ek website hai → website ka server down ho sakta hai\n\nAgar koi bhi website nahi khul rhi → *Create Ticket* button dabao — IT network check karega 🎫`,
+    `Website not loading. Try these steps:\n\n1. *Check another website* → Open google.com or gmail.com — does that open?\n2. *Try Incognito* → Ctrl+Shift+N → try opening the website again\n3. *Clear cache* → Ctrl+Shift+Del → All time → Cached images → Clear → try the website again\n4. *Try later* → If only this one website → the website server may be down\n\nIf no websites are opening → click *Create Ticket* button — IT will check the network 🎫`,
 
   app_crash:
-    `Application nahi khul rha ya crash ho rha hai. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → application dhundho → End Task karo → dobara open karo\n2. *Restart* → Laptop restart karo → dobara try karo\n\nAgar app list mein nahi hai ya install karna hai → *Create Ticket* button dabao — IT install karega (admin rights chahiye) 🎫`,
+    `Application not opening or crashing. Try these steps:\n\n1. *Task Manager* → Ctrl+Shift+Esc → find the application → End Task → reopen it\n2. *Restart* → Restart your laptop → try again\n\nIf the app is not in the list or needs to be installed → click *Create Ticket* button — IT will install it (admin rights required) 🎫`,
 
   // ── Previously missing — all added ──────────────────────────────────────────
   network_drive:
-    `Network Drive/Mapped Drive nahi dikh rha. Yeh try karo:\n\n1. *Laptop restart karo* → Aksar restart se drive wapas aa jaati hai\n2. *File Explorer* → Left panel mein "This PC" → "Z:" ya mapped drive check karo\n3. *Reconnect* → File Explorer → This PC → Computer tab → Map Network Drive\n\nAgar phir bhi nahi dikh rha → *Create Ticket* button dabao — IT drive remap karega 🎫`,
+    `Network Drive/Mapped Drive not visible. Try these steps:\n\n1. *Restart laptop* → Usually the drive comes back after restart\n2. *File Explorer* → Left panel → "This PC" → check for "Z:" or the mapped drive\n3. *Reconnect* → File Explorer → This PC → Computer tab → Map Network Drive\n\nIf still not visible → click *Create Ticket* button — IT will remap the drive 🎫`,
 
   gmail_issue:
-    `Gmail kaam nahi kar rha. Yeh try karo:\n\n1. *Incognito test* → Chrome → Ctrl+Shift+N → gmail.com kholo — kaam karta hai?\n2. *Cache clear* → Ctrl+Shift+Del → All time → Cookies + Cache → Clear\n3. *Alag browser* → Edge mein gmail.com try karo\n\nAgar login hi nahi ho rha → *Create Ticket* button dabao — IT password reset karega 🎫`,
+    `Gmail not working. Try these steps:\n\n1. *Incognito test* → Chrome → Ctrl+Shift+N → open gmail.com — does it work?\n2. *Clear cache* → Ctrl+Shift+Del → All time → Cookies + Cache → Clear\n3. *Different browser* → Try gmail.com in Edge\n\nIf you cannot login at all → click *Create Ticket* button — IT will reset the password 🎫`,
 
   email_login:
-    `Gmail/Email login nahi ho rha. Yeh karo:\n\n*Create Ticket* button dabao — IT company Gmail account ka password reset karega.\n\nEmployees khud Google account password reset nahi kar sakte — IT karega. 🎫`,
+    `Gmail/Email login not working. Do this:\n\nClick the *Create Ticket* button — IT will reset your company Gmail account password.\n\nEmployees cannot self-reset Google account passwords — IT handles this. 🎫`,
 
   email_not_sending:
-    `Gmail se email nahi bhej pa rhe. Yeh try karo:\n\n1. *Internet check* → Koi aur website khul rhi hai?\n2. *gmail.com directly kholo* → Chrome mein gmail.com → Compose → bhejo\n3. *Sent/Drafts check karo* → Email stuck toh nahi hai?\n\nAgar error message aa rha hai → *Create Ticket* button dabao — IT help karega 🎫`,
+    `Cannot send emails from Gmail. Try these steps:\n\n1. *Check internet* → Can any other website open?\n2. *Open gmail.com directly* → Chrome → gmail.com → Compose → send\n3. *Check Sent/Drafts* → Is the email stuck somewhere?\n\nIf there is an error message → click *Create Ticket* button — IT will help 🎫`,
 
   email_not_receiving:
-    `Gmail mein emails nahi aa rhe. Yeh check karo:\n\n1. *Spam/Junk folder* → Gmail left sidebar → Spam folder check karo\n2. *Trash folder* → Gmail → Trash mein check karo\n3. *Storage check* → Gmail settings → Storage full toh nahi?\n4. *Incognito try karo* → Ctrl+Shift+N → gmail.com → inbox check karo\n\nAgar phir bhi missing hain → *Create Ticket* button dabao 🎫`,
+    `Not receiving emails in Gmail. Check this:\n\n1. *Spam/Junk folder* → Gmail left sidebar → check Spam folder\n2. *Trash folder* → Gmail → check Trash\n3. *Storage check* → Gmail settings → is storage full?\n4. *Try Incognito* → Ctrl+Shift+N → gmail.com → check inbox\n\nIf still missing → click *Create Ticket* button 🎫`,
 
   calendar_sync:
-    `Google Calendar sync nahi ho rha. Yeh try karo:\n\n1. *Browser mein kholo* → Chrome → calendar.google.com → events dikh rahe hain?\n2. *Cache clear* → Ctrl+Shift+Del → All time → Clear\n3. *Incognito try karo* → Ctrl+Shift+N → calendar.google.com\n\nAgar access nahi hai kisi calendar ka → *Create Ticket* button dabao — IT access dega 🎫`,
+    `Google Calendar not syncing. Try these steps:\n\n1. *Open in browser* → Chrome → calendar.google.com → are events showing?\n2. *Clear cache* → Ctrl+Shift+Del → All time → Clear\n3. *Try Incognito* → Ctrl+Shift+N → calendar.google.com\n\nIf you do not have access to a calendar → click *Create Ticket* button — IT will grant access 🎫`,
 
   teams_issue:
-    `Teams kaam nahi kar rha. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar pe Teams icon right-click → Quit → dobara open karo\n2. *Browser mein try karo* → Chrome → teams.microsoft.com\n3. *Restart* → Laptop restart karo\n\nAgar phir bhi nahi → *Create Ticket* button dabao — IT Teams cache clear karega 🎫`,
+    `Teams not working. Try these steps:\n\n1. *Quit & Reopen* → Right-click Teams icon in taskbar → Quit → reopen\n2. *Try in browser* → Chrome → teams.microsoft.com\n3. *Restart* → Restart your laptop\n\nIf still not working → click *Create Ticket* button — IT will clear Teams cache 🎫`,
 
   zoom_issue:
-    `Zoom kaam nahi kar rha. Yeh try karo:\n\n1. *Close & Reopen* → Zoom band karo → dobara open karo\n2. *Browser se join karo* → Chrome → zoom.us/wc/join → Meeting ID daalo\n3. *Settings* → Zoom → Settings → Audio/Video → correct device select karo\n\nAgar install nahi hai → *Create Ticket* button dabao — IT install karega 🎫`,
+    `Zoom not working. Try these steps:\n\n1. *Close & Reopen* → Close Zoom → reopen it\n2. *Join via browser* → Chrome → zoom.us/wc/join → enter Meeting ID\n3. *Settings* → Zoom → Settings → Audio/Video → select the correct device\n\nIf not installed → click *Create Ticket* button — IT will install it 🎫`,
 
   browser_slow:
-    `Browser (Chrome/Edge) slow hai. Yeh try karo:\n\n1. *Cache clear* → Ctrl+Shift+Del → "All time" → Cached images & files → Clear\n2. *Extensions disable* → Chrome → Settings → Extensions → sab OFF karo\n3. *Extra tabs band karo* → zyada tabs se browser slow hota hai\n4. *Restart browser* → Band karo → dobara open karo\n\nAgar phir bhi slow hai → *Create Ticket* button dabao 🎫`,
+    `Browser (Chrome/Edge) is slow. Try these steps:\n\n1. *Clear cache* → Ctrl+Shift+Del → "All time" → Cached images & files → Clear\n2. *Disable extensions* → Chrome → Settings → Extensions → turn all OFF\n3. *Close extra tabs* → Too many tabs slow down the browser\n4. *Restart browser* → Close it → reopen\n\nIf still slow → click *Create Ticket* button 🎫`,
 
   excel_issue:
-    `Excel nahi khul rha ya crash ho rha hai. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → Excel dhundho → End Task → dobara open karo\n2. *Restart* → Laptop restart karo → dobara try karo\n3. *Safe Mode* → Nahi karna (admin rights nahi) → Ticket raise karo\n\nAgar phir bhi nahi khul rha → *Create Ticket* button dabao — IT repair karega 🎫`,
+    `Excel not opening or crashing. Try these steps:\n\n1. *Task Manager* → Ctrl+Shift+Esc → find Excel → End Task → reopen it\n2. *Restart* → Restart your laptop → try again\n3. *Safe Mode* → Not applicable (no admin rights) → Raise a ticket\n\nIf still not opening → click *Create Ticket* button — IT will repair it 🎫`,
 
   word_issue:
-    `Word nahi khul rha ya crash ho rha hai. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → Word dhundho → End Task → dobara open karo\n2. *Restart* → Laptop restart karo → dobara try karo\n\nAgar phir bhi nahi khul rha → *Create Ticket* button dabao — IT Office repair karega 🎫`,
+    `Word not opening or crashing. Try these steps:\n\n1. *Task Manager* → Ctrl+Shift+Esc → find Word → End Task → reopen it\n2. *Restart* → Restart your laptop → try again\n\nIf still not opening → click *Create Ticket* button — IT will repair Office 🎫`,
 
   ppt_issue:
-    `PowerPoint nahi khul rha ya crash ho rha hai. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → PowerPoint → End Task → dobara open karo\n2. *Restart* → Laptop restart karo → dobara try karo\n\nAgar phir bhi nahi khul rha → *Create Ticket* button dabao — IT Office repair karega 🎫`,
+    `PowerPoint not opening or crashing. Try these steps:\n\n1. *Task Manager* → Ctrl+Shift+Esc → find PowerPoint → End Task → reopen it\n2. *Restart* → Restart your laptop → try again\n\nIf still not opening → click *Create Ticket* button — IT will repair Office 🎫`,
 
   office_activation:
-    `MS Office activation error aa rha hai.\n\n*Create Ticket* button dabao — IT Office activate karega. Employees khud activate nahi kar sakte (admin rights nahi hain). 🎫`,
+    `MS Office activation error.\n\nClick the *Create Ticket* button — IT will activate Office. Employees cannot activate it themselves (no admin rights). 🎫`,
 
   pdf_issue:
-    `PDF file nahi khul rhi. Yeh try karo:\n\n1. *Right-click → Open With* → PDF pe right-click → Open With → Adobe Acrobat select karo\n2. *Chrome mein try karo* → PDF file Chrome browser mein drag karke drop karo\n3. *Restart* → Laptop restart karo → dobara try karo\n\nAgar Adobe nahi hai → *Create Ticket* button dabao — IT install karega 🎫`,
+    `PDF not opening. Try these steps:\n\n1. *Right-click → Open With* → Right-click the PDF → Open With → select Adobe Acrobat\n2. *Try in Chrome* → Drag and drop the PDF file into the Chrome browser\n3. *Restart* → Restart your laptop → try again\n\nIf Adobe is not installed → click *Create Ticket* button — IT will install it 🎫`,
 
   // ── New issues ────────────────────────────────────────────────────────────
   screen_flicker:
-    `Screen flicker/blink kar rhi hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek hota hai\n2. *External monitor* → HDMI se monitor connect karo — bahar sahi dikh rha hai to laptop screen ka hardware issue hai\n3. *Brightness adjust* → Fn+F5/F6 se brightness adjust karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT directly help karegi 🎫`,
+    `Screen is flickering/blinking. Try these steps:\n\n1. *Restart* → Restart your laptop — driver glitch usually fixes on restart\n2. *External monitor* → Connect monitor via HDMI — if external looks fine then laptop screen is a hardware issue\n3. *Adjust brightness* → Press Fn+F5/F6 to adjust brightness\n\nIf not resolved → click *Create Ticket* button — IT will help directly 🎫`,
 
   projector_issue:
-    `Projector/HDMI connect nahi ho rha. Yeh try karo:\n\n1. *Cable check* → HDMI cable dono taraf properly lagi hai?\n2. *Win+P* → Windows key + P dabao → Extend ya Duplicate select karo\n3. *Detect* → Right-click Desktop → Display Settings → Detect\n4. *Restart* → Sab connected rakh ke laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao 🎫`,
+    `Projector/HDMI not connecting. Try these steps:\n\n1. *Check cable* → Is the HDMI cable properly connected on both ends?\n2. *Win+P* → Press Windows key + P → select Extend or Duplicate\n3. *Detect* → Right-click Desktop → Display Settings → Detect\n4. *Restart* → Keep everything connected and restart your laptop\n\nIf not resolved → click *Create Ticket* button 🎫`,
 
   usb_issue:
-    `USB port kaam nahi kar rha. Yeh try karo:\n\n1. *Alag port* → Device ko dusre USB port mein lagao\n2. *Replug* → USB device nikalo → 10 sec ruko → dobara lagao\n3. *Restart* → Laptop restart karo → dobara lagao\n\nAgar koi bhi port kaam nahi kar rha → *Create Ticket* button dabao — IT team directly help karegi 🎫`,
+    `USB port not working. Try these steps:\n\n1. *Different port* → Plug the device into a different USB port\n2. *Replug* → Remove USB device → wait 10 sec → plug back in\n3. *Restart* → Restart your laptop → plug back in\n\nIf no port is working at all → click *Create Ticket* button — IT team will help you directly 🎫`,
 
   fan_noise:
-    `Fan loud noise kar rha hai. Yeh karo:\n\n1. *Check karo* → Agar smoke, burning smell ya bahut zyada heat → TURANT laptop band karo\n2. *Task Manager* → Ctrl+Shift+Esc → heavy apps End Task karo\n3. *Surface* → Laptop hard table pe rakho, soft surface pe mat\n\nAgar noise band nahi ho rhi → *Create Ticket* button dabao — IT fan check karega 🎫`,
+    `Fan making loud noise. Do this:\n\n1. *Check* → If there is smoke, burning smell or extreme heat → IMMEDIATELY turn off the laptop\n2. *Task Manager* → Ctrl+Shift+Esc → End Task heavy apps\n3. *Surface* → Place laptop on a hard table, not a soft surface\n\nIf noise does not stop → click *Create Ticket* button — IT will check the fan 🎫`,
 
   frequent_disconnect:
-    `WiFi baar baar disconnect ho rhi hai. Yeh try karo:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON → dobara connect karo\n2. *Router ke paas jaao* → Door hone se signal weak hota hai\n3. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → dobara connect (pw: ${WIFI_PASSWORD})\n\nAgar baar baar ho rha hai → *Create Ticket* button dabao — IT network check karega 🎫`,
+    `WiFi keeps disconnecting. Try these steps:\n\n1. *WiFi Toggle* → Taskbar WiFi → OFF → 10 sec → ON → reconnect\n2. *Move closer* → Move closer to the router — distance weakens signal\n3. *Forget & Reconnect* → WiFi settings → "Wiom office" → Forget → reconnect (pw: ${WIFI_PASSWORD})\n\nIf keeps happening → click *Create Ticket* button — IT will check the network 🎫`,
 
   door_access:
-    `Door access card issue. Yeh karo:\n\n*Create Ticket* button dabao — IT/Admin department new card issue karega ya existing card reprogram karega.\nTicket mein likho: kaunsa floor/door ka access chahiye. 🎫`,
+    `Door access card issue. Do this:\n\nClick the *Create Ticket* button — IT/Admin department will issue a new card or reprogram the existing one.\nIn the ticket, write: which floor/door access you need. 🎫`,
 
   mobile_not_working:
     `**Company Phone Not Working**\n\nYour company phone needs IT support. Please raise a ticket.\n\n**What to include in your ticket:**\n- Phone model and IMEI number\n- Exact problem (won't turn on / screen issue / software problem)\n- When the issue started\n\nIT team will resolve it promptly.`,
@@ -380,83 +380,83 @@ const DIRECT_KB = {
     `**Company Phone Screen Damaged**\n\nScreen damage requires IT assessment.\n\n**Do not attempt self-repair.**\n\nRaise a ticket immediately with:\n- Photo of the damage\n- How it happened\n- Whether the phone is still functional\n\nIT will arrange repair or replacement per company policy.`,
 
   google_drive_issue:
-    `Google Drive kaam nahi kar rha. Yeh try karo:\n\n1. *Browser mein kholo* → Chrome mein drive.google.com kholo\n2. *Cache clear* → Ctrl+Shift+Del → All time → Clear\n3. *Incognito try karo* → Ctrl+Shift+N → drive.google.com\n\nAgar access nahi hai → *Create Ticket* button dabao — IT access dega 🎫`,
+    `Google Drive not working. Try these steps:\n\n1. *Open in browser* → Open drive.google.com in Chrome\n2. *Clear cache* → Ctrl+Shift+Del → All time → Clear\n3. *Try Incognito* → Ctrl+Shift+N → drive.google.com\n\nIf you do not have access → click *Create Ticket* button — IT will grant access 🎫`,
 
   shared_drive_issue:
-    `Shared Drive access nahi hai.\n\n*Create Ticket* button dabao — IT aapko shared drive ka access dega.\nTicket mein likho: kaunsa drive/folder chahiye aur kyun. 🎫`,
+    `No access to Shared Drive.\n\nClick the *Create Ticket* button — IT will grant you access to the shared drive.\nIn the ticket, write: which drive/folder you need and why. 🎫`,
 
   file_sync_issue:
-    `Files sync nahi ho rhi. Yeh try karo:\n\n1. *Internet check* → WiFi properly connected hai?\n2. *Browser check* → drive.google.com mein manually dekho\n3. *Sign out/in* → Drive app se sign out → dobara sign in karo\n\nAgar phir bhi nahi → *Create Ticket* button dabao 🎫`,
+    `Files not syncing. Try these steps:\n\n1. *Check internet* → Is WiFi properly connected?\n2. *Check browser* → Manually check drive.google.com\n3. *Sign out/in* → Sign out of Drive app → sign back in\n\nIf still not syncing → click *Create Ticket* button 🎫`,
 
   storage_full:
-    `Storage/disk full hai. Yeh try karo:\n\n1. *Recycle Bin* → Desktop Recycle Bin → Empty Recycle Bin\n2. *Downloads* → File Explorer → Downloads → jo zaruri nahi delete karo\n3. *Google Drive pe move karo* → Files cloud pe upload karo\n\nAgar space kam hai → *Create Ticket* button dabao — IT storage cleanup karega 🎫`,
+    `Storage/disk is full. Try these steps:\n\n1. *Recycle Bin* → Desktop Recycle Bin → Empty Recycle Bin\n2. *Downloads* → File Explorer → Downloads → delete files you no longer need\n3. *Move to Google Drive* → Upload files to the cloud\n\nIf still low on space → click *Create Ticket* button — IT will do a storage cleanup 🎫`,
 
   phishing_email:
-    `Phishing/suspicious email aaya hai!\n\n1. *Link mat dabao* → Email mein koi bhi link ya attachment BILKUL mat dabao\n2. *Gmail mein Report* → Email → 3 dots → Report phishing\n3. *IT ko batao* → *Create Ticket* button dabao — IT investigate karega 🎫\n\n⚠️ Agar link dabao diya → TURANT ticket raise karo!`,
+    `Phishing/suspicious email received!\n\n1. *Do NOT click any link* → ABSOLUTELY do not click any link or attachment in the email\n2. *Report in Gmail* → Email → 3 dots → Report phishing\n3. *Notify IT* → Click *Create Ticket* button — IT will investigate 🎫\n\n⚠️ If you already clicked the link → raise a ticket IMMEDIATELY!`,
 
   virus_malware:
-    `Virus/Malware suspect ho rha hai!\n\n1. *Internet band karo* → WiFi disconnect karo TURANT\n2. *Create Ticket* → ABHI raise karo — IT directly aayega\n\n⚠️ Kuch bhi mat karo laptop pe — IT aayega 🎫`,
+    `Virus/Malware suspected!\n\n1. *Disconnect internet* → Disconnect WiFi IMMEDIATELY\n2. *Create Ticket* → Raise one NOW — IT will come directly\n\n⚠️ Do not do anything on the laptop — IT is coming 🎫`,
 
   suspicious_login:
-    `Suspicious login hai — TURANT yeh karo:\n\n1. *Create Ticket* → Abhi raise karo — HIGH priority\n2. *IT ko email* → ${ADMIN_EMAIL_KB}\n\nIT aapka account secure karega. Password khud mat badlo — IT karega. 🎫`,
+    `Suspicious login detected — do this IMMEDIATELY:\n\n1. *Create Ticket* → Raise one now — HIGH priority\n2. *Email IT* → ${ADMIN_EMAIL_KB}\n\nIT will secure your account. Do NOT change the password yourself — IT will do it. 🎫`,
 
   security_alert:
-    `Security alert aa rha hai.\n\n*Create Ticket* button dabao — IT security investigate karega.\nTicket mein exact alert message likho. 🎫`,
+    `Security alert is appearing.\n\nClick the *Create Ticket* button — IT will investigate the security issue.\nIn the ticket, write the exact alert message. 🎫`,
 
   account_hacked:
-    `Account hack hua hai — EMERGENCY!\n\n1. *Create Ticket ABHI* → CRITICAL priority\n2. *IT ko email* → ${ADMIN_EMAIL_KB}\n3. *Kuch bhi mat karo* → Account pe koi changes mat karo\n\nIT turant secure karega. 🎫`,
+    `Account has been hacked — EMERGENCY!\n\n1. *Create Ticket NOW* → CRITICAL priority\n2. *Email IT* → ${ADMIN_EMAIL_KB}\n3. *Do nothing* → Do not make any changes to the account\n\nIT will secure it immediately. 🎫`,
 
   burning_smell:
-    `EMERGENCY! Burning smell ya smoke!\n\n1. *TURANT BAND KARO* — Power button hold karo\n2. *CHARGER NIKALO* — Immediately\n3. *DOOR RAHO* — Laptop chhodo safe jagah rakho\n4. *IT ko batao* → ${ADMIN_EMAIL_KB}\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
+    `EMERGENCY! Burning smell or smoke!\n\n1. *TURN OFF IMMEDIATELY* — Hold the power button\n2. *UNPLUG CHARGER* — Immediately\n3. *KEEP AWAY* — Leave the laptop in a safe place\n4. *Notify IT* → ${ADMIN_EMAIL_KB}\n\nClick *Create Ticket* → CRITICAL emergency 🎫`,
 
   battery_swelling:
-    `EMERGENCY! Battery swollen/phool gayi!\n\n1. *TURANT BAND KARO* — Power button hold\n2. *CHARGER NIKALO* — Abhi\n3. *LAPTOP DOOR RAKHO* — Fire hazard\n4. *IT ko batao* → ${ADMIN_EMAIL_KB}\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
+    `EMERGENCY! Battery is swollen/bloated!\n\n1. *TURN OFF IMMEDIATELY* — Hold power button\n2. *UNPLUG CHARGER* — Now\n3. *KEEP LAPTOP AWAY* — Fire hazard\n4. *Notify IT* → ${ADMIN_EMAIL_KB}\n\nClick *Create Ticket* → CRITICAL emergency 🎫`,
 
   data_loss:
-    `Files/data missing hain. Yeh try karo:\n\n1. *Recycle Bin* → Desktop Recycle Bin mein dekho\n2. *Google Drive Trash* → drive.google.com → Trash folder\n3. *Search karo* → File Explorer mein file name search karo\n\nAgar nahi mili → *Create Ticket* button dabao — IT data recovery try karega 🎫`,
+    `Files/data are missing. Try these steps:\n\n1. *Recycle Bin* → Check the Desktop Recycle Bin\n2. *Google Drive Trash* → drive.google.com → Trash folder\n3. *Search* → Search for the file name in File Explorer\n\nIf not found → click *Create Ticket* button — IT will attempt data recovery 🎫`,
 
   physical_damage:
-    `Laptop physically damage hua hai.\n\nSoftware se fix nahi hoga — *Create Ticket* button dabao TURANT.\nIT physically assess aur repair/replace karega.\nTicket mein damage ka description likho. 🎫`,
+    `Laptop has been physically damaged.\n\nThis cannot be fixed with software — click *Create Ticket* button IMMEDIATELY.\nIT will physically assess and repair/replace it.\nIn the ticket, describe the damage. 🎫`,
 
   liquid_damage:
-    `EMERGENCY! Liquid/Paani gira hai!\n\n1. *TURANT BAND KARO* — Power button hold\n2. *CHARGER NIKALO*\n3. *ULTA RAKHO* → Liquid drain hone do\n4. *Hairdryer mat lagao*\n5. *IT ko batao* → ${ADMIN_EMAIL_KB}\n\n*Create Ticket* dabao → CRITICAL emergency 🎫`,
+    `EMERGENCY! Liquid/Water spilled!\n\n1. *TURN OFF IMMEDIATELY* — Hold the power button\n2. *UNPLUG CHARGER*\n3. *TURN UPSIDE DOWN* → Let the liquid drain out\n4. *Do NOT use a hairdryer*\n5. *Notify IT* → ${ADMIN_EMAIL_KB}\n\nClick *Create Ticket* → CRITICAL emergency 🎫`,
 
   device_lost:
-    `Device kho gaya hai ya chori hua hai.\n\n1. *Pehle check karo* → Desk/drawer/aas-paas check karo, colleagues se puchho\n2. *Agar nahi mila* → *Create Ticket* button dabao — HIGH PRIORITY\n3. *IT ko email* → ${ADMIN_EMAIL_KB}\n4. *HR ko bhi batao*\n\n⚠️ 24 ghante mein report karna zaruri hai. 🎫`,
+    `Device is lost or stolen.\n\n1. *Check first* → Check desk/drawer/surroundings, ask colleagues\n2. *If not found* → Click *Create Ticket* button — HIGH PRIORITY\n3. *Email IT* → ${ADMIN_EMAIL_KB}\n4. *Inform HR as well*\n\n⚠️ Must be reported within 24 hours. 🎫`,
 
   // ── Additional DIRECT_KB entries — bypasses AI for common issues ─────────────
   excel_slow:
-    `**Excel Running Slow or Freezing**\n\n1. Close unnecessary Chrome tabs and other applications first\n2. Disable add-ins: Excel → File → Options → Add-ins → Manage: COM Add-ins → Go → uncheck all → OK → restart Excel\n3. Remove heavy conditional formatting: Home → Conditional Formatting → Clear Rules → Clear Rules from Entire Sheet\n4. Save as .xlsx (File → Save As → choose .xlsx format — old .xls format is slower)\n5. If file is very large (>5MB): raise a ticket — IT will check RAM\n\nAgar ab bhi slow hai → *Create Ticket* button dabao 🎫`,
+    `**Excel Running Slow or Freezing**\n\n1. Close unnecessary Chrome tabs and other applications first\n2. Disable add-ins: Excel → File → Options → Add-ins → Manage: COM Add-ins → Go → uncheck all → OK → restart Excel\n3. Remove heavy conditional formatting: Home → Conditional Formatting → Clear Rules → Clear Rules from Entire Sheet\n4. Save as .xlsx (File → Save As → choose .xlsx format — old .xls format is slower)\n5. If file is very large (>5MB): raise a ticket — IT will check RAM\n\nIf still slow → click *Create Ticket* button 🎫`,
 
   chrome_issue:
-    `**Google Chrome Not Working**\n\n1. Hard refresh: Ctrl + Shift + R (force reload)\n2. Clear cache: Ctrl + Shift + Delete → select "All time" → tick "Cached images and files" + "Cookies" → Clear data\n3. Disable extensions: Menu (⋮) → More tools → Extensions → toggle all OFF → restart Chrome\n4. If Chrome won't open: Ctrl+Shift+Esc → Task Manager → find all "chrome.exe" → End Task → reopen Chrome\n5. Reset Chrome settings: Settings → scroll down → Reset settings → Restore settings to defaults\n\nAgar ab bhi nahi chal rha → *Create Ticket* button dabao 🎫`,
+    `**Google Chrome Not Working**\n\n1. Hard refresh: Ctrl + Shift + R (force reload)\n2. Clear cache: Ctrl + Shift + Delete → select "All time" → tick "Cached images and files" + "Cookies" → Clear data\n3. Disable extensions: Menu (⋮) → More tools → Extensions → toggle all OFF → restart Chrome\n4. If Chrome won't open: Ctrl+Shift+Esc → Task Manager → find all "chrome.exe" → End Task → reopen Chrome\n5. Reset Chrome settings: Settings → scroll down → Reset settings → Restore settings to defaults\n\nIf still not working → click *Create Ticket* button 🎫`,
 
   edge_issue:
-    `**Microsoft Edge Not Working**\n\n1. Hard refresh: Ctrl + Shift + R\n2. Clear cache: Ctrl + Shift + Delete → All time → Clear data\n3. Disable extensions: Menu (…) → Extensions → Manage extensions → disable all → restart Edge\n4. Reset Edge: Settings → Reset settings → Restore settings to defaults → Reset\n5. If Edge keeps crashing: raise a ticket — may need reinstall\n\nAgar ab bhi nahi chal rha → *Create Ticket* button dabao 🎫`,
+    `**Microsoft Edge Not Working**\n\n1. Hard refresh: Ctrl + Shift + R\n2. Clear cache: Ctrl + Shift + Delete → All time → Clear data\n3. Disable extensions: Menu (…) → Extensions → Manage extensions → disable all → restart Edge\n4. Reset Edge: Settings → Reset settings → Restore settings to defaults → Reset\n5. If Edge keeps crashing: raise a ticket — may need reinstall\n\nIf still not working → click *Create Ticket* button 🎫`,
 
   slack_issue:
-    `**Slack Not Working**\n\n1. Quit Slack completely: System tray (bottom-right) → right-click Slack icon → Quit\n2. Reopen Slack from desktop/taskbar\n3. If messages not loading: Slack → Help → Troubleshooting → Clear Cache and Restart\n4. Check internet: open Chrome → try gmail.com — if that also fails, WiFi issue hai\n5. Try Slack Web as backup: open Chrome → slack.com → log in\n\nAgar Slack bilkul nahi khulta → *Create Ticket* button dabao 🎫`,
+    `**Slack Not Working**\n\n1. Quit Slack completely: System tray (bottom-right) → right-click Slack icon → Quit\n2. Reopen Slack from desktop/taskbar\n3. If messages not loading: Slack → Help → Troubleshooting → Clear Cache and Restart\n4. Check internet: open Chrome → try gmail.com — if that also fails, WiFi issue hai\n5. Try Slack Web as backup: open Chrome → slack.com → log in\n\nIf Slack won't open at all → click *Create Ticket* button 🎫`,
 
   password_reset:
-    `**Password Reset**\n\n⚠️ Company passwords can only be reset by IT — employees cannot self-reset.\n\n*Raise a ticket* and IT will reset your password within 30 minutes during office hours.\n\n*Include in your ticket:*\n- Which account (Windows login / Gmail / other app)\n- Your employee ID\n- Is your work completely stopped?\n\n*Create Ticket* button dabao — IT turant help karega 🎫`,
+    `**Password Reset**\n\n⚠️ Company passwords can only be reset by IT — employees cannot self-reset.\n\n*Raise a ticket* and IT will reset your password within 30 minutes during office hours.\n\n*Include in your ticket:*\n- Which account (Windows login / Gmail / other app)\n- Your employee ID\n- Is your work completely stopped?\n\nClick *Create Ticket* button — IT will help you right away 🎫`,
 
   account_locked:
-    `**Account Locked**\n\nYour account has been locked due to multiple failed login attempts.\n\n⚠️ Only IT can unlock accounts — you cannot do this yourself.\n\n*Raise a ticket immediately* — IT will unlock within 15 minutes during office hours.\n\n*Include in your ticket:*\n- Which account is locked (Windows / Gmail / app name)\n- Your employee ID\n- Error message you are seeing\n\n*Create Ticket* button dabao — URGENT! 🎫`,
+    `**Account Locked**\n\nYour account has been locked due to multiple failed login attempts.\n\n⚠️ Only IT can unlock accounts — you cannot do this yourself.\n\n*Raise a ticket immediately* — IT will unlock within 15 minutes during office hours.\n\n*Include in your ticket:*\n- Which account is locked (Windows / Gmail / app name)\n- Your employee ID\n- Error message you are seeing\n\nClick *Create Ticket* button — URGENT! 🎫`,
 
   email_access:
-    `**Company Email Access Issue**\n\nNew email account setup or existing access issues are handled by IT only.\n\n*Raise a ticket* with:\n- Your full name and employee ID\n- Type of request (new account / can't login / password reset / other)\n- Is this blocking your work completely?\n\nIT will set up or restore access within 1 working day.\n\n*Create Ticket* button dabao 🎫`,
+    `**Company Email Access Issue**\n\nNew email account setup or existing access issues are handled by IT only.\n\n*Raise a ticket* with:\n- Your full name and employee ID\n- Type of request (new account / can't login / password reset / other)\n- Is this blocking your work completely?\n\nIT will set up or restore access within 1 working day.\n\nClick *Create Ticket* button 🎫`,
 
   shared_folder:
-    `**Shared Folder / Drive Access**\n\nShared folder and drive access is managed by IT — you cannot grant it yourself.\n\n*Raise a ticket* with:\n- Name of the shared folder or drive\n- Type of access needed (view only / edit / full access)\n- Your manager's name (manager approval is required)\n\nIT will grant access within 1 working day after manager confirmation.\n\n*Create Ticket* button dabao 🎫`,
+    `**Shared Folder / Drive Access**\n\nShared folder and drive access is managed by IT — you cannot grant it yourself.\n\n*Raise a ticket* with:\n- Name of the shared folder or drive\n- Type of access needed (view only / edit / full access)\n- Your manager's name (manager approval is required)\n\nIT will grant access within 1 working day after manager confirmation.\n\nClick *Create Ticket* button 🎫`,
 
   outlook_email:
-    `**Email Issue**\n\n⚠️ WIOM uses Gmail (Google Workspace) — NOT Outlook.\n\n*For Gmail issues:*\n1. Go to gmail.com in Chrome and sign in with your company email\n2. If you can't sign in → raise a ticket for IT to reset your password\n3. If Gmail is slow → clear cache: Ctrl+Shift+Delete → All time → Clear data\n4. Check Spam/Junk folder if emails are missing\n\nStill having issues? *Create Ticket* button dabao 🎫`,
+    `**Email Issue**\n\n⚠️ WIOM uses Gmail (Google Workspace) — NOT Outlook.\n\n*For Gmail issues:*\n1. Go to gmail.com in Chrome and sign in with your company email\n2. If you can't sign in → raise a ticket for IT to reset your password\n3. If Gmail is slow → clear cache: Ctrl+Shift+Delete → All time → Clear data\n4. Check Spam/Junk folder if emails are missing\n\nStill having issues? Click *Create Ticket* button 🎫`,
 
   otp_issue:
     `**OTP / Two-Factor Authentication Not Working**\n\n1. Check phone signal — OTP needs network to arrive\n2. OTP expires in 30-60 seconds — enter it immediately after it arrives\n3. Check if your phone time/date is correct (wrong time = wrong OTP in authenticator apps)\n4. Use the "Resend OTP" button and try again\n5. If using Google Authenticator app: open app → tap 3 dots → Sync now (fixes time drift)\n\nIf your registered phone number has changed → *Create Ticket* button dabao — IT will update it 🎫`,
 
   software_access:
-    `**Software / Application Access Required**\n\nAccess to software and applications is granted by IT — you cannot request it directly from the vendor.\n\n*Raise a ticket* and include:\n- Software/application name (e.g. Tally, AutoCAD, Adobe, VPN, etc.)\n- Your employee ID and department\n- Business reason / who asked you to use it\n- Your manager's name (approval may be required)\n\nIT will set up access within 1 working day.\n\n*Create Ticket* button dabao 🎫`,
+    `**Software / Application Access Required**\n\nAccess to software and applications is granted by IT — you cannot request it directly from the vendor.\n\n*Raise a ticket* and include:\n- Software/application name (e.g. Tally, AutoCAD, Adobe, VPN, etc.)\n- Your employee ID and department\n- Business reason / who asked you to use it\n- Your manager's name (approval may be required)\n\nIT will set up access within 1 working day.\n\nClick *Create Ticket* button 🎫`,
 };
 
 const getKBFallback = (problem) => {
@@ -485,20 +485,20 @@ const getKBFallback = (problem) => {
 
   // WiFi connected but no internet
   if (/connect(ed)?.*(nahi chal|work nahi|internet nahi|nahi work)|wifi.*(connected|chal).*(internet nahi|nahi chal)|(no internet|internet nahi).*(connected|connect)/.test(pn))
-    return `WiFi connected hai par internet nahi chal raha. Yeh try karo:\n\n1. *WiFi toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Chrome reopen* → Chrome band karo → dobara open karo → gmail.com try karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `WiFi connected but no internet. Try these steps:\n\n1. *WiFi toggle* → Taskbar WiFi → OFF → 10 sec → ON\n2. *Reopen Chrome* → Close Chrome → reopen → try gmail.com\n3. *Restart* → Restart your laptop\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // Browser slow — check BEFORE generic slow to avoid wrong match
   if ((pn.includes('browser') || pn.includes('chrome') || pn.includes('edge')) &&
       (pn.includes('slow') || pn.includes('hang') || pn.includes('freez') || pn.includes('lagg')))
-    return `Browser slow hai. Yeh try karo:\n\n1. *Cache clear* → Ctrl+Shift+Del → "All time" → Cached images & files → Clear\n2. *Extensions band* → Chrome → Settings → Extensions → sab disable karo\n3. *Restart browser* → Band karo → dobara open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Browser is slow. Try these steps:\n\n1. *Clear cache* → Ctrl+Shift+Del → "All time" → Cached images & files → Clear\n2. *Disable extensions* → Chrome → Settings → Extensions → disable all\n3. *Restart browser* → Close → reopen\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // Excel slow — check BEFORE generic slow
   if (pn.includes('excel') && (pn.includes('slow') || pn.includes('hang') || pn.includes('freez')))
-    return `Excel slow/hang ho rha hai. Yeh try karo:\n\n1. *Doosri files band karo* → koi aur Excel file khuli hai? Band karo\n2. *Add-ins disable* → File → Options → Add-ins → Manage: COM Add-ins → Go → sabko uncheck karo\n3. *Restart karo* → Excel band karo → laptop restart karo → dobara kholo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT repair karega 🎫`;
+    return `Excel is slow/hanging. Try these steps:\n\n1. *Close other files* → Are other Excel files open? Close them\n2. *Disable add-ins* → File → Options → Add-ins → Manage: COM Add-ins → Go → uncheck all\n3. *Restart* → Close Excel → restart laptop → reopen\n\nIf not resolved → click *Create Ticket* button — IT will repair it 🎫`;
 
   // Teams slow
   if (pn.includes('teams') && (pn.includes('slow') || pn.includes('hang') || pn.includes('lagg')))
-    return `Microsoft Teams slow hai. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar Teams icon → right-click → Quit → dobara open karo\n2. *Browser mein try karo* → teams.microsoft.com Chrome mein open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Microsoft Teams is slow. Try these steps:\n\n1. *Quit & Reopen* → Taskbar Teams icon → right-click → Quit → reopen\n2. *Try in browser* → Open teams.microsoft.com in Chrome\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // Generic laptop slow — only when NO app/browser/software context
   if ((pn.includes('slow') || pn.includes('hang') || pn.includes('freez') || pn.includes('dheema') || pn.includes('lagg')) &&
@@ -506,181 +506,181 @@ const getKBFallback = (problem) => {
       !pn.includes('word') && !pn.includes('teams') && !pn.includes('zoom') && !pn.includes('internet') &&
       !pn.includes('wifi') && !pn.includes('website') && !pn.includes('slack') && !pn.includes('gmail') &&
       !pn.includes('outlook') && !pn.includes('app') && !pn.includes('software') && !pn.includes('pdf'))
-    return `💻 *Laptop Slow/Hang* — yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → CPU column → jo zyada use kar raha ho End Task karo\n2. *Browser tabs* → unnecessary Chrome/Edge tabs band karo\n3. *Restart* → Laptop properly shut down karo (restart, sleep nahi)\n\nAgar in teeno se theek nahi hua → *Create Ticket* button dabao — IT team RAM ya SSD check karegi 🎫`;
+    return `💻 *Laptop Slow/Hanging* — try these steps:\n\n1. *Task Manager* → Ctrl+Shift+Esc → CPU column → End Task whatever is using the most\n2. *Browser tabs* → Close unnecessary Chrome/Edge tabs\n3. *Restart* → Properly shut down (restart, not sleep)\n\nIf all three steps did not help → click *Create Ticket* button — IT team will check RAM or SSD 🎫`;
 
   if (pn.includes('wifi') || pn.includes('internet') || pn.includes('network') ||
       /\bnet\b/.test(pn) || pn.includes('net band') || pn.includes('signal nahi') || pn.includes('no internet'))
-    return `WiFi/Internet issue. Yeh try karo:\n\n1. *Toggle* → Taskbar WiFi → OFF → 10 sec → ON → "Wiom office" se connect karo (password: ${WIFI_PASSWORD})\n2. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `WiFi/Internet issue. Try these steps:\n\n1. *Toggle* → Taskbar WiFi → OFF → 10 sec → ON → connect to "Wiom office" (password: ${WIFI_PASSWORD})\n2. *Restart* → Restart your laptop\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // Laptop won't start / boot / turn on
   // ISSUE 5 fix: added English boot phrases ("won't turn on", "not turning on", "laptop dead")
   if (/\b(laptop|leptop|lptop|latop)\b.*(on\s*nahi|start\s*nahi|band\s*ho|nahi\s*chalta|khulta\s*nahi|nahi\s*khulta|chal\s*nahi|chalti\s*nahi|chalte\s*nahi)|boot\s*nahi|(switch|power)\s*on\s*nahi|laptop\s*nahi\s*(chal|start|on|boot)|on\s*nahi\s*ho\s*rh|(nahi\s*ho\s*rh|nahi\s*chal).*(laptop|leptop|lptop|latop)|won.?t\s*(turn\s*on|start|boot)|not\s*turning\s*on|not\s*starting|laptop\s*(is\s*)?(dead|not\s*starting)|no\s*power\s*laptop/.test(pn))
-    return `Yeh 3 cheezein try karo:\n\n1. *Charger check karo* — charger properly laga hai? Alag socket mein try karo\n2. *10 second hold* — power button 10 sec tak dabao → chhoddo → 30 sec wait karo → dobara try karo\n3. *Charger nikaal ke try karo* — charger hatao → power button 30 sec hold karo → charger lagao → on karo\n\n*Create Ticket* button dabao — HIGH PRIORITY ticket raise hoga 🎫`;
+    return `Try these 3 things:\n\n1. *Check charger* — is the charger properly plugged in? Try a different socket\n2. *10 second hold* — hold the power button for 10 sec → release → wait 30 sec → try again\n3. *Remove charger and try* — remove charger → hold power button 30 sec → plug charger → turn on\n\nClick *Create Ticket* button — a HIGH PRIORITY ticket will be raised 🎫`;
 
   // Overheating
   if (/\b(laptop|leptop|lptop|latop)\b.*(garm|garam|heat|hot\b)|garm.*(laptop|leptop)|(overheat|over\s*heat|bahut\s*garam|bahut\s*garm|zyada\s*heat|zyada\s*garm)/.test(pn))
-    return `Laptop overheating issue hai. Yeh try karo:\n\n1. *Table pe rakho* → Laptop ko table par rakho — bed/sofa pe mat rakho (hawa nahi aati)\n2. *Heavy apps band karo* → Ctrl+Shift+Esc → Task Manager → CPU column → heavy apps End Task karo\n3. *Restart* → Laptop restart karo — background processes band ho jaate hain\n\nAgar bahut zyada garam ho raha hai ya band ho raha hai → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Laptop overheating issue. Try these steps:\n\n1. *Place on a table* → Put the laptop on a table — not on a bed/sofa (blocks airflow)\n2. *Close heavy apps* → Ctrl+Shift+Esc → Task Manager → CPU column → End Task heavy apps\n3. *Restart* → Restart your laptop — stops background processes\n\nIf overheating badly or shutting off → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // Screen black / blank / nothing visible
   if (/screen\s*(kali|kala|black|blank|kuch\s*nahi)|black\s*screen|kali\s*screen|monitor\s*(black|kala|kali|blank)|display\s*(black|kali|blank|nahi\s*aa)|screen\s*pe\s*kuch\s*nahi|(screen|display|monitor|laptop).*(nahi\s*dikh|dikhna\s*band)|(nahi\s*dikh|dikhna\s*band).*(screen|display|monitor|laptop)/.test(pn))
-    return `Black/blank screen issue hai. Yeh try karo:\n\n1. *Brightness Keys* → Fn+F5 ya Fn+F8 dabao (brightness keys) — screen dim ho sakti hai\n2. *Force Restart* → Power button 10 sec hold karo → band karo → dobara on karo\n3. *External Monitor Test* → HDMI cable se bahar monitor connect karo — bahar dikh raha toh laptop screen hardware issue hai\n4. *Charger Check* → Battery dead ho sakti hai → charger lagao → 10 min wait karo → on karo\n\nAgar screen ab bhi nahi aayi → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Black/blank screen issue. Try these steps:\n\n1. *Brightness Keys* → Press Fn+F5 or Fn+F8 — screen may be dimmed\n2. *Force Restart* → Hold power button 10 sec → shut down → turn back on\n3. *External Monitor Test* → Connect an external monitor via HDMI — if external shows fine then laptop screen is a hardware issue\n4. *Check Charger* → Battery may be dead → plug charger → wait 10 min → turn on\n\nIf screen still does not come back → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // Screen color distortion / flickering / lines
   if ((/colorful|colorfull|colarful|colarfull|colour|color\s*aa|rang\s*aa|pink\s*screen|green\s*screen|screen\s*pe\s*rang|display.*color|color.*display|screen\s*kharab/.test(pn) ||
        /distort|flicker|flickring/i.test(pn) ||
        /lines\s*(aa|on|on\s*screen|pe)|screen.*lines|horizontal\s*lines?|vertical\s*lines?/.test(pn)) &&
       /screen|display|monitor|laptop/.test(pn))
-    return `Screen color/display issue hai. Yeh try karo:\n\n1. *Restart* → Laptop restart karo — driver glitch aksar restart se theek ho jaata hai\n2. *External monitor test* → HDMI se monitor connect karo — bahar sahi dikh raha toh laptop screen hardware issue hai\n\nAgar restart se theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Screen color/display issue. Try these steps:\n\n1. *Restart* → Restart your laptop — driver glitch usually fixes on restart\n2. *External monitor test* → Connect monitor via HDMI — if external looks fine then laptop screen is a hardware issue\n\nIf restart did not fix it → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // Screen / Monitor — generic disambiguation (extra screen vs current screen broken)
   // NOTE: physical damage (crack/toot/damage) is excluded here — falls through to physical damage check below
   if (/\b(screen|monitor|display)\b/.test(pn) &&
       !/damage|crack|toot|phoot|gir\s*gaya|girna|broken|toota|tooti/.test(pn))
-    return `Aapko screen ki zarurat hai, lekin yeh clear nahi hai ki aapko *extra screen chahiye* ya *aapka current screen theek se kaam nahi kar raha* hai.\n\n🖥️ *Extra screen chahiye?*\n→ Yeh IT scope mein nahi aata. *Admin/Facilities se contact karein* — aur pehle *Reporting Manager ka approval* lena hoga.\n\n⚠️ *Current screen theek se kaam nahi kar rha?*\n→ Laptop on hai (power LED dikh raha)? Ya screen bilkul black hai?\n1. *Brightness keys* → Fn+F5 ya Fn+F8 dabao\n2. *Force restart* → Power button 10 sec hold karo → band karo → dobara on karo\n3. *Charger check* → Battery dead ho sakti hai → charger lagao → 10 min wait\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `You mentioned screen, but it is not clear if you need *an extra screen* or your *current screen is not working properly*.\n\n🖥️ *Need an extra screen?*\n→ This is outside IT scope. *Contact Admin/Facilities* — and you will need *your Reporting Manager's approval* first.\n\n⚠️ *Current screen not working?*\n→ Is the laptop on (can you see the power LED)? Or is the screen completely black?\n1. *Brightness keys* → Press Fn+F5 or Fn+F8\n2. *Force restart* → Hold power button 10 sec → shut down → turn back on\n3. *Charger check* → Battery may be dead → plug charger → wait 10 min\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // Laptop won't boot / startup error / stuck on boot screen
   if (/\b(boot|startup|start\s*up)\b.*(nahi|nhi|error|stuck|atak|fail|loop)|(nahi|nhi).*(boot|start\s*up|startup)|(laptop|pc|computer).*(start\s*nahi|on\s*nahi\s*ho|boot\s*nahi)|windows.*(load\s*nahi|start\s*nahi|aata\s*nahi|nahi\s*aa\s*rha)|stuck.*logo|logo.*stuck/.test(pn))
-    return `Laptop boot/startup issue. Yeh try karo:\n\n1. *Force shutdown* → Power button 10 sec hold karo → band ho jaaye → 30 sec ruko\n2. *Dobara on karo* → Power button dabao — Windows ab sahi load ho sakta hai\n3. *Charger check* → Battery dead ho sakti hai → charger lagao → 5 min wait karo → on karo\n4. *Baar baar ho rha hai?* → Windows update chal rhi ho sakti hai — wait karo 15-20 min, band mat karo\n\nAgar 3 baar try karne ke baad bhi boot nahi hua → *Create Ticket* button dabao — IT team aayegi 🎫`;
+    return `Laptop boot/startup issue. Try these steps:\n\n1. *Force shutdown* → Hold power button 10 sec → let it shut down → wait 30 sec\n2. *Turn on again* → Press power button — Windows may load correctly now\n3. *Check charger* → Battery may be dead → plug charger → wait 5 min → turn on\n4. *Happening repeatedly?* → Windows update may be running — wait 15-20 min, do not turn off\n\nIf still not booting after 3 tries → click *Create Ticket* button — IT team will come 🎫`;
 
   // Windows update / OS crash / restart loop
   if (/windows\s*(crash|restart|update|stuck|atak|loop|hang)|update\s*(stuck|atak|hang|nahi|ruka)|restart\s*(bar\s*bar|baar\s*baar|loop|hota\s*rha|ho\s*rha\s*bar)|os\s*(crash|hang|stuck)/.test(pn))
-    return `Windows issue hai. Yeh try karo:\n\n1. *Restart* → Power button se properly shut down karo → dobara on karo\n2. *Wait* → Agar Windows update chal rahi hai → wait karo, band mat karo\n\nAgar 3 baar se zyada restart ho raha hai ya nahi ruk raha → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Windows issue. Try these steps:\n\n1. *Restart* → Properly shut down via power button → turn back on\n2. *Wait* → If Windows update is running → wait, do not turn off\n\nIf restarting more than 3 times or cannot stop → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if ((pn.includes('sound') || pn.includes('audio') || pn.includes('speaker') || pn.includes('headphone')) && !pn.includes('zoom') && !pn.includes('teams') && !pn.includes('call'))
-    return `Audio issue. Yeh try karo:\n\n1. *Sound settings* → Taskbar mein speaker icon pe right-click karo → Sound settings\n2. *Output device* → sahi device select karo\n3. *Volume check* → 0% ya mute toh nahi?\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Audio issue. Try these steps:\n\n1. *Sound settings* → Right-click speaker icon in taskbar → Sound settings\n2. *Output device* → select the correct device\n3. *Volume check* → Is it at 0% or muted?\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('blue screen') || pn.includes('bsod'))
-    return `Blue Screen issue. Yeh karo:\n\n1. *Error code note karo* — screen pe jo likha tha woh\n2. *Restart karo* — aksar ek restart se theek ho jaata hai\n3. Agar 3 baar se zyada aaya hai → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Blue Screen issue. Do this:\n\n1. *Note the error code* — what was written on the screen\n2. *Restart* — usually one restart fixes it\n3. If it has appeared more than 3 times → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (/batter[yi]?|battry|battey|batr[yi]|\bbatt\b|charging/.test(pn))
-    return `Battery/Charging issue. Yeh try karo:\n\n1. *Charger check karo* → dono taraf firmly laga hai? (laptop side + socket side)\n2. *Alag socket try karo*\n3. *Reset karo* → Laptop band karo → charger nikalo → power button 30 sec hold karo → charger lagao → on karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Battery/Charging issue. Try these steps:\n\n1. *Check charger* → Is it firmly plugged on both ends? (laptop side + socket side)\n2. *Try a different socket*\n3. *Reset* → Shut down laptop → unplug charger → hold power button 30 sec → plug charger → turn on\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // ISSUE 4 fix: removed dead code — black screen already handled above (line ~361)
 
   if (pn.includes('keyboard') || pn.includes('keys') || /keybo?r?a?d/.test(pn))
-    return `Keyboard issue. Yeh try karo:\n\n1. *Restart* → Laptop restart karo\n2. *On-screen keyboard* → Start menu mein "On-Screen Keyboard" type karo → open karo → kaam chalao\n\n*Create Ticket* button dabao — IT aake fix karega 🎫`;
+    return `Keyboard issue. Try these steps:\n\n1. *Restart* → Restart your laptop\n2. *On-screen keyboard* → Start menu → type "On-Screen Keyboard" → open it → use it temporarily\n\nClick *Create Ticket* button — IT will come and fix it 🎫`;
 
   if (pn.includes('touchpad') || pn.includes('mouse'))
-    return `Touchpad issue. Yeh try karo:\n\n1. *Fn key* → Fn + touchpad lock key dabao (keyboard pe lock icon wali key)\n2. *Settings* → Settings → Bluetooth & devices → Touchpad → ON karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Touchpad issue. Try these steps:\n\n1. *Fn key* → Press Fn + touchpad lock key (the key with the lock icon on keyboard)\n2. *Settings* → Settings → Bluetooth & devices → Touchpad → turn ON\n3. *Restart* → Restart your laptop\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('printer'))
-    return `Printer issue. Yeh try karo:\n\n1. *Printer restart* → Printer band karo → 30 sec → on karo\n2. *Laptop restart* → Laptop restart karo → dobara print karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Printer issue. Try these steps:\n\n1. *Restart printer* → Turn printer off → wait 30 sec → turn back on\n2. *Restart laptop* → Restart your laptop → try printing again\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // MS OFFICE NOT WORKING / CRASHING — all variants including 365, xlsx, docx, pptx
   if (
     /\b(ms\s*office|microsoft\s*office|office\s*365|office365|ms365|word|excel|powerpoint|ppt|xlsx|xls|docx|doc\b|pptx|office\s*file|office\s*app|ms\s*word|ms\s*excel)\b/i.test(pn) &&
     /\b(nahi\s*khul|not\s*open|open\s*nahi|nahi\s*chal|crash|hang|ha+g|freeze|freez|error|band\s*ho|kaam\s*nahi|loading|stuck|atak|response\s*nahi|start\s*nahi|nahi\s*start)\b/i.test(pn)
   ) {
-    return `⚙️ *MS Office Issue* — yeh try karo:\n\n1. *Force close* → Ctrl+Shift+Esc → Task Manager → Microsoft Word/Excel dhundho → End Task → dobara open karo\n2. *Restart karo* → Laptop restart karo → dobara open karo\n\nAgar phir bhi nahi khul rha → *Create Ticket* button dabao — IT aake repair karega 🎫`;
+    return `⚙️ *MS Office Issue* — try these steps:\n\n1. *Force close* → Ctrl+Shift+Esc → Task Manager → find Microsoft Word/Excel → End Task → reopen\n2. *Restart* → Restart your laptop → reopen it\n\nIf still not opening → click *Create Ticket* button — IT will come and repair it 🎫`;
   }
 
   // Office 365 subscription/access issue
   if (/\b(office\s*365|microsoft\s*365|ms\s*365|office365)\b/i.test(pn) &&
       /\b(issue|problem|nahi|error|kaam\s*nahi|access\s*nahi|open\s*nahi|chal\s*nahi|activate|license)\b/i.test(pn)) {
-    return `⚙️ *Microsoft Office 365 Issue*\n\nYeh try karo:\n\n1. *Restart* → Laptop restart karo\n2. *Internet check karo* → Office 365 ke liye internet chahiye\n\nAgar phir bhi problem → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `⚙️ *Microsoft Office 365 Issue*\n\nTry these steps:\n\n1. *Restart* → Restart your laptop\n2. *Check internet* → Office 365 requires an internet connection\n\nIf still a problem → click *Create Ticket* button — IT team will help you directly 🎫`;
   }
 
   if (pn.includes('slack'))
-    return `Slack issue. Yeh try karo:\n\n1. *Quit karo* → Taskbar mein Slack icon right-click → Quit\n2. *Dobara open karo* → Start menu se Slack open karo\n3. *Cache clear* → Agar bhi nahi → Help → Troubleshooting → Clear Cache & Restart\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Slack issue. Try these steps:\n\n1. *Quit* → Right-click Slack icon in taskbar → Quit\n2. *Reopen* → Open Slack from Start menu\n3. *Clear cache* → If still not working → Help → Troubleshooting → Clear Cache & Restart\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('teams'))
-    return `Teams issue. Yeh try karo:\n\n1. *Quit & Reopen* → Taskbar pe Teams icon right-click → Quit → dobara open karo\n2. *Browser mein try karo* → teams.microsoft.com Chrome mein open karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Teams issue. Try these steps:\n\n1. *Quit & Reopen* → Right-click Teams icon in taskbar → Quit → reopen\n2. *Try in browser* → Open teams.microsoft.com in Chrome\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('zoom') && (pn.includes('mic') || pn.includes('audio') || pn.includes('awaaz') || pn.includes('sound') || pn.includes('sun') || pn.includes('nahi sun')))
-    return `Zoom microphone/audio issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Microphone → Zoom ko allow karo\n2. *Zoom Audio settings* → Zoom → Settings → Audio → correct microphone select karo → Test karo\n3. *Call mein check* → Zoom mein ⬆️ arrow (Mute button ke paas) → correct mic select karo\n4. *Restart karo* → Zoom quit → dobara join karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Zoom microphone/audio issue. Try these steps:\n\n1. *Privacy check* → Settings → Privacy & Security → Microphone → allow Zoom\n2. *Zoom Audio settings* → Zoom → Settings → Audio → select the correct microphone → Test it\n3. *Check in call* → Zoom → ⬆️ arrow (next to Mute button) → select correct mic\n4. *Restart* → Quit Zoom → rejoin the call\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('zoom') && (pn.includes('video') || pn.includes('camera') || pn.includes('cam') || pn.includes('black') || pn.includes('nahi dikh')))
-    return `Zoom camera/video issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Camera → Zoom ko allow karo\n2. *Zoom Video settings* → Zoom → Settings → Video → correct camera select karo\n3. *Call mein check* → Zoom mein ⬆️ arrow (Video button ke paas) → correct camera select karo\n4. *Restart karo* → Zoom quit → dobara join karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Zoom camera/video issue. Try these steps:\n\n1. *Privacy check* → Settings → Privacy & Security → Camera → allow Zoom\n2. *Zoom Video settings* → Zoom → Settings → Video → select the correct camera\n3. *Check in call* → Zoom → ⬆️ arrow (next to Video button) → select correct camera\n4. *Restart* → Quit Zoom → rejoin the call\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('zoom'))
-    return `Zoom issue. Yeh try karo:\n\n1. *Restart karo* → Zoom close karo → dobara open karo\n2. *Browser mein try karo* → zoom.us/wc/join Chrome mein kholo\n3. *Settings* → Zoom Settings → correct device select karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Zoom issue. Try these steps:\n\n1. *Restart* → Close Zoom → reopen it\n2. *Try in browser* → Open zoom.us/wc/join in Chrome\n3. *Settings* → Zoom Settings → select the correct device\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('calendar'))
-    return `Google Calendar issue. Yeh try karo:\n\n1. *Browser mein check karo* → Chrome mein calendar.google.com kholo\n2. *Cache clear karo* → Ctrl+Shift+Del → All time → Clear\n3. *Incognito try karo* → Ctrl+Shift+N → calendar.google.com\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Google Calendar issue. Try these steps:\n\n1. *Check in browser* → Open calendar.google.com in Chrome\n2. *Clear cache* → Ctrl+Shift+Del → All time → Clear\n3. *Try Incognito* → Ctrl+Shift+N → calendar.google.com\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('chrome') && (pn.includes('nahi') || pn.includes('crash') || pn.includes('open')))
-    return `Chrome issue. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → Chrome dhundho → End Task\n2. *Dobara open karo*\n3. *Laptop restart karo* → Agar bhi nahi\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Chrome issue. Try these steps:\n\n1. *Task Manager* → Ctrl+Shift+Esc → find Chrome → End Task\n2. *Reopen Chrome*\n3. *Restart laptop* → If still not working\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('edge') && (pn.includes('nahi') || pn.includes('crash') || pn.includes('open')))
-    return `Edge browser issue. Yeh try karo:\n\n1. *Task Manager* → Ctrl+Shift+Esc → Edge dhundho → End Task\n2. *Dobara open karo*\n3. *Chrome use karo* → Abhi ke liye Chrome browser use karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Edge browser issue. Try these steps:\n\n1. *Task Manager* → Ctrl+Shift+Esc → find Edge → End Task\n2. *Reopen Edge*\n3. *Use Chrome* → Use Chrome browser for now\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   // Phishing/suspicious email — MUST come before generic email check
   if (/phishing|suspicious\s*email|suspicious\s*link|spam\s*mail|fake\s*email|fraud\s*email/.test(pn))
-    return `Phishing/suspicious email aaya hai!\n\n1. *Link mat dabao* → Email mein koi bhi link ya attachment BILKUL mat dabao\n2. *Gmail mein Report* → Email → 3 dots → Report phishing\n3. *IT ko batao* → *Create Ticket* button dabao — IT investigate karega 🎫\n\n⚠️ Agar link dabao diya → TURANT ticket raise karo!`;
+    return `Phishing/suspicious email received!\n\n1. *Do NOT click any link* → ABSOLUTELY do not click any link or attachment in the email\n2. *Report in Gmail* → Email → 3 dots → Report phishing\n3. *Notify IT* → Click *Create Ticket* button — IT will investigate 🎫\n\n⚠️ If you already clicked the link → raise a ticket IMMEDIATELY!`;
 
   // WIOM uses Gmail (Google Workspace) — NOT Outlook
   // "email nahi chal rha", "gmail nahi khul rha", "mail nahi aa rha"
   if (pn.includes('outlook')) {
-    return `ℹ️ WIOM mein Outlook use nahi hota — *Gmail* use hoti hai.\n\nGmail se koi problem hai? gmail.com Chrome mein kholo aur batao kya issue aa raha hai.`;
+    return `ℹ️ WIOM does not use Outlook — *Gmail* is used.\n\nHaving a problem with Gmail? Open gmail.com in Chrome and describe the issue.`;
   }
   if (pn.includes('email') || pn.includes('gmail') || pn.includes('mail')) {
-    return `📧 *Gmail Issue* — yeh try karo:\n\n1. *Incognito test* → Chrome → Ctrl+Shift+N → gmail.com → dekho khulta hai ya nahi\n2. *Cache clear karo* → Ctrl+Shift+Del → "All time" → Cookies + Cache → Clear\n3. *Alag browser* → Edge mein gmail.com kholo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `📧 *Gmail Issue* — try these steps:\n\n1. *Incognito test* → Chrome → Ctrl+Shift+N → gmail.com → see if it opens\n2. *Clear cache* → Ctrl+Shift+Del → "All time" → Cookies + Cache → Clear\n3. *Different browser* → Open gmail.com in Edge\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
   }
 
   if (pn.includes('password') || pn.includes('locked') || pn.includes('login') || /pas?w?ro?d/.test(pn)) {
     // Gmail/Google password — IT handles (no admin rights to self-reset company Google accounts)
     if (/google|gmail|email|mail/.test(pn))
-      return `🔑 *Gmail/Google Account Password*\n\nCompany Gmail account ka password reset IT karta hai — employees khud reset nahi kar sakte.\n\n*Create Ticket* button dabao — IT jaldi reset kar dega 🎫`;
-    return `🔑 *Password/Login Issue*\n\nPassword reset sirf IT team kar sakti hai.\n\n*Create Ticket* button dabao — IT team jaldi reset kar degi 🎫`;
+      return `🔑 *Gmail/Google Account Password*\n\nCompany Gmail account password is reset by IT — employees cannot reset it themselves.\n\nClick *Create Ticket* button — IT will reset it quickly 🎫`;
+    return `🔑 *Password/Login Issue*\n\nPassword reset can only be done by IT team.\n\nClick *Create Ticket* button — IT team will reset it quickly 🎫`;
   }
 
   if (pn.includes('bluetooth'))
-    return `Bluetooth issue. Yeh try karo:\n\n1. *Toggle* → Settings → Bluetooth → OFF → ON karo\n2. *Re-pair* → Device remove karo → dobara pair karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Bluetooth issue. Try these steps:\n\n1. *Toggle* → Settings → Bluetooth → OFF → ON\n2. *Re-pair* → Remove the device → pair again\n3. *Restart* → Restart your laptop\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('camera') || pn.includes('webcam') || /\bcam\b/.test(pn))
-    return `Camera issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Camera → ON karo\n2. *App settings* → Teams/Zoom mein Settings → Video → correct camera select karo\n3. *Restart* → Laptop restart karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Camera issue. Try these steps:\n\n1. *Privacy check* → Settings → Privacy & Security → Camera → turn ON\n2. *App settings* → Teams/Zoom → Settings → Video → select the correct camera\n3. *Restart* → Restart your laptop\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (/mic|microphone/.test(pn) && !pn.includes('microsoft'))
-    return `Microphone issue. Yeh try karo:\n\n1. *Privacy check* → Settings → Privacy & Security → Microphone → ON karo\n2. *Input device* → Sound settings → Input → correct mic select karo\n3. *Teams test* → Teams Settings → Devices → mic test karo\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Microphone issue. Try these steps:\n\n1. *Privacy check* → Settings → Privacy & Security → Microphone → turn ON\n2. *Input device* → Sound settings → Input → select the correct mic\n3. *Teams test* → Teams Settings → Devices → test the mic\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('usb') || pn.includes('pendrive'))
-    return `USB issue. Yeh try karo:\n\n1. *Alag port* → USB device dusre port mein lagao\n2. *Restart* → Laptop restart karo → dobara lagao\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `USB issue. Try these steps:\n\n1. *Different port* → Plug the USB device into a different port\n2. *Restart* → Restart your laptop → plug back in\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('pdf') || pn.includes('adobe') || pn.includes('acrobat'))
-    return `PDF issue. Yeh try karo:\n\n1. *Chrome mein open karo* → PDF file ko Chrome mein drag karke drop karo — bina Adobe bhi khulti hai\n2. *Right-click* → PDF pe right-click → Open With → Adobe Acrobat select karo\n\nAgar Adobe nahi hai → *Create Ticket* button dabao — IT install kar dega 🎫`;
+    return `PDF issue. Try these steps:\n\n1. *Open in Chrome* → Drag and drop the PDF into Chrome — works without Adobe too\n2. *Right-click* → Right-click the PDF → Open With → select Adobe Acrobat\n\nIf Adobe is not installed → click *Create Ticket* button — IT will install it 🎫`;
 
   if (pn.includes('scanner') || pn.includes('scan'))
-    return `Scanner issue. Yeh try karo:\n\n1. *Scanner restart karo* → Band karo → 30 sec → on karo\n2. *USB check karo* → Cable properly lagi hai?\n3. *Laptop restart karo* → Dobara scan try karo\n\nAgar detect nahi ho rha → *Create Ticket* button dabao — IT driver install karega 🎫`;
+    return `Scanner issue. Try these steps:\n\n1. *Restart scanner* → Turn off → wait 30 sec → turn back on\n2. *Check USB cable* → Is the cable properly connected?\n3. *Restart laptop* → Try scanning again\n\nIf not detected → click *Create Ticket* button — IT will install the driver 🎫`;
 
   if (pn.includes('network drive') || pn.includes('shared drive') || /z:\s*drive|mapped\s*drive|shared\s*folder/.test(pn))
-    return `Network Drive issue. Yeh try karo:\n\n1. *Laptop restart karo* → Aksar restart se drive wapas aa jaati hai\n2. *File Explorer* → This PC → agar nahi dikh rha → *Create Ticket* button dabao — IT remap kar dega\n\nAgar theek nahi hua → *Create Ticket* button dabao — IT team directly help karegi 🎫`;
+    return `Network Drive issue. Try these steps:\n\n1. *Restart laptop* → Usually the drive comes back after restart\n2. *File Explorer* → This PC → if not showing → click *Create Ticket* button — IT will remap it\n\nIf not resolved → click *Create Ticket* button — IT team will help you directly 🎫`;
 
   if (pn.includes('shared folder') || pn.includes('folder access') || pn.includes('access nahi'))
-    return `Shared Folder Access issue. Yeh karo:\n\n*Create Ticket* button dabao — IT team aapko folder access dega. Ticket mein batao: *kaunsa folder* chahiye aur *kis kaam ke liye* 🎫`;
+    return `Shared Folder Access issue. Do this:\n\nClick *Create Ticket* button — IT team will give you folder access. In the ticket, mention: *which folder* you need and *what it is for* 🎫`;
 
   if (pn.includes('hdmi') || pn.includes('projector') || pn.includes('second screen') || pn.includes('external monitor') || pn.includes('monitor connect'))
-    return `External Monitor/Projector issue. Yeh try karo:\n\n1. *Cable check karo* → HDMI cable dono taraf properly lagi hai?\n2. *Win+P* → Windows + P key dabao → Extend ya Duplicate select karo\n3. *Monitor ON* → External monitor on hai?\n\nAgar detect nahi ho rha → *Create Ticket* button dabao — IT directly help karegi 🎫`;
+    return `External Monitor/Projector issue. Try these steps:\n\n1. *Check cable* → Is the HDMI cable properly connected on both ends?\n2. *Win+P* → Press Windows + P → select Extend or Duplicate\n3. *Monitor ON* → Is the external monitor turned on?\n\nIf not detected → click *Create Ticket* button — IT will help directly 🎫`;
 
   if (pn.includes('storage') || pn.includes('disk full'))
-    return `Storage/disk full issue. Yeh try karo:\n\n1. *Recycle Bin* → Desktop pe Recycle Bin → Empty Recycle Bin\n2. *Downloads folder* → File Explorer → Downloads → jo files zaruri nahi unhe delete karo\n\nAgar ab bhi issue hai → *Create Ticket* button dabao — IT baaki cleanup karega 🎫`;
+    return `Storage/disk full issue. Try these steps:\n\n1. *Recycle Bin* → Desktop → Recycle Bin → Empty Recycle Bin\n2. *Downloads folder* → File Explorer → Downloads → delete files you no longer need\n\nIf still a problem → click *Create Ticket* button — IT will do the rest of the cleanup 🎫`;
 
   // BUG-FIX: VPN check in getKBFallback (was only in detectIntent, returned generic before)
   if (/\bvpn\b/.test(pn))
-    return `ℹ️ WIOM mein VPN use nahi hota.\n\nKoi aur IT issue hai? Batao — help karunga.`;
+    return `ℹ️ WIOM does not use VPN.\n\nAny other IT issue? Let me know — I can help.`;
 
   // BUG-FIX: liquid damage — "paani gira", "paani gir gaya" etc. (was returning generic)
   if (/paani|liquid|pani\s*gir|water\s*(gir|spill|giray)|coffee\s*gir|chai\s*gir/.test(pn))
-    return `EMERGENCY! Liquid/Paani gira hai!\n\n1. *TURANT BAND KARO* — Power button hold karo\n2. *CHARGER NIKALO*\n3. *ULTA RAKHO* → Liquid drain hone do\n4. *Hairdryer mat lagao*\n5. *IT ko batao* → ${ADMIN_EMAIL_KB}\n\n*Create Ticket* button dabao → CRITICAL emergency 🎫`;
+    return `EMERGENCY! Liquid/Water spilled!\n\n1. *TURN OFF IMMEDIATELY* — Hold the power button\n2. *UNPLUG CHARGER*\n3. *TURN UPSIDE DOWN* → Let the liquid drain out\n4. *Do NOT use a hairdryer*\n5. *Notify IT* → ${ADMIN_EMAIL_KB}\n\nClick *Create Ticket* → CRITICAL emergency 🎫`;
 
   // BUG-FIX: physical damage — "gir gaya", "toot gaya", "damage" (was returning generic)
   if (/gir\s*gaya|toot\s*gaya|toot\s*gai|phoot\s*gaya|crack|damage|broken|screen\s*toot|crack\s*ho|physical/.test(pn) &&
       /laptop|screen|display|phone|tablet/.test(pn))
-    return `Laptop physically damage hua hai.\n\nSoftware se fix nahi hoga — *Create Ticket* button dabao TURANT.\nIT physically assess aur repair/replace karega.\nTicket mein damage ka description likho. 🎫`;
+    return `Laptop has been physically damaged.\n\nThis cannot be fixed with software — click *Create Ticket* button IMMEDIATELY.\nIT will physically assess and repair/replace it.\nIn the ticket, describe the damage. 🎫`;
 
   if (pn.includes('virus') || pn.includes('malware') || pn.includes('antivirus'))
-    return `Possible virus/malware issue. Yeh karo:\n\n1. *Quick Scan* → Windows Security → Virus & threat protection → Quick Scan\n2. *Internet band karo* → agar suspicious activity lag rahi hai\n\n*Create Ticket* button dabao — yeh serious ho sakta hai, IT team directly help karegi 🎫`;
+    return `Possible virus/malware issue. Do this:\n\n1. *Quick Scan* → Windows Security → Virus & threat protection → Quick Scan\n2. *Disconnect internet* → if suspicious activity is suspected\n\nClick *Create Ticket* button — this could be serious, IT team will help you directly 🎫`;
 
   if (pn.includes('kaise ho') || pn.includes('kaisa hai') || pn.includes('how are you') || pn.includes('kya haal'))
-    return 'Sab theek hai, shukriya. Koi IT issue hai? Batao — help karunga.';
+    return 'All good, thank you! Any IT issue? Let me know — I can help.';
 
   if (pn.includes('thanks') || pn.includes('shukriya') || pn.includes('thank you') || pn.includes('dhanyawad'))
     return 'You are welcome. Feel free to reach out if anything else comes up.';
 
   if (/^(hello|hi+|hey|namaste|namaskar|hlo|helo)\s*[!.]*$/i.test(pn.trim()))
-    return 'Hello! I am Zivon — WIOM IT Support Assistant. How can I help you today?';
+    return 'Hello! I am WIOM IT Support Assistant. How can I help you today?';
 
   if (/\b(kise|kaun)\s*(ho|hain|hai)\b/i.test(pn) || /\b(tum|aap)\s*(kya|kise|kaun)\b/i.test(pn))
-    return `Main *Zivon* hoon — WIOM ka IT support assistant.\nLaptop, WiFi, software, password — kisi bhi IT issue mein help kar sakta hoon.\nBatao kya problem hai.`;
+    return `I'm *WIOM IT Assistant*.\nLaptop, WiFi, software, password — I can help with any IT issue.\nTell me what the problem is.`;
 
   // FIX: "sajan" only for contact-intent, not when user introduces themselves
   if ((pn.includes('sajan') && /contact|email|se\s*baat|number|kaun\s*hai|it\s*wala/.test(pn)) ||
@@ -689,34 +689,34 @@ const getKBFallback = (problem) => {
 
   // Conversational / non-IT responses
   if (/^(bye|goodbye|exit|quit|close|band\s*karo|niklo|alvida|baad\s*mein|chalte\s*hain|nikalta\s*hoon|nikal\s*rha)\s*[!.]*$/i.test(pn.trim()))
-    return 'Theek hai! Koi aur IT issue ho toh batayein. 👍';
+    return 'Alright! Let me know if you have any other IT issue. 👍';
 
   if (/\b(ok\b|okay|theek\s*hai|accha|achha|haan\s*theek|kal\s*bataunga|dekh\s*leta)\b/i.test(pn))
-    return 'Theek hai. Koi aur IT issue ho toh batayein.';
+    return 'Okay. Let me know if you have any other IT issue.';
 
   if (/good\s*(morning|evening|night|afternoon)|subah|shaam\s*ko|kal\s*milte|good\s*day/i.test(pn))
-    return 'Hello! Koi IT issue hai? Batao — main help karunga.';
+    return 'Hello! Any IT issue? Let me know — I can help.';
 
   if (/\b(haha|hehe|lol|lmao|xd|😂|😄)\b/i.test(pn))
-    return 'Koi IT issue ho toh batayein — main help karunga. 😊';
+    return 'Let me know if you have any IT issue — I can help. 😊';
 
   if (/\b(call\s*karo|phone\s*karo|ring\s*karo|call\s*karna\s*hai)\b/i.test(pn))
-    return 'Yeh bot text-based support hai. Apni problem yahan type karo — main help karunga.';
+    return 'This bot is text-based support. Type your problem here — I can help.';
 
   if (/\b(bhook|khaana|khana|chai|coffee|pani|water|pantry|canteen|lunch|dinner|breakfast)\b/i.test(pn) &&
       !/\blaptop\b|\bwifi\b|\bscreen\b/.test(pn))
-    return 'Yeh IT helpdesk hai — sirf laptop, WiFi aur software problems handle karta hoon. Koi IT issue ho toh batayein!';
+    return 'This is the IT helpdesk — I only handle laptop, WiFi and software problems. Let me know if you have an IT issue!';
 
   if (/\b(bakwas|useless|bekar|faltu|kaam\s*nahi|farq\s*nahi|chodo|ignore)\b/i.test(pn))
-    return 'Samajh gaya. Koi bhi IT issue ho toh batayein — main help karunga.';
+    return 'Understood. Let me know if you have any IT issue — I can help.';
 
   if (/ticket\s*(kahan|ka\s*kya\s*hua|raise\s*kiya|status|kab\s*tak)|kab\s*tak\s*(kaam|resolve|theek|fix)/i.test(pn))
-    return 'Aapka ticket IT team ke paas hai. Status dekhne ke liye type karo: *my tickets*';
+    return 'Your ticket is with the IT team. To check status, type: *my tickets*';
 
   if (/are\s*you\s*(ai|human|bot|robot)|kya\s*aap\s*(human|ai|bot|robot|real)\s*hain/i.test(pn))
-    return `Main *Zivon* hoon — WIOM ka IT support AI assistant.\nLaptop, WiFi, software, password — kisi bhi IT issue mein help kar sakta hoon.`;
+    return `I'm *WIOM IT Assistant*.\nLaptop, WiFi, software, password — I can help with any IT issue.`;
 
-  return `Apni problem thodi detail mein batao — kaunsa app ya device, aur kya ho rha hai exactly?\n\nYa seedha *Create Ticket* button dabao — IT team directly aapki help karegi. 🎫`;
+  return `Please describe your problem in a bit more detail — which app or device, and exactly what is happening?\n\nOr click the *Create Ticket* button directly — IT team will help you directly. 🎫`;
 };
 
 // ── Call Gemini (Google FREE fallback) ───────────────────────────────────────
@@ -802,21 +802,21 @@ const getFallbackResponse = (query, intent, category) => {
   // Enterprise software — specific error codes, specific apps
   if (/\b(sap|autocad|power\s*bi|vmware|cisco|oracle|tally|quickbooks|solidworks|matlab|tableau|figma|sketch|adobe|photoshop|illustrator|premiere|after\s*effects|jira|confluence|salesforce|hubspot)\b/i.test(q)) {
     const appName = q.match(/\b(sap|autocad|power\s*bi|vmware|cisco|oracle|tally|quickbooks|solidworks|matlab|tableau|figma|sketch|adobe\s*\w+|photoshop|illustrator|premiere|after\s*effects|jira|confluence|salesforce|hubspot)\b/i)?.[0] || 'application';
-    return `Yeh ${appName.toUpperCase()} ka issue lag rha hai. IT team ko yeh details share karo:\n\n• *Error message/code* — exactly kya likh raha hai?\n• *Kab se ho rha hai* — aaj pehli baar ya pehle bhi?\n• *Screenshot* — agar le sako\n\n*Create Ticket* button dabao — IT specialist handle karega 🎫`;
+    return `This looks like a ${appName.toUpperCase()} issue. Please share these details with IT:\n\n• *Error message/code* — what exactly does it say?\n• *Since when* — first time today or has it happened before?\n• *Screenshot* — if you can take one\n\nClick *Create Ticket* button — IT specialist will handle it 🎫`;
   }
 
   // Error codes — specific format like 0x80045, error 404, etc.
   if (/\b(error\s*[0-9a-fx]{4,}|0x[0-9a-f]+|err\s*\d+|code\s*\d+)\b/i.test(q)) {
     const errCode = q.match(/\b(error\s*[0-9a-fx]{4,}|0x[0-9a-f]+|err\s*\d+|code\s*\d+)\b/i)?.[0] || 'error';
-    return `${errCode.toUpperCase()} error — yeh specific error code IT ko dhundhna padega.\n\nPlease share karo:\n• *Kaunsa application* — kis software mein aa rha hai?\n• *Exact error message* — screenshot helpful hogi\n• *Kab se* — koi update/change ke baad?\n\n*Create Ticket* button dabao — HIGH PRIORITY ticket raise hoga 🎫`;
+    return `${errCode.toUpperCase()} error — this specific error code needs to be investigated by IT.\n\nPlease share:\n• *Which application* — which software is showing this?\n• *Exact error message* — a screenshot would help\n• *Since when* — after any update or change?\n\nClick *Create Ticket* button — a HIGH PRIORITY ticket will be raised 🎫`;
   }
 
   // Generic unknown but has technical words
-  return `Yeh issue meri knowledge base mein nahi hai. IT team better help kar sakti hai.\n\nYeh share karo:\n• *Kaunsa app/device* — exactly kya problem hai?\n• *Error message* — screen pe kya likha hai?\n• *Kab se* — pehle theek tha?\n\n*Create Ticket* button dabao — IT team directly help karegi 🎫`;
+  return `This issue is not in my knowledge base. IT team can help better.\n\nPlease share:\n• *Which app/device* — what exactly is the problem?\n• *Error message* — what does the screen say?\n• *Since when* — was it working before?\n\nClick *Create Ticket* button — IT team will help you directly 🎫`;
 };
 
 // Generic KB fallback string — used to detect when getKBFallback has no specific answer
-const KB_GENERIC = `Apni problem thodi detail mein batao`;
+const KB_GENERIC = `Please provide more details about your problem`;
 
 // ── Main chat function ────────────────────────────────────────────────────────
 const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, floor }) => {
@@ -864,7 +864,7 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
   // lastUserQ already declared above (KB pre-check block)
 
   // ── QUESTION READING INSTRUCTION — force AI to understand before answering ──
-  const readFirst = `\n\n🔍 EMPLOYEE KA SAWAAL: "${lastUserQ}"\n\nPEHLE YEH SAMJHO:\n- Kya employee kuch MANGWA raha hai? (chahiye/need/request) → equipment/purchase process batao\n- Kya kuch TROUBLESHOOT karna hai? (nahi chal rha/problem) → steps do\n- Kya HOW-TO poochh raha hai? (kaise/how) → seedha batao\n- Kya policy/rule poochh raha hai? → policy se jawab do\nGalat category mein jawab mat do. Sawaal poora padho, phir jawab do.`;
+  const readFirst = `\n\n🔍 EMPLOYEE QUESTION: "${lastUserQ}"\n\nFIRST UNDERSTAND:\n- Is the employee REQUESTING something? (need/request) → explain equipment/purchase process\n- Does something need TROUBLESHOOTING? (not working/problem) → give steps\n- Is it a HOW-TO question? (how/guide) → answer directly\n- Is it a policy/rule question? → answer from policy\nDo not answer in the wrong category. Read the question fully before answering.`;
 
   const intentContext = `\n\n⚡ DETECTED CATEGORY: ${intent.category}\n🎯 INSTRUCTION: ${intent.hint}` + readFirst;
 
@@ -943,19 +943,19 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     .replace(/\bHaan\s+yaar\b/gi, 'Haan,')
     // Remove admin-only tools if AI slips them through
     .replace(/\bosk\.exe\b/gi, 'On-Screen Keyboard')
-    .replace(/delete\s+%appdata%[^\n]*/gi, 'Teams cache clear karo (IT ticket raise karo — woh clear kar denge)')
+    .replace(/delete\s+%appdata%[^\n]*/gi, 'Clear Teams cache (raise an IT ticket — they will clear it)')
     .replace(/%appdata%[^\s]*/gi, 'Teams cache folder')
     .replace(/\bcleanmgr\b/gi, '')
     .replace(/\bservices\.msc\b/gi, '')
-    .replace(/\bDevice Manager\b[^.!?\n]*/gi, 'IT ticket raise karo')
+    .replace(/\bDevice Manager\b[^.!?\n]*/gi, 'raise an IT ticket')
     .replace(/\bHP Support Assistant\b[^.!?\n]*/gi, '')
     .replace(/\bDell\s+(Support|SupportAssist|Diagnostics)[^.!?\n]*/gi, '')
     .replace(/\bLenovo\s+(Vantage|Support)[^.!?\n]*/gi, '')
-    .replace(/Update\s+[Dd]river[^.!?\n]*/gi, 'IT ticket raise karo (driver update IT karega)')
+    .replace(/Update\s+[Dd]river[^.!?\n]*/gi, 'raise an IT ticket (IT will update the driver)')
     // Remove Safe Mode / F8 / Diagnostic Tool suggestions — IT only
-    .replace(/safe\s*mode\s*(mein|me|boot|open|karo|se)[^.!?\n]*/gi, 'IT ticket raise karo')
+    .replace(/safe\s*mode\s*(mein|me|boot|open|karo|se)[^.!?\n]*/gi, 'raise an IT ticket')
     .replace(/F8\s*(key|dabao|press)[^.!?\n]*/gi, '')
-    .replace(/diagnostic\s*tool[^.!?\n]*/gi, 'IT ticket raise karo')
+    .replace(/diagnostic\s*tool[^.!?\n]*/gi, 'raise an IT ticket')
     .replace(/advanced\s*boot\s*options[^.!?\n]*/gi, '')
     // Remove "common issue/problem" openers — go straight to solution
     .replace(/yeh\s+ek\s+(common\s+)?(boot|wifi|network|laptop|hardware|software|display|screen|password|account|printer|teams|email|gmail)?\s*(issue|problem|error)\s+hai[.!,—–-]?\s*/gi, '')
@@ -1009,18 +1009,18 @@ const chat = async (messages, { empId, empName, source, laptop, laptopSN, dept, 
     const lastUserMsg = history.filter(m => m.role === 'user').pop()?.content || '';
     const isHardware = /screen|laptop|keyboard|mouse|battery|fan|hardware/i.test(lastUserMsg);
     reply = isHardware
-      ? `Hardware issue hai — ismein IT team physically help karegi. *Create Ticket* button dabao — IT directly aayegi 🎫`
-      : `Samajh gaya. IT team handle kar legi. *Create Ticket* button dabao — ticket raise ho jaayega 🎫`;
+      ? `Hardware issue — IT team will physically help. Click *Create Ticket* button — IT will come to you 🎫`
+      : `Got it. IT team will handle it. Click *Create Ticket* button — ticket will be raised 🎫`;
   }
 
   // Normalize: if shouldCreateTicket but no button prompt visible, add it
   if (shouldCreateTicket && !isHallucinated && !/Create\s*Ticket\s*button/i.test(reply)) {
-    reply = reply.replace(/\s*$/, '') + '\n\n*Create Ticket* button dabao — IT team directly help karegi 🎫';
+    reply = reply.replace(/\s*$/, '') + '\n\nClick *Create Ticket* button — IT team will help you directly 🎫';
   }
 
   // Final safety: if reply is empty for any reason
   if (!reply || reply.trim().length < 10) {
-    reply = `Kuch technical issue aa gaya. Seedha *Create Ticket* button dabao — IT team directly help karegi. 🎫`;
+    reply = `A technical issue occurred. Click *Create Ticket* button — IT team will help you directly. 🎫`;
   }
 
   return {

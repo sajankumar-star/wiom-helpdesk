@@ -19,7 +19,7 @@ const Ticket = require('./models/Ticket');
 const Conversation = require('./models/Conversation');
 const FixJob = require('./models/FixJob');
 
-// ── FIX: Global crash guards Slack Socket Mode disconnect nahi crash karein ─
+// ── FIX: Global crash guards Slack Socket Mode prevent disconnect from crashing ─
 process.on('uncaughtException', (err) => {
  // Slack Socket Mode "server explicit disconnect" is normal ignore it
  if (err.message && err.message.includes('Unhandled event')) {
@@ -894,21 +894,21 @@ app.listen(PORT, async () => {
 
  // ── Build Home Tab blocks — Advanced Design ──────────────────────────────────
  const IT_TIPS = [
-   '💡 Har hafte laptop restart karo — speed badhti hai aur crashes kam hote hain.',
-   '💡 Password kabhi share mat karo — har employee ka alag password hona chahiye.',
-   '💡 WiFi slow lage toh router ke paas jaao — door hone se signal weak hota hai.',
-   '💡 Browser slow hai? Ctrl+Shift+Del se cache clear karo — bahut fast ho jaayega.',
-   '💡 Laptop charge karte waqt hard table pe rakho — soft surface pe battery garam hoti hai.',
-   '💡 Suspicious email mein link mat dabao — pehle IT ko batao.',
-   '💡 Camera nahi chal rha? Settings → Privacy → Camera ON karo.',
-   '💡 Koi bhi software install karne ke liye IT se ticket raise karo — admin rights chahiye.',
-   '💡 Laptop screen dim? Fn+F5 ya Fn+F6 se brightness badhaao.',
-   '💡 PDF file nahi khul rhi? Chrome mein drag karke drop karo — direct open ho jaayegi.',
-   '💡 Excel slow? File → Options → Add-ins → COM Add-ins → sab uncheck karo.',
-   '💡 Printer offline? Pehle printer restart karo, phir laptop restart karo.',
+   '💡 Restart your laptop every week — it improves speed and reduces crashes.',
+   '💡 Never share your password — every employee should have their own unique password.',
+   '💡 WiFi slow? Move closer to the router — distance weakens the signal.',
+   '💡 Browser running slow? Press Ctrl+Shift+Del to clear the cache — it will speed up significantly.',
+   '💡 When charging, keep your laptop on a hard surface — soft surfaces cause the battery to overheat.',
+   '💡 Do not click links in suspicious emails — report them to IT first.',
+   '💡 Camera not working? Go to Settings → Privacy → Camera and turn it ON.',
+   '💡 To install any software, raise a ticket with IT — admin rights are required.',
+   '💡 Laptop screen too dim? Use Fn+F5 or Fn+F6 to increase brightness.',
+   '💡 PDF not opening? Drag and drop it into Chrome — it will open directly.',
+   '💡 Excel running slow? Go to File → Options → Add-ins → COM Add-ins → uncheck all.',
+   '💡 Printer offline? Restart the printer first, then restart your laptop.',
    '💡 WIOM WiFi password: spartans500  |  Saket office: Password@12345',
-   '💡 Laptop bahut garam? Hard table pe rakho, ventilation holes band mat karo.',
-   '💡 Google Calendar sync issue? Chrome cache clear karo — Ctrl+Shift+Del.',
+   '💡 Laptop overheating? Place it on a hard flat surface — do not block the ventilation holes.',
+   '💡 Google Calendar sync issue? Clear Chrome cache — press Ctrl+Shift+Del.',
  ];
 
  const buildHomeBlocks = (emp, myTickets, expandedSet, stats = {}) => {
@@ -1007,8 +1007,8 @@ app.listen(PORT, async () => {
  const buildGreetingBlocks = (firstName = 'there') => ([
    {
      type: 'section',
-     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\nI'm *Zivon* — WIOM's AI IT Assistant.\nLaptop, WiFi, software, password — tell me your problem and I'll fix it right away!\n\n_Select a category below — Zivon will help you instantly!_` },
-     accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/images/zivon-robot.gif', alt_text: 'Zivon' }
+     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\n*WIOM IT Helpdesk*\nLaptop, WiFi, software, password — tell me your problem and I'll help you right away!\n\n_Select a category below 👇_` },
+     accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/images/zivon-robot.gif', alt_text: 'WIOM IT' }
    },
    { type: 'divider' },
    {
@@ -1192,46 +1192,46 @@ app.listen(PORT, async () => {
        type: 'actions',
        elements: [{
          type: 'button',
-         text: { type: 'plain_text', text: '🎫  IT Ticket Banao', emoji: true },
+         text: { type: 'plain_text', text: '🎫  Create IT Ticket', emoji: true },
          action_id: 'quick_ticket_btn',
          style: 'danger',
          value: urgency,
          confirm: {
-           title: { type: 'plain_text', text: 'Ticket Create Karein?' },
-           text: { type: 'mrkdwn', text: '_IT team ko alert bheja jayega — woh directly fix karegi._' },
-           confirm: { type: 'plain_text', text: '✅ Ha, Banao!' },
-           deny: { type: 'plain_text', text: 'Ruko' }
+           title: { type: 'plain_text', text: 'Create Ticket?' },
+           text: { type: 'mrkdwn', text: '_IT team will be alerted — they will fix it directly._' },
+           confirm: { type: 'plain_text', text: '✅ Yes, Create!' },
+           deny: { type: 'plain_text', text: 'Cancel' }
          }
        }]
      });
    } else {
-     // Steps mode — Ho gaya + Ticket + Wrong Answer feedback
+     // Steps mode — Done + Ticket + Wrong Answer feedback
      blocks.push({
        type: 'actions',
        elements: [
          {
            type: 'button',
-           text: { type: 'plain_text', text: '✅  Ho gaya!', emoji: true },
+           text: { type: 'plain_text', text: '✅  Done!', emoji: true },
            action_id: 'resolved_yes_btn',
            style: 'primary',
            value: urgency
          },
          {
            type: 'button',
-           text: { type: 'plain_text', text: '🎫  IT Ticket Banao', emoji: true },
+           text: { type: 'plain_text', text: '🎫  Create IT Ticket', emoji: true },
            action_id: 'quick_ticket_btn',
            style: 'danger',
            value: urgency,
            confirm: {
-             title: { type: 'plain_text', text: 'Ticket Create Karein?' },
-             text: { type: 'mrkdwn', text: '_IT team ko alert bheja jayega — woh directly fix karegi._' },
-             confirm: { type: 'plain_text', text: '✅ Ha, Banao!' },
-             deny: { type: 'plain_text', text: 'Ruko' }
+             title: { type: 'plain_text', text: 'Create Ticket?' },
+             text: { type: 'mrkdwn', text: '_IT team will be alerted — they will fix it directly._' },
+             confirm: { type: 'plain_text', text: '✅ Yes, Create!' },
+             deny: { type: 'plain_text', text: 'Cancel' }
            }
          },
          {
            type: 'button',
-           text: { type: 'plain_text', text: '❌  Kaam Nahi Aaya', emoji: true },
+           text: { type: 'plain_text', text: "❌  Didn't Work", emoji: true },
            action_id: 'wrong_answer_btn',
            value: problemText || ''
          }
@@ -1249,19 +1249,19 @@ app.listen(PORT, async () => {
    { type: 'actions', elements: [
      {
        type: 'button',
-       text: { type: 'plain_text', text: '🎫  IT Ticket Create Karo', emoji: true },
+       text: { type: 'plain_text', text: '🎫  Create IT Ticket', emoji: true },
        action_id: 'quick_ticket_btn',
        style: 'danger',
        confirm: {
-         title: { type: 'plain_text', text: 'Ticket Create Karein?' },
-         text: { type: 'mrkdwn', text: '_IT team directly aayegi — woh personally fix karegi._' },
-         confirm: { type: 'plain_text', text: '✅ Ha, Banao!' },
-         deny: { type: 'plain_text', text: 'Ruko' }
+         title: { type: 'plain_text', text: 'Create Ticket?' },
+         text: { type: 'mrkdwn', text: '_IT team will come to you directly — they will personally fix it._' },
+         confirm: { type: 'plain_text', text: '✅ Yes, Create!' },
+         deny: { type: 'plain_text', text: 'Cancel' }
        }
      },
      {
        type: 'button',
-       text: { type: 'plain_text', text: '🔄  Phir Try Karo', emoji: true },
+       text: { type: 'plain_text', text: '🔄  Try Again', emoji: true },
        action_id: 'not_resolved_btn',
        value: 'retry'
      }
@@ -1672,7 +1672,7 @@ app.listen(PORT, async () => {
  { type: 'header', text: { type: 'plain_text', text: `${emoji} IT ${typeLabel[msgType]}`, emoji: true }},
  { type: 'section', text: { type: 'mrkdwn', text: message }},
  { type: 'context', elements: [{ type: 'mrkdwn',
- text: `_From: WIOM IT Team (Zivon) | ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}_`
+ text: `_From: WIOM IT Team | ${new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short' })}_`
  }]}
  ]
  });
@@ -1682,7 +1682,7 @@ app.listen(PORT, async () => {
  // Confirm to admin
  await client.chat.postMessage({
  channel: body.user.id,
- text: `✅ Broadcast sent! ${sent} employees ko message mila. ${failed > 0 ? `(${failed} failed)` : ''}`,
+ text: `✅ Broadcast sent! ${sent} employees received the message. ${failed > 0 ? `(${failed} failed)` : ''}`,
  blocks: [
  { type: 'section', text: { type: 'mrkdwn', text: `*✅ Broadcast Complete!*\n\n*Message:* ${message}\n*Delivered:* ${sent} employees\n${failed > 0 ? `*Failed:* ${failed}` : '*All delivered!* 🎉'}` }}
  ]
@@ -2308,62 +2308,62 @@ app.listen(PORT, async () => {
  }
 
  const KEY_TO_PROBLEM = {
-   laptop_slow: 'laptop bahut slow hai hang ho rha hai', excel_slow: 'Microsoft Excel bahut slow chal rha hai hang ho rha hai freeze ho rha hai',
-   blue_screen: 'blue screen bsod error aa rha hai',
-   overheat: 'laptop overheating bahut garam ho rha hai', battery_issue: 'battery issue charging problem',
-   battery_not_charging: 'battery charge nahi ho rhi charger nahi chal rha',
-   keys_not_working: 'keyboard kaam nahi kar rha', touchpad_issue: 'touchpad kaam nahi kar rha cursor stuck',
-   camera_issue: 'laptop ka webcam/camera video call mein kaam nahi kar rha — black screen ya camera detect nahi ho rha, Privacy settings ya driver issue', mic_issue: 'laptop ka built-in microphone kaam nahi kar rha — video call mein awaaz nahi jaati, Privacy settings mein mic off ho sakta hai',
-   sound_none: 'laptop ke speakers se awaaz bilkul nahi aa rhi — volume sahi hai phir bhi silent hai', screen_black: 'screen black ho gyi kuch nahi dikh rha',
-   external_monitor: 'external monitor HDMI se connect kiya par laptop pe detect nahi ho rha second screen nahi aa rha', scanner_issue: 'office scanner ya printer ka scanner mode kaam nahi kar rha PC pe detect nahi ho rha',
-   wont_turn_on: 'laptop on nahi ho rha won\'t turn on start nahi ho rha',
-  wifi_not_connect: 'wifi nahi chal rha connect nahi ho rha', no_internet: 'internet bilkul nahi chal rha laptop connected hai par pages nahi khul rhe',
-  internet_slow: 'internet bahut slow hai',
-   lan_issue: 'lan cable nahi chal rha ethernet issue', network_drive: 'network shared drive missing hai — mapped drive Z: ya shared folder accessible nahi hai, reconnect karna hai',
-   excel_issue: 'excel open nahi ho rha crash ho rha', word_issue: 'word open nahi ho rha crash',
-   ppt_issue: 'powerpoint open nahi ho rha', office_activation: 'MS Office activation error — employees khud activate nahi kar sakte, IT ticket raise karo',
-   file_corrupted: 'Word Excel PPT ya koi bhi file nahi khul rhi — software missing ya file open karne mein error aa rha', chrome_issue: 'Google Chrome browser nahi khul rha ya crash ho rha hai — Task Manager se Chrome end karo dobara open karo',
-   edge_issue: 'Edge browser nahi khul rha ya crash ho rha — Task Manager se close karo dobara open karo', browser_slow: 'Google Chrome ya Edge browser bahut slow hai pages load hote hain ya freeze ho jaata hai',
-   website_blocked: 'specific website page open nahi ho rha browser mein load nahi ho rha — doosri websites theek chal rhi hain', teams_issue: 'Teams app nahi khul rha ya call drop ho rhi hai ya messages nahi aa rhe — system tray se Quit karo dobara open karo',
-   zoom_issue: 'Zoom app nahi khul rha ya meeting join nahi ho rhi ya call quality issue hai — Zoom close karo dobara open karo', pdf_issue: 'PDF file nahi khul rhi Adobe Acrobat ya Reader kaam nahi kar rha ya PDF open karne mein error',
-   app_crash: 'application/software nahi khul rha ya crash ho rha hai — Task Manager se process end karo dobara open karo, restart karo', gmail_issue: 'Gmail nahi khul rha ya emails nahi aa rhe — Chrome mein gmail.com directly open karo, incognito mein try karo',
-   outlook_email: 'gmail email issue', email_login: 'gmail login nahi ho rha email mein access nahi',
-  slack_issue: 'Slack app nahi khul rha ya messages nahi aa rhe ya notifications band hain — Quit karo system tray se, dobara open karo, agar bhi nahi to cache clear karo',
-   email_not_sending: 'Gmail se email send nahi ho rhi — error aa rha hai ya email stuck hai outbox mein', email_not_receiving: 'Gmail inbox mein emails nahi aa rhi — expected emails missing hain ya inbox khali hai',
-   calendar_sync: 'Google Calendar sync issue hai — meetings aur events show nahi ho rahe ya Google Calendar open karne mein problem hai', password_reset: 'password bhool gaya reset karna hai',
-   account_locked: 'account locked ho gaya login nahi ho rha', shared_folder: 'shared folder access nahi mil rha',
-   email_access: 'Gmail account access chahiye — naya account ya existing account mein problem', software_access: 'kisi software ka access chahiye — install karna hai ya permission chahiye, IT karega',
-   new_laptop: 'new laptop request chahiye', new_mouse: 'mouse chahiye new',
-   new_keyboard: 'keyboard chahiye new', new_headphone: 'headphone chahiye',
-   new_monitor: 'monitor chahiye new', new_charger: 'charger chahiye',
-   screen_flicker: 'laptop screen flicker kar rhi hai blink ho rhi',
-   projector_issue: 'projector ya HDMI conference room mein connect nahi ho rha',
-   usb_issue: 'USB port kaam nahi kar rha device detect nahi ho rhi',
-   fan_noise: 'laptop fan bahut tez noise kar rha hai ya band hai',
-   physical_damage: 'laptop physically damage ho gaya crack aa gaya ya gir gaya',
-   liquid_damage: 'laptop mein paani ya liquid gir gaya water damage EMERGENCY',
-   frequent_disconnect: 'WiFi baar baar disconnect ho rhi hai unstable',
-   door_access: 'office door access card kaam nahi kar rha ya naya card chahiye',
-   mobile_not_working: 'company phone kaam nahi kar rha on nahi ho rha',
-   sim_not_working: 'company SIM kaam nahi kar rha network nahi aa rha',
-   mobile_internet: 'company phone par internet nahi chal rha',
-   email_mobile: 'company phone par Gmail email setup karna hai',
-   mobile_app: 'company phone par app kaam nahi kar rha crash ho rha',
-   mobile_charging: 'company phone charge nahi ho rha',
-   mobile_screen_damage: 'company phone ki screen crack ho gayi damage hui',
-   google_drive_issue: 'Google Drive files nahi khul rhi ya sync nahi ho rhi',
-   shared_drive_issue: 'shared Google Drive folder access nahi hai files missing',
-   file_sync_issue: 'files sync nahi ho rhi Google Drive shared folder mein',
-   storage_full: 'laptop storage full ho gayi C drive full files save nahi ho rhe',
-   phishing_email: 'suspicious phishing email aaya hai jo fake lagta hai',
-   virus_malware: 'laptop mein virus ya malware hai suspicious activity ho rhi',
-   suspicious_login: 'kisi aur ne mera account use kiya suspicious login alert',
-   security_alert: 'security alert aa rha hai laptop ya account mein suspicious',
-   account_hacked: 'mera account hack ho gaya password kaam nahi EMERGENCY',
-   burning_smell: 'laptop se burning smell ya smoke aa rha hai EMERGENCY',
-   battery_swelling: 'laptop ki battery swell phool gayi hai EMERGENCY',
-   data_loss: 'important files delete ho gayi hain data missing hai',
-   device_lost: 'laptop ya device kho gaya hai ya chori ho gaya',
+   laptop_slow: 'laptop is very slow and hanging', excel_slow: 'Microsoft Excel is very slow hanging and freezing',
+   blue_screen: 'blue screen BSOD error appearing',
+   overheat: 'laptop overheating getting very hot', battery_issue: 'battery issue charging problem',
+   battery_not_charging: 'battery not charging charger not working',
+   keys_not_working: 'keyboard not working', touchpad_issue: 'touchpad not working cursor stuck',
+   camera_issue: 'laptop webcam camera not working in video calls — black screen or camera not detected, Privacy settings or driver issue', mic_issue: 'laptop built-in microphone not working — voice not going through in video calls, mic may be off in Privacy settings',
+   sound_none: 'no sound from laptop speakers at all — volume is correct but still silent', screen_black: 'screen went black cannot see anything',
+   external_monitor: 'external monitor connected via HDMI but not detected second screen not showing', scanner_issue: 'office scanner or printer scanner mode not working not detected on PC',
+   wont_turn_on: "laptop won't turn on won't start",
+  wifi_not_connect: 'wifi not working cannot connect', no_internet: 'internet not working at all laptop is connected but pages not loading',
+  internet_slow: 'internet very slow',
+   lan_issue: 'LAN cable not working ethernet issue', network_drive: 'network shared drive missing — mapped drive Z: or shared folder not accessible, needs reconnect',
+   excel_issue: 'Excel not opening or crashing', word_issue: 'Word not opening or crashing',
+   ppt_issue: 'PowerPoint not opening', office_activation: 'MS Office activation error — employees cannot activate themselves, raise IT ticket',
+   file_corrupted: 'Word Excel PPT or any file not opening — software missing or error opening file', chrome_issue: 'Google Chrome not opening or crashing — end Chrome from Task Manager and reopen',
+   edge_issue: 'Edge browser not opening or crashing — close from Task Manager and reopen', browser_slow: 'Google Chrome or Edge browser very slow pages loading slowly or freezing',
+   website_blocked: 'specific website not opening not loading in browser — other websites work fine', teams_issue: 'Teams app not opening or call dropping or messages not coming — Quit from system tray and reopen',
+   zoom_issue: 'Zoom app not opening or cannot join meeting or call quality issue — close Zoom and reopen', pdf_issue: 'PDF file not opening Adobe Acrobat or Reader not working or error opening PDF',
+   app_crash: 'application software not opening or crashing — end process from Task Manager and reopen, restart', gmail_issue: 'Gmail not opening or emails not coming — open gmail.com directly in Chrome, try incognito',
+   outlook_email: 'gmail email issue', email_login: 'gmail login not working cannot access email',
+  slack_issue: 'Slack app not opening or messages not coming or notifications off — Quit from system tray, reopen, if still not working clear cache',
+   email_not_sending: 'Gmail email not sending — error appearing or email stuck in outbox', email_not_receiving: 'Gmail inbox not receiving emails — expected emails missing or inbox empty',
+   calendar_sync: 'Google Calendar sync issue — meetings and events not showing or problem opening Google Calendar', password_reset: 'forgot password need to reset it',
+   account_locked: 'account locked cannot login', shared_folder: 'shared folder access not available',
+   email_access: 'Gmail account access needed — new account or problem with existing account', software_access: 'need access to a software — install needed or permission required, IT will handle',
+   new_laptop: 'need a new laptop request', new_mouse: 'need a new mouse',
+   new_keyboard: 'need a new keyboard', new_headphone: 'need headphones',
+   new_monitor: 'need a new monitor', new_charger: 'need a new charger',
+   screen_flicker: 'laptop screen flickering blinking',
+   projector_issue: 'projector or HDMI not connecting in conference room',
+   usb_issue: 'USB port not working device not detected',
+   fan_noise: 'laptop fan making very loud noise or not spinning',
+   physical_damage: 'laptop physically damaged cracked or dropped',
+   liquid_damage: 'liquid or water spilled on laptop water damage EMERGENCY',
+   frequent_disconnect: 'WiFi keeps disconnecting frequently unstable',
+   door_access: 'office door access card not working or need a new card',
+   mobile_not_working: 'company phone not working will not turn on',
+   sim_not_working: 'company SIM not working no network signal',
+   mobile_internet: 'internet not working on company phone',
+   email_mobile: 'need to set up Gmail email on company phone',
+   mobile_app: 'app not working or crashing on company phone',
+   mobile_charging: 'company phone not charging',
+   mobile_screen_damage: 'company phone screen cracked damaged',
+   google_drive_issue: 'Google Drive files not opening or not syncing',
+   shared_drive_issue: 'shared Google Drive folder access not available files missing',
+   file_sync_issue: 'files not syncing in Google Drive shared folder',
+   storage_full: 'laptop storage full C drive full cannot save files',
+   phishing_email: 'suspicious phishing email received that looks fake',
+   virus_malware: 'laptop has virus or malware suspicious activity',
+   suspicious_login: 'someone else used my account suspicious login alert',
+   security_alert: 'security alert appearing on laptop or account suspicious',
+   account_hacked: 'my account was hacked password not working EMERGENCY',
+   burning_smell: 'burning smell or smoke coming from laptop EMERGENCY',
+   battery_swelling: 'laptop battery is swollen bloated EMERGENCY',
+   data_loss: 'important files deleted data missing',
+   device_lost: 'laptop or device is lost or stolen',
  };
 
  const isFromModal = body.view?.type === 'modal'; // Home Tab has body.view too (type:'home') — must check type
@@ -2448,7 +2448,7 @@ app.listen(PORT, async () => {
 
    if (!reply) {
      // No direct KB — call AI
-     const aiPrompt = `Employee ne IT Helpdesk se yeh issue select kiya: "${naturalProblem}"\n\nSeedha troubleshooting steps do. Koi sawaal mat poochho. 3-4 simple steps max. End karo with: "Agar theek nahi hua → *Create Ticket* button dabao."`;
+     const aiPrompt = `Employee selected this issue from IT Helpdesk: "${naturalProblem}"\n\nGive direct troubleshooting steps. Do not ask questions. Max 3-4 simple steps. End with: "If not resolved → *Create Ticket* button dabao."`;
      const messages = [{ role: 'user', content: aiPrompt }];
      const result = await claudeSvc.chat(messages, { empId: emp.empId, empName: emp.empName, source: 'slack' });
      reply = result.reply;
@@ -2614,7 +2614,7 @@ app.listen(PORT, async () => {
    try {
      const dm = await client.conversations.open({ users: userId });
      // Same greeting everywhere — uses shared buildGreetingBlocks
-     await client.chat.postMessage({ channel: dm.channel.id, text: `Hey ${firstName}! Main Zivon hoon — WIOM IT Assistant ⚡`, blocks: buildGreetingBlocks(firstName) });
+     await client.chat.postMessage({ channel: dm.channel.id, text: `Hey ${firstName}! Welcome to WIOM IT Helpdesk ⚡`, blocks: buildGreetingBlocks(firstName) });
    } catch (dmErr) {
      console.error('Greeting DM error:', dmErr.message);
    }
@@ -2655,7 +2655,7 @@ app.listen(PORT, async () => {
  const channelId = dm.channel.id;
  const emp = await lookupEmployee(userId, client).catch(() => null);
  const firstName = (emp?.empName || 'there').split(' ')[0];
- await client.chat.postMessage({ channel: channelId, text: `Hey ${firstName}! I'm Zivon ⚡`, blocks: buildGreetingBlocks(firstName) });
+ await client.chat.postMessage({ channel: channelId, text: `Hey ${firstName}! Welcome to WIOM IT Helpdesk ⚡`, blocks: buildGreetingBlocks(firstName) });
  } catch (err) {
  console.error('home_open_dm error:', err.message);
  }
@@ -2689,7 +2689,7 @@ app.listen(PORT, async () => {
          text: 'No pending tickets!',
          blocks: [
            { type: 'section', text: { type: 'mrkdwn', text: `✅ *No pending tickets!*\n\nAll clear — if you have a new problem, just select a category from the Home tab! 😊` } },
-           { type: 'context', elements: [{ type: 'mrkdwn', text: '_Zivon is available 24/7 — Anytime, Anywhere ✦_' }] }
+           { type: 'context', elements: [{ type: 'mrkdwn', text: '_WIOM IT Helpdesk — Available 24/7 ✦_' }] }
          ]
        });
        return;
@@ -2731,7 +2731,7 @@ app.listen(PORT, async () => {
 
      await client.chat.postMessage({
        channel: channelId,
-       text: `Aapke ${tickets.length} pending ticket(s)`,
+       text: `Your ${tickets.length} pending ticket(s)`,
        blocks: ticketBlocks
      });
    } catch (err) {
@@ -2748,7 +2748,7 @@ app.listen(PORT, async () => {
    try {
      const emp = await lookupEmployee(userId, client).catch(() => null);
      const firstName = (emp?.empName || 'there').split(' ')[0];
-     await client.chat.postMessage({ channel: userId, text: `Hey ${firstName}! Main Zivon hoon ⚡`, blocks: buildGreetingBlocks(firstName) });
+     await client.chat.postMessage({ channel: userId, text: `Hey ${firstName}! Welcome to WIOM IT Helpdesk ⚡`, blocks: buildGreetingBlocks(firstName) });
    } catch (err) { console.error('home_chat_ai error:', err.message); }
  });
 
@@ -2759,22 +2759,22 @@ app.listen(PORT, async () => {
  const buildAskZivonInputModal = () => ({
    type: 'modal',
    callback_id: 'zivon_modal_submit',
-   title: { type: 'plain_text', text: '🤖 Ask Zivon AI', emoji: true },
-   submit: { type: 'plain_text', text: '🔍 Answer Chahiye', emoji: true },
-   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   title: { type: 'plain_text', text: '🤖 Ask IT Assistant', emoji: true },
+   submit: { type: 'plain_text', text: '🔍 Get Answer', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
    blocks: [
      {
        type: 'section',
-       text: { type: 'mrkdwn', text: 'WiFi, laptop, software, password — *koi bhi IT sawaal* puchho! Zivon AI instant jawab dega. 🚀' }
+       text: { type: 'mrkdwn', text: 'WiFi, laptop, software, password — *ask any IT question!* WIOM IT Assistant will answer instantly. 🚀' }
      },
      {
        type: 'input',
        block_id: 'zivon_q_block',
-       label: { type: 'plain_text', text: 'Apna IT sawaal likhein:', emoji: true },
+       label: { type: 'plain_text', text: 'Type your IT question:', emoji: true },
        element: {
          type: 'plain_text_input',
          action_id: 'zivon_q_input',
-         placeholder: { type: 'plain_text', text: 'e.g. WiFi nahi chal rha, laptop slow hai, password bhul gaya...' },
+         placeholder: { type: 'plain_text', text: 'e.g. WiFi not working, laptop slow, forgot password...' },
          multiline: true,
          min_length: 5,
          max_length: 400
@@ -2786,23 +2786,23 @@ app.listen(PORT, async () => {
  const buildZivonLoadingModal = () => ({
    type: 'modal',
    callback_id: 'zivon_modal_loading',
-   title: { type: 'plain_text', text: '🤖 Zivon AI', emoji: true },
-   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   title: { type: 'plain_text', text: '🤖 WIOM IT Assistant', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
    blocks: [{
      type: 'section',
-     text: { type: 'mrkdwn', text: '*Soch raha hoon...* ⏳\n\n_Aapke sawaal ka jawab dhundh raha hoon..._\n_Thoda wait karein — kuch seconds mein answer aa jayega!_ ✨' }
+     text: { type: 'mrkdwn', text: '*Thinking...* ⏳\n\n_Finding the answer to your question..._\n_Just a moment — your answer will be ready in seconds!_ ✨' }
    }]
  });
 
  const buildZivonAnswerModal = (question, answer) => ({
    type: 'modal',
    callback_id: 'zivon_modal_answer',
-   title: { type: 'plain_text', text: '🤖 Zivon AI', emoji: true },
-   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   title: { type: 'plain_text', text: '🤖 WIOM IT Assistant', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
    blocks: [
      {
        type: 'section',
-       text: { type: 'mrkdwn', text: `*Sawaal:*\n_${question.substring(0, 120).replace(/[*_`]/g, '')}_` }
+       text: { type: 'mrkdwn', text: `*Question:*\n_${question.substring(0, 120).replace(/[*_`]/g, '')}_` }
      },
      { type: 'divider' },
      {
@@ -2812,20 +2812,20 @@ app.listen(PORT, async () => {
      { type: 'divider' },
      {
        type: 'section',
-       text: { type: 'mrkdwn', text: '_Problem solve nahi hui? Ticket raise karo — IT team personally help karegi._' }
+       text: { type: 'mrkdwn', text: '_Problem not solved? Raise a ticket — IT team will personally help you._' }
      },
      {
        type: 'actions',
        elements: [
          {
            type: 'button',
-           text: { type: 'plain_text', text: '🔄 Aur Puchho', emoji: true },
+           text: { type: 'plain_text', text: '🔄 Ask More', emoji: true },
            action_id: 'zivon_modal_more',
            value: 'ask_more'
          },
          {
            type: 'button',
-           text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true },
+           text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true },
            action_id: 'vague_pick_create_ticket',
            value: 'create ticket',
            style: 'primary'
@@ -2838,19 +2838,19 @@ app.listen(PORT, async () => {
  const buildZivonErrorModal = () => ({
    type: 'modal',
    callback_id: 'zivon_modal_error',
-   title: { type: 'plain_text', text: '🤖 Zivon AI', emoji: true },
-   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   title: { type: 'plain_text', text: '🤖 WIOM IT Assistant', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
    blocks: [
      {
        type: 'section',
-       text: { type: 'mrkdwn', text: '⚠️ *Technical issue aa gaya.*\n\nDobara try karo — ya ticket raise karo, IT team directly help karegi! 🎫' }
+       text: { type: 'mrkdwn', text: '⚠️ *A technical issue occurred.*\n\nPlease try again — or raise a ticket, the IT team will help you directly! 🎫' }
      },
      {
        type: 'actions',
        elements: [
          {
            type: 'button',
-           text: { type: 'plain_text', text: '🔄 Dobara Try Karo', emoji: true },
+           text: { type: 'plain_text', text: '🔄 Try Again', emoji: true },
            action_id: 'zivon_modal_more',
            value: 'ask_more'
          },
@@ -2882,29 +2882,29 @@ app.listen(PORT, async () => {
 
  const SCRIPTS_URL = process.env.API_BASE_URL || 'https://wiom-helpdesk-production.up.railway.app';
  const DIAGNOSE_SYMPTOMS = {
-   slow:    { label: '🐢 Laptop slow / hang hota hai',     fix: '• Laptop restart karo\n• Task Manager mein heavy apps band karo *(Ctrl+Shift+Esc)*\n• Chrome ke extra tabs band karo',                    bat: `${SCRIPTS_URL}/scripts/fix-slow-laptop.bat`,   batLabel: '⬇️ Slow Laptop Fix Script' },
-   disk:    { label: '💾 Storage / disk space kam hai',    fix: '• Downloads folder mein purani files delete karo\n• Recycle Bin empty karo (right-click → Empty)\n• Desktop pe unnecessary files hatao', bat: `${SCRIPTS_URL}/scripts/fix-storage.bat`,       batLabel: '⬇️ Storage Cleanup Script' },
-   internet:{ label: '📶 Internet nahi chal raha',        fix: '• Taskbar mein WiFi icon → off then on karo\n• Airplane mode OFF hai check karo\n• Laptop restart karo',                                    bat: `${SCRIPTS_URL}/scripts/fix-wifi.bat`,          batLabel: '⬇️ WiFi Fix Script',       autoVal: 'WiFi not working no internet connection' },
-   teams:   { label: '👥 Teams nahi chal raha / crash',   fix: '• Task Manager se Teams close karo *(Ctrl+Shift+Esc → Teams → End Task)*\n• Dobara kholo\n• Internet check karo',                          bat: `${SCRIPTS_URL}/scripts/fix-teams.bat`,         batLabel: '⬇️ Teams Fix Script',      autoVal: 'Microsoft Teams not working call dropping or not opening' },
-   outlook: { label: '📧 Outlook / Gmail nahi khul raha', fix: '• Application band karke dobara kholo\n• Internet connection check karo\n• Browser mein Gmail.com try karo',                              bat: `${SCRIPTS_URL}/scripts/fix-outlook.bat`,       batLabel: '⬇️ Outlook Fix Script' },
-   camera:  { label: '📷 Camera nahi chal raha',          fix: '• Windows Settings → Privacy → Camera → Allow ON karo\n• Teams/Zoom mein camera permission check karo\n• Laptop restart karo',            bat: `${SCRIPTS_URL}/scripts/fix-camera.bat`,        batLabel: '⬇️ Camera Fix Script',     autoVal: 'Laptop camera not working in Teams Zoom or Meet' },
-   sound:   { label: '🔇 Sound / speaker nahi chal raha', fix: '• Taskbar mein speaker icon — mute toh nahi?\n• Headphone plug/unplug karo\n• Volume max check karo',                                     bat: `${SCRIPTS_URL}/scripts/fix-sound.bat`,         batLabel: '⬇️ Sound Fix Script',      autoVal: 'No sound coming from laptop speakers audio not working' },
-   heat:    { label: '🔥 Laptop garam / fan bahut noise',  fix: '• Laptop hard flat surface pe rakhho\n• Fan area block mat karo\n• Heavy apps band karo aur 5 min rest do',                               bat: `${SCRIPTS_URL}/scripts/fix-overheating.bat`,   batLabel: '⬇️ Overheating Fix Script' },
-   battery: { label: '🔋 Battery jaldi khatam hoti hai',  fix: '• Screen brightness kam karo (taskbar)\n• Battery Saver mode on karo (taskbar battery icon)\n• Background apps band karo',                bat: `${SCRIPTS_URL}/scripts/fix-battery.bat`,       batLabel: '⬇️ Battery Fix Script' },
-   screen:  { label: '💻 Screen / display issue',         fix: '• *Win+P* dabao → display mode check karo\n• External monitor cable check karo\n• Brightness settings check karo',                        bat: `${SCRIPTS_URL}/scripts/fix-screen-flicker.bat`,batLabel: '⬇️ Screen Fix Script',     autoVal: 'Laptop screen is flickering blinking or flashing' },
+   slow:    { label: '🐢 Laptop slow / hanging',          fix: '• Restart your laptop\n• Open Task Manager *(Ctrl+Shift+Esc)* and close heavy apps\n• Close extra Chrome tabs',                           bat: `${SCRIPTS_URL}/scripts/fix-slow-laptop.bat`,   batLabel: '⬇️ Slow Laptop Fix Script' },
+   disk:    { label: '💾 Storage / disk space low',       fix: '• Delete old files from the Downloads folder\n• Empty the Recycle Bin (right-click → Empty)\n• Remove unnecessary files from Desktop',   bat: `${SCRIPTS_URL}/scripts/fix-storage.bat`,       batLabel: '⬇️ Storage Cleanup Script' },
+   internet:{ label: '📶 Internet not working',           fix: '• Click WiFi icon in taskbar → turn off then on\n• Check that Airplane mode is OFF\n• Restart your laptop',                               bat: `${SCRIPTS_URL}/scripts/fix-wifi.bat`,          batLabel: '⬇️ WiFi Fix Script',       autoVal: 'WiFi not working no internet connection' },
+   teams:   { label: '👥 Teams not working / crashing',   fix: '• Close Teams from Task Manager *(Ctrl+Shift+Esc → Teams → End Task)*\n• Reopen Teams\n• Check internet connection',                     bat: `${SCRIPTS_URL}/scripts/fix-teams.bat`,         batLabel: '⬇️ Teams Fix Script',      autoVal: 'Microsoft Teams not working call dropping or not opening' },
+   outlook: { label: '📧 Outlook / Gmail not opening',    fix: '• Close the application and reopen it\n• Check your internet connection\n• Try opening Gmail.com in browser',                            bat: `${SCRIPTS_URL}/scripts/fix-outlook.bat`,       batLabel: '⬇️ Outlook Fix Script' },
+   camera:  { label: '📷 Camera not working',             fix: '• Go to Windows Settings → Privacy → Camera → turn Allow ON\n• Check camera permission in Teams/Zoom\n• Restart your laptop',            bat: `${SCRIPTS_URL}/scripts/fix-camera.bat`,        batLabel: '⬇️ Camera Fix Script',     autoVal: 'Laptop camera not working in Teams Zoom or Meet' },
+   sound:   { label: '🔇 Sound / speakers not working',   fix: '• Check speaker icon in taskbar — is it muted?\n• Plug/unplug headphones\n• Check volume is not at zero',                                bat: `${SCRIPTS_URL}/scripts/fix-sound.bat`,         batLabel: '⬇️ Sound Fix Script',      autoVal: 'No sound coming from laptop speakers audio not working' },
+   heat:    { label: '🔥 Laptop hot / fan very loud',     fix: '• Place laptop on a hard flat surface\n• Do not block the fan area\n• Close heavy apps and let it rest for 5 min',                       bat: `${SCRIPTS_URL}/scripts/fix-overheating.bat`,   batLabel: '⬇️ Overheating Fix Script' },
+   battery: { label: '🔋 Battery drains quickly',         fix: '• Lower screen brightness (taskbar)\n• Turn on Battery Saver mode (taskbar battery icon)\n• Close background apps',                     bat: `${SCRIPTS_URL}/scripts/fix-battery.bat`,       batLabel: '⬇️ Battery Fix Script' },
+   screen:  { label: '💻 Screen / display issue',         fix: '• Press *Win+P* → check display mode\n• Check external monitor cable\n• Check brightness settings',                                      bat: `${SCRIPTS_URL}/scripts/fix-screen-flicker.bat`,batLabel: '⬇️ Screen Fix Script',     autoVal: 'Laptop screen is flickering blinking or flashing' },
  };
 
  const buildDiagnoseInputModal = () => ({
    type: 'modal',
    callback_id: 'diagnose_laptop_submit',
    title: { type: 'plain_text', text: '🔍 Diagnose My Laptop', emoji: true },
-   submit: { type: 'plain_text', text: '🔍 Diagnose Karo', emoji: true },
-   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   submit: { type: 'plain_text', text: '🔍 Diagnose', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
    blocks: [
-     { type: 'section', text: { type: 'mrkdwn', text: '*Aapke laptop mein kya ho raha hai?*\nJo bhi problem ho sab select karo 👇' } },
+     { type: 'section', text: { type: 'mrkdwn', text: '*What is happening with your laptop?*\nSelect all problems below 👇' } },
      { type: 'divider' },
      { type: 'input', block_id: 'diagnose_block',
-       label: { type: 'plain_text', text: 'Problems select karo:', emoji: true },
+       label: { type: 'plain_text', text: 'Select problems:', emoji: true },
        element: { type: 'checkboxes', action_id: 'symptoms_select',
          options: Object.entries(DIAGNOSE_SYMPTOMS).map(([val, s]) => ({
            text: { type: 'plain_text', text: s.label, emoji: true }, value: val
@@ -2917,10 +2917,10 @@ app.listen(PORT, async () => {
  const buildDiagnoseResultModal = (symptoms) => {
    const blocks = [];
    if (!symptoms.length) {
-     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '✅ *Koi major issue nahi dikha!*\nAapka laptop theek lag raha hai. Koi specific problem ke liye Zivon AI se puchho.' } });
-     return { type: 'modal', title: { type: 'plain_text', text: '🔍 Diagnosis Result', emoji: true }, close: { type: 'plain_text', text: 'Band Karo', emoji: true }, blocks };
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '✅ *No major issue detected!*\nYour laptop looks fine. For a specific problem, ask IT Assistant.' } });
+     return { type: 'modal', title: { type: 'plain_text', text: '🔍 Diagnosis Result', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true }, blocks };
    }
-   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*🔍 Diagnosis Complete — ${symptoms.length} problem${symptoms.length > 1 ? 's' : ''} mila*\nFix steps niche hain 👇` } });
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*🔍 Diagnosis Complete — ${symptoms.length} problem${symptoms.length > 1 ? 's' : ''} found*\nFix steps are below 👇` } });
    for (const key of symptoms) {
      const s = DIAGNOSE_SYMPTOMS[key];
      if (!s) continue;
@@ -2928,13 +2928,13 @@ app.listen(PORT, async () => {
      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*${s.label}*\n\n${s.fix}` } });
      const btnElements = [];
      if (s.bat) btnElements.push({ type: 'button', text: { type: 'plain_text', text: s.batLabel, emoji: true }, url: s.bat, action_id: `bat_dl_${key}` });
-     if (s.autoVal) btnElements.push({ type: 'button', text: { type: 'plain_text', text: '🤖 AI Se Puchho', emoji: true }, action_id: 'diagnose_auto_fix', value: s.autoVal });
+     if (s.autoVal) btnElements.push({ type: 'button', text: { type: 'plain_text', text: '🤖 Ask AI', emoji: true }, action_id: 'diagnose_auto_fix', value: s.autoVal });
      if (btnElements.length) blocks.push({ type: 'actions', elements: btnElements });
    }
    blocks.push({ type: 'divider' });
-   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '_Steps ke baad bhi issue hai? Ticket raise karo._' } });
-   blocks.push({ type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'danger' }]});
-   return { type: 'modal', callback_id: 'diagnose_laptop_result', title: { type: 'plain_text', text: '🔍 Diagnosis Result', emoji: true }, close: { type: 'plain_text', text: 'Band Karo', emoji: true }, blocks };
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '_Still having issues after the steps? Raise a ticket._' } });
+   blocks.push({ type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'danger' }]});
+   return { type: 'modal', callback_id: 'diagnose_laptop_result', title: { type: 'plain_text', text: '🔍 Diagnosis Result', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true }, blocks };
  };
 
  // ── Diagnose submit ───────────────────────────────────────────────────────
@@ -2957,17 +2957,17 @@ app.listen(PORT, async () => {
        channel: dmRes.channel.id,
        text: '🔧 Auto-Fix Steps',
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '*🔧 Auto-Fix Steps — Follow karo:*' } },
+         { type: 'section', text: { type: 'mrkdwn', text: '*🔧 Auto-Fix Steps — Follow these:*' } },
          { type: 'divider' },
-         { type: 'section', text: { type: 'mrkdwn', text: kbAnswer || 'Laptop restart karo. Agar nahi bana toh ticket raise karo.' } },
+         { type: 'section', text: { type: 'mrkdwn', text: kbAnswer || 'Restart your laptop. If it still does not work, raise a ticket.' } },
          { type: 'divider' },
-         { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]}
+         { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]}
        ]
      });
    } catch (err) { console.error('diagnose_auto_fix DM:', err.message); }
 
    try {
-     if (viewId) await client.views.update({ view_id: viewId, view: { type: 'modal', title: { type: 'plain_text', text: '🔧 Fix Steps', emoji: true }, close: { type: 'plain_text', text: 'Band Karo', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '✅ *Fix steps aapke Slack DM mein bhej diye!*\nDM check karo aur steps follow karo.\n\n_Phir bhi issue hai? Ticket raise karo._' } }, { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]}] } });
+     if (viewId) await client.views.update({ view_id: viewId, view: { type: 'modal', title: { type: 'plain_text', text: '🔧 Fix Steps', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '✅ *Fix steps sent to your Slack DM!*\nCheck your DM and follow the steps.\n\n_Still having issues? Raise a ticket._' } }, { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]}] } });
    } catch { /* modal closed */ }
  });
 
@@ -2989,7 +2989,7 @@ app.listen(PORT, async () => {
 
    // Short query guard
    if (question.length < 5) {
-     await ack({ response_action: 'errors', errors: { zivon_q_block: 'Thoda detail mein batao (min 5 characters)' } });
+     await ack({ response_action: 'errors', errors: { zivon_q_block: 'Please provide more detail (min 5 characters)' } });
      return;
    }
 
@@ -3008,7 +3008,7 @@ app.listen(PORT, async () => {
        .select('empId name empName laptop laptopSN dept floor').lean().catch(() => null);
 
      // KB pre-check first — instant, no AI call if answer is found
-     const KB_GENERIC = 'Apni problem thodi detail mein batao';
+     const KB_GENERIC = 'Please provide more details about your problem';
      const kbAnswer = claudeSvc.getKBFallback ? claudeSvc.getKBFallback(question) : null;
      let answer;
 
@@ -3030,7 +3030,7 @@ app.listen(PORT, async () => {
          setTimeout(() => reject(new Error('AI_TIMEOUT')), 20000)
        );
        const result = await Promise.race([aiCall, timeout]);
-       answer = result?.reply || 'Sorry, answer nahi aa paya. Ticket raise karo — IT team help karegi! 🎫';
+       answer = result?.reply || 'Sorry, could not get an answer. Please raise a ticket — IT team will help you! 🎫';
      }
 
      if (answer.length > 2900) answer = answer.substring(0, 2897) + '...';
@@ -3058,7 +3058,7 @@ slackApp.action('home_quick_office_net_down', async ({ body, ack, client }) => {
       view: {
         type: 'home',
         blocks: [
-          { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nKonsa floor affected hai? Button dabao 👇' } },
+          { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nWhich floor is affected? Click a button below 👇' } },
           { type: 'divider' },
           { type: 'actions', elements: [
             { type: 'button', text: { type: 'plain_text', text: '🏢 Ground Floor', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
@@ -3066,7 +3066,7 @@ slackApp.action('home_quick_office_net_down', async ({ body, ack, client }) => {
           ]},
           { type: 'divider' },
           { type: 'actions', elements: [
-            { type: 'button', text: { type: 'plain_text', text: '← Wapas Jao', emoji: true }, action_id: 'go_home_btn', value: 'home' },
+            { type: 'button', text: { type: 'plain_text', text: '← Go Back', emoji: true }, action_id: 'go_home_btn', value: 'home' },
           ]}
         ]
       }
@@ -3087,13 +3087,13 @@ slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
       view: {
         type: 'home',
         blocks: [
-          { type: 'section', text: { type: 'mrkdwn', text: `✅ *${floor} — Report ho gaya!*\n\nIT team ko alert bhej diya gaya hai.` } },
+          { type: 'section', text: { type: 'mrkdwn', text: `✅ *${floor} — Reported!*\n\nIT team has been alerted.` } },
           { type: 'divider' },
-          { type: 'section', text: { type: 'mrkdwn', text: `*Abhi kya karein:*\n• 📶 WiFi disconnect → dobara connect karein\n• 🔌 LAN cable use kar rahe ho toh cable check karein\n• ⏳ IT team resolve kar rahi hai — thoda wait karein` } },
+          { type: 'section', text: { type: 'mrkdwn', text: `*What to do now:*\n• 📶 WiFi disconnected → reconnect to WiFi\n• 🔌 Using LAN cable → check the cable\n• ⏳ IT team is working on it — please wait` } },
           { type: 'divider' },
           { type: 'actions', elements: [
-            { type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
-            { type: 'button', text: { type: 'plain_text', text: '🏠 Home Wapas Jao', emoji: true }, action_id: 'go_home_btn', value: 'home' },
+            { type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
+            { type: 'button', text: { type: 'plain_text', text: '🏠 Back to Home', emoji: true }, action_id: 'go_home_btn', value: 'home' },
           ]}
         ]
       }
@@ -3108,7 +3108,7 @@ slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
         empId: emp.empId, empName: emp.name || emp.empName,
         empEmail: emp.email || 'unknown@wiom.in',
         empDept: emp.department, empFloor: emp.floor,
-        description: `🌐 Office Internet Down — ${floor} floor. Reported via Zivon bot.`,
+        description: `🌐 Office Internet Down — ${floor} floor. Reported via WIOM IT bot.`,
         category: 'Network', priority: 'High',
         source: 'slack', slackUserId: userId
       });
@@ -3205,7 +3205,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
            { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${emp?.name || userId}\n*Emp ID:* ${emp?.empId || '-'}\n*Dept:* ${emp?.department || '-'}\n*Floor:* ${emp?.floor || '-'}\n*Issue:* 🔴 *${issueType.split(' — ')[0]}*\n*Detail:* ${issueType.split(' — ')[1] || '-'}` }},
            ticketId
              ? { type: 'context', elements: [{ type: 'mrkdwn', text: `Ticket: \`${ticketId}\` | Priority: *${priority}* | Category: ${category}` }]}
-             : { type: 'context', elements: [{ type: 'mrkdwn', text: `⚠️ Ticket auto-create failed — manual ticket banana hoga` }]}
+             : { type: 'context', elements: [{ type: 'mrkdwn', text: `⚠️ Ticket auto-create failed — please create manually` }]}
          ]
        }).catch(e => console.error('sos admin alert error:', e.message));
      }
@@ -3393,24 +3393,24 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    type: 'modal',
    callback_id: 'software_request_submit',
    title: { type: 'plain_text', text: '💿 Software Request', emoji: true },
-   submit: { type: 'plain_text', text: '📩 Request Bhejo', emoji: true },
-   close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+   submit: { type: 'plain_text', text: '📩 Submit Request', emoji: true },
+   close: { type: 'plain_text', text: 'Close', emoji: true },
    blocks: [
-     { type: 'section', text: { type: 'mrkdwn', text: '*Konsa software chahiye?*\nSelect karo 👇\n_Note: Manager approval ke baad IT install karega._' } },
+     { type: 'section', text: { type: 'mrkdwn', text: '*Which software do you need?*\nSelect below 👇\n_Note: IT will install after manager approval._' } },
      { type: 'divider' },
      { type: 'input', block_id: 'software_block',
-       label: { type: 'plain_text', text: 'Software select karo:', emoji: true },
+       label: { type: 'plain_text', text: 'Select software:', emoji: true },
        element: { type: 'checkboxes', action_id: 'software_select',
          options: SOFTWARE_LIST.map(s => ({ text: { type: 'plain_text', text: s.label, emoji: true }, value: s.value }))
        }
      },
      { type: 'input', block_id: 'software_other_block', optional: true,
-       label: { type: 'plain_text', text: 'Koi aur software (naam likhein):', emoji: true },
+       label: { type: 'plain_text', text: 'Other software (enter name):', emoji: true },
        element: { type: 'plain_text_input', action_id: 'software_other', placeholder: { type: 'plain_text', text: 'e.g. Figma, Postman, VS Code...' }, max_length: 200 }
      },
      { type: 'input', block_id: 'software_reason_block', optional: true,
-       label: { type: 'plain_text', text: 'Kyon chahiye? (optional):', emoji: true },
-       element: { type: 'plain_text_input', action_id: 'software_reason', placeholder: { type: 'plain_text', text: 'e.g. Project ke liye zaroori hai...' }, max_length: 300 }
+       label: { type: 'plain_text', text: 'Why do you need it? (optional):', emoji: true },
+       element: { type: 'plain_text_input', action_id: 'software_reason', placeholder: { type: 'plain_text', text: 'e.g. Required for a project...' }, max_length: 300 }
      }
    ]
  });
@@ -3422,7 +3422,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  });
 
  slackApp.view('software_request_submit', async ({ body, ack, view, client }) => {
-   await ack({ response_action: 'update', view: { type: 'modal', title: { type: 'plain_text', text: '💿 Software Request', emoji: true }, close: { type: 'plain_text', text: 'Band Karo', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ *Request bhej raha hoon...*' } }] } });
+   await ack({ response_action: 'update', view: { type: 'modal', title: { type: 'plain_text', text: '💿 Software Request', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ *Submitting request...*' } }] } });
 
    const userId   = body.user.id;
    const selected = view.state.values?.software_block?.software_select?.selected_options || [];
@@ -3437,7 +3437,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
      const empId   = emp?.empId   || userId;
      const empName = emp?.name    || emp?.empName || 'Employee';
 
-     const desc = `Software Request:\n• ${softwareList.join('\n• ')}${reason ? `\n\nKarana: ${reason}` : ''}\n\n⚠️ Manager approval ke baad IT install karega.`;
+     const desc = `Software Request:\n• ${softwareList.join('\n• ')}${reason ? `\n\nReason: ${reason}` : ''}\n\n⚠️ IT will install after manager approval.`;
 
      const ticket = await createTicketSlack({ empId, empName, empDept: emp?.dept, empFloor: emp?.floor, empEmail: emp?.empEmail, description: desc, category: 'Software Request', priority: 'Low', source: 'slack' });
 
@@ -3447,10 +3447,10 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
        channel: dmRes.channel.id,
        text: `✅ Software Request submitted${ticket ? ` — Ticket \`${ticket.ticketId}\`` : ''}`,
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: `*✅ Software Request Submit Ho Gaya!*\n\n*Software Requested:*\n• ${softwareList.join('\n• ')}` } },
+         { type: 'section', text: { type: 'mrkdwn', text: `*✅ Software Request Submitted!*\n\n*Software Requested:*\n• ${softwareList.join('\n• ')}` } },
          { type: 'divider' },
-         { type: 'section', text: { type: 'mrkdwn', text: ticket ? `*Ticket ID:* \`${ticket.ticketId}\`\n\n*Next Steps:*\n1. Manager se approval lena hoga\n2. Manager approval ke baad IT install karega\n3. Aapko Slack DM milega jab software ready ho` : '*Next Steps:*\n1. Manager se approval lein\n2. IT team se Slack pe confirm karein' } },
-         { type: 'context', elements: [{ type: 'mrkdwn', text: '_Koi sawaal? IT Helpdesk se sampark karein._' }] }
+         { type: 'section', text: { type: 'mrkdwn', text: ticket ? `*Ticket ID:* \`${ticket.ticketId}\`\n\n*Next Steps:*\n1. Get approval from your manager\n2. IT will install after manager approval\n3. You will receive a Slack DM when software is ready` : '*Next Steps:*\n1. Get approval from your manager\n2. Confirm with IT team on Slack' } },
+         { type: 'context', elements: [{ type: 'mrkdwn', text: '_Any questions? Contact IT Helpdesk._' }] }
        ]
      });
 
@@ -3521,7 +3521,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
        { type: 'divider' },
        { type: 'section', text: { type: 'mrkdwn', text: `*Saket Office WiFi:*\n🔑 Network: *Wiomnet-Saket*\n🔐 Password: \`${process.env.WIFI_PASSWORD_SAKET || 'Password@12345'}\`` }},
        { type: 'divider' },
-       { type: 'context', elements: [{ type: 'mrkdwn', text: '_WiFi connect nahi ho rha? 📶 WiFi Fix button dabao — IT steps milenge._' }]}
+       { type: 'context', elements: [{ type: 'mrkdwn', text: '_WiFi not connecting? Click the 📶 WiFi Fix button — IT steps will appear._' }]}
      ]
    }
  });
@@ -3535,7 +3535,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
      view: {
        type: 'home',
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nKonsa floor affected hai? Button dabao 👇' } },
+         { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nWhich floor is affected? Click a button below 👇' } },
          { type: 'divider' },
          { type: 'actions', elements: [
            { type: 'button', text: { type: 'plain_text', text: '🏢 Ground Floor', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
@@ -3680,25 +3680,25 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
      close: { type: 'plain_text', text: 'Close', emoji: true },
      blocks: [
        { type: 'section', text: { type: 'mrkdwn', text:
-         `⚠️ *Pehle yeh manual steps try karo:*\n\n` +
-         `1. *Power adapter check karo* — cable properly plugged in hai?\n` +
-         `2. *Adapter LED check karo* — light aa rahi hai adapter mein?\n` +
-         `3. *Power button 10 seconds hold karo* — hard reset hoga\n` +
-         `4. *Power adapter dono taraf laga hai?* — laptop aur socket dono side firmly check karo\n` +
-         `5. *Alag power socket try karo*\n\n` +
-         `_Agar yeh sab karne ke baad bhi on nahi hua — IT team physically aayegi._`
+         `⚠️ *Try these manual steps first:*\n\n` +
+         `1. *Check power adapter* — is the cable properly plugged in?\n` +
+         `2. *Check adapter LED* — is the light on in the adapter?\n` +
+         `3. *Hold power button 10 seconds* — this will force reset\n` +
+         `4. *Is adapter plugged in both sides?* — check laptop and socket firmly\n` +
+         `5. *Try a different power socket*\n\n` +
+         `_If the laptop still does not turn on after all this — IT team will come to you._`
        }},
        { type: 'divider' },
-       { type: 'section', text: { type: 'mrkdwn', text: '*IT Team ko bulana hai? HIGH Priority ticket raise karo:*' }},
+       { type: 'section', text: { type: 'mrkdwn', text: '*Need IT team to come? Raise a HIGH Priority ticket:*' }},
        { type: 'actions', elements: [
-         { type: 'button', text: { type: 'plain_text', text: '🎫 IT Ticket Raise Karo (HIGH)', emoji: true },
+         { type: 'button', text: { type: 'plain_text', text: '🎫 Raise IT Ticket (HIGH)', emoji: true },
            style: 'danger', action_id: 'quick_ticket_btn', value: "Laptop won't turn on at all" }
        ]},
-       { type: 'context', elements: [{ type: 'mrkdwn', text: '_Koi aur IT problem ho toh Home tab pe jaao aur category choose karo._' }]}
+       { type: 'context', elements: [{ type: 'mrkdwn', text: '_For any other IT problem, go to the Home tab and choose a category._' }]}
      ]
    }
  });
- // DB call AFTER modal — background mein pendingTicket set karo
+ // DB call AFTER modal — set pendingTicket in background
  Employee.findOne({ slackUserId: userId }).then(empWon => {
    if (empWon?.empId) pendingTickets.set(userId, {
      empId: empWon.empId, empName: empWon.name, empEmail: empWon.email || 'unknown@wiom.in',
@@ -3859,7 +3859,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
      title: { type: 'plain_text', text: 'IT Help', emoji: true },
      close: { type: 'plain_text', text: 'Close', emoji: true },
      blocks: [
-       { type: 'section', text: { type: 'mrkdwn', text: '*Kuch gadbad ho gayi — phir se try karo.*\n\nYa seedha ticket raise karo — IT team directly help karegi.' }},
+       { type: 'section', text: { type: 'mrkdwn', text: '*Something went wrong — please try again.*\n\nOr raise a ticket directly — IT team will help you.' }},
        { type: 'divider' },
        { type: 'actions', elements: [
          { type: 'button', text: { type: 'plain_text', text: 'Create Ticket', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: problem || 'IT support needed' }
@@ -3888,7 +3888,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    await client.views.update({ view_id: viewId, view: {
      type: 'modal', title: { type: 'plain_text', text: 'Creating Ticket...', emoji: true },
      close: { type: 'plain_text', text: 'Close', emoji: true },
-     blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Ticket create ho raha hai... please wait._' }}]
+     blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Creating your ticket... please wait._' }}]
    }}).catch(() => {});
  }
  try {
@@ -3897,7 +3897,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  empId: emp.empId, empName: emp.empName, empEmail: emp.email,
  empDept: emp.dept, empFloor: emp.floor,
  laptop: emp.laptop, laptopSN: emp.laptopSN,
- description: 'Email / Google Account password reset self-service steps try kiye, nahi hua',
+ description: 'Email / Google Account password reset — self-service steps tried, did not work',
  category: 'Account', priority: 'High',
  source: 'slack', slackUserId: userId
  });
@@ -3909,12 +3909,12 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
        { type: 'mrkdwn', text: `*🎫 Ticket:*\n\`${result.ticketId}\`` },
        { type: 'mrkdwn', text: `*🔴 Priority:*\nHigh` }
      ]},
-     { type: 'context', elements: [{ type: 'mrkdwn', text: '✅ IT team password reset kar degi — jaldi respond karenge.' }]}
+     { type: 'context', elements: [{ type: 'mrkdwn', text: '✅ IT team will reset your password — they will respond shortly.' }]}
    ]
  } : {
    type: 'modal', title: { type: 'plain_text', text: result?._duplicate ? '⚠️ Already Exists' : '❌ Error', emoji: true },
    close: { type: 'plain_text', text: 'Close', emoji: true },
-   blocks: [{ type: 'section', text: { type: 'mrkdwn', text: result?._duplicate ? `⚠️ ${result.message}` : `❌ Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
+   blocks: [{ type: 'section', text: { type: 'mrkdwn', text: result?._duplicate ? `⚠️ ${result.message}` : `❌ Could not create ticket. Email IT at: ${ADMIN_EMAIL}` }}]
  };
  if (viewId) {
    await client.views.update({ view_id: viewId, view: successView }).catch(() => {});
@@ -3928,7 +3928,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    await client.views.update({ view_id: viewId, view: {
      type: 'modal', title: { type: 'plain_text', text: 'Error' },
      close: { type: 'plain_text', text: 'Close' },
-     blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
+     blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Could not create ticket. Email IT at: ${ADMIN_EMAIL}` }}]
    }}).catch(() => {});
  }
  }
@@ -3949,7 +3949,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  if (!laptopSN || !fixType.length) {
  await client.chat.postMessage({
  channel: userId,
- text : '❌ Auto-fix config mein kuch issue hai. Manually steps try karo.'
+ text : '❌ Auto-fix configuration issue. Please try the steps manually.'
  });
  return;
  }
@@ -3958,7 +3958,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  if (!emp) {
  await client.chat.postMessage({
  channel: userId,
- text : '❌ Employee record nahi mila. IT ko contact karo: IT Helpdesk (Slack)'
+ text : '❌ Employee record not found. Contact IT: IT Helpdesk (Slack)'
  });
  return;
  }
@@ -3978,13 +3978,13 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
 
  await client.chat.postMessage({
  channel: userId,
- text : `⚡ ${label} shuru ho rahi hai...`,
+ text : `⚡ ${label} is starting...`,
  blocks : [
- { type: 'header', text: { type: 'plain_text', text: '⚡ Auto-Fix Shuru!', emoji: true }},
+ { type: 'header', text: { type: 'plain_text', text: '⚡ Auto-Fix Started!', emoji: true }},
  { type: 'section', text: { type: 'mrkdwn', text:
- `*${label}* aapke laptop par automatically run ho rahi hai! \n\n` +
- `_Aapko kuch nahi karna laptop par IT Agent kaam kar raha hai..._\n\n` +
- `⏳ *~30 seconds mein result milega!*`
+ `*${label}* is running automatically on your laptop!\n\n` +
+ `_You don't need to do anything — IT Agent is working on your laptop..._\n\n` +
+ `⏳ *~30 seconds and you'll have your result!*`
  }},
  { type: 'context', elements: [{ type: 'mrkdwn', text: `_Job ID: \`${job._id}\` | Laptop: \`${laptopSN}\`_` }]}
  ]
@@ -3995,7 +3995,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  try {
  await client.chat.postMessage({
  channel: userId,
- text : '❌ Auto-fix shuru nahi ho saka. Manual steps try karo ya ticket raise karo.'
+ text : '❌ Auto-fix could not start. Try the steps manually or raise a ticket.'
  });
  } catch {}
  }
@@ -4030,15 +4030,15 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  submit: { type: 'plain_text', text: 'Book Slot' },
  close: { type: 'plain_text', text: 'Cancel' },
  blocks: [
- { type: 'section', text: { type: 'mrkdwn', text: '*IT se milne ka slot book karo!* 📅\nIT team aapki problem personally fix karegi.' }},
+ { type: 'section', text: { type: 'mrkdwn', text: '*Book a slot to meet IT!* 📅\nIT team will personally fix your problem.' }},
  { type: 'input', block_id: 'slot_block', label: { type: 'plain_text', text: 'Date & Time' },
  element: { type: 'static_select', action_id: 'slot_input',
- placeholder: { type: 'plain_text', text: 'Slot select karo' },
+ placeholder: { type: 'plain_text', text: 'Select a time slot' },
  options: slots.slice(0, 20).map(s => ({ text: { type: 'plain_text', text: s.label }, value: s.value }))
  }},
- { type: 'input', block_id: 'reason_block', label: { type: 'plain_text', text: 'Problem kya hai?' },
+ { type: 'input', block_id: 'reason_block', label: { type: 'plain_text', text: 'What is the problem?' },
  element: { type: 'plain_text_input', action_id: 'reason_input', multiline: true,
- placeholder: { type: 'plain_text', text: 'Brief mein batao — laptop slow, setup needed, etc.' }}}
+ placeholder: { type: 'plain_text', text: 'Brief description — laptop slow, setup needed, etc.' }}}
  ]
  }
  });
@@ -4073,7 +4073,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  { type: 'mrkdwn', text: `*Problem:*\n${reason.substring(0,60)}` },
  { type: 'mrkdwn', text: `*Status:*\n⏳ Pending Confirmation` }
  ]},
- { type: 'context', elements: [{ type: 'mrkdwn', text: '_IT team confirm karegi — Zivon se message aayega! 😊_' }]}
+ { type: 'context', elements: [{ type: 'mrkdwn', text: '_IT team will confirm — you will receive a message from IT! 😊_' }]}
  ]
  });
  // Notify admin
@@ -4101,7 +4101,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  console.log(`📅 Appointment booked: ${emp.empName} → ${dateVal} ${timeSlot}`);
  } catch (err) {
  console.error('Appointment booking error:', err.message);
- await client.chat.postMessage({ channel: userId, text: '❌ Booking mein kuch problem aayi. Dobara try karo ya /ticket use karo.' });
+ await client.chat.postMessage({ channel: userId, text: '❌ There was a problem with your booking. Please try again or use /ticket.' });
  }
  });
 
@@ -4119,8 +4119,8 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  text: `✅ IT Appointment Confirmed! ${dateDisplay} ${appt.timeSlot}`,
  blocks: [
  { type: 'header', text: { type: 'plain_text', text: '✅ Appointment Confirmed!', emoji: true }},
- { type: 'section', text: { type: 'mrkdwn', text: `*${dateDisplay} ${appt.timeSlot}* pe IT team milegi! 😊\n\nProblem: ${appt.reason}\n\nLocation: IT Helpdesk Desk (Floor details IT team batayegi)` }},
- { type: 'context', elements: [{ type: 'mrkdwn', text: '_Cancel karna ho toh IT ko Slack pe batao_' }]}
+ { type: 'section', text: { type: 'mrkdwn', text: `*${dateDisplay} ${appt.timeSlot}* — IT team will meet you! 😊\n\nProblem: ${appt.reason}\n\nLocation: IT Helpdesk Desk (IT team will share floor details)` }},
+ { type: 'context', elements: [{ type: 'mrkdwn', text: '_To cancel, send a DM to IT on Slack_' }]}
  ]
  });
  await client.chat.update({ channel: body.channel?.id || body.container?.channel_id, ts: body.message.ts,
@@ -4140,9 +4140,9 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  if (appt) {
  await client.chat.postMessage({
  channel: empSlackId,
- text: `❌ Appointment cancel ho gayi. Naya slot book karo: /appoint`,
+ text: `❌ Appointment cancelled. Book a new slot: /appoint`,
  blocks: [
- { type: 'section', text: { type: 'mrkdwn', text: `❌ *Appointment Cancel* ho gayi aapki.\n\nNaya slot book karne ke liye: \`/appoint\`\nYa turant help ke liye: \`/ticket\`` }}
+ { type: 'section', text: { type: 'mrkdwn', text: `❌ *Your Appointment has been Cancelled.*\n\nTo book a new slot: \`/appoint\`\nFor immediate help: \`/ticket\`` }}
  ]
  });
  await client.chat.update({ channel: body.channel?.id || body.container?.channel_id, ts: body.message.ts,
@@ -4172,7 +4172,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  const file = message.files[0];
  if (file.mimetype?.startsWith('image/')) {
  try {
- await say({ text: '📸 Screenshot dekh raha hoon...' });
+ await say({ text: '📸 Analyzing screenshot...' });
  const emp = await lookupEmployee(userId, client);
  let diagnosis = null;
 
@@ -4194,14 +4194,14 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    const ext = (file.name || '').split('.').pop()?.toLowerCase();
    const mediaType = ext === 'png' ? 'image/png' : ext === 'gif' ? 'image/gif' : 'image/jpeg';
 
-   const visionPrompt = `You are Zivon — WIOM IT helpdesk assistant. An employee sent this screenshot of their laptop/screen showing an IT problem.
+   const visionPrompt = `You are WIOM IT helpdesk assistant. An employee sent this screenshot of their laptop/screen showing an IT problem.
 
 Analyze the screenshot carefully and:
 1. Identify exactly what error/issue is visible
 2. Give 2-3 simple steps to fix it (non-technical employee, no CMD, no Device Manager)
 3. If it needs IT help → suggest clicking the IT Ticket button below
 
-Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue" opener.`;
+Reply in English. Be specific about what you see. Max 5 lines. No "common issue" opener.`;
 
    // ── PRIMARY: Gemini Vision (already connected) ────────────────────────
    if (process.env.GEMINI_API_KEY) {
@@ -4244,17 +4244,17 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    const formatted = formatForSlack(diagnosis);
    await say({ text: diagnosis, blocks: [
      { type: 'section', text: { type: 'mrkdwn', text: `📸 *Screenshot Analysis:*\n\n${formatted}` }},
-     { type: 'context', elements: [{ type: 'mrkdwn', text: '_Zivon Vision — Kaam nahi hua? Neeche IT Ticket button click karo._' }]}
+     { type: 'context', elements: [{ type: 'mrkdwn', text: '_AI Vision — Not resolved? Click the IT Ticket button below._' }]}
    ]});
  } else {
-   await say({ text: 'Screenshot mila! Error message clearly share karo, ya *Create Ticket* button dabao — IT team directly help karegi.' });
+   await say({ text: 'Screenshot received! Share the error message clearly, or click the *Create Ticket* button — IT team will help you directly.' });
  }
  } catch (err) {
  console.error('Photo diagnosis error:', err.message);
- await say({ text: 'Screenshot mila! Error message clearly share karo, ya *Create Ticket* button dabao — IT team directly help karegi.' });
+ await say({ text: 'Screenshot received! Share the error message clearly, or click the *Create Ticket* button — IT team will help you directly.' });
  }
  } else {
- await say({ text: `File mila (${file.name})! Iske baare mein kya help chahiye? 😊` });
+ await say({ text: `File received (${file.name})! What help do you need with this? 😊` });
  }
  return;
  }
@@ -4280,7 +4280,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  pendingTickets.delete(userId);
  failedAttempts.delete(userId); // reset failure count on new topic
  const firstName = (emp.empName || 'there').split(' ')[0];
- await say({ text: ` Theek hai ${firstName}! Nayi baat shuru karte hain. Aapki nai IT problem kya hai?` });
+ await say({ text: ` Got it, ${firstName}! Starting fresh. What is your new IT problem?` });
  return;
  }
 
@@ -4293,22 +4293,22 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  }).sort({ createdAt: -1 }).limit(5);
 
  if (!tickets.length) {
- await say({ text: '*Koi open ticket nahi hai!* Sab kuch theek chal raha hai.' });
+ await say({ text: '*No open tickets!* Everything looks good.' });
  return;
  }
 
  const priEmoji = { Critical:'', High:'', Medium:'', Low:'' };
  const statEmoji = { Open:'⏳', 'In Progress':'', Waiting:'⏸', Resolved:'✅', Closed:'' };
- let ticketText = `* Aapke Open Tickets (${tickets.length}):*\n\n`;
+ let ticketText = `*Your Open Tickets (${tickets.length}):*\n\n`;
  tickets.forEach(t => {
  const hrs = Math.round((Date.now() - new Date(t.createdAt)) / 3600000);
- ticketText += `${priEmoji[t.priority]||''} *\`${t.ticketId}\`* ${statEmoji[t.status]||'⏳'} ${t.status} _${hrs}h pehle_\n`;
+ ticketText += `${priEmoji[t.priority]||''} *\`${t.ticketId}\`* ${statEmoji[t.status]||'⏳'} ${t.status} ${hrs}h ago\n`;
  ticketText += `> ${(t.description||'').substring(0,60)}...\n\n`;
  });
  await say({ blocks:[
  { type:'section', text:{ type:'mrkdwn', text: ticketText }},
- { type:'context', elements:[{ type:'mrkdwn', text:`_Aur help chahiye to batao, ya call karein: IT Helpdesk (Slack)_` }]}
- ], text: `Aapke ${tickets.length} open ticket(s)` });
+ { type:'context', elements:[{ type:'mrkdwn', text:`_Need more help? Contact IT Helpdesk (Slack)_` }]}
+ ], text: `Your ${tickets.length} open ticket(s)` });
  return;
  }
 
@@ -4322,7 +4322,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  pendingTickets.delete(userId);
  failedAttempts.delete(userId); // reset failure count on fresh greeting
  const firstName = (emp.empName || 'there').split(' ')[0];
- await say({ text: `Hey ${firstName}! Main Zivon hoon ⚡`, blocks: buildGreetingBlocks(firstName) });
+ await say({ text: `Hey ${firstName}! Welcome to WIOM IT Helpdesk ⚡`, blocks: buildGreetingBlocks(firstName) });
  return;
  }
 
@@ -4334,7 +4334,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  const sn = empRec?.laptopSN || emp.laptopSN || null;
  if (model || sn) {
  await say({
- text: `Aapka Laptop: ${model||''} | SN: ${sn||''}`,
+ text: `Your Laptop: ${model||''} | SN: ${sn||''}`,
  blocks: [
  { type:'section', fields:[
  { type:'mrkdwn', text:`*Laptop Model:*\n${model||'N/A'}` },
@@ -4523,7 +4523,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      outlook_sync: 'Gmail email sync issue',
      outlook_email: 'Gmail email issue',
      email_access: 'email Gmail access needed',
-     email_login: 'gmail login nahi ho rha email mein access nahi',
+     email_login: 'gmail login not working cannot access email',
      // Account / Password
      password_reset: 'forgot laptop Windows password',
      account_locked: 'account locked cannot login',
@@ -4572,9 +4572,9 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    const label = categoryLabels[vagueMatch.type] || 'Issue';
    // Script hint only for categories where scripts actually help (not power/boot issues)
    const canScript = vagueMatch.type !== 'laptop' || true; // label is generic — no script promise
-   const subLabel = `_Select karo — Zivon help karega 👇_`;
+   const subLabel = `_Select below — IT Assistant will help you 👇_`;
    const blocks = [
-     { type: 'section', text: { type: 'mrkdwn', text: `*${label} — exact problem select karo:*\n${subLabel}` } },
+     { type: 'section', text: { type: 'mrkdwn', text: `*${label} — select your exact problem:*\n${subLabel}` } },
    ];
    rows.forEach(row => {
      blocks.push({
@@ -4588,7 +4588,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      });
    });
 
-   await say({ text: `${label} — exact problem batao:`, blocks });
+   await say({ text: `${label} — select your exact problem:`, blocks });
    return;
  }
 
@@ -4597,9 +4597,9 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  /^(help|problem|issue|kuch|kuch\s*nahi|kuch\s*ho\s*gaya|nahi\s*chal|kaam\s*nahi|help\s*karo|kuch\s*hua|ajeeb|theek\s*nahi|dekho|sun|ek\s*problem|problem\s*hai|issue\s*hai|ek\s*issue|dikkat|dikkat\s*hai)/i.test(text.trim());
  if (isCatchAllVague) {
  await say({
- text: 'Kya problem hai? Select karo:',
+ text: 'What is the problem? Select below:',
  blocks: [
- { type:'section', text:{ type:'mrkdwn', text:`*🤔 Thoda aur bata sakte ho?*\nKis cheez mein problem aa rahi hai:` }},
+ { type:'section', text:{ type:'mrkdwn', text:`*🤔 Can you tell me a bit more?*\nWhat is the issue with:` }},
  { type:'actions', elements: [
  { type:'button', text:{ type:'plain_text', text:'💻 Laptop', emoji:true }, action_id:'vague_pick_laptop_other', value:'laptop hardware issue' },
  { type:'button', text:{ type:'plain_text', text:'📶 WiFi / Internet', emoji:true }, action_id:'vague_pick_wifi_not_connect', value:'wifi not connecting' },
@@ -4632,7 +4632,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  } else if (result) {
  const priEmoji = { Critical:'', High:'', Medium:'', Low:'' };
  await say({
- text: `Ticket ${result.ticketId} ban gaya!`,
+ text: `Ticket ${result.ticketId} created!`,
  blocks: [
  { type:'header', text:{ type:'plain_text', text:'✅ Ticket Created!', emoji:true }},
  { type:'section', fields:[
@@ -4647,12 +4647,12 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  });
  await notifyAdmin(client, result, emp);
  } else {
- await say({ text: '❌ Ticket create karne mein problem aayi. Please `/ticket` command use karo.' });
+ await say({ text: '❌ Could not create ticket. Please use the `/ticket` command.' });
  }
  } else {
  // No context → open /ticket modal instructions
  await say({
- text: 'Ticket banane ke liye `/ticket` command use karo!',
+ text: 'Use the `/ticket` command to create a ticket!',
  blocks: [
  { type:'section', text:{ type:'mrkdwn', text:`*Need to Create a Ticket?*\n\nType \`/ticket\` → fill the form → ticket instantly created ✅\n\nOr describe your problem first — AI will help then suggest a ticket automatically.` }},
  { type:'context', elements:[{ type:'mrkdwn', text:`_Urgent? Call IT Helpdesk directly._` }]}
@@ -4685,7 +4685,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  } else if (result) {
  const priEmoji = { Critical:'', High:'', Medium:'', Low:'' };
  await say({
- text: `Ticket ${result.ticketId} create ho gaya!`,
+ text: `Ticket ${result.ticketId} has been created!`,
  blocks: [
  { type:'header', text:{ type:'plain_text', text:'✅ Ticket Created!', emoji:true }},
  { type:'section', fields:[
@@ -4699,14 +4699,14 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  });
  await notifyAdmin(client, result, emp);
  } else {
- await say({ text: '❌ Ticket create karne mein problem aayi. Please try `/ticket` command use karo ya IT team ko directly contact karo.' });
+ await say({ text: '❌ Could not create ticket. Please try `/ticket` or contact IT directly.' });
  }
  return;
  }
 
  if (isNo) {
  pendingTickets.delete(userId);
- await say({ text: 'Theek hai! Let us know if you need more help.' });
+ await say({ text: 'No problem! Let us know if you need any help.' });
  return;
  }
  }
@@ -4736,7 +4736,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  aapKaroBlocks.push({
  type: 'section',
  text: { type: 'mrkdwn', text:
- `⚡ *Chal raha hoon!* Agent aapke laptop par *${diagLabel}* run kar raha hai.\n_30-60 seconds mein result milega wait karo!_ `
+ `⚡ *On it!* Agent is running *${diagLabel}* on your laptop.\n_Result in 30-60 seconds — please wait!_ `
  }
  });
  } else {
@@ -4744,7 +4744,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  aapKaroBlocks.push({
  type: 'section',
  text: { type: 'mrkdwn', text:
- ` *Script download karo → double-click karo → automatic chalega!*\n_IT ka safe script hai bilkul ek click mein kaam ho jayega._`
+ ` *Download the script → double-click it → it will run automatically!*\n_IT safe script — works in one click._`
  }
  });
  if (brandInfo.diagScript) {
@@ -4762,12 +4762,12 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  } else {
  aapKaroBlocks.push({
  type: 'context',
- elements: [{ type: 'mrkdwn', text: '_Is problem ke liye specific script nahi hai ticket raise karo ya steps manually karo._' }]
+ elements: [{ type: 'mrkdwn', text: '_No specific script for this problem — raise a ticket or try the steps manually._' }]
  });
  }
  }
 
- await say({ text: 'Auto-fix chal raha hai!', blocks: aapKaroBlocks });
+ await say({ text: 'Auto-fix is running!', blocks: aapKaroBlocks });
  return;
  }
 
@@ -4776,8 +4776,8 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  // Typing indicator — ChatGPT style, shows user's issue being analyzed
  const shortIssue = text.length > 55 ? text.substring(0, 52) + '...' : text;
  const thinkingMsg = await say({
-   text: 'Zivon soch raha hai...',
-   blocks: [{ type: 'context', elements: [{ type: 'mrkdwn', text: `_✦  Zivon: "${shortIssue}" — check kar raha hoon..._` }] }]
+   text: 'WIOM IT is thinking...',
+   blocks: [{ type: 'context', elements: [{ type: 'mrkdwn', text: `_✦  WIOM IT: "${shortIssue}" — looking into this..._` }] }]
  });
 
  // ── SPEED: Try KB first — instant answer, no API call ─────────────
@@ -4941,11 +4941,11 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      if (newCount >= 2) {
        unknownAttempts.delete(userId);
        await say({
-         text: 'IT Support ticket raise kar raha hoon',
+         text: 'Raising IT Support ticket',
          blocks: [
-           { type: 'section', text: { type: 'mrkdwn', text: `⚡ *2 attempts ke baad bhi identify nahi ho paya.*\n\nIT team directly handle karegi. Neeche ticket raise karo:` }},
+           { type: 'section', text: { type: 'mrkdwn', text: `⚡ *Could not identify the issue after 2 attempts.*\n\nIT team will handle it directly. Raise a ticket below:` }},
            { type: 'actions', elements: [
-             { type: 'button', text: { type: 'plain_text', text: '🎫 IT Ticket Raise Karo', emoji: true },
+             { type: 'button', text: { type: 'plain_text', text: '🎫 Raise IT Ticket', emoji: true },
                style: 'danger', action_id: 'quick_ticket_btn', value: text }
            ]}
          ]
@@ -5033,7 +5033,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
  } catch (err) {
  console.error('❌ DM handler error:', err.message);
  try {
- await say({ text: '❌ Kuch technical problem aa gayi. Thoda wait karein aur dobara try karein.' });
+ await say({ text: '❌ A technical problem occurred. Please wait a moment and try again.' });
  } catch (sayErr) {
  console.error('❌ Could not send error message:', sayErr.message);
  }
@@ -5083,9 +5083,9 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      // 1. Tell employee immediately
      await client.chat.postMessage({
        channel: channelId,
-       text: 'Samajh gaya — main theek kar raha hoon.',
+       text: 'Got it — working on it.',
        blocks: [{ type: 'section', text: { type: 'mrkdwn', text:
-         `🔧 *Samajh gaya — main theek kar raha hoon.*\n\nAbhi IT ticket chahiye? Neeche IT Ticket button click karo:`
+         `🔧 *Got it — working on it.*\n\nNeed an IT ticket right now? Click the IT Ticket button below:`
        }}]
      });
 
@@ -5122,11 +5122,11 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
          const formatted = formatForSlack(reply);
          await client.chat.postMessage({
            channel: channelId,
-           text: 'Yeh try karo:',
+           text: 'Try this:',
            blocks: [
-             { type: 'section', text: { type: 'mrkdwn', text: `✅ *Yeh try karo:*\n\n${formatted}` }},
+             { type: 'section', text: { type: 'mrkdwn', text: `✅ *Try this:*\n\n${formatted}` }},
              { type: 'actions', elements: [
-               { type: 'button', text: { type: 'plain_text', text: '✅ Ho gaya!', emoji: true },
+               { type: 'button', text: { type: 'plain_text', text: '✅ Done!', emoji: true },
                  action_id: 'resolved_yes_btn', style: 'primary', value: 'Medium' },
                { type: 'button', text: { type: 'plain_text', text: '🎫 IT Ticket Banao', emoji: true },
                  action_id: 'quick_ticket_btn', style: 'danger', value: 'Medium' }
@@ -5144,7 +5144,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
          text: `❌ Bot answer flagged — auto-fixed`,
          blocks: [
            { type: 'section', text: { type: 'mrkdwn', text:
-             `❌ *Bot ka jawab kaam nahi aaya*\n*Employee:* ${empName}\n*Sawaal:* _${question.substring(0, 150)}_\n\n🔧 Bot ne automatically better answer generate kiya aur employee ko diya.`
+             `❌ *Bot answer did not work*\n*Employee:* ${empName}\n*Question:* _${question.substring(0, 150)}_\n\n🔧 Bot automatically generated a better answer and sent it to the employee.`
            }}
          ]
        });
@@ -5227,10 +5227,10 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
    if (count >= 2) {
      failedAttempts.delete(userId);
      const escalateBlocks = [
-       { type: 'section', text: { type: 'mrkdwn', text: '*Steps se solve nahi hua — IT team ko bhejte hain.*\n\nIT team personally aayegi aur fix karegi.' } },
+       { type: 'section', text: { type: 'mrkdwn', text: '*Steps did not resolve the issue — sending to IT team.*\n\nIT team will come personally and fix it.' } },
        { type: 'actions', elements: [
          { type: 'button', text: { type: 'plain_text', text: 'Create Ticket', emoji: true }, action_id: 'quick_ticket_btn', style: 'danger', value: 'Medium',
-           confirm: { title: { type: 'plain_text', text: 'Ticket Create Karein?' }, text: { type: 'mrkdwn', text: '_IT team ko alert bheja jayega._' }, confirm: { type: 'plain_text', text: 'Ha, Banao!' }, deny: { type: 'plain_text', text: 'Ruko' } }
+           confirm: { title: { type: 'plain_text', text: 'Create Ticket?' }, text: { type: 'mrkdwn', text: '_IT team will be alerted._' }, confirm: { type: 'plain_text', text: 'Yes, Create!' }, deny: { type: 'plain_text', text: 'Cancel' } }
          },
          { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home' }
        ]}
@@ -5241,7 +5241,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
          close: { type: 'plain_text', text: 'Close', emoji: true }, blocks: escalateBlocks
        }}).catch(e => console.error('not_resolved escalate modal err:', e.message));
      } else {
-       await client.chat.postMessage({ channel: channelId, text: 'Steps se solve nahi hua.', blocks: escalateBlocks });
+       await client.chat.postMessage({ channel: channelId, text: 'Steps did not resolve the issue.', blocks: escalateBlocks });
      }
      return;
    }
@@ -5252,13 +5252,13 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      await client.views.update({ view_id: viewId, view: {
        type: 'modal', title: { type: 'plain_text', text: 'Trying Again...', emoji: true },
        close: { type: 'plain_text', text: 'Close', emoji: true },
-       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Alag approach dhundh raha hoon..._' }}]
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Looking for a different approach..._' }}]
      }}).catch(() => {});
    }
    const thinkMsg = viewId ? null : await client.chat.postMessage({
      channel: channelId,
-     text: 'Zivon alag approach dhundh raha hai...',
-     blocks: [{ type: 'context', elements: [{ type: 'mrkdwn', text: '_✦  Zivon: Different approach dhundh raha hoon..._' }] }]
+     text: 'WIOM IT is trying a different approach...',
+     blocks: [{ type: 'context', elements: [{ type: 'mrkdwn', text: '_✦  WIOM IT: Looking for a different approach..._' }] }]
    });
 
    try {
@@ -5271,7 +5271,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
 
      const conv = await getSlackSession(userId, emp || { empId: userId, empName: 'User' });
      // Tell AI explicitly what was tried and that it didn't work
-     conv.messages.push({ role: 'user', content: 'steps try kiye but problem same hai. please koi alag method batao — jo pehle suggest kiya wo dobara mat batao.' });
+     conv.messages.push({ role: 'user', content: 'tried the steps but the problem is still the same. please suggest a different method — do not repeat what was already suggested.' });
      if (conv.messages.length > 20) conv.messages = conv.messages.slice(-20);
 
      const { reply } = await claudeSvc.chat(conv.messages, empInfo);
@@ -5312,7 +5312,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      }
    } catch(err) {
      console.error('not_resolved_btn AI error:', err.message);
-     const fallbackText = 'Laptop restart karo aur dobara check karo. Agar phir bhi nahi hua — Create Ticket button dabao.';
+     const fallbackText = 'Restart your laptop and check again. If still not resolved — click the Create Ticket button.';
      if (viewId) {
        await client.views.update({ view_id: viewId, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Try This', emoji: true },
@@ -5445,7 +5445,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
                `*Ticket ID:* \`${result.ticketId}\`\n` +
                `*Priority:* ${result.priority}\n` +
                `*Category:* ${result.category}\n\n` +
-               `IT team jald se jald aapki madad karegi.`
+               `IT team will help you as soon as possible.`
              }},
              { type: 'actions', elements: [
                { type: 'button', text: { type: 'plain_text', text: '🏠 Home', emoji: true }, action_id: 'go_home_btn', value: 'home', style: 'primary' }
@@ -5461,11 +5461,11 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        await client.views.update({ view_id: viewId, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },
          close: { type: 'plain_text', text: 'Close', emoji: true },
-         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `Could not create ticket. Email IT at: ${ADMIN_EMAIL}` }}]
        }}).catch(() => {});
      } else {
        await client.chat.postEphemeral({ channel: channelId, user: userId,
-         text: `Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` });
+         text: `Could not create ticket. Email IT at: ${ADMIN_EMAIL}` });
      }
    }
  }); // end quick_ticket_btn
@@ -5518,7 +5518,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
        if (viewId) await client.views.update({ view_id: viewId, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },
          close: { type: 'plain_text', text: 'Close', emoji: true },
-         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Could not create ticket. Email IT at: ${ADMIN_EMAIL}` }}]
        }}).catch(() => {});
      }
    } catch(err) {
@@ -5526,7 +5526,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      if (viewId) await client.views.update({ view_id: viewId, view: {
        type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },
        close: { type: 'plain_text', text: 'Close', emoji: true },
-       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket nahi ban saka. IT ko email karo: ${ADMIN_EMAIL}` }}]
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Could not create ticket. Email IT at: ${ADMIN_EMAIL}` }}]
      }}).catch(() => {});
    }
  });
@@ -5677,7 +5677,7 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
      await ack({ response_action: 'update', view: {
        type: 'modal', title: { type: 'plain_text', text: 'Error' },
        close: { type: 'plain_text', text: 'Close' },
-       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Update nahi ja saka. Dobara try karo.` }}]
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Update failed. Please try again.` }}]
      }}).catch(() => {});
    }
  });
@@ -5749,25 +5749,25 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
 
  await slackApp.client.chat.postMessage({
  channel: adminId,
- text : `⚡ Zivon — Good Morning! IT Helpdesk Daily Summary ${dateStr}`,
+ text : `⚡ WIOM IT — Good Morning! IT Helpdesk Daily Summary ${dateStr}`,
  blocks : [
- { type:'header', text:{ type:'plain_text', text:`⚡ Zivon — Daily IT Summary`, emoji:true }},
- { type:'context', elements:[{ type:'mrkdwn', text:`_${dateStr} | Your Smart Office IT Buddy_` }]},
+ { type:'header', text:{ type:'plain_text', text:`⚡ WIOM IT — Daily Summary`, emoji:true }},
+ { type:'context', elements:[{ type:'mrkdwn', text:`_${dateStr} | WIOM IT Helpdesk_` }]},
  { type:'divider' },
  { type:'section', fields:[
- { type:'mrkdwn', text:`* Aaj Aaye*\n*${newToday}* tickets` },
- { type:'mrkdwn', text:`*✅ Aaj Resolve*\n*${resolvedToday}* tickets` },
+ { type:'mrkdwn', text:`*🎫 Today's New*\n*${newToday}* tickets` },
+ { type:'mrkdwn', text:`*✅ Resolved Today*\n*${resolvedToday}* tickets` },
  { type:'mrkdwn', text:`*⏳ Total Open*\n*${totalOpen}* tickets` },
- { type:'mrkdwn', text:`* Critical Open*\n*${critical}*` },
+ { type:'mrkdwn', text:`*🔴 Critical Open*\n*${critical}*` },
  { type:'mrkdwn', text:`*⚠️ SLA Breached*\n*${slaBreached}*` }
  ]},
  { type: 'divider' },
  { type: 'section', text: { type: 'mrkdwn', text: `*📊 Top Issues (Last 7 Days):*\n${trendText}` }},
  ...(oldestText ? [
  { type:'divider' },
- { type:'section', text:{ type:'mrkdwn', text:`*⏳ Sabse Purane Pending Tickets:*\n${oldestText}` }}
+ { type:'section', text:{ type:'mrkdwn', text:`*⏳ Oldest Pending Tickets:*\n${oldestText}` }}
  ] : []),
- { type:'context', elements:[{ type:'mrkdwn', text:`_Aaj ki shuruat mubarak! ⚡ Zivon — Your Smart Office IT Buddy_` }]}
+ { type:'context', elements:[{ type:'mrkdwn', text:`_Good morning! ⚡ WIOM IT Helpdesk_` }]}
  ]
  });
  console.log(' Daily summary sent to admin');
@@ -5809,18 +5809,18 @@ Reply in Hinglish. Be specific about what you see. Max 5 lines. No "common issue
 
      const listText = topUnknown.length
        ? topUnknown
-           .map((q, i) => `${i+1}. \`${q.query.substring(0, 60)}\` — ${q.attempts} baar poochha gaya`)
+           .map((q, i) => `${i+1}. \`${q.query.substring(0, 60)}\` — ${q.attempts} time(s)`)
            .join('\n')
-       : '_Is hafte koi unknown query nahi aayi!_';
+       : '_No unknown queries this week!_';
 
      await slackClient.chat.postMessage({
        channel: adminId,
        text: '📊 Weekly Unknown Queries Report',
        blocks: [
          { type: 'header', text: { type: 'plain_text', text: '📊 Weekly Unknown Queries Report', emoji: true }},
-         { type: 'section', text: { type: 'mrkdwn', text: `*Top ${topUnknown.length} queries bot answer nahi de paya:*\n\n${listText}` }},
-         { type: 'section', text: { type: 'mrkdwn', text: `*📋 Learning Queue:* ${pendingReview} answers waiting for review | ${approvedThisWeek} approved this week\n_Admin Dashboard → Learning Queue tab se review karein_` }},
-         { type: 'section', text: { type: 'mrkdwn', text: '_In queries ke liye KB articles banao → bot automatically improve hoga._' }},
+         { type: 'section', text: { type: 'mrkdwn', text: `*Top ${topUnknown.length} queries the bot could not answer:*\n\n${listText}` }},
+         { type: 'section', text: { type: 'mrkdwn', text: `*📋 Learning Queue:* ${pendingReview} answers waiting for review | ${approvedThisWeek} approved this week\n_Admin Dashboard → Learning Queue tab to review_` }},
+         { type: 'section', text: { type: 'mrkdwn', text: '_Create KB articles for these queries → bot will automatically improve._' }},
          { type: 'context', elements: [{ type: 'mrkdwn', text: `_Total this week: ${topUnknown.length} unique unknown queries_` }]}
        ]
      });
