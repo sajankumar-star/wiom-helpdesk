@@ -996,6 +996,7 @@ app.listen(PORT, async () => {
      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*🔧 Admin Tools*' } });
      blocks.push({ type: 'actions', elements: [
        { type: 'button', text: { type: 'plain_text', text: '👥 Set Employee Manager', emoji: true }, action_id: 'admin_set_manager_open', value: 'open' },
+       { type: 'button', text: { type: 'plain_text', text: '📢 Ask All for Manager Info', emoji: true }, action_id: 'admin_blast_manager_ask', value: 'blast', style: 'primary' },
      ]});
    }
 
@@ -3636,7 +3637,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  });
 
  // ── External select options — search employees ────────────────────────────────
- slackApp.options(/^(emp_select|mgr_select)$/, async ({ payload, options, ack }) => {
+ slackApp.options(/^(emp_select|mgr_select|mgr_self_select)$/, async ({ payload, options, ack }) => {
    try {
      const q = options?.value || payload?.value || '';
      const emps = await Employee.find({
@@ -3683,6 +3684,127 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
        ]
      });
    } catch (err) { console.error('admin_set_manager_submit error:', err.message); }
+ });
+
+ // ── Admin: Blast message — ask ALL employees to select their manager ──────────
+ slackApp.action('admin_blast_manager_ask', async ({ body, ack, client }) => {
+   await ack();
+   const adminId = body.user.id;
+   try {
+     // Fetch all active employees who have a Slack ID but no manager set
+     const employees = await Employee.find({
+       isActive: true,
+       slackUserId: { $exists: true, $ne: '' },
+       $or: [{ managerSlackId: { $exists: false } }, { managerSlackId: '' }, { managerSlackId: null }]
+     }).select('empId name slackUserId').lean();
+
+     if (!employees.length) {
+       const dm = await client.conversations.open({ users: adminId });
+       await client.chat.postMessage({ channel: dm.channel.id, text: '✅ All employees already have managers assigned!' });
+       return;
+     }
+
+     let sent = 0, failed = 0;
+     for (const emp of employees) {
+       try {
+         const dm = await client.conversations.open({ users: emp.slackUserId });
+         await client.chat.postMessage({
+           channel: dm.channel.id,
+           text: `Hi ${emp.name.split(' ')[0]}! Please select your reporting manager 👇`,
+           blocks: [
+             { type: 'section', text: { type: 'mrkdwn', text: `*Hi ${emp.name.split(' ')[0]}! 👋*\n\nWIOM IT Helpdesk needs to know your *reporting manager* to process software requests.\n\nPlease click below to select your manager:` } },
+             { type: 'actions', elements: [
+               { type: 'button', text: { type: 'plain_text', text: '👤 Select My Manager', emoji: true }, style: 'primary', action_id: 'emp_self_select_manager', value: JSON.stringify({ empId: emp.empId, empName: emp.name }) },
+             ]}
+           ]
+         });
+         sent++;
+         // Small delay to avoid Slack rate limits
+         await new Promise(r => setTimeout(r, 200));
+       } catch (e) { failed++; console.error(`blast DM failed for ${emp.empId}:`, e.message); }
+     }
+
+     // Report back to admin
+     const adminDm = await client.conversations.open({ users: adminId });
+     await client.chat.postMessage({
+       channel: adminDm.channel.id,
+       text: `📢 Blast sent! ${sent} employees messaged, ${failed} failed.`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*📢 Manager Request Blast Complete*\n\n✅ *Sent:* ${sent} employees\n❌ *Failed:* ${failed}\n\nEmployees will see a button to select their manager. As they respond, it auto-saves.` } }
+       ]
+     });
+   } catch (err) { console.error('admin_blast_manager_ask error:', err.message); }
+ });
+
+ // ── Employee: select their own manager (from blast message) ───────────────────
+ slackApp.action('emp_self_select_manager', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     const { empId, empName } = JSON.parse(body.actions[0].value);
+     await client.views.open({
+       trigger_id: body.trigger_id,
+       view: {
+         type: 'modal',
+         callback_id: 'emp_manager_select_submit',
+         private_metadata: JSON.stringify({ empId, empName, msgTs: body.message?.ts, channelId: body.channel?.id }),
+         title: { type: 'plain_text', text: '👤 Select Your Manager', emoji: true },
+         submit: { type: 'plain_text', text: '✅ Confirm', emoji: true },
+         close: { type: 'plain_text', text: 'Cancel', emoji: true },
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: `*Hi ${empName.split(' ')[0]}!*\nSearch and select your reporting manager below 👇` } },
+           { type: 'divider' },
+           {
+             type: 'input', block_id: 'mgr_self_block',
+             label: { type: 'plain_text', text: 'My Reporting Manager:', emoji: true },
+             element: {
+               type: 'external_select',
+               action_id: 'mgr_self_select',
+               placeholder: { type: 'plain_text', text: 'Type manager name...' },
+               min_query_length: 1,
+             }
+           }
+         ]
+       }
+     });
+   } catch (err) { console.error('emp_self_select_manager error:', err.message); }
+ });
+
+ // ── Employee: save self-selected manager ──────────────────────────────────────
+ slackApp.view('emp_manager_select_submit', async ({ body, ack, view, client }) => {
+   await ack();
+   try {
+     const { empId, empName, msgTs, channelId } = JSON.parse(view.private_metadata || '{}');
+     const mgrVal = view.state.values?.mgr_self_block?.mgr_self_select?.selected_option?.value;
+     if (!mgrVal) return;
+
+     const mgr = JSON.parse(mgrVal);
+     await Employee.findOneAndUpdate({ empId }, { managerSlackId: mgr.slackId, managerName: mgr.name });
+
+     // Update original blast message to show done
+     if (channelId && msgTs) {
+       await client.chat.update({
+         channel: channelId, ts: msgTs,
+         text: `✅ Manager set: ${mgr.name}`,
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `*✅ Manager Set!*\n\nYour reporting manager has been saved as *${mgr.name}*.\n\nSoftware requests will now go to them for approval.` } }]
+       }).catch(() => {});
+     }
+
+     // Confirm to employee via DM
+     const userId = body.user.id;
+     const dm = await client.conversations.open({ users: userId });
+     await client.chat.postMessage({
+       channel: dm.channel.id,
+       text: `✅ Manager saved: ${mgr.name}`,
+       blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `*✅ Done!*\nYour reporting manager *${mgr.name}* has been saved. Any software requests you make will go to them for approval.` } }]
+     });
+
+     // Notify admin
+     const adminId = process.env.ADMIN_SLACK_USER_ID;
+     if (adminId) {
+       const adminDm = await client.conversations.open({ users: adminId });
+       await client.chat.postMessage({ channel: adminDm.channel.id, text: `✅ ${empName} → Manager: ${mgr.name}` });
+     }
+   } catch (err) { console.error('emp_manager_select_submit error:', err.message); }
  });
 
  // ── Quick Action buttons from Home tab ────────────────────────────────
