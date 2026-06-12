@@ -933,7 +933,6 @@ app.listen(PORT, async () => {
    blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Actions*' } });
    blocks.push({ type: 'actions', elements: [
-     { type: 'button', text: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true }, action_id: 'home_quick_office_net_down', value: 'office_net_down', style: 'danger' },
      { type: 'button', text: { type: 'plain_text', text: '🎫 Raise Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
      { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Fix', emoji: true }, action_id: 'home_quick_11', value: 'WiFi not working no internet connection' },
    ]});
