@@ -3053,6 +3053,33 @@ app.listen(PORT, async () => {
    }
  });
 
+ // ── Office Net Down — DEDICATED standalone handler (also in forEach for backup) ──
+slackApp.action('home_quick_office_net_down', async ({ body, ack, client }) => {
+  await ack();
+  const userId = body.user.id;
+  console.log('OFFICE_NET_DOWN STANDALONE FIRED userId:', userId);
+  try {
+    await client.views.publish({
+      user_id: userId,
+      view: {
+        type: 'home',
+        blocks: [
+          { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nKonsa floor affected hai? Button dabao 👇' } },
+          { type: 'divider' },
+          { type: 'actions', elements: [
+            { type: 'button', text: { type: 'plain_text', text: '🏢 Ground Floor', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
+            { type: 'button', text: { type: 'plain_text', text: '🏢 3rd Floor', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
+          ]},
+          { type: 'divider' },
+          { type: 'actions', elements: [
+            { type: 'button', text: { type: 'plain_text', text: '← Wapas Jao', emoji: true }, action_id: 'go_home_btn', value: 'home' },
+          ]}
+        ]
+      }
+    });
+  } catch(e) { console.error('OFFICE_NET_DOWN PUBLISH ERR:', e.message); }
+});
+
  // ── Office Net Down — floor selected → update Home Tab with confirmation ──
 slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
   await ack();
