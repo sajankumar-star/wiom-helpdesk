@@ -23,6 +23,10 @@ const employeeSchema = new mongoose.Schema({
   slackHandle: { type: String },
   isActive   : { type: Boolean, default: true },
 
+  // ── Reporting Manager ─────────────────────────────────────────────────────────
+  managerSlackId: { type: String },   // Slack User ID of reporting manager
+  managerName   : { type: String },   // Display name of reporting manager
+
   // ── Auto-Fix Agent ────────────────────────────────────────────────────────────
   agentRegistered : { type: Boolean, default: false },
   agentVersion    : { type: String },

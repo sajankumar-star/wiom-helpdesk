@@ -1813,6 +1813,7 @@ app.listen(PORT, async () => {
          { text: '⌨️ Keyboard',     val: 'new_keyboard' },
          { text: '🎧 Headphone',     val: 'new_headphone' },
          { text: '🖵 Monitor',       val: 'new_monitor' },
+         { text: '💿 Software',      val: 'software_asset_request' },
        ]
      },
      cat_mobile: {
@@ -3377,16 +3378,16 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  // ════════════════════════════════════════════════════════════════════════
 
  const SOFTWARE_LIST = [
+   { label: '🎨 Figma',                 value: 'Figma' },
+   { label: '📊 Microsoft Office',      value: 'Microsoft Office (Word/Excel/PPT)' },
+   { label: '🎯 Jira',                  value: 'Jira' },
+   { label: '🤖 Claude (Anthropic AI)', value: 'Claude (Anthropic AI)' },
    { label: '🔍 Google Chrome',         value: 'Google Chrome' },
    { label: '📹 Zoom',                  value: 'Zoom' },
    { label: '👥 Microsoft Teams',       value: 'Microsoft Teams' },
    { label: '📄 Adobe Acrobat Reader',  value: 'Adobe Acrobat Reader' },
    { label: '📦 7-Zip / WinRAR',        value: '7-Zip / WinRAR' },
-   { label: '🎵 VLC Media Player',      value: 'VLC Media Player' },
    { label: '📝 Notepad++',             value: 'Notepad++' },
-   { label: '📊 Microsoft Office',      value: 'Microsoft Office (Word/Excel/PPT)' },
-   { label: '💬 WhatsApp Desktop',      value: 'WhatsApp Desktop' },
-   { label: '🔐 Any VPN Software',      value: 'VPN Software' },
  ];
 
  const buildSoftwareRequestModal = () => ({
@@ -3415,14 +3416,20 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    ]
  });
 
- slackApp.action('home_software_request', async ({ body, ack, client }) => {
+ // Opens software modal from Home Tab quick action OR from Asset Requests category menu
+ slackApp.action(/^(home_software_request|vague_pick_software_asset_request)$/, async ({ body, ack, client }) => {
    await ack();
-   try { await client.views.open({ trigger_id: body.trigger_id, view: buildSoftwareRequestModal() }); }
-   catch (err) { console.error('software_request open error:', err.message); }
+   try {
+     if (body.view?.type === 'modal') {
+       await client.views.push({ trigger_id: body.trigger_id, view: buildSoftwareRequestModal() });
+     } else {
+       await client.views.open({ trigger_id: body.trigger_id, view: buildSoftwareRequestModal() });
+     }
+   } catch (err) { console.error('software_request open error:', err.message); }
  });
 
  slackApp.view('software_request_submit', async ({ body, ack, view, client }) => {
-   await ack({ response_action: 'update', view: { type: 'modal', title: { type: 'plain_text', text: '💿 Software Request', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ *Submitting request...*' } }] } });
+   await ack({ response_action: 'update', view: { type: 'modal', title: { type: 'plain_text', text: '💿 Software Request', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ *Sending to your manager for approval...*' } }] } });
 
    const userId   = body.user.id;
    const selected = view.state.values?.software_block?.software_select?.selected_options || [];
@@ -3433,39 +3440,150 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    if (!softwareList.length) return;
 
    try {
-     const emp = await Employee.findOne({ slackUserId: userId }).select('empId name empName dept floor empEmail').lean().catch(() => null);
-     const empId   = emp?.empId   || userId;
-     const empName = emp?.name    || emp?.empName || 'Employee';
+     const emp = await Employee.findOne({ slackUserId: userId }).select('empId name empName dept floor empEmail managerSlackId managerName').lean().catch(() => null);
+     const empId      = emp?.empId   || userId;
+     const empName    = emp?.name    || emp?.empName || 'Employee';
+     const mgrSlackId = emp?.managerSlackId;
+     const mgrName    = emp?.managerName || 'Manager';
 
-     const desc = `Software Request:\n• ${softwareList.join('\n• ')}${reason ? `\n\nReason: ${reason}` : ''}\n\n⚠️ IT will install after manager approval.`;
-
+     const desc = `Software Request:\n• ${softwareList.join('\n• ')}${reason ? `\n\nReason: ${reason}` : ''}`;
      const ticket = await createTicketSlack({ empId, empName, empDept: emp?.dept, empFloor: emp?.floor, empEmail: emp?.empEmail, description: desc, category: 'Software Request', priority: 'Low', source: 'slack' });
+     const ticketId = ticket?.ticketId || 'N/A';
 
-     // DM to employee
-     const dmRes = await client.conversations.open({ users: userId });
-     await client.chat.postMessage({
-       channel: dmRes.channel.id,
-       text: `✅ Software Request submitted${ticket ? ` — Ticket \`${ticket.ticketId}\`` : ''}`,
-       blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: `*✅ Software Request Submitted!*\n\n*Software Requested:*\n• ${softwareList.join('\n• ')}` } },
-         { type: 'divider' },
-         { type: 'section', text: { type: 'mrkdwn', text: ticket ? `*Ticket ID:* \`${ticket.ticketId}\`\n\n*Next Steps:*\n1. Get approval from your manager\n2. IT will install after manager approval\n3. You will receive a Slack DM when software is ready` : '*Next Steps:*\n1. Get approval from your manager\n2. Confirm with IT team on Slack' } },
-         { type: 'context', elements: [{ type: 'mrkdwn', text: '_Any questions? Contact IT Helpdesk._' }] }
-       ]
-     });
+     // Button value payload (max 2000 chars — keep compact)
+     const payload = JSON.stringify({ ticketId, userId, empName, empId, software: softwareList, reason: reason || '' });
 
-     // Alert to admin
-     const adminDm = await client.conversations.open({ users: process.env.ADMIN_SLACK_USER_ID || userId });
-     await client.chat.postMessage({
-       channel: adminDm.channel.id,
-       text: `💿 Software Request: ${empName}`,
-       blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: `*💿 Software Request*\n*Employee:* ${empName} (${empId})\n*Dept:* ${emp?.dept || 'N/A'} — Floor ${emp?.floor || 'N/A'}` } },
-         { type: 'section', text: { type: 'mrkdwn', text: `*Software Requested:*\n• ${softwareList.join('\n• ')}${reason ? `\n\n*Reason:* ${reason}` : ''}` } },
-         { type: 'section', text: { type: 'mrkdwn', text: ticket ? `*Ticket:* \`${ticket.ticketId}\`` : '_Ticket creation failed_' } }
-       ]
-     });
+     if (mgrSlackId) {
+       // ── Send approval request to manager ──────────────────────────────────
+       const mgrDm = await client.conversations.open({ users: mgrSlackId });
+       await client.chat.postMessage({
+         channel: mgrDm.channel.id,
+         text: `💿 Software Request from ${empName} — Approval needed`,
+         blocks: [
+           { type: 'header', text: { type: 'plain_text', text: '💿 Software Request — Approval Needed', emoji: true } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${empName} (${empId})\n*Dept/Floor:* ${emp?.dept || 'N/A'} — Floor ${emp?.floor || 'N/A'}` } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Software Requested:*\n• ${softwareList.join('\n• ')}${reason ? `\n\n*Reason:* ${reason}` : ''}` } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Ticket:* \`${ticketId}\`` } },
+           { type: 'divider' },
+           { type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '✅ Approve', emoji: true }, style: 'primary', action_id: 'software_req_approve', value: payload },
+             { type: 'button', text: { type: 'plain_text', text: '❌ Reject',  emoji: true }, style: 'danger',   action_id: 'software_req_reject',  value: payload },
+           ]},
+         ]
+       });
+
+       // ── Notify employee that request was sent to manager ───────────────────
+       const empDm = await client.conversations.open({ users: userId });
+       await client.chat.postMessage({
+         channel: empDm.channel.id,
+         text: `📨 Your software request has been sent to ${mgrName} for approval.`,
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: `*📨 Request Sent for Approval*\n\nYour software request has been sent to *${mgrName}* for approval.\n\n*Software Requested:*\n• ${softwareList.join('\n• ')}` } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Ticket ID:* \`${ticketId}\`\n\nYou will receive a Slack message once your manager responds.` } },
+         ]
+       });
+
+     } else {
+       // ── No manager configured — go directly to IT admin ───────────────────
+       const adminId = process.env.ADMIN_SLACK_USER_ID || userId;
+       const adminDm = await client.conversations.open({ users: adminId });
+       await client.chat.postMessage({
+         channel: adminDm.channel.id,
+         text: `💿 Software Request: ${empName} (no manager configured)`,
+         blocks: [
+           { type: 'header', text: { type: 'plain_text', text: '💿 Software Request', emoji: true } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${empName} (${empId})\n*Dept/Floor:* ${emp?.dept || 'N/A'} — Floor ${emp?.floor || 'N/A'}\n⚠️ _No reporting manager set for this employee._` } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Software Requested:*\n• ${softwareList.join('\n• ')}${reason ? `\n\n*Reason:* ${reason}` : ''}` } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Ticket:* \`${ticketId}\`` } },
+         ]
+       });
+
+       const empDm = await client.conversations.open({ users: userId });
+       await client.chat.postMessage({
+         channel: empDm.channel.id,
+         text: `✅ Software request submitted — Ticket \`${ticketId}\``,
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: `*✅ Software Request Submitted!*\n\n*Software Requested:*\n• ${softwareList.join('\n• ')}\n\n*Ticket ID:* \`${ticketId}\`\n\nIT team will be in touch shortly.` } },
+         ]
+       });
+     }
    } catch (err) { console.error('software_request_submit error:', err.message); }
+ });
+
+ // ── Manager approves software request ─────────────────────────────────────────
+ slackApp.action('software_req_approve', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     const { ticketId, userId, empName, empId, software, reason } = JSON.parse(body.actions[0].value);
+     const mgrName = body.user.name || 'Your manager';
+
+     // Update message to show approved
+     await client.chat.update({
+       channel: body.channel.id,
+       ts: body.message.ts,
+       text: `✅ Approved by ${mgrName} — ${empName}'s software request`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*✅ Approved* by *${mgrName}*\n\n*Employee:* ${empName} (${empId})\n*Software:* ${software.join(', ')}\n*Ticket:* \`${ticketId}\`` } },
+         { type: 'context', elements: [{ type: 'mrkdwn', text: '_IT team has been notified to install._' }] }
+       ]
+     });
+
+     // Notify IT admin
+     const adminId = process.env.ADMIN_SLACK_USER_ID;
+     if (adminId) {
+       const adminDm = await client.conversations.open({ users: adminId });
+       await client.chat.postMessage({
+         channel: adminDm.channel.id,
+         text: `✅ Software Request APPROVED — ${empName}`,
+         blocks: [
+           { type: 'header', text: { type: 'plain_text', text: '✅ Software Request Approved — Install Required', emoji: true } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${empName} (${empId})\n*Approved by:* ${mgrName}` } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Software to Install:*\n• ${software.join('\n• ')}${reason ? `\n\n*Reason:* ${reason}` : ''}` } },
+           { type: 'section', text: { type: 'mrkdwn', text: `*Ticket:* \`${ticketId}\`` } },
+         ]
+       });
+     }
+
+     // Notify employee
+     const empDm = await client.conversations.open({ users: userId });
+     await client.chat.postMessage({
+       channel: empDm.channel.id,
+       text: `✅ Your software request was approved by ${mgrName}!`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*✅ Software Request Approved!*\n\nYour manager *${mgrName}* approved your request.\n\n*Software:* ${software.join(', ')}\n*Ticket:* \`${ticketId}\`\n\nIT team will install it soon — you will receive a message when it is ready.` } },
+       ]
+     });
+   } catch (err) { console.error('software_req_approve error:', err.message); }
+ });
+
+ // ── Manager rejects software request ──────────────────────────────────────────
+ slackApp.action('software_req_reject', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     const { ticketId, userId, empName, empId, software } = JSON.parse(body.actions[0].value);
+     const mgrName = body.user.name || 'Your manager';
+
+     // Update message to show rejected
+     await client.chat.update({
+       channel: body.channel.id,
+       ts: body.message.ts,
+       text: `❌ Rejected by ${mgrName} — ${empName}'s software request`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*❌ Rejected* by *${mgrName}*\n\n*Employee:* ${empName} (${empId})\n*Software:* ${software.join(', ')}\n*Ticket:* \`${ticketId}\`` } },
+         { type: 'context', elements: [{ type: 'mrkdwn', text: '_Request has been declined._' }] }
+       ]
+     });
+
+     // Notify employee
+     const empDm = await client.conversations.open({ users: userId });
+     await client.chat.postMessage({
+       channel: empDm.channel.id,
+       text: `❌ Your software request was not approved by ${mgrName}.`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*❌ Software Request Not Approved*\n\nYour manager *${mgrName}* did not approve this request.\n\n*Software:* ${software.join(', ')}\n*Ticket:* \`${ticketId}\`\n\nFor queries, please speak to your manager directly.` } },
+       ]
+     });
+   } catch (err) { console.error('software_req_reject error:', err.message); }
  });
 
  // ── Quick Action buttons from Home tab ────────────────────────────────
