@@ -990,6 +990,14 @@ app.listen(PORT, async () => {
      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📚 IT Tip of the Day*\n${tipOfDay}` } });
    }
 
+   // ── 10. Admin Tools (only visible to IT Admin) ────────────────────────
+   if (emp?.slackUserId === process.env.ADMIN_SLACK_USER_ID) {
+     blocks.push({ type: 'divider' });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*🔧 Admin Tools*' } });
+     blocks.push({ type: 'actions', elements: [
+       { type: 'button', text: { type: 'plain_text', text: '👥 Set Employee Manager', emoji: true }, action_id: 'admin_set_manager_open', value: 'open' },
+     ]});
+   }
 
    return blocks;
  };
@@ -3584,6 +3592,97 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
        ]
      });
    } catch (err) { console.error('software_req_reject error:', err.message); }
+ });
+
+ // ── Admin: Set Employee Manager ───────────────────────────────────────────────
+ slackApp.action('admin_set_manager_open', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     await client.views.open({
+       trigger_id: body.trigger_id,
+       view: {
+         type: 'modal',
+         callback_id: 'admin_set_manager_submit',
+         title: { type: 'plain_text', text: '👥 Set Employee Manager', emoji: true },
+         submit: { type: 'plain_text', text: '💾 Save', emoji: true },
+         close: { type: 'plain_text', text: 'Cancel', emoji: true },
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: '*Assign a reporting manager to an employee.*\nType the name to search 👇' } },
+           { type: 'divider' },
+           {
+             type: 'input', block_id: 'emp_block',
+             label: { type: 'plain_text', text: 'Employee:', emoji: true },
+             element: {
+               type: 'external_select',
+               action_id: 'emp_select',
+               placeholder: { type: 'plain_text', text: 'Search employee name...' },
+               min_query_length: 1,
+             }
+           },
+           {
+             type: 'input', block_id: 'mgr_block',
+             label: { type: 'plain_text', text: 'Reporting Manager:', emoji: true },
+             element: {
+               type: 'external_select',
+               action_id: 'mgr_select',
+               placeholder: { type: 'plain_text', text: 'Search manager name...' },
+               min_query_length: 1,
+             }
+           },
+         ]
+       }
+     });
+   } catch (err) { console.error('admin_set_manager_open error:', err.message); }
+ });
+
+ // ── External select options — search employees ────────────────────────────────
+ slackApp.options(/^(emp_select|mgr_select)$/, async ({ payload, options, ack }) => {
+   try {
+     const q = options?.value || payload?.value || '';
+     const emps = await Employee.find({
+       isActive: true,
+       $or: [
+         { name : { $regex: q, $options: 'i' } },
+         { empId: { $regex: q, $options: 'i' } },
+       ]
+     }).limit(20).select('empId name slackUserId').lean();
+
+     await ack({
+       options: emps.map(e => ({
+         text : { type: 'plain_text', text: `${e.name} (${e.empId})` },
+         value: JSON.stringify({ slackId: e.slackUserId || '', name: e.name, empId: e.empId }),
+       }))
+     });
+   } catch (err) { console.error('external_select options error:', err.message); await ack({ options: [] }); }
+ });
+
+ // ── Admin: Save manager assignment ────────────────────────────────────────────
+ slackApp.view('admin_set_manager_submit', async ({ body, ack, view, client }) => {
+   await ack();
+   try {
+     const empVal = view.state.values?.emp_block?.emp_select?.selected_option?.value;
+     const mgrVal = view.state.values?.mgr_block?.mgr_select?.selected_option?.value;
+     if (!empVal || !mgrVal) return;
+
+     const emp = JSON.parse(empVal);
+     const mgr = JSON.parse(mgrVal);
+
+     await Employee.findOneAndUpdate(
+       { empId: emp.empId },
+       { managerSlackId: mgr.slackId, managerName: mgr.name }
+     );
+
+     // Confirm to admin via DM
+     const adminId = body.user.id;
+     const dm = await client.conversations.open({ users: adminId });
+     await client.chat.postMessage({
+       channel: dm.channel.id,
+       text: `✅ Manager set for ${emp.name}`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*✅ Manager Assigned*\n\n*Employee:* ${emp.name} (${emp.empId})\n*Reporting Manager:* ${mgr.name}\n\n_Software requests from ${emp.name} will now go to ${mgr.name} for approval._` } }
+       ]
+     });
+   } catch (err) { console.error('admin_set_manager_submit error:', err.message); }
  });
 
  // ── Quick Action buttons from Home tab ────────────────────────────────

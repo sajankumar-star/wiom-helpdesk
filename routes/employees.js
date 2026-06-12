@@ -5,7 +5,8 @@ const { verifyAdmin } = require('../middleware/auth');
 // ── Allowed fields for employee create/update (BUG-02 fix: prevent mass-assignment) ──
 const allowedEmployeeFields = [
   'empId','name','email','department','designation','floor','phone',
-  'laptop','laptopSN','isActive','slackUserId','slackHandle'
+  'laptop','laptopSN','isActive','slackUserId','slackHandle',
+  'managerSlackId','managerName'
 ];
 const pickAllowed = (body) => {
   const safe = {};
@@ -127,6 +128,46 @@ router.patch('/:empId/slack', verifyAdmin, async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+// ── PATCH /api/employees/:empId/manager  — Set reporting manager ─────────────
+router.patch('/:empId/manager', verifyAdmin, async (req, res) => {
+  try {
+    const { managerSlackId, managerName } = req.body;
+    if (!managerSlackId) return res.status(400).json({ error: 'managerSlackId required' });
+    const emp = await Employee.findOneAndUpdate(
+      { empId: req.params.empId.toUpperCase() },
+      { managerSlackId, managerName: managerName || '' },
+      { new: true }
+    );
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
+    res.json({ success: true, employee: emp });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── GET /api/employees/search  — Search by name for Slack external_select ────
+router.get('/search/options', verifyAdmin, async (req, res) => {
+  try {
+    const q = req.query.q || '';
+    const emps = await Employee.find({
+      isActive: true,
+      $or: [
+        { name  : { $regex: q, $options: 'i' } },
+        { empId : { $regex: q, $options: 'i' } },
+      ]
+    }).limit(20).select('empId name slackUserId').lean();
+
+    // Slack external_select format
+    const options = emps.map(e => ({
+      text : { type: 'plain_text', text: `${e.name} (${e.empId})` },
+      value: JSON.stringify({ slackId: e.slackUserId || '', name: e.name, empId: e.empId }),
+    }));
+    res.json({ options });
+  } catch (err) {
+    res.status(500).json({ options: [] });
   }
 });
 
