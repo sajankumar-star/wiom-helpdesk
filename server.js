@@ -3053,37 +3053,33 @@ app.listen(PORT, async () => {
    }
  });
 
- // ── Office Net Down — floor selected → update modal with confirmation ──
+ // ── Office Net Down — floor selected → update Home Tab with confirmation ──
 slackApp.action('office_net_floor_select', async ({ body, ack, client }) => {
   await ack();
   const userId = body.user.id;
   const floor  = body.actions[0].value;
-  const viewId = body.view?.id;
 
-  // Update modal in-place with confirmation (no DM — messages_tab_disabled)
+  // Update Home Tab with confirmation (views.publish — no trigger_id/DM needed)
   try {
-    if (viewId) {
-      await client.views.update({
-        view_id: viewId,
-        view: {
-          type: 'modal',
-          title: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true },
-          close: { type: 'plain_text', text: 'Band Karo', emoji: true },
-          blocks: [
-            { type: 'section', text: { type: 'mrkdwn', text: `✅ *${floor} — Report ho gaya!*` } },
-            { type: 'divider' },
-            { type: 'section', text: { type: 'mrkdwn', text: `*${floor}* par internet issue report ho gaya. IT team dekh rahi hai.\n\n*Abhi kya karein:*\n• 📶 WiFi disconnect → dobara connect karein\n• 🔌 LAN cable use kar rahe ho toh cable check karein\n• ⏳ Thoda wait karein — IT resolve kar raha hai` } },
-            { type: 'divider' },
-            { type: 'actions', elements: [
-              { type: 'button', text: { type: 'plain_text', text: '🎫 Urgent? Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }
-            ]}
-          ]
-        }
-      });
-    }
-  } catch (err) { console.error('office_net_floor_select view update error:', err.message); }
+    await client.views.publish({
+      user_id: userId,
+      view: {
+        type: 'home',
+        blocks: [
+          { type: 'section', text: { type: 'mrkdwn', text: `✅ *${floor} — Report ho gaya!*\n\nIT team ko alert bhej diya gaya hai.` } },
+          { type: 'divider' },
+          { type: 'section', text: { type: 'mrkdwn', text: `*Abhi kya karein:*\n• 📶 WiFi disconnect → dobara connect karein\n• 🔌 LAN cable use kar rahe ho toh cable check karein\n• ⏳ IT team resolve kar rahi hai — thoda wait karein` } },
+          { type: 'divider' },
+          { type: 'actions', elements: [
+            { type: 'button', text: { type: 'plain_text', text: '🎫 Ticket Raise Karo', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' },
+            { type: 'button', text: { type: 'plain_text', text: '🏠 Home Wapas Jao', emoji: true }, action_id: 'go_home_btn', value: 'home' },
+          ]}
+        ]
+      }
+    });
+  } catch (err) { console.error('office_net_floor_select publish error:', err.message); }
 
-  // Auto-create a ticket so IT admin can see it in the dashboard
+  // Auto-create ticket for IT dashboard
   try {
     const emp = await Employee.findOne({ slackUserId: userId });
     if (emp?.empId) {
@@ -3511,21 +3507,22 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  return;
  }
 
- // ── Office Net Down — modal with floor buttons (DM disabled) ─
+ // ── Office Net Down — update Home Tab directly (no trigger_id/DM needed) ─
  if (actionId === 'home_quick_office_net_down') {
-   await client.views.open({
-     trigger_id: triggerId,
+   await client.views.publish({
+     user_id: userId,
      view: {
-       type: 'modal',
-       callback_id: 'office_net_floor_modal',
-       title: { type: 'plain_text', text: '🌐 Office Net Down', emoji: true },
-       close: { type: 'plain_text', text: 'Band Karo', emoji: true },
+       type: 'home',
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '*Office internet down hai?*\nKonsa floor affected hai? Button dabao 👇' } },
+         { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nKonsa floor affected hai? Button dabao 👇' } },
          { type: 'divider' },
          { type: 'actions', elements: [
            { type: 'button', text: { type: 'plain_text', text: '🏢 Ground Floor', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
            { type: 'button', text: { type: 'plain_text', text: '🏢 3rd Floor', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
+         ]},
+         { type: 'divider' },
+         { type: 'actions', elements: [
+           { type: 'button', text: { type: 'plain_text', text: '← Wapas Jao', emoji: true }, action_id: 'go_home_btn', value: 'home' },
          ]}
        ]
      }
