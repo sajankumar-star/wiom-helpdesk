@@ -3430,17 +3430,6 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  }))
  });
  }
- // Add back button to return to categories
- catBlocks.push({ type: 'divider' });
- catBlocks.push({
- type: 'actions',
- elements: [{
- type: 'button',
- text: { type: 'plain_text', text: '↩ Back to Categories', emoji: true },
- action_id: 'dm_back_to_categories',
- value: 'back'
- }]
- });
 
  // UPDATE existing message instead of posting new one (prevents duplicates)
  if (msgTs) {
@@ -3486,11 +3475,6 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
            }))
          });
        }
-       catBlocks.push({ type: 'divider' });
-       catBlocks.push({
-         type: 'actions',
-         elements: [{ type: 'button', text: { type: 'plain_text', text: '↩ Back to Categories', emoji: true }, action_id: 'dm_back_to_categories', value: 'back' }]
-       });
        if (msgTs) {
          try {
            await client.chat.update({ channel: channelId, ts: msgTs, text: cat.label, blocks: catBlocks });
