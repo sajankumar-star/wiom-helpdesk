@@ -87,6 +87,20 @@ app.get('/health', (req, res) => {
  res.json({ status: 'ok', uptime: process.uptime() });
 });
 
+// ── Fix counter desync (run once to repair ticketId sequence) ────────────────
+app.get('/api/fix-counter', async (req, res) => {
+ try {
+   const mongoose = require('mongoose');
+   const Counter = mongoose.models.Counter || mongoose.model('Counter', new mongoose.Schema({ _id: String, seq: { type: Number, default: 0 } }));
+   const last = await Ticket.findOne({}).sort({ ticketId: -1 }).select('ticketId').lean();
+   const lastNum = last?.ticketId ? parseInt(last.ticketId.replace('WIOM-TKT-', '')) : 0;
+   await Counter.findOneAndUpdate({ _id: 'ticketId' }, { $set: { seq: lastNum } }, { upsert: true });
+   res.json({ success: true, message: `Counter reset to ${lastNum}`, lastTicket: last?.ticketId });
+ } catch (err) {
+   res.status(500).json({ success: false, error: err.message });
+ }
+});
+
 // ── Test ticket creation (debug only) ────────────────────────────────────────
 app.get('/api/test-ticket', async (req, res) => {
  try {
