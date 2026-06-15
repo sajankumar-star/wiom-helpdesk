@@ -2571,6 +2571,15 @@ app.listen(PORT, async () => {
        }
      }
 
+     // Auto-create Critical ticket for record keeping in admin panel
+     createTicketSlack({
+       empId: empId, empName: empName, empEmail: emp?.email || '',
+       empDept: empDept, empFloor: empFloor,
+       description: `🚨 EMERGENCY: ${issueTitle}`,
+       category: 'Emergency', priority: 'Critical',
+       source: 'slack-emergency', slackUserId: userId
+     }).catch(e => console.error('[EMERGENCY] ticket create error:', e.message));
+
      // Per-issue first-aid instructions shown to user immediately
      const EMERGENCY_STEPS = {
        liquid_damage:    '1. *TURN OFF IMMEDIATELY* — Hold power button\n2. *UNPLUG CHARGER*\n3. *TURN UPSIDE DOWN* — Let liquid drain\n4. *Do NOT use a hairdryer*\n5. Stay at your desk — IT is coming',
