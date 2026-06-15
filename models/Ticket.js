@@ -34,7 +34,7 @@ const ticketSchema = new mongoose.Schema({
     default: 'Medium'
   },
   description: { type: String, required: true },
-  source     : { type: String, enum: ['slack','web','whatsapp','manual'], default: 'web' },
+  source     : { type: String, enum: ['slack','slack-emergency','web','whatsapp','manual'], default: 'web' },
 
   // ── Status ───────────────────────────────────────────────────────────────────
   status     : {
