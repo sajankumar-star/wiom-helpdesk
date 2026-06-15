@@ -2539,24 +2539,32 @@ app.listen(PORT, async () => {
 
      console.log(`[EMERGENCY] key=${rawKey} user=${userId} sending to ${SAJAN_USER_ID}`);
 
+     const emergencyBlocks = [
+       { type: 'header', text: { type: 'plain_text', text: '🚨 EMERGENCY — Immediate Action Needed!', emoji: true }},
+       { type: 'section', text: { type: 'mrkdwn', text: `*Emp ID:* ${empId}\n*Dept:* ${empDept}\n*Floor:* ${empFloor}` }},
+       { type: 'section', text: { type: 'mrkdwn', text: `*Issue:* 🔴 *${issueTitle}*` }},
+       { type: 'divider' },
+       { type: 'context', elements: [{ type: 'mrkdwn', text: `_Respond immediately — employee is waiting for IT support_` }]}
+     ];
+
+     // Try sending DM — attempt 1: direct user ID
+     let dmSent = false;
      try {
-       // Open DM channel first — most reliable way to DM a user
-       const dmOpen = await client.conversations.open({ users: SAJAN_USER_ID });
-       const dmChannel = dmOpen.channel.id;
-       await client.chat.postMessage({
-         channel: dmChannel,
-         text: `🚨 EMERGENCY: ${issueTitle} — Floor ${empFloor}`,
-         blocks: [
-           { type: 'header', text: { type: 'plain_text', text: '🚨 EMERGENCY — Immediate Action Needed!', emoji: true }},
-           { type: 'section', text: { type: 'mrkdwn', text: `*Emp ID:* ${empId}\n*Dept:* ${empDept}\n*Floor:* ${empFloor}` }},
-           { type: 'section', text: { type: 'mrkdwn', text: `*Issue:* 🔴 *${issueTitle}*` }},
-           { type: 'divider' },
-           { type: 'context', elements: [{ type: 'mrkdwn', text: `_Respond immediately — employee is waiting for IT support_` }]}
-         ]
-       });
-       console.log(`[EMERGENCY] DM sent to ${SAJAN_USER_ID} via channel ${dmChannel}`);
+       await client.chat.postMessage({ channel: SAJAN_USER_ID, text: `🚨 EMERGENCY: ${issueTitle} — Floor ${empFloor}`, blocks: emergencyBlocks });
+       dmSent = true;
+       console.log(`[EMERGENCY] DM sent via user ID ${SAJAN_USER_ID}`);
      } catch(e) {
-       console.error(`[EMERGENCY] DM FAILED:`, e.message);
+       console.error(`[EMERGENCY] attempt1 failed (${SAJAN_USER_ID}):`, e.message);
+     }
+
+     // Attempt 2: known DM channel ID fallback
+     if (!dmSent) {
+       try {
+         await client.chat.postMessage({ channel: 'D08K2LXF9M0', text: `🚨 EMERGENCY: ${issueTitle} — Floor ${empFloor}`, blocks: emergencyBlocks });
+         console.log(`[EMERGENCY] DM sent via channel D08K2LXF9M0`);
+       } catch(e) {
+         console.error(`[EMERGENCY] attempt2 failed (D08K2LXF9M0):`, e.message);
+       }
      }
 
      // Per-issue first-aid instructions shown to user immediately
