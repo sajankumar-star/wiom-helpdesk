@@ -2610,7 +2610,7 @@ app.listen(PORT, async () => {
 
      const emergencyBlocks = [
        { type: 'header', text: { type: 'plain_text', text: '🚨 EMERGENCY — Immediate Action Needed!', emoji: true }},
-       { type: 'section', text: { type: 'mrkdwn', text: `*Emp ID:* ${empId}\n*Dept:* ${empDept}\n*Floor:* ${empFloor}` }},
+       { type: 'section', text: { type: 'mrkdwn', text: `*Emp Name:* ${empName || empId}\n*Emp ID:* ${empId}\n*Dept:* ${empDept}` }},
        { type: 'section', text: { type: 'mrkdwn', text: `*Issue:* 🔴 *${issueTitle}*` }},
        { type: 'divider' },
        { type: 'context', elements: [{ type: 'mrkdwn', text: `_Respond immediately — employee is waiting for IT support_` }]}
