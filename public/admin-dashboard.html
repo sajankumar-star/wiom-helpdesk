@@ -197,6 +197,71 @@
   ::-webkit-scrollbar-thumb { background:rgba(232,25,125,0.3); border-radius:3px; }
   ::-webkit-scrollbar-thumb:hover { background:var(--pink); }
 
+  /* ── Notification Bell ── */
+  .notif-wrap { position:relative; }
+  .notif-bell-btn { background:rgba(232,25,125,0.08); border:1px solid var(--border); border-radius:8px;
+    padding:7px 12px; cursor:pointer; font-size:18px; position:relative; transition:all .2s; color:var(--text); }
+  .notif-bell-btn:hover { background:rgba(232,25,125,0.15); border-color:var(--pink); }
+  .notif-badge { position:absolute; top:-6px; right:-6px; background:var(--pink); color:#fff;
+    border-radius:50%; width:18px; height:18px; font-size:10px; font-weight:700;
+    display:flex; align-items:center; justify-content:center; display:none; }
+  .notif-badge.show { display:flex; }
+  .notif-dropdown { position:absolute; right:0; top:calc(100% + 8px); width:340px; max-height:420px;
+    background:var(--surface); border:1px solid var(--border); border-radius:14px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.5),0 0 0 1px rgba(232,25,125,0.1);
+    overflow-y:auto; z-index:500; display:none; }
+  .notif-dropdown.open { display:block; }
+  .notif-header { padding:14px 16px; border-bottom:1px solid var(--border); display:flex;
+    justify-content:space-between; align-items:center; }
+  .notif-header h4 { font-size:13px; font-weight:600; color:var(--text); }
+  .notif-clear { font-size:11px; color:var(--pink); cursor:pointer; background:none; border:none;
+    font-family:'Inter',sans-serif; cursor:pointer; }
+  .notif-item { padding:12px 16px; border-bottom:1px solid rgba(232,25,125,0.07);
+    cursor:pointer; transition:background .15s; }
+  .notif-item:hover { background:rgba(232,25,125,0.06); }
+  .notif-item.unread { border-left:3px solid var(--pink); }
+  .notif-item.critical { border-left:3px solid var(--danger); }
+  .notif-item-title { font-size:13px; font-weight:600; color:var(--text); margin-bottom:3px; }
+  .notif-item-sub { font-size:11px; color:var(--muted); }
+  .notif-item-time { font-size:10px; color:var(--muted2); margin-top:4px; }
+  .notif-empty { padding:24px; text-align:center; color:var(--muted); font-size:13px; }
+
+  /* ── Toast Notification ── */
+  #toastContainer { position:fixed; top:20px; right:20px; z-index:9999; display:flex;
+    flex-direction:column; gap:10px; pointer-events:none; }
+  .toast { background:var(--surface); border:1px solid var(--border); border-radius:12px;
+    padding:14px 18px; min-width:280px; max-width:340px; box-shadow:0 8px 32px rgba(0,0,0,0.5);
+    pointer-events:all; animation:toastIn .3s ease; display:flex; align-items:flex-start; gap:12px; }
+  .toast.critical { border-color:rgba(248,113,113,0.4); box-shadow:0 8px 32px rgba(248,113,113,0.2); }
+  .toast-icon { font-size:20px; flex-shrink:0; margin-top:1px; }
+  .toast-body { flex:1; }
+  .toast-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:3px; }
+  .toast-msg { font-size:12px; color:var(--muted); line-height:1.4; }
+  .toast-close { font-size:16px; color:var(--muted2); cursor:pointer; flex-shrink:0;
+    background:none; border:none; padding:0; line-height:1; }
+  .toast-close:hover { color:var(--text); }
+  .toast-bar { height:3px; background:var(--pink); border-radius:0 0 0 12px;
+    position:absolute; bottom:0; left:0; animation:toastBar 5s linear forwards; }
+  .toast.critical .toast-bar { background:var(--danger); }
+  @keyframes toastIn { from { transform:translateX(100%); opacity:0; } to { transform:translateX(0); opacity:1; } }
+  @keyframes toastOut { from { transform:translateX(0); opacity:1; } to { transform:translateX(120%); opacity:0; } }
+  @keyframes toastBar { from { width:100%; } to { width:0%; } }
+
+  /* ── Pending Approvals Card ── */
+  .approval-item { display:flex; align-items:center; justify-content:space-between;
+    padding:10px 0; border-bottom:1px solid var(--border); }
+  .approval-item:last-child { border-bottom:none; }
+  .approval-info { flex:1; }
+  .approval-info strong { font-size:13px; color:var(--text); }
+  .approval-info span { font-size:11px; color:var(--muted); display:block; margin-top:2px; }
+  .approval-actions { display:flex; gap:6px; }
+  .btn-approve { padding:5px 12px; background:rgba(16,185,129,0.15); border:1px solid rgba(16,185,129,0.3);
+    border-radius:7px; color:#10b981; font-size:12px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .btn-approve:hover { background:rgba(16,185,129,0.25); }
+  .btn-reject { padding:5px 12px; background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.2);
+    border-radius:7px; color:var(--danger); font-size:12px; cursor:pointer; font-family:'Inter',sans-serif; }
+  .btn-reject:hover { background:rgba(248,113,113,0.2); }
+
   /* ── Mobile Responsive ── */
   @media (max-width: 768px) {
     .sidebar { transform: translateX(-100%); transition: transform .3s; z-index: 300; }
@@ -232,6 +297,9 @@
     <div class="login-error" id="loginError">❌ Wrong credentials!</div>
   </div>
 </div>
+
+<!-- ══ TOAST CONTAINER ═══════════════════════════════════════════════════ -->
+<div id="toastContainer"></div>
 
 <!-- ══ MAIN PAGE ═════════════════════════════════════════════════════════ -->
 <div id="mainPage">
@@ -270,6 +338,16 @@
         <div id="autoRefreshTimer" style="font-size:12px;color:var(--muted);padding:5px 10px;background:rgba(232,25,125,0.06);border:1px solid var(--border);border-radius:8px;min-width:80px;text-align:center;"></div>
         <button id="menuToggle" onclick="document.querySelector('.sidebar').classList.toggle('open')"
           style="display:none;padding:7px 12px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:18px;">☰</button>
+        <div class="notif-wrap">
+          <button class="notif-bell-btn" onclick="toggleNotifDropdown()" title="Notifications">🔔<span class="notif-badge" id="notifBadge">0</span></button>
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <h4>🔔 Notifications</h4>
+              <button class="notif-clear" onclick="clearAllNotifs()">Clear all</button>
+            </div>
+            <div id="notifList"><div class="notif-empty">No new notifications</div></div>
+          </div>
+        </div>
         <button class="refresh-btn" onclick="refreshData()">🔄 Refresh</button>
         <button onclick="openNewTicketModal()" style="padding:7px 14px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));border:none;border-radius:8px;color:#fff;font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;font-weight:600;">➕ New Ticket</button>
         <button class="logout-btn" onclick="doLogout()">Logout</button>
@@ -302,6 +380,17 @@
           <div class="label">SLA Breached</div>
           <div class="value" id="statSLA">—</div>
           <div class="sub">Time limit cross</div>
+        </div>
+      </div>
+
+      <!-- Pending Approvals -->
+      <div class="card" id="pendingApprovalsCard" style="display:none;margin-bottom:20px;">
+        <div class="card-header">
+          <h3>⏳ Pending Approvals <span id="pendingCount" style="background:var(--pink);color:#fff;border-radius:12px;padding:2px 8px;font-size:11px;margin-left:6px;">0</span></h3>
+          <button class="refresh-btn" onclick="loadPendingApprovals()">Refresh</button>
+        </div>
+        <div class="card-body">
+          <div id="pendingApprovalsList"><p style="color:var(--muted);font-size:13px;padding:8px 0;">No pending approvals</p></div>
         </div>
       </div>
 
@@ -808,6 +897,152 @@ function showBrowserNotif(title, body, isCritical = false) {
   } catch(e) {}
 }
 
+// ── IN-APP NOTIFICATIONS ──────────────────────────────────────────────────
+let unreadNotifs = [];
+
+function toggleNotifDropdown() {
+  const dd = document.getElementById('notifDropdown');
+  dd.classList.toggle('open');
+  if (dd.classList.contains('open')) markNotifsRead();
+  document.addEventListener('click', closeNotifOnOutside, { once: true });
+}
+
+function closeNotifOnOutside(e) {
+  if (!e.target.closest('.notif-wrap')) {
+    document.getElementById('notifDropdown')?.classList.remove('open');
+  }
+}
+
+function addNotification(ticket) {
+  const isCritical = ticket.priority === 'Critical';
+  const isEmergency = ticket.category === 'Emergency';
+  const icon = isEmergency ? '🚨' : isCritical ? '🔴' : '🎫';
+  const time = new Date(ticket.createdAt || Date.now()).toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+  unreadNotifs.unshift({ ticket, icon, time, read: false });
+  if (unreadNotifs.length > 30) unreadNotifs.pop();
+  renderNotifList();
+  updateNotifBadge();
+  showToast(ticket, isCritical || isEmergency);
+  loadPendingApprovals();
+}
+
+function renderNotifList() {
+  const list = document.getElementById('notifList');
+  if (!list) return;
+  if (!unreadNotifs.length) {
+    list.innerHTML = '<div class="notif-empty">No new notifications</div>';
+    return;
+  }
+  list.innerHTML = unreadNotifs.map((n, i) => `
+    <div class="notif-item ${n.read ? '' : 'unread'} ${n.ticket.priority === 'Critical' || n.ticket.category === 'Emergency' ? 'critical' : ''}"
+         onclick="openTicketFromNotif('${n.ticket._id}','${n.ticket.ticketId}',${i})">
+      <div class="notif-item-title">${n.icon} ${n.ticket.ticketId} — ${n.ticket.category}</div>
+      <div class="notif-item-sub">${n.ticket.empName || n.ticket.empId} • ${(n.ticket.description||'').substring(0,55)}${(n.ticket.description||'').length>55?'...':''}</div>
+      <div class="notif-item-time">${n.time}</div>
+    </div>`).join('');
+}
+
+function markNotifsRead() {
+  unreadNotifs.forEach(n => n.read = true);
+  updateNotifBadge();
+  renderNotifList();
+}
+
+function updateNotifBadge() {
+  const badge = document.getElementById('notifBadge');
+  const count = unreadNotifs.filter(n => !n.read).length;
+  if (badge) {
+    badge.textContent = count > 9 ? '9+' : count;
+    count > 0 ? badge.classList.add('show') : badge.classList.remove('show');
+  }
+}
+
+function clearAllNotifs() {
+  unreadNotifs = [];
+  renderNotifList();
+  updateNotifBadge();
+}
+
+function openTicketFromNotif(id, ticketId, idx) {
+  unreadNotifs[idx].read = true;
+  updateNotifBadge();
+  document.getElementById('notifDropdown')?.classList.remove('open');
+  showTab('tickets');
+  setTimeout(() => {
+    const row = document.querySelector(`[data-ticket-id="${ticketId}"]`);
+    if (row) { row.scrollIntoView({ behavior:'smooth', block:'center' }); row.click(); }
+  }, 300);
+}
+
+// ── TOAST NOTIFICATION ────────────────────────────────────────────────────
+function showToast(ticket, isCritical = false) {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+  const isEmergency = ticket.category === 'Emergency';
+  const icon = isEmergency ? '🚨' : isCritical ? '🔴' : '🎫';
+  const title = isEmergency ? '🚨 EMERGENCY TICKET!' : isCritical ? '🔴 Critical Ticket' : `New Ticket: ${ticket.ticketId}`;
+  const msg = `${ticket.empName || ticket.empId} — ${(ticket.description || '').substring(0, 70)}`;
+
+  const toast = document.createElement('div');
+  toast.className = `toast${isCritical ? ' critical' : ''}`;
+  toast.style.position = 'relative';
+  toast.style.overflow = 'hidden';
+  toast.innerHTML = `
+    <div class="toast-icon">${icon}</div>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${msg}</div>
+    </div>
+    <button class="toast-close" onclick="this.closest('.toast').remove()">✕</button>
+    <div class="toast-bar"></div>`;
+  container.appendChild(toast);
+  toast.addEventListener('click', e => {
+    if (e.target.classList.contains('toast-close')) return;
+    showTab('tickets'); toast.remove();
+  });
+  setTimeout(() => {
+    toast.style.animation = 'toastOut .3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }, 5000);
+}
+
+// ── PENDING APPROVALS ─────────────────────────────────────────────────────
+async function loadPendingApprovals() {
+  try {
+    const data = await apiFetch(`/api/tickets?status=Open&page=1&limit=50`);
+    const pending = (data.tickets || []).filter(t =>
+      ['Asset Request','Software Request'].includes(t.category)
+    );
+    const card = document.getElementById('pendingApprovalsCard');
+    const list = document.getElementById('pendingApprovalsList');
+    const countEl = document.getElementById('pendingCount');
+    if (!card || !list) return;
+    if (!pending.length) { card.style.display = 'none'; return; }
+    card.style.display = 'block';
+    if (countEl) countEl.textContent = pending.length;
+    list.innerHTML = pending.map(t => `
+      <div class="approval-item">
+        <div class="approval-info">
+          <strong>${t.category === 'Asset Request' ? '💻' : '🖥️'} ${(t.description||'').replace('Asset Request: ','').replace('Software Request: ','').substring(0,50)}</strong>
+          <span>${t.empName || t.empId} • ${t.empDept || ''} • ${t.ticketId}</span>
+        </div>
+        <div class="approval-actions">
+          <button class="btn-approve" onclick="approveTicket('${t.ticketId}')">✅ Done</button>
+          <button class="btn-reject" onclick="viewTicket('${t._id}','${t.ticketId}')">👁 View</button>
+        </div>
+      </div>`).join('');
+  } catch(e) {}
+}
+
+async function approveTicket(ticketId) {
+  try {
+    await apiPatch(`/api/tickets/${ticketId}`, { status: 'Resolved', resolvedBy: 'Sajan Kumar', resolution: 'Approved and processed by IT Admin' });
+    loadPendingApprovals();
+    loadDashboard();
+    showToast({ ticketId, empName: 'IT Admin', description: `Ticket ${ticketId} marked resolved`, category: 'Other' }, false);
+  } catch(e) {}
+}
+
 // ── CHECK FOR NEW TICKETS (called on every auto-refresh) ───────────────────
 function checkNewTickets(newTickets) {
   if (lastTicketCount === 0) { lastTicketCount = newTickets.length; return; }
@@ -825,6 +1060,7 @@ function checkNewTickets(newTickets) {
         `${t.empName||t.empId} — ${(t.description||'').substring(0,60)}`,
         t.priority === 'Critical'
       );
+      addNotification(t);
     });
   }
   lastTicketCount = newTickets.length;
@@ -958,6 +1194,7 @@ async function loadDashboard() {
     document.getElementById('statSLA').textContent = fallbackSLA;
   }
   renderRecentTickets();
+  loadPendingApprovals();
 }
 
 function renderRecentTickets() {
