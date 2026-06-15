@@ -366,6 +366,19 @@ app.listen(PORT, async () => {
 
  await ensureAdminExists();
 
+ // ── Auto-fix ticketId counter desync on every startup ─────────────────────
+ try {
+   const mongoose = require('mongoose');
+   const Counter = mongoose.models.Counter || mongoose.model('Counter', new mongoose.Schema({ _id: String, seq: { type: Number, default: 0 } }));
+   const last = await Ticket.findOne({}).sort({ ticketId: -1 }).select('ticketId').lean();
+   const lastNum = last?.ticketId ? parseInt(last.ticketId.replace('WIOM-TKT-', '')) : 0;
+   const current = await Counter.findOne({ _id: 'ticketId' });
+   if (!current || current.seq < lastNum) {
+     await Counter.findOneAndUpdate({ _id: 'ticketId' }, { $set: { seq: lastNum } }, { upsert: true });
+     console.log(`[Counter] Fixed ticketId counter: ${current?.seq || 0} → ${lastNum}`);
+   }
+ } catch (e) { console.error('[Counter] auto-fix error:', e.message); }
+
  // ── Start Slack Bot ────────────────────────────────────────────────────────
  if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_BOT_TOKEN !== 'FILL_KARO') {
  try {
