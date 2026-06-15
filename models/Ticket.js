@@ -24,8 +24,8 @@ const ticketSchema = new mongoose.Schema({
   // ── Issue Details ────────────────────────────────────────────────────────────
   category   : {
     type: String,
-    // BUG-24 fix: added 'Theft/Loss' to enum so theft tickets don't fail on save
-    enum: ['Hardware','Software','Network','Account','Purchase','Theft/Loss','Other'],
+    // BUG-24 fix: added 'Theft/Loss'; also added Slack bot categories
+    enum: ['Hardware','Software','Network','Account','Purchase','Theft/Loss','Asset Request','Software Request','Emergency','Other'],
     default: 'Other'
   },
   priority   : {
