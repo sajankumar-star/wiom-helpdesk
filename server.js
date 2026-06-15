@@ -2791,9 +2791,23 @@ app.listen(PORT, async () => {
  slackApp.event('app_home_opened', async ({ event, client }) => {
  try {
    const userId = event.user;
-   const emp = await Employee.findOne({ $or: [{ slackUserId: userId }, { empId: userId }] }).lean().catch(() => null);
-   const firstName = (emp?.empName || emp?.name || 'there').split(' ')[0];
-   await client.views.publish({ user_id: userId, view: { type: 'home', blocks: buildGreetingBlocks(firstName) } });
+   const emp = await Employee.findOne({ $or: [{ slackUserId: userId }, { empId: userId }] });
+   let myTickets = [], resolvedCount = 0, avgHrs = 0;
+   if (emp?.empId) {
+     const [openTickets, resolvedTickets] = await Promise.all([
+       Ticket.find({ empId: emp.empId, status: { $in: ['Open', 'In Progress', 'Waiting'] } }).sort({ createdAt: -1 }).limit(3).lean(),
+       Ticket.find({ empId: emp.empId, status: { $in: ['Resolved', 'Closed'] }, resolvedAt: { $exists: true } }).select('resolvedAt createdAt').lean()
+     ]);
+     myTickets = openTickets;
+     resolvedCount = resolvedTickets.length;
+     if (resolvedCount > 0) {
+       const totalHrs = resolvedTickets.reduce((sum, t) => sum + (new Date(t.resolvedAt) - new Date(t.createdAt)) / 3600000, 0);
+       avgHrs = Math.round(totalHrs / resolvedCount);
+     }
+   }
+   const expandedSet = expandedHomeMap.get(userId) || new Set();
+   const blocks = buildHomeBlocks(emp, myTickets, expandedSet, { resolvedCount, avgHrs });
+   await client.views.publish({ user_id: userId, view: { type: 'home', blocks } });
  } catch (err) {
    console.error('App Home error:', err.message);
  }
