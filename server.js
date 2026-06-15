@@ -1378,7 +1378,6 @@ app.listen(PORT, async () => {
  { type:'section', fields:[
  { type:'mrkdwn', text:`* Ticket ID*\n\`${ticket.ticketId}\`` },
  { type:'mrkdwn', text:`* Employee*\n${emp.empName}` },
- { type:'mrkdwn', text:`*${priEmoji[ticket.priority]||''} Priority*\n${ticket.priority}` },
  { type:'mrkdwn', text:`* Category*\n${ticket.category||'Other'}` }
  ]},
  { type:'section', text:{ type:'mrkdwn', text:`* Issue:*\n${ticket.description}` }},
