@@ -2837,17 +2837,14 @@ app.listen(PORT, async () => {
 
  // ── Home Tab "Search / Message Zivon" button ──────────────────────────
  slackApp.action('home_open_dm', async ({ body, ack, client }) => {
- await ack();
- const userId = body.user.id;
- try {
- const dm = await client.conversations.open({ users: userId });
- const channelId = dm.channel.id;
- const emp = await lookupEmployee(userId, client).catch(() => null);
- const firstName = (emp?.empName || 'there').split(' ')[0];
- await client.chat.postMessage({ channel: channelId, text: `Hey ${firstName}! Welcome to WIOM IT Helpdesk ⚡`, blocks: buildGreetingBlocks(firstName) });
- } catch (err) {
- console.error('home_open_dm error:', err.message);
- }
+   await ack();
+   const userId = body.user.id;
+   try {
+     const dm = await client.conversations.open({ users: userId });
+     const emp = await lookupEmployee(userId, client).catch(() => null);
+     const firstName = (emp?.empName || 'there').split(' ')[0];
+     await client.chat.postMessage({ channel: dm.channel.id, text: `👋 ${firstName}! Apni problem type karo — main turant help karunga.` });
+   } catch (err) { console.error('home_open_dm error:', err.message); }
  });
 
  // ── My Tickets button — show pending tickets with IT urgency message ────────
@@ -2937,7 +2934,7 @@ app.listen(PORT, async () => {
    try {
      const emp = await lookupEmployee(userId, client).catch(() => null);
      const firstName = (emp?.empName || 'there').split(' ')[0];
-     await client.chat.postMessage({ channel: userId, text: `Hey ${firstName}! Welcome to WIOM IT Helpdesk ⚡`, blocks: buildGreetingBlocks(firstName) });
+     await client.chat.postMessage({ channel: userId, text: `👋 ${firstName}! Apni problem type karo — main turant help karunga.` });
    } catch (err) { console.error('home_chat_ai error:', err.message); }
  });
 
@@ -4839,9 +4836,9 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  { resolved: true }
  );
  pendingTickets.delete(userId);
- failedAttempts.delete(userId); // reset failure count on fresh greeting
+ failedAttempts.delete(userId);
  const firstName = (emp.empName || 'there').split(' ')[0];
- await say({ text: `Hey ${firstName}! Welcome to WIOM IT Helpdesk ⚡`, blocks: buildGreetingBlocks(firstName) });
+ await say({ text: `👋 ${firstName}! Apni problem type karo — main turant help karunga.\n_Ya Home Tab pe jao categories ke liye._` });
  return;
  }
 
