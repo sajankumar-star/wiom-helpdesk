@@ -2248,7 +2248,7 @@ app.listen(PORT, async () => {
        { type: 'section', text: { type: 'mrkdwn', text: `*${itemName} Request*\n\nYour request will go to your *reporting manager* for approval. Once approved, IT will arrange it.` }},
        { type: 'divider' },
        { type: 'input', block_id: 'asset_reason_block', optional: true,
-         label: { type: 'plain_text', text: 'Reason (optional):', emoji: true },
+         label: { type: 'plain_text', text: 'Reason:', emoji: true },
          element: { type: 'plain_text_input', action_id: 'asset_reason',
            placeholder: { type: 'plain_text', text: 'e.g. My current laptop is very slow...' }, max_length: 300 }
        },
