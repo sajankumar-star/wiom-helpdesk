@@ -2213,74 +2213,190 @@ app.listen(PORT, async () => {
  });
 
  // ── Asset Requests — Email Process Handler ────────────────────────────────────
- slackApp.action(/^vague_pick_(new_laptop|new_mouse|new_keyboard|new_headphone|new_monitor)$/, async ({ body, ack, client }) => {
+ // ── Asset Request Modal builder ────────────────────────────────────────────────
+ const ASSET_ITEM_NAMES = {
+   new_laptop: '💻 New Laptop', new_mouse: '🖱️ New Mouse', new_keyboard: '⌨️ New Keyboard',
+   new_headphone: '🎧 Headphone', new_monitor: '🖥️ New Monitor', new_charger: '🔌 New Charger',
+ };
+ const buildAssetRequestModal = (itemKey) => {
+   const itemName = ASSET_ITEM_NAMES[itemKey] || '📦 Equipment';
+   return {
+     type: 'modal',
+     callback_id: 'asset_request_submit',
+     private_metadata: itemKey,
+     title: { type: 'plain_text', text: '📦 Asset Request', emoji: true },
+     submit: { type: 'plain_text', text: '📩 Submit Request', emoji: true },
+     close: { type: 'plain_text', text: 'Close', emoji: true },
+     blocks: [
+       { type: 'section', text: { type: 'mrkdwn', text: `*${itemName} Request*\n\nYour request will go to your *reporting manager* for approval. Once approved, IT will arrange it.` }},
+       { type: 'divider' },
+       { type: 'input', block_id: 'asset_reason_block', optional: true,
+         label: { type: 'plain_text', text: 'Reason (optional):', emoji: true },
+         element: { type: 'plain_text_input', action_id: 'asset_reason',
+           placeholder: { type: 'plain_text', text: 'e.g. My current laptop is very slow...' }, max_length: 300 }
+       },
+     ]
+   };
+ };
+
+ slackApp.action(/^vague_pick_(new_laptop|new_mouse|new_keyboard|new_headphone|new_monitor|new_charger)$/, async ({ body, ack, client }) => {
    await ack();
-   const userId = body.user.id;
    const rawKey = body.actions[0].value;
    const triggerId = body.trigger_id;
-   const isInsideModal = body.view?.type === 'modal';
-
-   const itemNames = {
-     new_laptop: 'New Laptop', new_mouse: 'New Mouse', new_keyboard: 'New Keyboard',
-     new_headphone: 'Headphone', new_monitor: 'New Monitor',
-   };
-   const itemName = itemNames[rawKey] || 'Equipment';
-   const mailSubject = encodeURIComponent(`${itemName} Request - Approval Required`);
-   const mailBody = encodeURIComponent(`Hi,\n\nI am requesting a ${itemName} for my work.\n\nReason: [Please fill reason]\n\nCC: ${ADMIN_EMAIL}\n\nThank you`);
-
-   // ── Modal view — no header/url blocks (not supported in Slack modals) ──────
-   const modalBlocks = [
-     { type: 'section', text: { type: 'mrkdwn', text: `*📦 ${itemName} Request*\n\n*Manager approval is required* before IT can process this request.` }},
-     { type: 'divider' },
-     { type: 'section', fields: [
-       { type: 'mrkdwn', text: '*Processing Time:*\n2 Working Days' },
-       { type: 'mrkdwn', text: `*IT Contact:*\n${ADMIN_EMAIL}` },
-     ]},
-     { type: 'divider' },
-     { type: 'section', text: { type: 'mrkdwn', text:
-       `*How to request:*\n1. Get manager approval (email/message)\n2. Email IT: *${ADMIN_EMAIL}*\n   Subject: \`${itemName} Request - Approval Required\`\n3. CC your manager in the email\n4. IT team will arrange within 2 working days`
-     }},
-     { type: 'context', elements: [{ type: 'mrkdwn', text: '_Once approved by your manager, the IT team will arrange it directly._' }]}
-   ];
-
-   // ── DM message blocks — header + mailto url button work fine in messages ──
-   const dmBlocks = [
-     { type: 'header', text: { type: 'plain_text', text: `📦 ${itemName} Request`, emoji: true }},
-     { type: 'section', text: { type: 'mrkdwn', text: '*Approval Required*\n\nPlease obtain approval from your reporting manager.' }},
-     { type: 'divider' },
-     { type: 'section', fields: [
-       { type: 'mrkdwn', text: `*CC:*\n${ADMIN_EMAIL}` },
-       { type: 'mrkdwn', text: '*Processing Time:*\n2 Working Days' },
-     ]},
-     { type: 'divider' },
-     { type: 'actions', elements: [
-       { type: 'button', text: { type: 'plain_text', text: '📧 Send Approval Email', emoji: true }, style: 'primary', url: `mailto:?subject=${mailSubject}&body=${mailBody}`, action_id: `dl_asset_email_${rawKey}` },
-     ]},
-     { type: 'context', elements: [{ type: 'mrkdwn', text: '_Once approved by your manager, the IT team will arrange it directly._' }]}
-   ];
-
-   if (isInsideModal && triggerId) {
-     // Inside cat_asset modal → push a new modal on top (views.push)
-     try {
-       await client.views.push({
-         trigger_id: triggerId,
-         view: { type: 'modal', title: { type: 'plain_text', text: `📦 ${itemName}`, emoji: true }, close: { type: 'plain_text', text: '← Back', emoji: true }, blocks: modalBlocks }
-       });
-     } catch(e) {
-       console.error(`asset modal push error (${rawKey}):`, e.message);
-       // Fallback: send DM
-       try {
-         const dm = await client.conversations.open({ users: userId });
-         await client.chat.postMessage({ channel: dm.channel.id, text: `${itemName} Request`, blocks: dmBlocks });
-       } catch(dmErr) { console.error('asset DM fallback error:', dmErr.message); }
+   if (!triggerId) return;
+   try {
+     if (body.view?.type === 'modal') {
+       await client.views.push({ trigger_id: triggerId, view: buildAssetRequestModal(rawKey) });
+     } else {
+       await client.views.open({ trigger_id: triggerId, view: buildAssetRequestModal(rawKey) });
      }
-   } else {
-     // Home Tab or DM context → send as DM (url button works in messages)
-     try {
-       const dm = await client.conversations.open({ users: userId });
-       await client.chat.postMessage({ channel: dm.channel.id, text: `${itemName} Request`, blocks: dmBlocks });
-     } catch(e) { console.error(`asset DM error (${rawKey}):`, e.message); }
-   }
+   } catch(e) { console.error(`asset modal open error (${rawKey}):`, e.message); }
+ });
+
+ // ── Asset request submitted — send to manager for approval ────────────────────
+ slackApp.view('asset_request_submit', async ({ body, ack, view, client }) => {
+   await ack({ response_action: 'update', view: { type: 'modal', title: { type: 'plain_text', text: '📦 Asset Request', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '⏳ *Sending to your manager for approval...*' }}] }});
+
+   const userId  = body.user.id;
+   const itemKey = view.private_metadata || 'equipment';
+   const reason  = view.state.values?.asset_reason_block?.asset_reason?.value || '';
+   const itemName = (ASSET_ITEM_NAMES[itemKey] || '📦 Equipment').replace(/^\S+\s/, ''); // strip emoji
+
+   try {
+     const emp = await Employee.findOne({ slackUserId: userId }).select('empId name empName dept floor empEmail managerSlackId managerName').lean().catch(() => null);
+     const empId      = emp?.empId   || userId;
+     const empName    = emp?.name    || emp?.empName || 'Employee';
+     const mgrSlackId = emp?.managerSlackId;
+     const mgrName    = emp?.managerName || 'Manager';
+
+     const desc = `Asset Request: ${itemName}${reason ? `\nReason: ${reason}` : ''}`;
+     const ticket = await createTicketSlack({ empId, empName, empDept: emp?.dept, empFloor: emp?.floor, empEmail: emp?.empEmail, description: desc, category: 'Asset Request', priority: 'Low', source: 'slack' });
+     const ticketId = ticket?.ticketId || 'N/A';
+
+     const payload = JSON.stringify({ ticketId, userId, empName, empId, itemKey, itemName, reason: reason || '' });
+
+     if (mgrSlackId) {
+       const mgrDm = await client.conversations.open({ users: mgrSlackId });
+       await client.chat.postMessage({
+         channel: mgrDm.channel.id,
+         text: `📦 Asset Request from ${empName} — Approval needed`,
+         blocks: [
+           { type: 'header', text: { type: 'plain_text', text: '📦 Asset Request — Approval Needed', emoji: true }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${empName} (${empId})\n*Dept/Floor:* ${emp?.dept || 'N/A'} — Floor ${emp?.floor || 'N/A'}` }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Item Requested:* ${ASSET_ITEM_NAMES[itemKey] || itemName}${reason ? `\n*Reason:* ${reason}` : ''}` }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Ticket:* \`${ticketId}\`` }},
+           { type: 'divider' },
+           { type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '✅ Approve', emoji: true }, style: 'primary', action_id: 'asset_req_approve', value: payload },
+             { type: 'button', text: { type: 'plain_text', text: '❌ Reject',  emoji: true }, style: 'danger',   action_id: 'asset_req_reject',  value: payload },
+           ]},
+         ]
+       });
+
+       const empDm = await client.conversations.open({ users: userId });
+       await client.chat.postMessage({
+         channel: empDm.channel.id,
+         text: `📨 Your ${itemName} request has been sent to ${mgrName} for approval.`,
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: `*📨 Request Sent for Approval*\n\nYour *${itemName}* request has been sent to *${mgrName}* for approval.\n\n*Ticket ID:* \`${ticketId}\`\n\nYou will receive a Slack message once your manager responds.` }},
+         ]
+       });
+
+     } else {
+       // No manager — send directly to IT admin
+       const adminId = process.env.ADMIN_SLACK_USER_ID;
+       if (adminId) {
+         const adminDm = await client.conversations.open({ users: adminId });
+         await client.chat.postMessage({
+           channel: adminDm.channel.id,
+           text: `📦 Asset Request: ${empName} — ${itemName} (no manager configured)`,
+           blocks: [
+             { type: 'header', text: { type: 'plain_text', text: '📦 Asset Request', emoji: true }},
+             { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${empName} (${empId})\n*Dept/Floor:* ${emp?.dept || 'N/A'} — Floor ${emp?.floor || 'N/A'}\n⚠️ _No reporting manager set._` }},
+             { type: 'section', text: { type: 'mrkdwn', text: `*Item Requested:* ${ASSET_ITEM_NAMES[itemKey] || itemName}${reason ? `\n*Reason:* ${reason}` : ''}` }},
+             { type: 'section', text: { type: 'mrkdwn', text: `*Ticket:* \`${ticketId}\`` }},
+           ]
+         });
+       }
+       const empDm = await client.conversations.open({ users: userId });
+       await client.chat.postMessage({
+         channel: empDm.channel.id,
+         text: `✅ ${itemName} request submitted — Ticket \`${ticketId}\``,
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: `*✅ Request Submitted!*\n\n*Item:* ${ASSET_ITEM_NAMES[itemKey] || itemName}\n*Ticket ID:* \`${ticketId}\`\n\nIT team will be in touch shortly.` }},
+         ]
+       });
+     }
+   } catch (err) { console.error('asset_request_submit error:', err.message); }
+ });
+
+ // ── Manager approves asset request ────────────────────────────────────────────
+ slackApp.action('asset_req_approve', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     const { ticketId, userId, empName, empId, itemKey, itemName, reason } = JSON.parse(body.actions[0].value);
+     const mgrName = body.user.name || 'Your manager';
+
+     await client.chat.update({
+       channel: body.channel.id, ts: body.message.ts,
+       text: `✅ Approved by ${mgrName} — ${empName}'s ${itemName} request`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*✅ Approved* by *${mgrName}*\n\n*Employee:* ${empName} (${empId})\n*Item:* ${ASSET_ITEM_NAMES[itemKey] || itemName}\n*Ticket:* \`${ticketId}\`` }},
+         { type: 'context', elements: [{ type: 'mrkdwn', text: '_IT team has been notified to arrange._' }]}
+       ]
+     });
+
+     const adminId = process.env.ADMIN_SLACK_USER_ID;
+     if (adminId) {
+       const adminDm = await client.conversations.open({ users: adminId });
+       await client.chat.postMessage({
+         channel: adminDm.channel.id,
+         text: `✅ Asset Request APPROVED — ${empName} needs ${itemName}`,
+         blocks: [
+           { type: 'header', text: { type: 'plain_text', text: '✅ Asset Request Approved — Action Required', emoji: true }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${empName} (${empId})\n*Approved by:* ${mgrName}` }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Item to Provide:* ${ASSET_ITEM_NAMES[itemKey] || itemName}${reason ? `\n*Reason:* ${reason}` : ''}` }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Ticket:* \`${ticketId}\`` }},
+         ]
+       });
+     }
+
+     const empDm = await client.conversations.open({ users: userId });
+     await client.chat.postMessage({
+       channel: empDm.channel.id,
+       text: `✅ Your ${itemName} request was approved by ${mgrName}!`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*✅ Request Approved!*\n\nYour manager *${mgrName}* approved your *${ASSET_ITEM_NAMES[itemKey] || itemName}* request.\n\n*Ticket:* \`${ticketId}\`\n\nIT team will arrange it soon — you will receive a message when it is ready.` }},
+       ]
+     });
+   } catch (err) { console.error('asset_req_approve error:', err.message); }
+ });
+
+ // ── Manager rejects asset request ─────────────────────────────────────────────
+ slackApp.action('asset_req_reject', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     const { ticketId, userId, empName, empId, itemKey, itemName } = JSON.parse(body.actions[0].value);
+     const mgrName = body.user.name || 'Your manager';
+
+     await client.chat.update({
+       channel: body.channel.id, ts: body.message.ts,
+       text: `❌ Rejected by ${mgrName} — ${empName}'s ${itemName} request`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*❌ Rejected* by *${mgrName}*\n\n*Employee:* ${empName} (${empId})\n*Item:* ${ASSET_ITEM_NAMES[itemKey] || itemName}\n*Ticket:* \`${ticketId}\`` }},
+         { type: 'context', elements: [{ type: 'mrkdwn', text: '_Request has been declined._' }]}
+       ]
+     });
+
+     const empDm = await client.conversations.open({ users: userId });
+     await client.chat.postMessage({
+       channel: empDm.channel.id,
+       text: `❌ Your ${itemName} request was not approved by ${mgrName}.`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `*❌ Request Not Approved*\n\nYour manager *${mgrName}* did not approve your *${ASSET_ITEM_NAMES[itemKey] || itemName}* request.\n\n*Ticket:* \`${ticketId}\`\n\nFor queries, please speak to your manager directly.` }},
+       ]
+     });
+   } catch (err) { console.error('asset_req_reject error:', err.message); }
  });
 
  slackApp.action(/^vague_pick_/, async ({ body, ack, client, say }) => {
@@ -2290,7 +2406,7 @@ app.listen(PORT, async () => {
  const rawKey = body.actions[0].value;
 
  // Asset request keys — handled by dedicated asset handler above, skip here to avoid duplicate/race
- const ASSET_KEYS = ['new_laptop', 'new_mouse', 'new_keyboard', 'new_headphone', 'new_monitor'];
+ const ASSET_KEYS = ['new_laptop', 'new_mouse', 'new_keyboard', 'new_headphone', 'new_monitor', 'new_charger'];
  if (ASSET_KEYS.includes(rawKey)) return;
 
  // Keys with dedicated action handlers — skip to avoid race condition (both fire in Bolt)
