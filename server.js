@@ -1017,8 +1017,7 @@ app.listen(PORT, async () => {
    {
      type: 'section',
      text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\n*WIOM IT Helpdesk*\nLaptop, WiFi, software, password — tell me your problem and I'll help you right away!\n\n_Select a category below 👇_` },
-     accessory: { type: 'image', image_url: 'https://wiom-helpdesk-production.up.railway.app/images/zivon-robot.gif', alt_text: 'WIOM IT' }
-   },
+    },
    { type: 'divider' },
    {
      type: 'actions',
@@ -5290,7 +5289,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
    const kbHasTicketAsk = /type\s*karo[:\s]*\*?ha(an|a|n)?\*?/i.test(kbReply);
    const isInfoOnly = !kbHasTicketAsk && (
      // Greetings, identity, thanks
-     /spartans|kaun\s*hoon|Zivon|IT|sajan kumar|khushi hui|koi baat nahi|theek hoon|IT problems mein help|Hello.*Kya IT|Theek hoon/i.test(kbReply) ||
+     /spartans|kaun\s*hoon|IT|sajan kumar|khushi hui|koi baat nahi|theek hoon|IT problems mein help|Hello.*Kya IT|Theek hoon/i.test(kbReply) ||
      // Ticket status replies — no buttons needed, user just wanted info
      /IT team ke paas hai|my tickets|Status dekhne|ticket.*resolve|same day resolve|priority mark/i.test(kbReply) ||
      // Resolved confirm
@@ -5489,7 +5488,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  const hasNumberedSteps = /^\d+[\.\)]\s/m.test(reply);
  const isInfoOnly = !shouldCreateTicket && (
    // Greeting / identity / thanks
-   /khushi hui|koi baat nahi|theek hoon|aur koi.*IT help|IT problems mein help|Main Zivon|Zivon hoon|koi aur cheez|Kya IT problem/i.test(reply) ||
+   /khushi hui|koi baat nahi|theek hoon|aur koi.*IT help|IT problems mein help|koi aur cheez|Kya IT problem/i.test(reply) ||
    // Ticket status / info queries
    /IT team ke paas|my tickets|Status dekhne|ticket.*resolve|same day|priority mark/i.test(reply) ||
    // Resolved celebrations
