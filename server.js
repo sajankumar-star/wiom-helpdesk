@@ -2527,22 +2527,24 @@ app.listen(PORT, async () => {
    // ── Emergency Alert — instant Slack DM to admin + show confirmation modal ──
    const EMERGENCY_KEYS = new Set(['liquid_damage','burning_smell','battery_swelling','virus_malware','account_hacked','phishing_email','suspicious_login','device_lost','data_loss','security_alert']);
    if (EMERGENCY_KEYS.has(rawKey)) {
-     // Hardcoded fallback — D08K2LXF9M0 is Sajan's DM channel ID
-     const adminId = (process.env.ADMIN_SLACK_USER_ID || '').trim()
+     // Sajan's Slack User ID — hardcoded so DM always works
+     const SAJAN_USER_ID = (process.env.ADMIN_SLACK_USER_ID || '').trim()
        || (process.env.ADMIN_EMAIL_SLACK_ID || '').trim()
-       || (process.env.SAJAN_SLACK_ID || '').trim()
-       || 'D08K2LXF9M0';
+       || 'U08K2LXAN5Q';
      const issueTitle = ISSUE_TITLES[rawKey] || rawKey;
      const empName = emp?.empName || emp?.name || '';
      const empId   = emp?.empId || '-';
      const empDept = emp?.dept || emp?.department || '-';
      const empFloor = emp?.floor || '-';
 
-     console.log(`[EMERGENCY] key=${rawKey} user=${userId} adminId=${adminId} empName=${empName}`);
+     console.log(`[EMERGENCY] key=${rawKey} user=${userId} sending to ${SAJAN_USER_ID}`);
 
      try {
+       // Open DM channel first — most reliable way to DM a user
+       const dmOpen = await client.conversations.open({ users: SAJAN_USER_ID });
+       const dmChannel = dmOpen.channel.id;
        await client.chat.postMessage({
-         channel: adminId,
+         channel: dmChannel,
          text: `🚨 EMERGENCY: ${issueTitle} — Floor ${empFloor}`,
          blocks: [
            { type: 'header', text: { type: 'plain_text', text: '🚨 EMERGENCY — Immediate Action Needed!', emoji: true }},
@@ -2552,9 +2554,9 @@ app.listen(PORT, async () => {
            { type: 'context', elements: [{ type: 'mrkdwn', text: `_Respond immediately — employee is waiting for IT support_` }]}
          ]
        });
-       console.log(`[EMERGENCY] DM sent to ${adminId} successfully`);
+       console.log(`[EMERGENCY] DM sent to ${SAJAN_USER_ID} via channel ${dmChannel}`);
      } catch(e) {
-       console.error(`[EMERGENCY] DM FAILED to ${adminId}:`, e.message);
+       console.error(`[EMERGENCY] DM FAILED:`, e.message);
      }
 
      // Per-issue first-aid instructions shown to user immediately
