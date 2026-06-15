@@ -2527,20 +2527,34 @@ app.listen(PORT, async () => {
    // ── Emergency Alert — instant Slack DM to admin + show confirmation modal ──
    const EMERGENCY_KEYS = new Set(['liquid_damage','burning_smell','battery_swelling','virus_malware','account_hacked','phishing_email','suspicious_login','device_lost','data_loss','security_alert']);
    if (EMERGENCY_KEYS.has(rawKey)) {
-     const adminId = process.env.ADMIN_SLACK_USER_ID || process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
+     // Hardcoded fallback in case env var has whitespace/missing
+     const adminId = (process.env.ADMIN_SLACK_USER_ID || '').trim()
+       || (process.env.ADMIN_EMAIL_SLACK_ID || '').trim()
+       || (process.env.SAJAN_SLACK_ID || '').trim()
+       || 'U08K2LXAN5Q';
      const issueTitle = ISSUE_TITLES[rawKey] || rawKey;
-     if (adminId) {
-       client.chat.postMessage({
+     const empName = emp?.empName || emp?.name || '';
+     const empId   = emp?.empId || '-';
+     const empDept = emp?.dept || emp?.department || '-';
+     const empFloor = emp?.floor || '-';
+
+     console.log(`[EMERGENCY] key=${rawKey} user=${userId} adminId=${adminId} empName=${empName}`);
+
+     try {
+       await client.chat.postMessage({
          channel: adminId,
-         text: `🚨 EMERGENCY from ${emp?.name || userId}: ${issueTitle}`,
+         text: `🚨 EMERGENCY: ${issueTitle} — Floor ${empFloor}`,
          blocks: [
-           { type: 'header', text: { type: 'plain_text', text: '🚨 EMERGENCY ALERT — Immediate Action Needed!', emoji: true }},
-           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${emp?.name || userId}\n*Emp ID:* ${emp?.empId || '-'}\n*Dept:* ${emp?.department || '-'}\n*Floor:* ${emp?.floor || '-'}` }},
+           { type: 'header', text: { type: 'plain_text', text: '🚨 EMERGENCY — Immediate Action Needed!', emoji: true }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Emp ID:* ${empId}\n*Dept:* ${empDept}\n*Floor:* ${empFloor}` }},
            { type: 'section', text: { type: 'mrkdwn', text: `*Issue:* 🔴 *${issueTitle}*` }},
            { type: 'divider' },
            { type: 'context', elements: [{ type: 'mrkdwn', text: `_Respond immediately — employee is waiting for IT support_` }]}
          ]
-       }).catch(e => console.error('cat_emergency admin alert error:', e.message));
+       });
+       console.log(`[EMERGENCY] DM sent to ${adminId} successfully`);
+     } catch(e) {
+       console.error(`[EMERGENCY] DM FAILED to ${adminId}:`, e.message);
      }
 
      // Per-issue first-aid instructions shown to user immediately
@@ -2564,11 +2578,11 @@ app.listen(PORT, async () => {
        close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
        blocks: [
          { type: 'header', text: { type: 'plain_text', text: '✅ IT Has Been Notified', emoji: true }},
-         { type: 'section', text: { type: 'mrkdwn', text: `Sajan has been alerted immediately about your *${issueTitle}* emergency.\n\n*IT support is on the way.*` }},
+         { type: 'section', text: { type: 'mrkdwn', text: `IT team ko turant alert bhej diya gaya hai.\n\n*IT support is on the way.*` }},
          { type: 'divider' },
-         { type: 'section', text: { type: 'mrkdwn', text: `*⚡ Do this RIGHT NOW:*\n\n${steps}` }},
+         { type: 'section', text: { type: 'mrkdwn', text: `*⚡ Abhi ye karo:*\n\n${steps}` }},
          { type: 'divider' },
-         { type: 'context', elements: [{ type: 'mrkdwn', text: `_Alert sent to IT Admin • ${emp?.name || 'You'} • ${emp?.floor ? 'Floor: ' + emp.floor : ''}_` }]}
+         { type: 'context', elements: [{ type: 'mrkdwn', text: `_Alert sent to IT Admin • Floor: ${empFloor}_` }]}
        ]
      };
 
