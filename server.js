@@ -2296,7 +2296,7 @@ app.listen(PORT, async () => {
        ]
      });
 
-     const adminId = process.env.ADMIN_SLACK_USER_ID;
+     const adminId = (process.env.ADMIN_SLACK_USER_ID || '').trim() || (process.env.ADMIN_EMAIL_SLACK_ID || '').trim() || 'U08K2LXAN5Q';
      if (adminId) {
        const adminDm = await client.conversations.open({ users: adminId });
        await client.chat.postMessage({
@@ -3695,7 +3695,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
      });
 
      // Notify IT admin
-     const adminId = process.env.ADMIN_SLACK_USER_ID;
+     const adminId = (process.env.ADMIN_SLACK_USER_ID || '').trim() || (process.env.ADMIN_EMAIL_SLACK_ID || '').trim() || 'U08K2LXAN5Q';
      if (adminId) {
        const adminDm = await client.conversations.open({ users: adminId });
        await client.chat.postMessage({
