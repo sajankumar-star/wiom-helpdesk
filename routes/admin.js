@@ -231,6 +231,10 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
 
     for (const ke of employees) {
       try {
+        const mgr = ke.reportingManager || ke.reportsTo || null;
+        const mgrId = String(mgr?.employeeNumber || mgr?.id || '').toUpperCase() || null;
+        const mgrName = mgr ? `${mgr.firstName || ''} ${mgr.lastName || ''}`.trim() || mgr.displayName || mgr.name || '' : '';
+
         await Employee.findOneAndUpdate(
           { empId: String(ke.employeeNumber || ke.id).toUpperCase() },
           {
@@ -238,7 +242,9 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
             email      : ke.workEmail?.toLowerCase() || ke.email?.toLowerCase(),
             department : ke.department?.name,
             designation: ke.jobTitle,
-            isActive   : ke.employmentStatus !== 'terminated'
+            isActive   : ke.employmentStatus !== 'terminated',
+            ...(mgrId   && { managerId: mgrId }),
+            ...(mgrName && { managerName: mgrName }),
           },
           { upsert: true, new: true }
         );
@@ -246,7 +252,18 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
       } catch { errors++; }
     }
 
-    res.json({ success: true, synced, errors, total: employees.length });
+    // Second pass: resolve managerSlackId using managerId → Employee.slackUserId
+    let managerLinked = 0;
+    const empsWithMgr = await Employee.find({ managerId: { $exists: true, $ne: '' } }).lean();
+    for (const emp of empsWithMgr) {
+      const mgr = await Employee.findOne({ empId: emp.managerId }).select('slackUserId name').lean();
+      if (mgr?.slackUserId) {
+        await Employee.updateOne({ _id: emp._id }, { managerSlackId: mgr.slackUserId, managerName: mgr.name });
+        managerLinked++;
+      }
+    }
+
+    res.json({ success: true, synced, errors, total: employees.length, managerLinked });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

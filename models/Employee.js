@@ -26,6 +26,7 @@ const employeeSchema = new mongoose.Schema({
   // ── Reporting Manager ─────────────────────────────────────────────────────────
   managerSlackId: { type: String },   // Slack User ID of reporting manager
   managerName   : { type: String },   // Display name of reporting manager
+  managerId     : { type: String },   // Keka ID of reporting manager (for cross-ref)
 
   // ── Auto-Fix Agent ────────────────────────────────────────────────────────────
   agentRegistered : { type: Boolean, default: false },
