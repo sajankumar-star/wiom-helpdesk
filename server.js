@@ -2582,7 +2582,7 @@ app.listen(PORT, async () => {
          { type: 'divider' },
          { type: 'section', text: { type: 'mrkdwn', text: `*⚡ Abhi ye karo:*\n\n${steps}` }},
          { type: 'divider' },
-         { type: 'context', elements: [{ type: 'mrkdwn', text: `_Alert sent to IT Admin • Floor: ${empFloor}_` }]}
+         { type: 'context', elements: [{ type: 'mrkdwn', text: `_Alert sent to IT_` }]}
        ]
      };
 
