@@ -2527,11 +2527,11 @@ app.listen(PORT, async () => {
    // ── Emergency Alert — instant Slack DM to admin + show confirmation modal ──
    const EMERGENCY_KEYS = new Set(['liquid_damage','burning_smell','battery_swelling','virus_malware','account_hacked','phishing_email','suspicious_login','device_lost','data_loss','security_alert']);
    if (EMERGENCY_KEYS.has(rawKey)) {
-     // Hardcoded fallback in case env var has whitespace/missing
+     // Hardcoded fallback — D08K2LXF9M0 is Sajan's DM channel ID
      const adminId = (process.env.ADMIN_SLACK_USER_ID || '').trim()
        || (process.env.ADMIN_EMAIL_SLACK_ID || '').trim()
        || (process.env.SAJAN_SLACK_ID || '').trim()
-       || 'U08K2LXAN5Q';
+       || 'D08K2LXF9M0';
      const issueTitle = ISSUE_TITLES[rawKey] || rawKey;
      const empName = emp?.empName || emp?.name || '';
      const empId   = emp?.empId || '-';
