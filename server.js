@@ -1351,29 +1351,54 @@ app.listen(PORT, async () => {
  }
  };
 
- // ── Create ticket via API ─────────────────────────────────────────────
+ // ── Create ticket directly in MongoDB (no HTTP call needed) ──────────────
  const createTicketSlack = async (data) => {
  try {
- const res = await fetch(`${API_BASE}/api/tickets`, {
- method : 'POST',
- headers: { 'Content-Type': 'application/json' },
- body : JSON.stringify({ ...data, aiTried: true })
- });
- const json = await res.json();
- if (res.status === 409) return { _duplicate: true, ticket: json.ticket, message: json.message };
- if (!res.ok) {
- console.error('Ticket creation failed:', res.status, json.error || json.message || JSON.stringify(json));
- return null;
- }
- if (!json.ticket) {
- console.error('Ticket creation response missing ticket field:', JSON.stringify(json));
- return null;
- }
- console.log('Ticket created:', json.ticket.ticketId, '| empId:', data.empId, '| category:', json.ticket.category);
- return json.ticket;
+   const { empId, empName, empEmail, empDept, empFloor, laptop,
+           category, priority, description, source, slackUserId,
+           skipDuplicateCheck } = data;
+
+   if (!empId || !description) {
+     console.error('[createTicketSlack] missing empId or description');
+     return null;
+   }
+
+   if (!skipDuplicateCheck) {
+     const thirtyMinAgo = new Date(Date.now() - 30 * 60000);
+     const existing = await Ticket.findOne({
+       empId : empId.toString().toUpperCase(),
+       status: { $in: ['Open', 'In Progress'] },
+       createdAt: { $gte: thirtyMinAgo }
+     });
+     if (existing) {
+       console.log('[createTicketSlack] duplicate found:', existing.ticketId);
+       return { _duplicate: true, ticket: existing, message: 'Duplicate ticket' };
+     }
+   }
+
+   const ticket = await Ticket.create({
+     empId: empId.toString().toUpperCase(),
+     empName: empName || empId,
+     empEmail, empDept, empFloor, laptop,
+     category : category || 'Other',
+     priority : priority || 'Medium',
+     description,
+     source   : source || 'slack',
+     slackUserId,
+     aiTried  : true
+   });
+
+   // Update employee stats silently
+   Employee.findOneAndUpdate(
+     { empId: empId.toString().toUpperCase() },
+     { $inc: { totalTickets: 1 }, lastTicket: new Date() }
+   ).catch(() => {});
+
+   console.log('[createTicketSlack] created:', ticket.ticketId, '| empId:', empId, '| category:', ticket.category);
+   return ticket;
  } catch (err) {
- console.error('createTicketSlack fetch error:', err.message);
- return null;
+   console.error('[createTicketSlack] error:', err.message);
+   return null;
  }
  };
 
