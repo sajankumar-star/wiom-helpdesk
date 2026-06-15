@@ -2220,7 +2220,8 @@ app.listen(PORT, async () => {
      const mgrName    = emp?.managerName || 'Manager';
 
      const desc = `Asset Request: ${itemName}${reason ? `\nReason: ${reason}` : ''}`;
-     const ticket = await createTicketSlack({ empId, empName, empDept: emp?.dept, empFloor: emp?.floor, empEmail: emp?.empEmail, description: desc, category: 'Asset Request', priority: 'Low', source: 'slack' });
+     const rawTicket = await createTicketSlack({ empId, empName, empDept: emp?.dept, empFloor: emp?.floor, empEmail: emp?.empEmail, description: desc, category: 'Asset Request', priority: 'Low', source: 'slack', skipDuplicateCheck: true });
+     const ticket = rawTicket?._duplicate ? rawTicket.ticket : rawTicket;
      const ticketId = ticket?.ticketId || 'N/A';
 
      const payload = JSON.stringify({ ticketId, userId, empName, empId, itemKey, itemName, reason: reason || '' });
@@ -2254,7 +2255,7 @@ app.listen(PORT, async () => {
 
      } else {
        // No manager — send directly to IT admin
-       const adminId = process.env.ADMIN_SLACK_USER_ID;
+       const adminId = (process.env.ADMIN_SLACK_USER_ID || '').trim() || (process.env.ADMIN_EMAIL_SLACK_ID || '').trim() || 'U08K2LXAN5Q';
        if (adminId) {
          const adminDm = await client.conversations.open({ users: adminId });
          await client.chat.postMessage({
