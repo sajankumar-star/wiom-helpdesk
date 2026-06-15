@@ -2549,11 +2549,13 @@ app.listen(PORT, async () => {
 
      // Try sending DM — attempt 1: direct user ID
      let dmSent = false;
+     let dmError1 = '', dmError2 = '';
      try {
        await client.chat.postMessage({ channel: SAJAN_USER_ID, text: `🚨 EMERGENCY: ${issueTitle} — Floor ${empFloor}`, blocks: emergencyBlocks });
        dmSent = true;
        console.log(`[EMERGENCY] DM sent via user ID ${SAJAN_USER_ID}`);
      } catch(e) {
+       dmError1 = e.message;
        console.error(`[EMERGENCY] attempt1 failed (${SAJAN_USER_ID}):`, e.message);
      }
 
@@ -2561,11 +2563,15 @@ app.listen(PORT, async () => {
      if (!dmSent) {
        try {
          await client.chat.postMessage({ channel: 'D08K2LXF9M0', text: `🚨 EMERGENCY: ${issueTitle} — Floor ${empFloor}`, blocks: emergencyBlocks });
+         dmSent = true;
          console.log(`[EMERGENCY] DM sent via channel D08K2LXF9M0`);
        } catch(e) {
+         dmError2 = e.message;
          console.error(`[EMERGENCY] attempt2 failed (D08K2LXF9M0):`, e.message);
        }
      }
+     // DEBUG: show DM status in modal footer — REMOVE AFTER FIX
+     const dmDebugText = dmSent ? '✅ DM sent successfully' : `❌ DM failed: ${dmError1} | ${dmError2}`;
 
      // Per-issue first-aid instructions shown to user immediately
      const EMERGENCY_STEPS = {
@@ -2592,7 +2598,7 @@ app.listen(PORT, async () => {
          { type: 'divider' },
          { type: 'section', text: { type: 'mrkdwn', text: `*⚡ Abhi ye karo:*\n\n${steps}` }},
          { type: 'divider' },
-         { type: 'context', elements: [{ type: 'mrkdwn', text: `_Alert sent to IT_` }]}
+         { type: 'context', elements: [{ type: 'mrkdwn', text: `_${dmDebugText}_` }]}
        ]
      };
 
