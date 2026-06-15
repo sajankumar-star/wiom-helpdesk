@@ -87,6 +87,20 @@ app.get('/health', (req, res) => {
  res.json({ status: 'ok', uptime: process.uptime() });
 });
 
+// ── Test ticket creation (debug only) ────────────────────────────────────────
+app.get('/api/test-ticket', async (req, res) => {
+ try {
+   const ticket = await Ticket.create({
+     empId: 'TEST-DEBUG', empName: 'Debug Test',
+     description: 'Test ticket from debug endpoint',
+     category: 'Other', priority: 'Low', source: 'slack'
+   });
+   res.json({ success: true, ticketId: ticket.ticketId, message: 'Ticket created OK' });
+ } catch (err) {
+   res.status(500).json({ success: false, error: err.message });
+ }
+});
+
 // ── API Routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth', authRoutes);
 app.use('/api/tickets', ticketRoutes);
