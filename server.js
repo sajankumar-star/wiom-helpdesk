@@ -2578,7 +2578,8 @@ app.listen(PORT, async () => {
        empDept: empDept, empFloor: empFloor,
        description: `🚨 EMERGENCY: ${issueTitle}`,
        category: 'Emergency', priority: 'Critical',
-       source: 'slack-emergency', slackUserId: userId
+       source: 'slack-emergency', slackUserId: userId,
+       skipDuplicateCheck: true
      }).catch(e => console.error('[EMERGENCY] ticket create error:', e.message));
 
      // Per-issue first-aid instructions shown to user immediately
