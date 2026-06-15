@@ -2570,8 +2570,6 @@ app.listen(PORT, async () => {
          console.error(`[EMERGENCY] attempt2 failed (D08K2LXF9M0):`, e.message);
        }
      }
-     // DEBUG: show DM status in modal footer — REMOVE AFTER FIX
-     const dmDebugText = dmSent ? '✅ DM sent successfully' : `❌ DM failed: ${dmError1} | ${dmError2}`;
 
      // Per-issue first-aid instructions shown to user immediately
      const EMERGENCY_STEPS = {
@@ -2598,7 +2596,7 @@ app.listen(PORT, async () => {
          { type: 'divider' },
          { type: 'section', text: { type: 'mrkdwn', text: `*⚡ Abhi ye karo:*\n\n${steps}` }},
          { type: 'divider' },
-         { type: 'context', elements: [{ type: 'mrkdwn', text: `_${dmDebugText}_` }]}
+         { type: 'context', elements: [{ type: 'mrkdwn', text: `_Alert sent to IT_` }]}
        ]
      };
 
