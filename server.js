@@ -2524,24 +2524,60 @@ app.listen(PORT, async () => {
    const naturalProblem = KEY_TO_PROBLEM[rawKey] || rawKey;
    const emp = await lookupEmployee(userId, client).catch(() => ({ empId: userId, empName: 'User' }));
 
-   // ── Emergency Alert — instant Slack DM to admin for any emergency issue ────
-   const EMERGENCY_KEYS = new Set(['liquid_damage','burning_smell','battery_swelling','virus_malware','account_hacked','phishing_email','suspicious_login','device_lost','data_loss']);
+   // ── Emergency Alert — instant Slack DM to admin + show confirmation modal ──
+   const EMERGENCY_KEYS = new Set(['liquid_damage','burning_smell','battery_swelling','virus_malware','account_hacked','phishing_email','suspicious_login','device_lost','data_loss','security_alert']);
    if (EMERGENCY_KEYS.has(rawKey)) {
      const adminId = process.env.ADMIN_SLACK_USER_ID || process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
+     const issueTitle = ISSUE_TITLES[rawKey] || rawKey;
      if (adminId) {
-       const issueTitle = ISSUE_TITLES[rawKey] || rawKey;
        client.chat.postMessage({
          channel: adminId,
          text: `🚨 EMERGENCY from ${emp?.name || userId}: ${issueTitle}`,
          blocks: [
            { type: 'header', text: { type: 'plain_text', text: '🚨 EMERGENCY ALERT — Immediate Action Needed!', emoji: true }},
            { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${emp?.name || userId}\n*Emp ID:* ${emp?.empId || '-'}\n*Dept:* ${emp?.department || '-'}\n*Floor:* ${emp?.floor || '-'}` }},
-           { type: 'section', text: { type: 'mrkdwn', text: `*Issue:* 🔴 *${issueTitle}*\n*Details:* ${naturalProblem}` }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Issue:* 🔴 *${issueTitle}*` }},
            { type: 'divider' },
            { type: 'context', elements: [{ type: 'mrkdwn', text: `_Respond immediately — employee is waiting for IT support_` }]}
          ]
        }).catch(e => console.error('cat_emergency admin alert error:', e.message));
      }
+
+     // Per-issue first-aid instructions shown to user immediately
+     const EMERGENCY_STEPS = {
+       liquid_damage:    '1. *TURN OFF IMMEDIATELY* — Hold power button\n2. *UNPLUG CHARGER*\n3. *TURN UPSIDE DOWN* — Let liquid drain\n4. *Do NOT use a hairdryer*\n5. Stay at your desk — IT is coming',
+       burning_smell:    '1. *SHUT DOWN IMMEDIATELY*\n2. *UNPLUG from power*\n3. *Do NOT use the laptop*\n4. Move to a safe distance\n5. Stay at your desk — IT is coming',
+       battery_swelling: '1. *STOP USING immediately*\n2. *UNPLUG charger*\n3. *Do NOT press on the battery*\n4. Place on flat surface\n5. Stay at your desk — IT is coming',
+       virus_malware:    '1. *Disconnect from WiFi* (turn off)\n2. *Do NOT open any files or emails*\n3. *Do NOT restart the laptop*\n4. Leave it on and wait\n5. IT has been alerted and is responding',
+       account_hacked:   '1. *Change your password immediately* from another device\n2. *Log out of all sessions*\n3. *Do NOT click any suspicious links*\n4. IT has been alerted\n5. Check your email for any unauthorized activity',
+       phishing_email:   '1. *Do NOT click any links*\n2. *Do NOT download any attachments*\n3. *Do NOT reply to the email*\n4. Mark as spam/phishing\n5. IT has been alerted — they will investigate',
+       suspicious_login: '1. *Change your password immediately*\n2. *Check active sessions* and log out all\n3. *Enable 2FA* if not already done\n4. IT has been alerted\n5. Do not access sensitive data until cleared',
+       device_lost:      '1. *Note the last known location*\n2. *Change all passwords* from another device\n3. *Log out of Google/Microsoft* account remotely\n4. IT has been alerted\n5. File a complaint if stolen',
+       data_loss:        '1. *STOP all work immediately*\n2. *Do NOT save anything* — you may overwrite data\n3. *Do NOT restart*\n4. IT has been alerted\n5. Stay at your desk — IT is coming',
+       security_alert:   '1. *Do NOT dismiss the alert*\n2. *Disconnect from internet* if prompted\n3. *Do NOT install anything*\n4. IT has been alerted\n5. Wait for IT response before proceeding',
+     };
+     const steps = EMERGENCY_STEPS[rawKey] || '1. Stay calm\n2. Do not restart your device\n3. IT has been alerted\n4. Wait for IT support';
+
+     const emergencyModal = {
+       type: 'modal',
+       title: { type: 'plain_text', text: '🚨 IT Alerted!', emoji: true },
+       close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
+       blocks: [
+         { type: 'header', text: { type: 'plain_text', text: '✅ IT Has Been Notified', emoji: true }},
+         { type: 'section', text: { type: 'mrkdwn', text: `Sajan has been alerted immediately about your *${issueTitle}* emergency.\n\n*IT support is on the way.*` }},
+         { type: 'divider' },
+         { type: 'section', text: { type: 'mrkdwn', text: `*⚡ Do this RIGHT NOW:*\n\n${steps}` }},
+         { type: 'divider' },
+         { type: 'context', elements: [{ type: 'mrkdwn', text: `_Alert sent to IT Admin • ${emp?.name || 'You'} • ${emp?.floor ? 'Floor: ' + emp.floor : ''}_` }]}
+       ]
+     };
+
+     if (loadingViewId) {
+       try { await client.views.update({ view_id: loadingViewId, view: emergencyModal }); } catch(e) {}
+     } else if (isFromModal && triggerId) {
+       try { await client.views.push({ trigger_id: triggerId, view: emergencyModal }); } catch(e) {}
+     }
+     return; // Stop here — no KB/AI response, no ticket button
    }
 
    // ── KB-FIRST: Use direct KB answer if available (no AI call needed) ──────
