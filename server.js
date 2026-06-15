@@ -1351,6 +1351,8 @@ app.listen(PORT, async () => {
  };
 
  // ── Create ticket directly in MongoDB (no HTTP call needed) ──────────────
+ const SAJAN_ID = (process.env.ADMIN_SLACK_USER_ID || '').trim() || 'U08K2LXAN5Q';
+
  const createTicketSlack = async (data) => {
  try {
    const { empId, empName, empEmail, empDept, empFloor, laptop,
@@ -1375,28 +1377,29 @@ app.listen(PORT, async () => {
      }
    }
 
+   const validSources = ['slack','slack-emergency','web','whatsapp','manual'];
    const ticket = await Ticket.create({
-     empId: empId.toString().toUpperCase(),
-     empName: empName || empId,
+     empId      : empId.toString().toUpperCase(),
+     empName    : empName || empId.toString(),
      empEmail, empDept, empFloor, laptop,
-     category : category || 'Other',
-     priority : priority || 'Medium',
+     category   : category || 'Other',
+     priority   : priority || 'Medium',
      description,
-     source   : source || 'slack',
+     source     : validSources.includes(source) ? source : 'slack',
      slackUserId,
-     aiTried  : true
+     aiTried    : true
    });
 
-   // Update employee stats silently
    Employee.findOneAndUpdate(
      { empId: empId.toString().toUpperCase() },
      { $inc: { totalTickets: 1 }, lastTicket: new Date() }
    ).catch(() => {});
 
-   console.log('[createTicketSlack] created:', ticket.ticketId, '| empId:', empId, '| category:', ticket.category);
+   console.log('[createTicketSlack] ✅ created:', ticket.ticketId, '| empId:', empId, '| cat:', ticket.category);
    return ticket;
  } catch (err) {
-   console.error('[createTicketSlack] error:', err.message);
+   console.error('[createTicketSlack] ❌ error:', err.message, '| empId:', data.empId, '| cat:', data.category, '| src:', data.source);
+   slackApp.client.chat.postMessage({ channel: SAJAN_ID, text: `❌ *Ticket create FAIL*\nError: \`${err.message}\`\nempId: ${data.empId} | category: ${data.category} | source: ${data.source}` }).catch(()=>{});
    return null;
  }
  };
