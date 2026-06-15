@@ -1080,24 +1080,6 @@ app.listen(PORT, async () => {
      // Issue summary — shown as context chip
      { type: 'section', text: { type: 'mrkdwn', text: `*📋 Issue Detected:*\n>${(description||'IT support needed').substring(0, 120)}` }},
      { type: 'divider' },
-     // Priority selector
-     { type: 'input', block_id: 'priority_block',
-       optional: false,
-       label: { type: 'plain_text', text: '⚡ Priority', emoji: true },
-       element: {
-         type: 'static_select',
-         action_id: 'priority_select',
-         placeholder: { type: 'plain_text', text: 'Select priority...', emoji: true },
-         // IMPORTANT: initial_option text MUST exactly match one of the options below
-         initial_option: { text: { type: 'plain_text', text: '🟡 Medium — Partial impact on work', emoji: true }, value: 'Medium' },
-         options: [
-           { text: { type: 'plain_text', text: '🔴 Critical — Work completely stopped', emoji: true }, value: 'Critical' },
-           { text: { type: 'plain_text', text: '🟠 High — Work severely impacted', emoji: true }, value: 'High' },
-           { text: { type: 'plain_text', text: '🟡 Medium — Partial impact on work', emoji: true }, value: 'Medium' },
-           { text: { type: 'plain_text', text: '🟢 Low — Minor issue, fix when possible', emoji: true }, value: 'Low' },
-         ]
-       }
-     },
      // Optional notes
      { type: 'input', block_id: 'notes_block',
        optional: true,
@@ -1536,22 +1518,6 @@ app.listen(PORT, async () => {
  ]
  }
  },
- {
- type : 'input',
- block_id: 'priority_block',
- label : { type:'plain_text', text:'How Urgent Is It?', emoji:true },
- element : {
- type : 'static_select',
- action_id : 'priority_input',
- initial_option: { text:{ type:'plain_text', text:'Medium Normal problem' }, value:'Medium' },
- options : [
- { text:{ type:'plain_text', text:'Critical - Work completely stopped' }, value:'Critical' },
- { text:{ type:'plain_text', text:'High - Very urgent, needed ASAP' }, value:'High' },
- { text:{ type:'plain_text', text:'Medium - Normal issue, can partially work' }, value:'Medium' },
- { text:{ type:'plain_text', text:'Low - Minor issue, fix when possible' }, value:'Low' }
- ]
- }
- }
  ]
  }
  });
@@ -1568,7 +1534,7 @@ app.listen(PORT, async () => {
  const vals = view.state.values;
  const description = vals.description_block.description_input.value;
  const category = vals.category_block.category_input.selected_option?.value || 'Other';
- const priority = vals.priority_block.priority_input.selected_option?.value || 'Medium';
+ const priority = 'Medium';
 
  const emp = await lookupEmployee(userId, client);
 
@@ -2099,16 +2065,6 @@ app.listen(PORT, async () => {
  { text:{ type:'plain_text', text:'Purchase - New equipment request' }, value:'Purchase' },
  { text:{ type:'plain_text', text:'Other' }, value:'Other' }
  ]}},
- { type:'input', block_id:'priority_block',
- label:{ type:'plain_text', text:'How Urgent?' },
- element:{ type:'static_select', action_id:'priority_input',
- initial_option:{ text:{ type:'plain_text', text:'Medium - Normal issue' }, value:'Medium' },
- options:[
- { text:{ type:'plain_text', text:'Critical - Work completely stopped' }, value:'Critical' },
- { text:{ type:'plain_text', text:'High - Very urgent' }, value:'High' },
- { text:{ type:'plain_text', text:'Medium - Normal issue' }, value:'Medium' },
- { text:{ type:'plain_text', text:'Low - Minor issue' }, value:'Low' }
- ]}}
  ]
  }
  });
@@ -5962,7 +5918,6 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
    const userId = body.user.id;
    const viewId = body.view?.id;
    const notes = view.state.values?.notes_block?.notes_input?.value || '';
-   const selectedPriority = view.state.values?.priority_block?.priority_select?.selected_option?.value || null;
    let metadata = {};
    try { metadata = JSON.parse(view.private_metadata || '{}'); } catch {}
 
@@ -5981,7 +5936,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
        empId: emp.empId, empName: emp.empName, empEmail: emp.email || 'unknown@wiom.in',
        empDept: emp.dept, empFloor: emp.floor,
        laptop: emp.laptop, laptopSN: emp.laptopSN,
-       category: pending.category || 'Other', priority: selectedPriority || pending.priority || metadata.priority || 'Medium',
+       category: pending.category || 'Other', priority: pending.priority || metadata.priority || 'Medium',
        description: fullDesc.replace(/[*_`]/g, '').substring(0, 500),
        source: 'slack', slackUserId: userId
      });
