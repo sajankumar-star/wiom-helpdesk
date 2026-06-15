@@ -929,6 +929,12 @@ app.listen(PORT, async () => {
      text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n_Welcome to WIOM IT Helpdesk — Get instant support._` },
    });
 
+   // ── 2. Emergency Button — TOP of page ────────────────────────────────
+   blocks.push({ type: 'divider' });
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '🚨 EMERGENCY — Click Here', emoji: true }, action_id: 'home_sos', value: 'sos', style: 'danger' },
+   ]});
+
    // ── 5. Quick Actions ──────────────────────────────────────────────────
    blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*⚡ Quick Actions*' } });
@@ -2452,6 +2458,26 @@ app.listen(PORT, async () => {
    const naturalProblem = KEY_TO_PROBLEM[rawKey] || rawKey;
    const emp = await lookupEmployee(userId, client).catch(() => ({ empId: userId, empName: 'User' }));
 
+   // ── Emergency Alert — instant Slack DM to admin for any emergency issue ────
+   const EMERGENCY_KEYS = new Set(['liquid_damage','burning_smell','battery_swelling','virus_malware','account_hacked','phishing_email','suspicious_login','device_lost','data_loss']);
+   if (EMERGENCY_KEYS.has(rawKey)) {
+     const adminId = process.env.ADMIN_SLACK_USER_ID || process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
+     if (adminId) {
+       const issueTitle = ISSUE_TITLES[rawKey] || rawKey;
+       client.chat.postMessage({
+         channel: adminId,
+         text: `🚨 EMERGENCY from ${emp?.name || userId}: ${issueTitle}`,
+         blocks: [
+           { type: 'header', text: { type: 'plain_text', text: '🚨 EMERGENCY ALERT — Immediate Action Needed!', emoji: true }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${emp?.name || userId}\n*Emp ID:* ${emp?.empId || '-'}\n*Dept:* ${emp?.department || '-'}\n*Floor:* ${emp?.floor || '-'}` }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Issue:* 🔴 *${issueTitle}*\n*Details:* ${naturalProblem}` }},
+           { type: 'divider' },
+           { type: 'context', elements: [{ type: 'mrkdwn', text: `_Respond immediately — employee is waiting for IT support_` }]}
+         ]
+       }).catch(e => console.error('cat_emergency admin alert error:', e.message));
+     }
+   }
+
    // ── KB-FIRST: Use direct KB answer if available (no AI call needed) ──────
    // Guarantees correct answer even when Groq is rate-limited
    let reply = claudeSvc.DIRECT_KB?.[rawKey] || null;
@@ -3204,18 +3230,19 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
        }}).catch(e => console.error('sos modal update error:', e.message));
      }
 
-     // Emergency alert to admin
-     const adminId = (process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID);
+     // Emergency alert to admin — instant Slack DM to Sajan
+     const adminId = process.env.ADMIN_SLACK_USER_ID || process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
      if (adminId) {
        await client.chat.postMessage({
          channel: adminId,
-         text: `🆘 SOS Alert from ${emp?.name || userId}: ${issueType}`,
+         text: `🚨 EMERGENCY from ${emp?.name || userId}: ${issueType.split(' — ')[0]}`,
          blocks: [
-           { type: 'header', text: { type: 'plain_text', text: '🆘 SOS EMERGENCY ALERT!', emoji: true }},
-           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${emp?.name || userId}\n*Emp ID:* ${emp?.empId || '-'}\n*Dept:* ${emp?.department || '-'}\n*Floor:* ${emp?.floor || '-'}\n*Issue:* 🔴 *${issueType.split(' — ')[0]}*\n*Detail:* ${issueType.split(' — ')[1] || '-'}` }},
-           ticketId
-             ? { type: 'context', elements: [{ type: 'mrkdwn', text: `Ticket: \`${ticketId}\` | Priority: *${priority}* | Category: ${category}` }]}
-             : { type: 'context', elements: [{ type: 'mrkdwn', text: `⚠️ Ticket auto-create failed — please create manually` }]}
+           { type: 'header', text: { type: 'plain_text', text: '🚨 EMERGENCY ALERT — Immediate Action Needed!', emoji: true }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Employee:* ${emp?.name || userId}\n*Emp ID:* ${emp?.empId || '-'}\n*Dept:* ${emp?.department || '-'}\n*Floor:* ${emp?.floor || '-'}` }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*Issue:* 🔴 *${issueType.split(' — ')[0]}*\n*Details:* ${issueType.split(' — ')[1] || '-'}` }},
+           { type: 'section', text: { type: 'mrkdwn', text: ticketId ? `*Ticket:* \`${ticketId}\` | Priority: *${priority}*` : `⚠️ _Ticket auto-create failed — create manually_` }},
+           { type: 'divider' },
+           { type: 'context', elements: [{ type: 'mrkdwn', text: `_Respond immediately — employee is waiting for IT support_` }]}
          ]
        }).catch(e => console.error('sos admin alert error:', e.message));
      }
@@ -3936,8 +3963,8 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  {
  type: 'actions',
  elements: [
- { type: 'button', style: 'danger', text: { type: 'plain_text', text: '🔴 Laptop Dead', emoji: true }, action_id: 'sos_issue', value: 'Laptop Dead — laptop is not turning on at all' },
- { type: 'button', style: 'danger', text: { type: 'plain_text', text: '🌐 Internet Down', emoji: true }, action_id: 'sos_issue', value: 'Internet Down — no internet or network connectivity' }
+ { type: 'button', style: 'danger', text: { type: 'plain_text', text: '💻 Laptop Not Turning On', emoji: true }, action_id: 'sos_issue', value: 'Laptop Not Turning On — laptop is completely dead, not starting at all' },
+ { type: 'button', style: 'danger', text: { type: 'plain_text', text: '📶 WiFi Not Working', emoji: true }, action_id: 'sos_issue', value: 'WiFi Not Working — no internet, cannot connect to WiFi at all' }
  ]
  },
  {
