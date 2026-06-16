@@ -992,7 +992,14 @@ app.listen(PORT, async () => {
      { type: 'button', text: { type: 'plain_text', text: '☁️ Cloud & Storage', emoji: true }, action_id: 'cat_cloud', value: 'cloud' },
    ]});
 
-   // ── 7. Suggestion ────────────────────────────────────────────────────
+   // ── 7. Laptop Diagnostics ────────────────────────────────────────────
+   blocks.push({ type: 'divider' });
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*🔧 Laptop Diagnostics*\n_Apne laptop ki problem khud diagnose karo — manufacturer tool se_' } });
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '🖥️ Diagnose My Laptop', emoji: true }, action_id: 'open_diagnostics', value: 'diagnostics', style: 'primary' },
+   ]});
+
+   // ── 8. Suggestion ────────────────────────────────────────────────────
    blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*💡 Got a suggestion for IT?*\n_Help us improve — share your idea or feedback!_' } });
    blocks.push({ type: 'actions', elements: [
@@ -2414,6 +2421,100 @@ app.listen(PORT, async () => {
        ]
      });
    } catch (err) { console.error('asset_req_reject error:', err.message); }
+ });
+
+ // ── Laptop Diagnostics button ────────────────────────────────────────────────
+ slackApp.action('open_diagnostics', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     const userId = body.user.id;
+     const emp = await Employee.findOne({ slackUserId: userId }).select('name laptop').lean().catch(() => null);
+     const laptopRaw = (emp?.laptop || '').toLowerCase();
+
+     const DIAG = {
+       hp:      { name: 'HP Support Assistant', emoji: '🔵', steps: ['1️⃣ Download karo: https://support.hp.com/us-en/help/hp-support-assistant', '2️⃣ Install karo aur open karo', '3️⃣ *My Devices* → apna laptop select karo', '4️⃣ *Diagnostics* tab → *Run Diagnostics* click karo', '5️⃣ Report dekho — agar error aaye toh IT ticket raise karo'], note: '⚠️ Install ke liye IT admin rights de sakta hai — ticket raise karo agar blocked ho.' },
+       dell:    { name: 'Dell SupportAssist', emoji: '🔷', steps: ['1️⃣ Download karo: https://www.dell.com/support/home/en-in/product-support/selfsolve/assistants', '2️⃣ Install karo aur open karo', '3️⃣ *Run All* ya *Hardware Scan* click karo', '4️⃣ Result dekho — koi red/fail aaye toh screenshot lo aur IT ticket raise karo'], note: '⚠️ Already pre-installed ho sakta hai Dell laptops pe — Start menu mein check karo.' },
+       lenovo:  { name: 'Lenovo Vantage', emoji: '🔴', steps: ['1️⃣ Microsoft Store se download karo: https://apps.microsoft.com/detail/9wzdncrfj4mv', '2️⃣ Install karo aur open karo', '3️⃣ *Device → System Health & Support* pe jao', '4️⃣ *Run Lenovo Diagnostics* click karo', '5️⃣ Report mein koi issue aaye toh IT ko ticket raise karo'], note: '✅ Microsoft Store se install hota hai — admin rights ki zaroorat nahi.' },
+       asus:    { name: 'ASUS Support Center', emoji: '🟡', steps: ['1️⃣ Support page kholo: https://www.asus.com/in/support/download-center/', '2️⃣ Apna model number daalo (laptop ke neeche sticker pe hoga)', '3️⃣ *Diagnostics* ya *MyASUS* app download karo', '4️⃣ App mein *System Diagnosis* run karo', '5️⃣ Koi issue aaye toh IT ticket raise karo'], note: '⚠️ Model number nahi pata? IT se poochho ya ASUS sticker check karo.' },
+       apple:   { name: 'Apple Diagnostics', emoji: '🍎', steps: ['1️⃣ MacBook *band* karo completely', '2️⃣ Power button dabaao aur *hold* karo', '3️⃣ *Options* screen aane par *D* key press karo', '4️⃣ Apple Diagnostics automatically start ho jaayega', '5️⃣ Result mein *error code* aaye toh note karo aur IT ticket raise karo'], note: '✅ Built-in hai — kuch bhi download nahi karna.' },
+       surface: { name: 'Surface Diagnostic Toolkit', emoji: '🪟', steps: ['1️⃣ Download karo: https://aka.ms/SurfaceDiagnosticToolkit', '2️⃣ Install karo aur open karo', '3️⃣ *Run All Tests* click karo', '4️⃣ Test complete hone ke baad report dekho', '5️⃣ Koi fail aaye toh screenshot lo aur IT ticket raise karo'], note: '⚠️ Install ke liye admin rights chahiye — IT se help lo.' },
+     };
+
+     let brand = null;
+     if (/\bhp\b|hewlett|elitebook|probook|pavilion|spectre|envy|omen/.test(laptopRaw)) brand = 'hp';
+     else if (/dell|latitude|inspiron|vostro|xps|precision/.test(laptopRaw)) brand = 'dell';
+     else if (/lenovo|thinkpad|ideapad|yoga|legion/.test(laptopRaw)) brand = 'lenovo';
+     else if (/asus|vivobook|zenbook|rog|tuf/.test(laptopRaw)) brand = 'asus';
+     else if (/apple|macbook|mac book|mac pro/.test(laptopRaw)) brand = 'apple';
+     else if (/surface|microsoft surface/.test(laptopRaw)) brand = 'surface';
+
+     const dm = await client.conversations.open({ users: userId });
+
+     if (brand && DIAG[brand]) {
+       const d = DIAG[brand];
+       await client.chat.postMessage({
+         channel: dm.channel.id,
+         text: `${d.emoji} ${d.name} — Laptop Diagnostics`,
+         blocks: [
+           { type: 'header', text: { type: 'plain_text', text: `${d.emoji} ${d.name}`, emoji: true }},
+           { type: 'section', text: { type: 'mrkdwn', text: `*💻 Tumhara Laptop:* ${emp?.laptop || 'Unknown'}\n\n*Steps to Diagnose:*\n${d.steps.join('\n')}` }},
+           { type: 'context', elements: [{ type: 'mrkdwn', text: d.note }]},
+           { type: 'divider' },
+           { type: 'section', text: { type: 'mrkdwn', text: '_Problem solve na ho? IT ticket raise karo 👇_' }},
+           { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Raise IT Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]},
+         ]
+       });
+     } else {
+       await client.chat.postMessage({
+         channel: dm.channel.id,
+         text: '🔧 Laptop Diagnostics — Select your brand',
+         blocks: [
+           { type: 'header', text: { type: 'plain_text', text: '🔧 Laptop Diagnostics', emoji: true }},
+           { type: 'section', text: { type: 'mrkdwn', text: `Tumhara laptop brand database mein nahi hai${emp?.laptop ? ` *(${emp.laptop})*` : ''}.\nApna brand select karo:` }},
+           { type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '🔵 HP', emoji: true }, action_id: 'diag_brand', value: 'hp' },
+             { type: 'button', text: { type: 'plain_text', text: '🔷 Dell', emoji: true }, action_id: 'diag_brand', value: 'dell' },
+             { type: 'button', text: { type: 'plain_text', text: '🔴 Lenovo', emoji: true }, action_id: 'diag_brand', value: 'lenovo' },
+           ]},
+           { type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '🟡 ASUS', emoji: true }, action_id: 'diag_brand', value: 'asus' },
+             { type: 'button', text: { type: 'plain_text', text: '🍎 Apple', emoji: true }, action_id: 'diag_brand', value: 'apple' },
+             { type: 'button', text: { type: 'plain_text', text: '🪟 Surface', emoji: true }, action_id: 'diag_brand', value: 'surface' },
+           ]},
+         ]
+       });
+     }
+   } catch (err) { console.error('open_diagnostics error:', err.message); }
+ });
+
+ // ── Diagnostics brand selected manually ──────────────────────────────────────
+ slackApp.action('diag_brand', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     const userId = body.user.id;
+     const brand = body.actions[0].value;
+     const DIAG = {
+       hp:      { name: 'HP Support Assistant', emoji: '🔵', steps: ['1️⃣ Download karo: https://support.hp.com/us-en/help/hp-support-assistant', '2️⃣ Install karo aur open karo', '3️⃣ *My Devices* → apna laptop select karo', '4️⃣ *Diagnostics* tab → *Run Diagnostics* click karo', '5️⃣ Report dekho — agar error aaye toh IT ticket raise karo'], note: '⚠️ Install ke liye IT admin rights de sakta hai — ticket raise karo agar blocked ho.' },
+       dell:    { name: 'Dell SupportAssist', emoji: '🔷', steps: ['1️⃣ Download karo: https://www.dell.com/support/home/en-in/product-support/selfsolve/assistants', '2️⃣ Install karo aur open karo', '3️⃣ *Run All* ya *Hardware Scan* click karo', '4️⃣ Result dekho — koi red/fail aaye toh screenshot lo aur IT ticket raise karo'], note: '⚠️ Already pre-installed ho sakta hai Dell laptops pe — Start menu mein check karo.' },
+       lenovo:  { name: 'Lenovo Vantage', emoji: '🔴', steps: ['1️⃣ Microsoft Store se download karo: https://apps.microsoft.com/detail/9wzdncrfj4mv', '2️⃣ Install karo aur open karo', '3️⃣ *Device → System Health & Support* pe jao', '4️⃣ *Run Lenovo Diagnostics* click karo', '5️⃣ Report mein koi issue aaye toh IT ko ticket raise karo'], note: '✅ Microsoft Store se install hota hai — admin rights ki zaroorat nahi.' },
+       asus:    { name: 'ASUS Support Center', emoji: '🟡', steps: ['1️⃣ Support page kholo: https://www.asus.com/in/support/download-center/', '2️⃣ Apna model number daalo (laptop ke neeche sticker pe hoga)', '3️⃣ *Diagnostics* ya *MyASUS* app download karo', '4️⃣ App mein *System Diagnosis* run karo', '5️⃣ Koi issue aaye toh IT ticket raise karo'], note: '⚠️ Model number nahi pata? IT se poochho ya ASUS sticker check karo.' },
+       apple:   { name: 'Apple Diagnostics', emoji: '🍎', steps: ['1️⃣ MacBook *band* karo completely', '2️⃣ Power button dabaao aur *hold* karo', '3️⃣ *Options* screen aane par *D* key press karo', '4️⃣ Apple Diagnostics automatically start ho jaayega', '5️⃣ Result mein *error code* aaye toh note karo aur IT ticket raise karo'], note: '✅ Built-in hai — kuch bhi download nahi karna.' },
+       surface: { name: 'Surface Diagnostic Toolkit', emoji: '🪟', steps: ['1️⃣ Download karo: https://aka.ms/SurfaceDiagnosticToolkit', '2️⃣ Install karo aur open karo', '3️⃣ *Run All Tests* click karo', '4️⃣ Test complete hone ke baad report dekho', '5️⃣ Koi fail aaye toh screenshot lo aur IT ticket raise karo'], note: '⚠️ Install ke liye admin rights chahiye — IT se help lo.' },
+     };
+     const d = DIAG[brand];
+     await client.chat.update({
+       channel: body.channel.id, ts: body.message.ts,
+       text: `${d.emoji} ${d.name} — Steps`,
+       blocks: [
+         { type: 'header', text: { type: 'plain_text', text: `${d.emoji} ${d.name}`, emoji: true }},
+         { type: 'section', text: { type: 'mrkdwn', text: `*Steps to Diagnose:*\n${d.steps.join('\n')}` }},
+         { type: 'context', elements: [{ type: 'mrkdwn', text: d.note }]},
+         { type: 'divider' },
+         { type: 'section', text: { type: 'mrkdwn', text: '_Problem solve na ho? IT ticket raise karo 👇_' }},
+         { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Raise IT Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]},
+       ]
+     });
+   } catch (err) { console.error('diag_brand error:', err.message); }
  });
 
  // ── Suggestion button — open modal ───────────────────────────────────────────
