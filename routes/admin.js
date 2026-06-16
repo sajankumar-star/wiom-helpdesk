@@ -270,9 +270,7 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
 });
 
 // ── POST /api/admin/import-managers — Bulk import manager data from Excel JSON
-router.post('/import-managers', async (req, res) => {
-  const secret = req.headers['x-import-secret'];
-  if (secret !== 'wiom-mgr-import-2024') return res.status(403).json({ error: 'Forbidden' });
+router.post('/import-managers', verifyAdmin, async (req, res) => {
   try {
     const { managers } = req.body; // [{ empId, managerId, managerName }]
     if (!Array.isArray(managers) || managers.length === 0)
