@@ -1903,6 +1903,7 @@ app.listen(PORT, async () => {
          { text: '🎣 Phishing Email',         val: 'phishing_email' },
          { text: '🔓 Suspicious Login',       val: 'suspicious_login' },
          // Other Emergencies
+         { text: '🌐 Net Not Working',        val: 'net_not_working' },
          { text: '📱 Device Lost/Stolen',     val: 'device_lost' },
          { text: '💾 Data Loss',              val: 'data_loss' },
        ]
@@ -2573,7 +2574,7 @@ app.listen(PORT, async () => {
    virus_malware: '🦠 Virus/Malware', suspicious_login: '🔓 Suspicious Login',
    security_alert: '🚨 Security Alert', account_hacked: '💀 Account Hacked',
    burning_smell: '🔥 EMERGENCY', battery_swelling: '🔋 EMERGENCY',
-   data_loss: '💾 Data Loss', device_lost: '📱 Device Lost',
+   data_loss: '💾 Data Loss', device_lost: '📱 Device Lost', net_not_working: '🌐 Net Not Working',
  };
  const modalTitle = ISSUE_TITLES[rawKey] || '🛠 IT Help';
 
@@ -2593,7 +2594,7 @@ app.listen(PORT, async () => {
    const emp = await lookupEmployee(userId, client).catch(() => ({ empId: userId, empName: 'User' }));
 
    // ── Emergency Alert — instant Slack DM to admin + show confirmation modal ──
-   const EMERGENCY_KEYS = new Set(['liquid_damage','burning_smell','battery_swelling','virus_malware','account_hacked','phishing_email','suspicious_login','device_lost','data_loss','security_alert']);
+   const EMERGENCY_KEYS = new Set(['liquid_damage','burning_smell','battery_swelling','virus_malware','account_hacked','phishing_email','suspicious_login','device_lost','data_loss','security_alert','net_not_working']);
    if (EMERGENCY_KEYS.has(rawKey)) {
      // Sajan's Slack User ID — hardcoded so DM always works
      const SAJAN_USER_ID = (process.env.ADMIN_SLACK_USER_ID || '').trim()
