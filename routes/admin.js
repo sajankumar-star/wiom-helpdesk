@@ -305,9 +305,7 @@ router.post('/import-managers', verifyAdmin, async (req, res) => {
 });
 
 // ── POST /api/admin/import-laptops — Bulk update laptop data from Keka Excel
-router.post('/import-laptops',
-  (req, res, next) => req.headers['x-import-secret'] === 'wiom-laptop-fix-2025' ? next() : verifyAdmin(req, res, next),
-  async (req, res) => {
+router.post('/import-laptops', verifyAdmin, async (req, res) => {
   try {
     const { laptops } = req.body;
     if (!Array.isArray(laptops) || laptops.length === 0)
