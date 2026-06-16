@@ -686,17 +686,6 @@
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-header"><h3>🔗 Keka HRMS Auto-Sync</h3></div>
-        <div class="card-body" style="padding:24px;">
-          <div style="padding:14px;background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:8px;margin-bottom:16px;font-size:13px;color:#fde047;">
-            ⚙️ <strong>Setup required:</strong> Railway mein <code>KEKA_API_KEY</code> environment variable add karein.<br/>
-            Keka Admin → Integrations → API → Generate Token
-          </div>
-          <button onclick="kekaSync()" style="padding:10px 24px;background:rgba(232,25,125,0.15);border:1px solid rgba(232,25,125,0.3);border-radius:8px;color:var(--pink);font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;font-weight:600;">🔄 Sync from Keka Now</button>
-          <div id="kekaResult" style="margin-top:12px;font-size:13px;"></div>
-        </div>
-      </div>
     </div>
 
     <div id="tab-learning" class="tab-content">
@@ -749,6 +738,17 @@
           </div>
           <button onclick="changePassword()" style="padding:10px 24px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;">🔐 Change Password</button>
           <div id="settingsResult" style="margin-top:14px;font-size:13px;"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:20px;">
+        <div class="card-header"><h3>🔗 Keka HRMS Auto-Sync</h3></div>
+        <div class="card-body" style="padding:24px;">
+          <div style="padding:14px;background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:8px;margin-bottom:16px;font-size:13px;color:#fde047;">
+            ⚙️ <strong>Setup required:</strong> Railway mein <code>KEKA_API_KEY</code> environment variable add karein.<br/>
+            Keka Admin → Integrations → API → Generate Token
+          </div>
+          <button onclick="kekaSync()" style="padding:10px 24px;background:rgba(232,25,125,0.15);border:1px solid rgba(232,25,125,0.3);border-radius:8px;color:var(--pink);font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;font-weight:600;">🔄 Sync from Keka Now</button>
+          <div id="kekaResult" style="margin-top:12px;font-size:13px;"></div>
         </div>
       </div>
     </div><!-- /tab-settings -->
