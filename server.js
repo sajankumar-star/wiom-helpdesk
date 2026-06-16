@@ -2477,36 +2477,25 @@ app.listen(PORT, async () => {
 
  slackApp.action('open_diagnostics', async ({ body, ack, client }) => {
    await ack();
-   const userId = body.user.id;
+   // DB query with 2s timeout — trigger_id window is 3s so this is safe
+   let emp = null;
    try {
-     // Step 1: open modal immediately with trigger_id (no DB wait)
-     const openRes = await client.views.open({
+     emp = await Promise.race([
+       Employee.findOne({ slackUserId: body.user.id }).select('name laptop').lean(),
+       new Promise(resolve => setTimeout(() => resolve(null), 2000)),
+     ]);
+   } catch {}
+   const laptopRaw = (emp?.laptop || '').toLowerCase();
+   let brand = null;
+   if (/\bhp\b|hewlett|elitebook|probook|pavilion|spectre|envy|omen/.test(laptopRaw)) brand = 'hp';
+   else if (/dell|latitude|inspiron|vostro|xps|precision/.test(laptopRaw)) brand = 'dell';
+   else if (/lenovo|thinkpad|ideapad|yoga|legion/.test(laptopRaw)) brand = 'lenovo';
+   else if (/asus|vivobook|zenbook|rog|tuf/.test(laptopRaw)) brand = 'asus';
+   else if (/apple|macbook|mac book|mac pro/.test(laptopRaw)) brand = 'apple';
+   else if (/surface|microsoft surface/.test(laptopRaw)) brand = 'surface';
+   try {
+     await client.views.open({
        trigger_id: body.trigger_id,
-       view: {
-         type: 'modal',
-         callback_id: 'diagnostics_modal',
-         title: { type: 'plain_text', text: '🔧 Laptop Diagnostics', emoji: true },
-         close: { type: 'plain_text', text: 'Close', emoji: true },
-         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Ek second..._' }}],
-       }
-     });
-     const viewId = openRes?.view?.id;
-     if (!viewId) return;
-
-     // Step 2: fetch laptop from DB (view_id has no time limit)
-     const emp = await Employee.findOne({ slackUserId: userId }).select('name laptop').lean().catch(() => null);
-     const laptopRaw = (emp?.laptop || '').toLowerCase();
-     let brand = null;
-     if (/\bhp\b|hewlett|elitebook|probook|pavilion|spectre|envy|omen/.test(laptopRaw)) brand = 'hp';
-     else if (/dell|latitude|inspiron|vostro|xps|precision/.test(laptopRaw)) brand = 'dell';
-     else if (/lenovo|thinkpad|ideapad|yoga|legion/.test(laptopRaw)) brand = 'lenovo';
-     else if (/asus|vivobook|zenbook|rog|tuf/.test(laptopRaw)) brand = 'asus';
-     else if (/apple|macbook|mac book|mac pro/.test(laptopRaw)) brand = 'apple';
-     else if (/surface|microsoft surface/.test(laptopRaw)) brand = 'surface';
-
-     // Step 3: update modal with brand steps
-     await client.views.update({
-       view_id: viewId,
        view: {
          type: 'modal',
          callback_id: 'diagnostics_modal',
