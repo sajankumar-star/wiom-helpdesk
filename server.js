@@ -2477,26 +2477,24 @@ app.listen(PORT, async () => {
 
  slackApp.action('open_diagnostics', async ({ body, ack, client }) => {
    await ack();
-   const triggerId = body.trigger_id;
    const userId = body.user.id;
    try {
-     // Open modal AND fetch employee data in parallel — trigger_id won't expire
-     const [viewRes, emp] = await Promise.all([
-       client.views.open({
-         trigger_id: triggerId,
-         view: {
-           type: 'modal',
-           callback_id: 'diagnostics_modal',
-           title: { type: 'plain_text', text: '🔧 Laptop Diagnostics', emoji: true },
-           close: { type: 'plain_text', text: 'Close', emoji: true },
-           blocks: [
-             { type: 'section', text: { type: 'mrkdwn', text: '_Tumhara laptop dhundh raha hai..._' }},
-           ],
-         }
-       }),
-       Employee.findOne({ slackUserId: userId }).select('name laptop').lean().catch(() => null),
-     ]);
+     // Step 1: open modal immediately with trigger_id (no DB wait)
+     const openRes = await client.views.open({
+       trigger_id: body.trigger_id,
+       view: {
+         type: 'modal',
+         callback_id: 'diagnostics_modal',
+         title: { type: 'plain_text', text: '🔧 Laptop Diagnostics', emoji: true },
+         close: { type: 'plain_text', text: 'Close', emoji: true },
+         blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '_Ek second..._' }}],
+       }
+     });
+     const viewId = openRes?.view?.id;
+     if (!viewId) return;
 
+     // Step 2: fetch laptop from DB (view_id has no time limit)
+     const emp = await Employee.findOne({ slackUserId: userId }).select('name laptop').lean().catch(() => null);
      const laptopRaw = (emp?.laptop || '').toLowerCase();
      let brand = null;
      if (/\bhp\b|hewlett|elitebook|probook|pavilion|spectre|envy|omen/.test(laptopRaw)) brand = 'hp';
@@ -2506,8 +2504,9 @@ app.listen(PORT, async () => {
      else if (/apple|macbook|mac book|mac pro/.test(laptopRaw)) brand = 'apple';
      else if (/surface|microsoft surface/.test(laptopRaw)) brand = 'surface';
 
+     // Step 3: update modal with brand steps
      await client.views.update({
-       view_id: viewRes.view.id,
+       view_id: viewId,
        view: {
          type: 'modal',
          callback_id: 'diagnostics_modal',
@@ -2516,7 +2515,7 @@ app.listen(PORT, async () => {
          blocks: buildDiagModalBlocks(brand, emp?.laptop || null),
        }
      });
-   } catch (err) { console.error('open_diagnostics error:', err.message); }
+   } catch (err) { console.error('open_diagnostics error:', err.message, err.data?.error || ''); }
  });
 
  // ── Brand selected inside Diagnostics modal — update modal view ──────────────
