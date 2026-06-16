@@ -2452,6 +2452,11 @@ app.listen(PORT, async () => {
    ],
  ];
 
+ const DIAG_TICKET_BTN = { type: 'actions', elements: [
+   { type: 'button', text: { type: 'plain_text', text: '🎫 Raise IT Ticket', emoji: true },
+     action_id: 'diag_raise_ticket', value: 'laptop', style: 'danger' },
+ ]};
+
  function buildDiagModalBlocks(brand, laptopLabel) {
    const brandBtns = [
      { type: 'actions', elements: DIAG_BRAND_BUTTONS[0] },
@@ -2465,6 +2470,8 @@ app.listen(PORT, async () => {
        { type: 'section', text: { type: 'mrkdwn', text: `*📋 Steps:*\n${d.steps.join('\n')}` }},
        { type: 'context', elements: [{ type: 'mrkdwn', text: d.note }]},
        { type: 'divider' },
+       DIAG_TICKET_BTN,
+       { type: 'divider' },
        { type: 'section', text: { type: 'mrkdwn', text: '_Ye laptop galat hai? Sahi brand choose karo 👇_' }},
        ...brandBtns,
      ];
@@ -2472,6 +2479,8 @@ app.listen(PORT, async () => {
    return [
      { type: 'section', text: { type: 'mrkdwn', text: `Apna laptop brand select karo${laptopLabel ? ` *(${laptopLabel})*` : ''}:` }},
      ...brandBtns,
+     { type: 'divider' },
+     DIAG_TICKET_BTN,
    ];
  }
 
@@ -2526,7 +2535,18 @@ app.listen(PORT, async () => {
    } catch (err) { console.error('diag_modal_select error:', err.message); }
  });
 
- // ── Diagnostics brand selected manually ──────────────────────────────────────
+ // ── Raise IT Ticket from Diagnostics modal ───────────────────────────────────
+ slackApp.action('diag_raise_ticket', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     const emp = await Employee.findOne({ slackUserId: body.user.id }).select('name laptop').lean().catch(() => null);
+     const laptopLabel = emp?.laptop || 'laptop';
+     await client.views.push({
+       trigger_id: body.trigger_id,
+       view: ticketNotesFormView(`Laptop issue — ${laptopLabel}`, 'Medium'),
+     });
+   } catch (err) { console.error('diag_raise_ticket error:', err.message, err.data?.error || ''); }
+ });
 
  // ── Suggestion button — open modal ───────────────────────────────────────────
  slackApp.action('open_suggestion_modal', async ({ body, ack, client }) => {
