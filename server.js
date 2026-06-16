@@ -992,7 +992,14 @@ app.listen(PORT, async () => {
      { type: 'button', text: { type: 'plain_text', text: '☁️ Cloud & Storage', emoji: true }, action_id: 'cat_cloud', value: 'cloud' },
    ]});
 
-   // ── 7. Recent Tickets ─────────────────────────────────────────────────
+   // ── 7. Suggestion ────────────────────────────────────────────────────
+   blocks.push({ type: 'divider' });
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*💡 Got a suggestion for IT?*\n_Help us improve — share your idea or feedback!_' } });
+   blocks.push({ type: 'actions', elements: [
+     { type: 'button', text: { type: 'plain_text', text: '✨ Share a Suggestion', emoji: true }, action_id: 'open_suggestion_modal', value: 'suggestion', style: 'primary' },
+   ]});
+
+   // ── 8. Recent Tickets ─────────────────────────────────────────────────
    if (tickets.length > 0) {
      blocks.push({ type: 'divider' });
      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*🎫 Recent Tickets*` } });
@@ -2407,6 +2414,57 @@ app.listen(PORT, async () => {
        ]
      });
    } catch (err) { console.error('asset_req_reject error:', err.message); }
+ });
+
+ // ── Suggestion button — open modal ───────────────────────────────────────────
+ slackApp.action('open_suggestion_modal', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     await client.views.open({
+       trigger_id: body.trigger_id,
+       view: {
+         type: 'modal',
+         callback_id: 'suggestion_submit',
+         title: { type: 'plain_text', text: '💡 Share a Suggestion', emoji: true },
+         submit: { type: 'plain_text', text: '📩 Submit', emoji: true },
+         close: { type: 'plain_text', text: 'Cancel', emoji: true },
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: '*Apna idea ya feedback share karo!* 🙌\n_IT team tumhara suggestion zaroor consider karegi._' }},
+           { type: 'divider' },
+           { type: 'input', block_id: 'suggestion_block',
+             label: { type: 'plain_text', text: 'Your Suggestion:', emoji: true },
+             element: { type: 'plain_text_input', action_id: 'suggestion_text', multiline: true,
+               placeholder: { type: 'plain_text', text: 'e.g. IT should provide standing desks, or WiFi coverage on 3rd floor is weak...' },
+               max_length: 500 }
+           },
+         ]
+       }
+     });
+   } catch (err) { console.error('open_suggestion_modal error:', err.message); }
+ });
+
+ // ── Suggestion modal submitted ────────────────────────────────────────────────
+ slackApp.view('suggestion_submit', async ({ body, ack, client }) => {
+   await ack({ response_action: 'update', view: { type: 'modal', title: { type: 'plain_text', text: '💡 Suggestion', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: '✅ *Suggestion received! Thank you!*\n_IT team will review it._' }}] }});
+   try {
+     const userId = body.user.id;
+     const suggestion = body.view.state.values?.suggestion_block?.suggestion_text?.value || '';
+     const emp = await Employee.findOne({ slackUserId: userId }).select('name empId dept').lean().catch(() => null);
+     const empName = emp?.name || body.user.name || userId;
+     const empId   = emp?.empId || '-';
+     const empDept = emp?.dept || '-';
+
+     const adminId = (process.env.ADMIN_SLACK_USER_ID || '').trim() || 'U08K2LXAN5Q';
+     await client.chat.postMessage({
+       channel: adminId,
+       text: `💡 New Suggestion from ${empName}`,
+       blocks: [
+         { type: 'header', text: { type: 'plain_text', text: '💡 New Suggestion Received!', emoji: true }},
+         { type: 'section', text: { type: 'mrkdwn', text: `*From:* ${empName} (${empId})\n*Dept:* ${empDept}` }},
+         { type: 'section', text: { type: 'mrkdwn', text: `*Suggestion:*\n${suggestion}` }},
+       ]
+     });
+   } catch (err) { console.error('suggestion_submit error:', err.message); }
  });
 
  slackApp.action(/^vague_pick_/, async ({ body, ack, client, say }) => {
