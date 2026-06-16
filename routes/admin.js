@@ -269,4 +269,39 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
   }
 });
 
+// ── POST /api/admin/import-managers — Bulk import manager data from Excel JSON
+router.post('/import-managers', verifyAdmin, async (req, res) => {
+  try {
+    const { managers } = req.body; // [{ empId, managerId, managerName }]
+    if (!Array.isArray(managers) || managers.length === 0)
+      return res.status(400).json({ error: 'managers array required' });
+
+    let updated = 0, skipped = 0;
+    for (const { empId, managerId, managerName } of managers) {
+      if (!empId || !managerId) { skipped++; continue; }
+      const result = await Employee.findOneAndUpdate(
+        { empId: empId.toString().toUpperCase() },
+        { $set: { managerId: managerId.toString().toUpperCase(), managerName } },
+        { new: true }
+      );
+      if (result) updated++; else skipped++;
+    }
+
+    // Second pass: resolve managerSlackId
+    let linked = 0;
+    const empsWithMgr = await Employee.find({ managerId: { $exists: true, $ne: '' } }).lean();
+    for (const emp of empsWithMgr) {
+      const mgr = await Employee.findOne({ empId: emp.managerId }).select('slackUserId name').lean();
+      if (mgr?.slackUserId) {
+        await Employee.updateOne({ _id: emp._id }, { $set: { managerSlackId: mgr.slackUserId, managerName: mgr.name } });
+        linked++;
+      }
+    }
+
+    res.json({ success: true, updated, skipped, linked, total: managers.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
