@@ -936,10 +936,6 @@ app.listen(PORT, async () => {
  // ── Build Home Tab blocks — Advanced Design ──────────────────────────────────
  const IT_TIPS = [
    { title: '🔋 Battery Care', lines: ['✅ Use the original charger provided with your laptop.', '✅ Keep battery level between 20% and 80% whenever possible.', '✅ Unplug the charger when fully charged and not in use.', '✅ Restart your laptop regularly.', '❌ Do not use damaged chargers or cables.', '❌ Do not place the laptop in direct sunlight.'] },
-   { title: '🌡️ Prevent Overheating', lines: ['✅ Keep air vents clean and unobstructed.', '✅ Use the laptop on a desk or table.', '✅ Close unnecessary applications.', '✅ Allow proper airflow around the device.', '❌ Do not use the laptop on a bed or cushion.', '❌ Do not block the cooling vents.'] },
-   { title: '💧 Protect from Liquids', lines: ['✅ Keep water bottles and beverages away from your laptop.', '✅ Use a spill-proof bottle if possible.', '✅ Report liquid spills to IT immediately.', '❌ Do not turn on a laptop after a liquid spill.', '❌ Do not use a hair dryer to dry the laptop.'] },
-   { title: '🎒 Safe Laptop Handling', lines: ['✅ Carry your laptop in a padded laptop bag.', '✅ Hold the laptop with both hands while moving.', '✅ Close the lid before carrying it.', '❌ Do not carry the laptop by the screen.', '❌ Do not place heavy objects on top of it.'] },
-   { title: '🖥️ Screen Care', lines: ['✅ Open and close the lid gently.', '✅ Clean the screen with a microfiber cloth.', '✅ Adjust brightness to a comfortable level.', '❌ Do not press hard on the screen.', '❌ Do not use rough cloths or tissues.'] },
    { title: '🔐 Keep Your Data Secure', lines: ['✅ Lock your laptop when away from desk — press *Windows + L*.', '✅ Use strong passwords.', '✅ Report suspicious emails to IT.', '❌ Do not share your password with anyone.', '❌ Do not leave your laptop unlocked.'] },
    { title: '🌐 Better Internet Performance', lines: ['✅ Sit within good Wi-Fi coverage.', '✅ Disconnect unused devices from hotspots.', '✅ Restart Wi-Fi if connectivity issues occur.', '❌ Do not download unnecessary large files on office networks.'] },
    { title: '📁 File Management', lines: ['✅ Store important files in approved cloud storage.', '✅ Organize files into folders.', '✅ Take regular backups of critical work.', '❌ Do not save company files on personal devices.'] },
@@ -1019,17 +1015,11 @@ app.listen(PORT, async () => {
      blocks.push({ type: 'section', text: { type: 'mrkdwn', text: announcement } });
    }
 
-   // ── 9. IT Tips (5 per day, rotating) ────────────────────────────────────
+   // ── 9. IT Tip (1 per day, rotating) ─────────────────────────────────────
    if (IT_TIPS?.length > 0) {
-     const dayIdx = Math.floor(Date.now() / 86400000);
-     const start = (dayIdx * 5) % IT_TIPS.length;
-     const todaysTips = [];
-     for (let i = 0; i < 5; i++) todaysTips.push(IT_TIPS[(start + i) % IT_TIPS.length]);
+     const tip = IT_TIPS[Math.floor(Date.now() / 86400000) % IT_TIPS.length];
      blocks.push({ type: 'divider' });
-     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*📚 IT Tip of the Day*' } });
-     todaysTips.forEach(tip => {
-       blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*${tip.title}*\n${tip.lines.join('\n')}` } });
-     });
+     blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `*📚 IT Tip of the Day*\n\n*${tip.title}*\n${tip.lines.join('\n')}` } });
    }
 
    // ── 10. Admin Tools (only visible to IT Admin) ────────────────────────
