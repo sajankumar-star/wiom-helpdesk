@@ -2471,19 +2471,43 @@ app.listen(PORT, async () => {
 
  slackApp.action('open_diagnostics', async ({ body, ack, client }) => {
    await ack();
+   const triggerId = body.trigger_id;
+   const userId = body.user.id;
    try {
-     await client.views.open({
-       trigger_id: body.trigger_id,
+     // Open modal AND fetch employee data in parallel — trigger_id won't expire
+     const [viewRes, emp] = await Promise.all([
+       client.views.open({
+         trigger_id: triggerId,
+         view: {
+           type: 'modal',
+           callback_id: 'diagnostics_modal',
+           title: { type: 'plain_text', text: '🔧 Laptop Diagnostics', emoji: true },
+           close: { type: 'plain_text', text: 'Close', emoji: true },
+           blocks: [
+             { type: 'section', text: { type: 'mrkdwn', text: '_Tumhara laptop dhundh raha hai..._' }},
+           ],
+         }
+       }),
+       Employee.findOne({ slackUserId: userId }).select('name laptop').lean().catch(() => null),
+     ]);
+
+     const laptopRaw = (emp?.laptop || '').toLowerCase();
+     let brand = null;
+     if (/\bhp\b|hewlett|elitebook|probook|pavilion|spectre|envy|omen/.test(laptopRaw)) brand = 'hp';
+     else if (/dell|latitude|inspiron|vostro|xps|precision/.test(laptopRaw)) brand = 'dell';
+     else if (/lenovo|thinkpad|ideapad|yoga|legion/.test(laptopRaw)) brand = 'lenovo';
+     else if (/asus|vivobook|zenbook|rog|tuf/.test(laptopRaw)) brand = 'asus';
+     else if (/apple|macbook|mac book|mac pro/.test(laptopRaw)) brand = 'apple';
+     else if (/surface|microsoft surface/.test(laptopRaw)) brand = 'surface';
+
+     await client.views.update({
+       view_id: viewRes.view.id,
        view: {
          type: 'modal',
          callback_id: 'diagnostics_modal',
          title: { type: 'plain_text', text: '🔧 Laptop Diagnostics', emoji: true },
          close: { type: 'plain_text', text: 'Close', emoji: true },
-         blocks: [
-           { type: 'section', text: { type: 'mrkdwn', text: '*Apna laptop brand select karo* 👇' }},
-           { type: 'actions', elements: DIAG_BRAND_BUTTONS[0] },
-           { type: 'actions', elements: DIAG_BRAND_BUTTONS[1] },
-         ],
+         blocks: buildDiagModalBlocks(brand, emp?.laptop || null),
        }
      });
    } catch (err) { console.error('open_diagnostics error:', err.message); }
