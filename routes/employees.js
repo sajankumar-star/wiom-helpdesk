@@ -148,32 +148,6 @@ router.patch('/:empId/manager', verifyAdmin, async (req, res) => {
   }
 });
 
-// ── POST /api/employees/temp-fix  — TEMP: one-time targeted employee update ───
-router.post('/temp-fix', async (req, res) => {
-  if (req.headers['x-fix-secret'] !== 'wiom-emp-fix-2025') {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-  try {
-    const { employees } = req.body;
-    if (!Array.isArray(employees)) return res.status(400).json({ error: 'employees array required' });
-    const results = [];
-    for (const e of employees) {
-      const data = pickAllowed(e);
-      if (!data.empId) { results.push({ empId: e.empId, status: 'skipped', reason: 'no empId' }); continue; }
-      data.empId = data.empId.toString().toUpperCase();
-      const emp = await Employee.findOneAndUpdate(
-        { empId: data.empId },
-        { $set: data },
-        { upsert: true, new: true }
-      );
-      results.push({ empId: data.empId, name: emp.name, status: 'ok' });
-    }
-    res.json({ success: true, results });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 // ── GET /api/employees/search  — Search by name for Slack external_select ────
 router.get('/search/options', verifyAdmin, async (req, res) => {
   try {
