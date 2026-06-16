@@ -2533,34 +2533,6 @@ app.listen(PORT, async () => {
  });
 
  // ── Diagnostics brand selected manually ──────────────────────────────────────
- slackApp.action('diag_brand', async ({ body, ack, client }) => {
-   await ack();
-   try {
-     const userId = body.user.id;
-     const brand = body.actions[0].value;
-     const DIAG = {
-       hp:      { name: 'HP Support Assistant', emoji: '🔵', steps: ['1️⃣ Download karo: https://support.hp.com/us-en/help/hp-support-assistant', '2️⃣ Install karo aur open karo', '3️⃣ *My Devices* → apna laptop select karo', '4️⃣ *Diagnostics* tab → *Run Diagnostics* click karo', '5️⃣ Report dekho — agar error aaye toh IT ticket raise karo'], note: '⚠️ Install ke liye IT admin rights de sakta hai — ticket raise karo agar blocked ho.' },
-       dell:    { name: 'Dell SupportAssist', emoji: '🔷', steps: ['1️⃣ Download karo: https://www.dell.com/support/home/en-in/product-support/selfsolve/assistants', '2️⃣ Install karo aur open karo', '3️⃣ *Run All* ya *Hardware Scan* click karo', '4️⃣ Result dekho — koi red/fail aaye toh screenshot lo aur IT ticket raise karo'], note: '⚠️ Already pre-installed ho sakta hai Dell laptops pe — Start menu mein check karo.' },
-       lenovo:  { name: 'Lenovo Vantage', emoji: '🔴', steps: ['1️⃣ Microsoft Store se download karo: https://apps.microsoft.com/detail/9wzdncrfj4mv', '2️⃣ Install karo aur open karo', '3️⃣ *Device → System Health & Support* pe jao', '4️⃣ *Run Lenovo Diagnostics* click karo', '5️⃣ Report mein koi issue aaye toh IT ko ticket raise karo'], note: '✅ Microsoft Store se install hota hai — admin rights ki zaroorat nahi.' },
-       asus:    { name: 'ASUS Support Center', emoji: '🟡', steps: ['1️⃣ Support page kholo: https://www.asus.com/in/support/download-center/', '2️⃣ Apna model number daalo (laptop ke neeche sticker pe hoga)', '3️⃣ *Diagnostics* ya *MyASUS* app download karo', '4️⃣ App mein *System Diagnosis* run karo', '5️⃣ Koi issue aaye toh IT ticket raise karo'], note: '⚠️ Model number nahi pata? IT se poochho ya ASUS sticker check karo.' },
-       apple:   { name: 'Apple Diagnostics', emoji: '🍎', steps: ['1️⃣ MacBook *band* karo completely', '2️⃣ Power button dabaao aur *hold* karo', '3️⃣ *Options* screen aane par *D* key press karo', '4️⃣ Apple Diagnostics automatically start ho jaayega', '5️⃣ Result mein *error code* aaye toh note karo aur IT ticket raise karo'], note: '✅ Built-in hai — kuch bhi download nahi karna.' },
-       surface: { name: 'Surface Diagnostic Toolkit', emoji: '🪟', steps: ['1️⃣ Download karo: https://aka.ms/SurfaceDiagnosticToolkit', '2️⃣ Install karo aur open karo', '3️⃣ *Run All Tests* click karo', '4️⃣ Test complete hone ke baad report dekho', '5️⃣ Koi fail aaye toh screenshot lo aur IT ticket raise karo'], note: '⚠️ Install ke liye admin rights chahiye — IT se help lo.' },
-     };
-     const d = DIAG[brand];
-     await client.chat.update({
-       channel: body.channel.id, ts: body.message.ts,
-       text: `${d.emoji} ${d.name} — Steps`,
-       blocks: [
-         { type: 'header', text: { type: 'plain_text', text: `${d.emoji} ${d.name}`, emoji: true }},
-         { type: 'section', text: { type: 'mrkdwn', text: `*Steps to Diagnose:*\n${d.steps.join('\n')}` }},
-         { type: 'context', elements: [{ type: 'mrkdwn', text: d.note }]},
-         { type: 'divider' },
-         { type: 'section', text: { type: 'mrkdwn', text: '_Problem solve na ho? IT ticket raise karo 👇_' }},
-         { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Raise IT Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]},
-       ]
-     });
-   } catch (err) { console.error('diag_brand error:', err.message); }
- });
 
  // ── Suggestion button — open modal ───────────────────────────────────────────
  slackApp.action('open_suggestion_modal', async ({ body, ack, client }) => {
@@ -4212,7 +4184,6 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  // handlers or regex handlers. DO NOT add them here — it causes both handlers to fire (race condition).
  const homeQuickActions = [
    'home_quick_wifi_pwd_quick',
-   'home_quick_office_net_down',
    'home_quick_diagnose_laptop',
    'home_quick_1','home_quick_2','home_quick_3','home_quick_4','home_quick_5',
    'home_quick_6','home_quick_7','home_quick_7b','home_quick_8','home_quick_9',
@@ -4264,29 +4235,6 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
    }
  });
  return;
- }
-
- // ── Office Net Down — update Home Tab directly (no trigger_id/DM needed) ─
- if (actionId === 'home_quick_office_net_down') {
-   await client.views.publish({
-     user_id: userId,
-     view: {
-       type: 'home',
-       blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: '*🌐 Office Internet Down*\nWhich floor is affected? Click a button below 👇' } },
-         { type: 'divider' },
-         { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '🏢 Ground Floor', emoji: true }, action_id: 'office_net_floor_select', value: 'Ground Floor', style: 'danger' },
-           { type: 'button', text: { type: 'plain_text', text: '🏢 3rd Floor', emoji: true }, action_id: 'office_net_floor_select', value: '3rd Floor', style: 'danger' },
-         ]},
-         { type: 'divider' },
-         { type: 'actions', elements: [
-           { type: 'button', text: { type: 'plain_text', text: '← Wapas Jao', emoji: true }, action_id: 'go_home_btn', value: 'home' },
-         ]}
-       ]
-     }
-   });
-   return;
  }
 
  // ── Diagnose My Laptop — open symptom selector modal ─────────
