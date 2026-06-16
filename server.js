@@ -2460,7 +2460,18 @@ app.listen(PORT, async () => {
            { type: 'section', text: { type: 'mrkdwn', text: `*💻 Tumhara Laptop:* ${emp?.laptop || 'Unknown'}\n\n*Steps to Diagnose:*\n${d.steps.join('\n')}` }},
            { type: 'context', elements: [{ type: 'mrkdwn', text: d.note }]},
            { type: 'divider' },
-           { type: 'section', text: { type: 'mrkdwn', text: '_Problem solve na ho? IT ticket raise karo 👇_' }},
+           { type: 'section', text: { type: 'mrkdwn', text: '_Ye laptop galat hai? Apna brand choose karo 👇_' }},
+           { type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '🔵 HP', emoji: true }, action_id: 'diag_brand', value: 'hp' },
+             { type: 'button', text: { type: 'plain_text', text: '🔷 Dell', emoji: true }, action_id: 'diag_brand', value: 'dell' },
+             { type: 'button', text: { type: 'plain_text', text: '🔴 Lenovo', emoji: true }, action_id: 'diag_brand', value: 'lenovo' },
+           ]},
+           { type: 'actions', elements: [
+             { type: 'button', text: { type: 'plain_text', text: '🟡 ASUS', emoji: true }, action_id: 'diag_brand', value: 'asus' },
+             { type: 'button', text: { type: 'plain_text', text: '🍎 Apple', emoji: true }, action_id: 'diag_brand', value: 'apple' },
+             { type: 'button', text: { type: 'plain_text', text: '🪟 Surface', emoji: true }, action_id: 'diag_brand', value: 'surface' },
+           ]},
+           { type: 'divider' },
            { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🎫 Raise IT Ticket', emoji: true }, action_id: 'vague_pick_create_ticket', value: 'create ticket', style: 'primary' }]},
          ]
        });
@@ -6379,6 +6390,25 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  console.log(' Slack Bot started! Socket Mode active.');
  slackClient = slackApp.client;
  app.locals.slackClient = slackApp.client;
+
+ // ── Helper: refresh employee Home Tab after ticket status change ──────────
+ app.locals.refreshEmployeeHomeTab = async (slackUserId) => {
+   if (!slackUserId) return;
+   try {
+     const emp = await Employee.findOne({ slackUserId }).lean();
+     if (!emp?.empId) return;
+     const [openTickets, resolvedTickets] = await Promise.all([
+       Ticket.find({ empId: emp.empId, status: { $in: ['Open', 'In Progress', 'Waiting'] } }).sort({ createdAt: -1 }).limit(3).lean(),
+       Ticket.find({ empId: emp.empId, status: { $in: ['Resolved', 'Closed'] }, resolvedAt: { $exists: true } }).select('resolvedAt createdAt').lean()
+     ]);
+     const avgHrs = resolvedTickets.length
+       ? Math.round(resolvedTickets.reduce((s, t) => s + (new Date(t.resolvedAt) - new Date(t.createdAt)) / 3600000, 0) / resolvedTickets.length)
+       : 0;
+     const expandedSet = expandedHomeMap.get(slackUserId) || new Set();
+     const blocks = buildHomeBlocks(emp, openTickets, expandedSet, { resolvedCount: resolvedTickets.length, avgHrs });
+     await slackApp.client.views.publish({ user_id: slackUserId, view: { type: 'home', blocks } });
+   } catch (e) { console.error('[refreshHomeTab] error:', e.message); }
+ };
 
  // Auto-link admin Slack ID
  const adminSlackId = (process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID);

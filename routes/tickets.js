@@ -193,6 +193,11 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
               text:`Resolved by ${resolvedBy_} | Agar problem wapas aaye: IT Helpdesk (Slack)` }]}
           ]
         }).catch(e => console.error('Slack resolve DM error:', e.message));
+
+        // Refresh Home Tab — remove resolved ticket from view
+        if (req.app.locals.refreshEmployeeHomeTab) {
+          setTimeout(() => req.app.locals.refreshEmployeeHomeTab(ticket.slackUserId), 2000);
+        }
       }
     }
 
@@ -223,6 +228,11 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
               text:`IT Helpdesk | Koi bhi problem ho: \`/ticket\` command use karo` }]}
           ]
         }).catch(e => console.error('Slack close DM error:', e.message));
+
+        // Refresh Home Tab — remove closed ticket from view
+        if (req.app.locals.refreshEmployeeHomeTab) {
+          setTimeout(() => req.app.locals.refreshEmployeeHomeTab(ticket.slackUserId), 2000);
+        }
       }
     }
 
