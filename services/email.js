@@ -73,6 +73,7 @@ const sendTicketConfirmation = async (ticket) => {
     📱 <strong>IT Helpdesk (Slack)</strong> | 📧 <strong>${ADMIN_EMAIL}</strong></p>
   `);
 
+  if (!transporter) return;
   await transporter.sendMail({
     from   : FROM,
     to     : ticket.empEmail,
@@ -124,6 +125,7 @@ const sendAdminAlert = async (ticket) => {
     </div>` : ''}
   `);
 
+  if (!transporter) return;
   await transporter.sendMail({
     from   : FROM,
     to     : ADMIN_EMAIL,
@@ -152,6 +154,7 @@ const sendResolutionEmail = async (ticket) => {
     📱 <strong>IT Helpdesk (Slack)</strong></p>
   `);
 
+  if (!transporter) return;
   await transporter.sendMail({
     from   : FROM,
     to     : ticket.empEmail,
@@ -183,6 +186,7 @@ const sendSLABreachAlert = async (ticket) => {
     </div>
   `);
 
+  if (!transporter) return;
   await transporter.sendMail({
     from   : FROM,
     to     : ADMIN_EMAIL,
@@ -215,6 +219,7 @@ const sendEscalationAlert = async ({ empId, empName, empEmail, dept, floor, lapt
     <p style="margin-top:16px;color:#374151;font-size:13px">Please contact this employee directly for support.</p>
   `);
 
+  if (!transporter) return;
   await transporter.sendMail({
     from   : FROM,
     to     : ADMIN_EMAIL,

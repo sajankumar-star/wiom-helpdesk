@@ -47,6 +47,7 @@ const checkBreaches = async () => {
 
 // ── Get SLA status for a ticket ───────────────────────────────────────────────
 const getSLAStatus = (ticket) => {
+  if (!ticket.slaDeadline) return { status: 'Unknown', hoursLeft: null };
   const now      = new Date();
   const deadline = new Date(ticket.slaDeadline);
   const msLeft   = deadline - now;

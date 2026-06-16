@@ -370,12 +370,18 @@ app.listen(PORT, async () => {
  try {
    const mongoose = require('mongoose');
    const Counter = mongoose.models.Counter || mongoose.model('Counter', new mongoose.Schema({ _id: String, seq: { type: Number, default: 0 } }));
-   const last = await Ticket.findOne({}).sort({ ticketId: -1 }).select('ticketId').lean();
-   const lastNum = last?.ticketId ? parseInt(last.ticketId.replace('WIOM-TKT-', '')) : 0;
-   const current = await Counter.findOne({ _id: 'ticketId' });
-   if (!current || current.seq < lastNum) {
-     await Counter.findOneAndUpdate({ _id: 'ticketId' }, { $set: { seq: lastNum } }, { upsert: true });
-     console.log(`[Counter] Fixed ticketId counter: ${current?.seq || 0} → ${lastNum}`);
+   const lastTicket = await Ticket.findOne({}, 'ticketId').lean();
+   if (lastTicket) {
+     const allTickets = await Ticket.find({}, 'ticketId').lean();
+     const maxNum = allTickets.reduce((max, t) => {
+       const num = parseInt((t.ticketId || '').replace(/\D/g, '')) || 0;
+       return Math.max(max, num);
+     }, 0);
+     const current = await Counter.findOne({ _id: 'ticketId' });
+     if (!current || current.seq < maxNum) {
+       await Counter.findOneAndUpdate({ _id: 'ticketId' }, { $set: { seq: maxNum } }, { upsert: true });
+       console.log(`[Counter] Fixed ticketId counter: ${current?.seq || 0} → ${maxNum}`);
+     }
    }
  } catch (e) { console.error('[Counter] auto-fix error:', e.message); }
 
@@ -2362,7 +2368,7 @@ app.listen(PORT, async () => {
      const mgrName = body.user.name || 'Your manager';
 
      await client.chat.update({
-       channel: body.channel.id, ts: body.message.ts,
+       channel: body.channel?.id || body.container?.channel_id, ts: body.message?.ts,
        text: `✅ Approved by ${mgrName} — ${empName}'s ${itemName} request`,
        blocks: [
          { type: 'section', text: { type: 'mrkdwn', text: `*✅ Approved* by *${mgrName}*\n\n*Employee:* ${empName} (${empId})\n*Item:* ${ASSET_ITEM_NAMES[itemKey] || itemName}\n*Ticket:* \`${ticketId}\`` }},
@@ -2404,7 +2410,7 @@ app.listen(PORT, async () => {
      const mgrName = body.user.name || 'Your manager';
 
      await client.chat.update({
-       channel: body.channel.id, ts: body.message.ts,
+       channel: body.channel?.id || body.container?.channel_id, ts: body.message?.ts,
        text: `❌ Rejected by ${mgrName} — ${empName}'s ${itemName} request`,
        blocks: [
          { type: 'section', text: { type: 'mrkdwn', text: `*❌ Rejected* by *${mgrName}*\n\n*Employee:* ${empName} (${empId})\n*Item:* ${ASSET_ITEM_NAMES[itemKey] || itemName}\n*Ticket:* \`${ticketId}\`` }},
@@ -2975,17 +2981,19 @@ app.listen(PORT, async () => {
  : rating >= 3 ? 'Thank you! We will keep improving '
  : 'Thank you! We will use this feedback to improve ';
 
- await client.chat.update({
- channel: body.channel?.id || body.container?.channel_id,
- ts : body.message.ts,
- text : `✅ Ticket ${ticketId} Rating: ${stars}`,
- blocks : [
- { type:'section', text:{ type:'mrkdwn', text:
- `✅ *Ticket \`${ticketId}\` has been resolved!*\n\n*Your Rating:* ${stars} (${rating}/5)\n${ratingMsg}`
- }},
- { type:'context', elements:[{ type:'mrkdwn', text:`IT Helpdesk: IT Helpdesk (Slack) | Let us know if you need more help!` }]}
- ]
- });
+ if (body.message?.ts) {
+   await client.chat.update({
+   channel: body.channel?.id || body.container?.channel_id,
+   ts : body.message?.ts,
+   text : `✅ Ticket ${ticketId} Rating: ${stars}`,
+   blocks : [
+   { type:'section', text:{ type:'mrkdwn', text:
+   `✅ *Ticket \`${ticketId}\` has been resolved!*\n\n*Your Rating:* ${stars} (${rating}/5)\n${ratingMsg}`
+   }},
+   { type:'context', elements:[{ type:'mrkdwn', text:`IT Helpdesk: IT Helpdesk (Slack) | Let us know if you need more help!` }]}
+   ]
+   });
+ }
  console.log(`⭐ Rating ${rating}/5 saved for ${ticketId}`);
  } catch (err) {
  console.error('Rating action error:', err.message);
@@ -3560,7 +3568,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
            laptop: emp.laptop, laptopSN: emp.laptopSN,
            description: `🆘 SOS: ${issueType}`,
            category, priority,
-           source: 'slack-sos', slackUserId: userId
+           source: 'slack-emergency', slackUserId: userId
          });
          if (result && !result._duplicate) {
            ticketId = result.ticketId;
@@ -3899,8 +3907,8 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
 
      // Update message to show approved
      await client.chat.update({
-       channel: body.channel.id,
-       ts: body.message.ts,
+       channel: body.channel?.id || body.container?.channel_id,
+       ts: body.message?.ts,
        text: `✅ Approved by ${mgrName} — ${empName}'s software request`,
        blocks: [
          { type: 'section', text: { type: 'mrkdwn', text: `*✅ Approved* by *${mgrName}*\n\n*Employee:* ${empName} (${empId})\n*Software:* ${software.join(', ')}\n*Ticket:* \`${ticketId}\`` } },
@@ -3945,8 +3953,8 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
 
      // Update message to show rejected
      await client.chat.update({
-       channel: body.channel.id,
-       ts: body.message.ts,
+       channel: body.channel?.id || body.container?.channel_id,
+       ts: body.message?.ts,
        text: `❌ Rejected by ${mgrName} — ${empName}'s software request`,
        blocks: [
          { type: 'section', text: { type: 'mrkdwn', text: `*❌ Rejected* by *${mgrName}*\n\n*Employee:* ${empName} (${empId})\n*Software:* ${software.join(', ')}\n*Ticket:* \`${ticketId}\`` } },
@@ -4809,10 +4817,13 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  { type: 'context', elements: [{ type: 'mrkdwn', text: '_To cancel, send a DM to IT on Slack_' }]}
  ]
  });
- await client.chat.update({ channel: body.channel?.id || body.container?.channel_id, ts: body.message.ts,
- text: `✅ Appointment confirmed: ${appt.empName} → ${dateDisplay} ${appt.timeSlot}`,
- blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `✅ *Confirmed:* ${appt.empName} | ${dateDisplay} ${appt.timeSlot}` }}]
- });
+ const messageTs = body.message?.ts;
+ if (messageTs) {
+   await client.chat.update({ channel: body.channel?.id || body.container?.channel_id, ts: messageTs,
+   text: `✅ Appointment confirmed: ${appt.empName} → ${dateDisplay} ${appt.timeSlot}`,
+   blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `✅ *Confirmed:* ${appt.empName} | ${dateDisplay} ${appt.timeSlot}` }}]
+   });
+ }
  }
  } catch (err) { console.error('Appt confirm error:', err.message); }
  });
@@ -4831,10 +4842,13 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  { type: 'section', text: { type: 'mrkdwn', text: `❌ *Your Appointment has been Cancelled.*\n\nTo book a new slot: \`/appoint\`\nFor immediate help: \`/ticket\`` }}
  ]
  });
- await client.chat.update({ channel: body.channel?.id || body.container?.channel_id, ts: body.message.ts,
- text: `❌ Appointment cancelled: ${appt?.empName}`,
- blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ *Cancelled:* ${appt?.empName}` }}]
- });
+ const cancelMessageTs = body.message?.ts;
+ if (cancelMessageTs) {
+   await client.chat.update({ channel: body.channel?.id || body.container?.channel_id, ts: cancelMessageTs,
+   text: `❌ Appointment cancelled: ${appt?.empName}`,
+   blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ *Cancelled:* ${appt?.empName}` }}]
+   });
+ }
  }
  } catch (err) { console.error('Appt cancel error:', err.message); }
  });
@@ -5759,7 +5773,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  slackApp.action('wrong_answer_btn', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
-   const channelId = body.channel?.id || body.container?.channel_id;
+   const channelId = body.channel?.id || body.container?.channel_id || body.user.id;
    const question = body.actions?.[0]?.value || '';
 
    try {
@@ -5845,7 +5859,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  slackApp.action('lq_approve', async ({ body, ack, client }) => {
    await ack();
    const lqId = body.actions?.[0]?.value;
-   const channelId = body.channel?.id || body.container?.channel_id;
+   const channelId = body.channel?.id || body.container?.channel_id || body.user.id;
    const messageTs = body.message?.ts;
    try {
      const LearningQueue = require('./models/LearningQueue');
@@ -5873,7 +5887,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  slackApp.action('lq_reject', async ({ body, ack, client }) => {
    await ack();
    const lqId = body.actions?.[0]?.value;
-   const channelId = body.channel?.id || body.container?.channel_id;
+   const channelId = body.channel?.id || body.container?.channel_id || body.user.id;
    const messageTs = body.message?.ts;
    try {
      const LearningQueue = require('./models/LearningQueue');
@@ -6329,37 +6343,39 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  });
 
  slackApp.view('add_comment_modal', async ({ body, ack, client, view }) => {
+   await ack(); // Must ack within 3 seconds — do this first before any async DB work
    const userId = body.user.id;
+   const viewId = body.view.id;
    const ticketId = view.private_metadata;
    const comment = view.state.values?.comment_block?.comment_input?.value || '';
    try {
      const ticket = await Ticket.findOne({ ticketId });
      if (!ticket) {
-       await ack({ response_action: 'update', view: {
+       await client.views.update({ view_id: viewId, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Not Found' },
          close: { type: 'plain_text', text: 'Close' },
          blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket \`${ticketId}\` not found.` }}]
-       }});
+       }}).catch(() => {});
        return;
      }
      const updatedDesc = (ticket.description || '') + `\n\n--- Employee Update (${new Date().toLocaleString('en-IN', {timeZone:'Asia/Kolkata'})}) ---\n${comment}`;
      await Ticket.findOneAndUpdate({ ticketId }, { description: updatedDesc.substring(0, 1000) });
      // Show success confirmation inside modal
-     await ack({ response_action: 'update', view: {
+     await client.views.update({ view_id: viewId, view: {
        type: 'modal', title: { type: 'plain_text', text: '✅ Update Sent!', emoji: true },
        close: { type: 'plain_text', text: 'Close', emoji: true },
        blocks: [
          { type: 'section', text: { type: 'mrkdwn', text: `✅ Your update for ticket \`${ticketId}\` has been sent to IT!\n\n_IT team will review your update and respond shortly._` }},
          { type: 'context', elements: [{ type: 'mrkdwn', text: `💬 Update: "${comment.substring(0, 100)}${comment.length > 100 ? '...' : ''}"` }]}
        ]
-     }});
+     }}).catch(() => {});
      const adminId = process.env.ADMIN_EMAIL_SLACK_ID || process.env.SAJAN_SLACK_ID;
      if (adminId && adminId !== 'FILL_KARO') {
        await client.chat.postMessage({ channel: adminId, text: `💬 Update on ticket \`${ticketId}\` from <@${userId}>:\n${comment}` }).catch(() => {});
      }
    } catch(err) {
      console.error('add_comment submit error:', err.message);
-     await ack({ response_action: 'update', view: {
+     await client.views.update({ view_id: viewId, view: {
        type: 'modal', title: { type: 'plain_text', text: 'Error' },
        close: { type: 'plain_text', text: 'Close' },
        blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Update failed. Please try again.` }}]

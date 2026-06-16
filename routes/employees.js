@@ -76,13 +76,13 @@ router.post('/bulk', verifyAdmin, async (req, res) => {
         if (!data.empId) { results.errors.push({ empId: e.empId, error: 'empId required' }); continue; }
         data.empId = data.empId.toUpperCase();
 
-        const result = await Employee.findOneAndUpdate(
+        const existing = await Employee.exists({ empId: data.empId });
+        await Employee.findOneAndUpdate(
           { empId: data.empId },
           { $set: data },
-          { upsert: true, new: true, rawResult: true }
+          { upsert: true, new: true }
         );
-        // rawResult.lastErrorObject.updatedExisting = true if existing doc was updated
-        if (result.lastErrorObject?.updatedExisting) {
+        if (existing) {
           results.updated++;
         } else {
           results.inserted++;

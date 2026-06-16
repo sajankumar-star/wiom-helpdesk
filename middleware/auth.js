@@ -17,7 +17,7 @@ const verifyAdmin = async (req, res, next) => {
     const admin = await Admin.findOne({ _id: decoded.id, isActive: true }).lean();
     if (!admin) return res.status(401).json({ error: 'Account deactivated or not found' });
 
-    req.admin = decoded;
+    req.admin = admin;
     next();
   } catch (err) {
     return res.status(401).json({ error: 'Invalid or expired token' });
