@@ -994,7 +994,7 @@ app.listen(PORT, async () => {
 
    // ── 7. Laptop Diagnostics ────────────────────────────────────────────
    blocks.push({ type: 'divider' });
-   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*🔧 Laptop Diagnostics*\n_Apne laptop ki problem khud diagnose karo — manufacturer tool se_' } });
+   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*🔧 Laptop Diagnostics*\n_WiFi, Battery, Overheating, Slow performance jesi problems khud diagnose karo — manufacturer tool step-by-step guide karega aur problem solve karne mein help karega_' } });
    blocks.push({ type: 'actions', elements: [
      { type: 'button', text: { type: 'plain_text', text: '🖥️ Diagnose My Laptop', emoji: true }, action_id: 'open_diagnostics', value: 'diagnostics', style: 'primary' },
    ]});
