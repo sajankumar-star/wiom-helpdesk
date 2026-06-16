@@ -998,14 +998,7 @@ app.listen(PORT, async () => {
      { type: 'button', text: { type: 'plain_text', text: '☁️ Cloud & Storage', emoji: true }, action_id: 'cat_cloud', value: 'cloud' },
    ]});
 
-   // ── 7. Laptop Diagnostics ────────────────────────────────────────────
-   blocks.push({ type: 'divider' });
-   blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*🔧 Laptop Diagnostics*\n_WiFi, Battery, Overheating, Slow performance jesi problems khud diagnose karo — manufacturer tool step-by-step guide karega aur problem solve karne mein help karega_' } });
-   blocks.push({ type: 'actions', elements: [
-     { type: 'button', text: { type: 'plain_text', text: '🖥️ Diagnose My Laptop', emoji: true }, action_id: 'open_diagnostics', value: 'diagnostics', style: 'primary' },
-   ]});
-
-   // ── 8. Suggestion ────────────────────────────────────────────────────
+   // ── 7. Suggestion ────────────────────────────────────────────────────
    blocks.push({ type: 'divider' });
    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: '*💡 Got a suggestion for IT?*\n_Help us improve — share your idea or feedback!_' } });
    blocks.push({ type: 'actions', elements: [
