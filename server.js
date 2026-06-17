@@ -1377,8 +1377,8 @@ app.listen(PORT, async () => {
        }},
        { type: 'actions', elements: [
          { type: 'button', text: { type: 'plain_text', text: '➕ Add Employee', emoji: true },
-           url: `${process.env.API_BASE_URL}/admin-dashboard.html#employees`,
-           action_id: 'noop_new_emp_alert', style: 'primary' },
+           action_id: 'add_employee_from_alert', style: 'primary',
+           value: JSON.stringify({ slackUserId, name: name || '', email: email || '' }) },
        ]},
      ],
    }).catch(() => {});
@@ -2553,6 +2553,77 @@ app.listen(PORT, async () => {
        }
      });
    } catch (err) { console.error('diag_modal_select error:', err.message); }
+ });
+
+ // ── Add Employee from alert DM — open modal ──────────────────────────────────
+ slackApp.action('add_employee_from_alert', async ({ body, ack, client }) => {
+   await ack();
+   try {
+     const { slackUserId, name, email } = JSON.parse(body.actions[0].value || '{}');
+     await client.views.open({
+       trigger_id: body.trigger_id,
+       view: {
+         type: 'modal',
+         callback_id: 'add_employee_modal_submit',
+         private_metadata: JSON.stringify({ slackUserId }),
+         title: { type: 'plain_text', text: '➕ Add Employee', emoji: true },
+         submit: { type: 'plain_text', text: 'Add karo', emoji: true },
+         close: { type: 'plain_text', text: 'Cancel', emoji: true },
+         blocks: [
+           { type: 'section', text: { type: 'mrkdwn', text: `*Slack ID:* \`${slackUserId}\`` }},
+           { type: 'input', block_id: 'emp_id_block',
+             label: { type: 'plain_text', text: 'Employee ID *', emoji: true },
+             element: { type: 'plain_text_input', action_id: 'emp_id', placeholder: { type: 'plain_text', text: 'e.g. 2025210' }}},
+           { type: 'input', block_id: 'emp_name_block',
+             label: { type: 'plain_text', text: 'Full Name *', emoji: true },
+             element: { type: 'plain_text_input', action_id: 'emp_name', initial_value: name,
+               placeholder: { type: 'plain_text', text: 'e.g. Rahul Sharma' }}},
+           { type: 'input', block_id: 'emp_email_block',
+             label: { type: 'plain_text', text: 'Email *', emoji: true },
+             element: { type: 'plain_text_input', action_id: 'emp_email', initial_value: email,
+               placeholder: { type: 'plain_text', text: 'e.g. rahul.sharma@wiom.in' }}},
+           { type: 'input', block_id: 'emp_dept_block', optional: true,
+             label: { type: 'plain_text', text: 'Department', emoji: true },
+             element: { type: 'plain_text_input', action_id: 'emp_dept', placeholder: { type: 'plain_text', text: 'e.g. Engineering' }}},
+           { type: 'input', block_id: 'emp_laptop_block', optional: true,
+             label: { type: 'plain_text', text: 'Laptop Model', emoji: true },
+             element: { type: 'plain_text_input', action_id: 'emp_laptop', placeholder: { type: 'plain_text', text: 'e.g. HP 240 G10' }}},
+         ],
+       },
+     });
+   } catch (err) { console.error('add_employee_from_alert error:', err.message); }
+ });
+
+ slackApp.view('add_employee_modal_submit', async ({ body, ack, client, view }) => {
+   await ack();
+   try {
+     const { slackUserId } = JSON.parse(view.private_metadata || '{}');
+     const vals = view.state.values;
+     const empId   = vals.emp_id_block.emp_id.value?.trim().toUpperCase();
+     const name    = vals.emp_name_block.emp_name.value?.trim();
+     const email   = vals.emp_email_block.emp_email.value?.trim().toLowerCase();
+     const dept    = vals.emp_dept_block.emp_dept.value?.trim() || '';
+     const laptop  = vals.emp_laptop_block.emp_laptop.value?.trim() || '';
+     if (!empId || !name || !email) return;
+
+     await Employee.findOneAndUpdate(
+       { empId },
+       { $set: { empId, name, email, department: dept, laptop, slackUserId, isActive: true } },
+       { upsert: true, new: true }
+     );
+     empCache.delete(slackUserId); // clear cache so next lookup gets fresh data
+
+     // Confirm to Sajan
+     await client.chat.postMessage({
+       channel: body.user.id,
+       text: `✅ *${name}* (${empId}) add ho gaya! Ab unka helpdesk properly kaam karega.`,
+     });
+     // Welcome message to new employee
+     await client.chat.postMessage({
+       channel: slackUserId,
+       text: `✅ Tumhara WIOM IT Helpdesk account set ho gaya! Ab tum tickets raise kar sakte ho. Home tab kholo.`,
+     });
+   } catch (err) { console.error('add_employee_modal_submit error:', err.message); }
  });
 
  // ── Raise IT Ticket from Diagnostics modal ───────────────────────────────────
