@@ -1330,6 +1330,8 @@ app.listen(PORT, async () => {
  const empCache = new Map();
  const EMP_CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
+ const notifiedUnknowns = new Set(); // track already-alerted users (in-memory, resets on restart)
+
  const lookupEmployee = async (slackUserId, client) => {
  // Serve from cache if fresh
  const cached = empCache.get(slackUserId);
@@ -1357,6 +1359,31 @@ app.listen(PORT, async () => {
  dept: dbEmp.department, floor: dbEmp.floor,
  laptop: dbEmp.laptop, laptopSN: dbEmp.laptopSN }
  : { empId: slackUserId, empName: name || 'Employee', email, dept: 'Unknown' };
+
+ // ── Alert Sajan if employee not in DB (once per session per user) ──
+ if (!dbEmp && !notifiedUnknowns.has(slackUserId)) {
+   notifiedUnknowns.add(slackUserId);
+   const adminId = process.env.SAJAN_SLACK_ID || SAJAN_ID;
+   client.chat.postMessage({
+     channel: adminId,
+     text: `🆕 New/Unknown Employee ne helpdesk use kiya`,
+     blocks: [
+       { type: 'section', text: { type: 'mrkdwn', text:
+         `*🆕 New Employee Alert*\n\n` +
+         `*Name:* ${name || 'Unknown'}\n` +
+         `*Email:* ${email || 'N/A'}\n` +
+         `*Slack ID:* \`${slackUserId}\`\n\n` +
+         `_Ye employee helpdesk mein registered nahi hai. Add karo taaki unka ticket properly track ho._`
+       }},
+       { type: 'actions', elements: [
+         { type: 'button', text: { type: 'plain_text', text: '➕ Add Employee', emoji: true },
+           url: `${process.env.API_BASE_URL}/admin-dashboard.html#employees`,
+           action_id: 'noop_new_emp_alert', style: 'primary' },
+       ]},
+     ],
+   }).catch(() => {});
+ }
+
  // Prevent memory leak: cap empCache at 500 entries
  if (empCache.size >= 500) { const old = [...empCache.keys()].slice(0, 100); old.forEach(k => empCache.delete(k)); }
  empCache.set(slackUserId, { data, ts: Date.now() });
