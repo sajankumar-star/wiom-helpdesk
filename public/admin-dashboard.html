@@ -744,8 +744,9 @@
         <div class="card-header"><h3>🔗 Keka HRMS Auto-Sync</h3></div>
         <div class="card-body" style="padding:24px;">
           <div style="padding:14px;background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:8px;margin-bottom:16px;font-size:13px;color:#fde047;">
-            ⚙️ <strong>Setup required:</strong> Railway mein <code>KEKA_API_KEY</code> environment variable add karein.<br/>
-            Keka Admin → Integrations → API → Generate Token
+            ⚙️ <strong>Setup required:</strong> Railway Variables mein add karein:<br/>
+            <code>KEKA_CLIENT_ID</code> &nbsp;·&nbsp; <code>KEKA_CLIENT_SECRET</code><br/>
+            <span style="opacity:0.7;">Keka Admin → Settings → Integrations → API Access</span>
           </div>
           <button onclick="kekaSync()" style="padding:10px 24px;background:rgba(232,25,125,0.15);border:1px solid rgba(232,25,125,0.3);border-radius:8px;color:var(--pink);font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;font-weight:600;">🔄 Sync from Keka Now</button>
           <div id="kekaResult" style="margin-top:12px;font-size:13px;"></div>

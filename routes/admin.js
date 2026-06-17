@@ -214,10 +214,9 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
   try {
     const clientId     = process.env.KEKA_CLIENT_ID;
     const clientSecret = process.env.KEKA_CLIENT_SECRET;
-    const apiKey       = process.env.KEKA_API_KEY;
-    if (!clientId || !clientSecret || !apiKey) {
+    if (!clientId || !clientSecret) {
       return res.status(503).json({
-        error: 'KEKA_CLIENT_ID, KEKA_CLIENT_SECRET aur KEKA_API_KEY — teeno Railway Variables mein set karein.'
+        error: 'KEKA_CLIENT_ID aur KEKA_CLIENT_SECRET Railway Variables mein set karein.'
       });
     }
 
