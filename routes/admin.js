@@ -220,23 +220,32 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
       });
     }
 
-    // Step 1: Get OAuth2 access token via client credentials flow
-    const tokenRes = await fetch('https://wiom.keka.com/connect/token', {
-      method : 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body   : new URLSearchParams({
-        grant_type   : 'client_credentials',
-        client_id    : clientId,
-        client_secret: clientSecret,
-        scope        : 'kekaapi',
-      }),
-    });
-    if (!tokenRes.ok) {
-      const errBody = await tokenRes.text().catch(() => '');
-      return res.status(502).json({ error: `Keka token error ${tokenRes.status}: ${errBody.substring(0, 200)}` });
+    // Step 1: Get OAuth2 access token — try both known Keka token endpoints
+    let access_token = null;
+    const tokenEndpoints = [
+      'https://wiom.keka.com/connect/token',
+      'https://app.keka.com/connect/token',
+    ];
+    for (const endpoint of tokenEndpoints) {
+      const tokenRes = await fetch(endpoint, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body   : new URLSearchParams({
+          grant_type   : 'client_credentials',
+          client_id    : clientId,
+          client_secret: clientSecret,
+          scope        : 'kekaapi',
+        }),
+      });
+      if (tokenRes.ok) {
+        const tokenJson = await tokenRes.json();
+        access_token = tokenJson.access_token;
+        if (access_token) break;
+      }
     }
-    const { access_token } = await tokenRes.json();
-    if (!access_token) return res.status(502).json({ error: 'Keka token response mein access_token nahi mila' });
+    if (!access_token) {
+      return res.status(502).json({ error: 'Keka token nahi mila. Client ID/Secret check karo ya Keka support se sahi token endpoint poochho.' });
+    }
 
     // Step 2: Fetch employees using Bearer token
     const kekaRes = await fetch('https://wiom.keka.com/api/v1/hris/employees?pagesize=500&status=active', {
