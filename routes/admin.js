@@ -212,19 +212,42 @@ router.get('/charts', verifyAdmin, async (req, res) => {
 // ── POST /api/admin/keka-sync  — Sync employees from Keka HRMS ───────────────
 router.post('/keka-sync', verifyAdmin, async (req, res) => {
   try {
-    const kekaKey = process.env.KEKA_API_KEY;
-    if (!kekaKey) {
+    const clientId     = process.env.KEKA_CLIENT_ID;
+    const clientSecret = process.env.KEKA_CLIENT_SECRET;
+    const apiKey       = process.env.KEKA_API_KEY;
+    if (!clientId || !clientSecret || !apiKey) {
       return res.status(503).json({
-        error: 'KEKA_API_KEY not set. Railway Environment Variables mein add karein.'
+        error: 'KEKA_CLIENT_ID, KEKA_CLIENT_SECRET aur KEKA_API_KEY — teeno Railway Variables mein set karein.'
       });
     }
 
-    // Keka API v2 endpoint
-    const kekaRes = await fetch('https://api.keka.com/v1/hris/employees?pagesize=500&status=active', {
-      headers: { 'Authorization': `Bearer ${kekaKey}`, 'Accept': 'application/json' }
+    // Step 1: Get OAuth2 access token via client credentials flow
+    const tokenRes = await fetch('https://wiom.keka.com/connect/token', {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body   : new URLSearchParams({
+        grant_type   : 'client_credentials',
+        client_id    : clientId,
+        client_secret: clientSecret,
+        scope        : 'kekaapi',
+      }),
+    });
+    if (!tokenRes.ok) {
+      const errBody = await tokenRes.text().catch(() => '');
+      return res.status(502).json({ error: `Keka token error ${tokenRes.status}: ${errBody.substring(0, 200)}` });
+    }
+    const { access_token } = await tokenRes.json();
+    if (!access_token) return res.status(502).json({ error: 'Keka token response mein access_token nahi mila' });
+
+    // Step 2: Fetch employees using Bearer token
+    const kekaRes = await fetch('https://wiom.keka.com/api/v1/hris/employees?pagesize=500&status=active', {
+      headers: { 'Authorization': `Bearer ${access_token}`, 'Accept': 'application/json' }
     });
 
-    if (!kekaRes.ok) return res.status(502).json({ error: `Keka API returned ${kekaRes.status}` });
+    if (!kekaRes.ok) {
+      const errBody = await kekaRes.text().catch(() => '');
+      return res.status(502).json({ error: `Keka API ${kekaRes.status}: ${errBody.substring(0, 200)}` });
+    }
 
     const { data: employees = [] } = await kekaRes.json();
     let synced = 0, errors = 0;
