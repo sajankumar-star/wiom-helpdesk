@@ -283,9 +283,10 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
 router.post('/:id/comment', verifyAdmin, async (req, res) => {
   try {
     const { message } = req.body;
+    if (!message || !message.trim()) return res.status(400).json({ error: 'message required' });
     const ticket = await Ticket.findOneAndUpdate(
       { ticketId: req.params.id },
-      { $push: { comments: { author: req.admin.name, role: 'admin', message } } },
+      { $push: { comments: { author: req.admin.name, role: 'admin', message: message.trim() } } },
       { new: true }
     );
     if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
@@ -300,7 +301,8 @@ router.delete('/:id', verifyAdmin, async (req, res) => {
   try {
     if (req.admin.role !== 'superadmin')
       return res.status(403).json({ error: 'Only superadmin can delete tickets' });
-    await Ticket.findOneAndDelete({ ticketId: req.params.id });
+    const deleted = await Ticket.findOneAndDelete({ ticketId: req.params.id });
+    if (!deleted) return res.status(404).json({ error: 'Ticket not found' });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

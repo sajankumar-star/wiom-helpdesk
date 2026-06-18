@@ -23,11 +23,14 @@ router.get('/', verifyAdmin, async (req, res) => {
     const filter = { isActive: true };
     if (dept)   filter.department = dept;
     if (floor)  filter.floor      = floor;
-    if (search) filter.$or = [
-      { name  : { $regex: search, $options: 'i' } },
-      { empId : { $regex: search, $options: 'i' } },
-      { email : { $regex: search, $options: 'i' } }
-    ];
+    if (search) {
+      const s = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      filter.$or = [
+        { name  : { $regex: s, $options: 'i' } },
+        { empId : { $regex: s, $options: 'i' } },
+        { email : { $regex: s, $options: 'i' } }
+      ];
+    }
     const emps = await Employee.find(filter).sort({ name: 1 });
     res.json({ employees: emps, total: emps.length });
   } catch (err) {
@@ -121,10 +124,11 @@ router.patch('/:empId', verifyAdmin, async (req, res) => {
 router.patch('/:empId/slack', verifyAdmin, async (req, res) => {
   try {
     const { slackUserId, slackHandle } = req.body;
-    await Employee.findOneAndUpdate(
+    const emp = await Employee.findOneAndUpdate(
       { empId: req.params.empId.toUpperCase() },
       { slackUserId, slackHandle }
     );
+    if (!emp) return res.status(404).json({ error: 'Employee not found' });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -151,7 +155,8 @@ router.patch('/:empId/manager', verifyAdmin, async (req, res) => {
 // ── GET /api/employees/search  — Search by name for Slack external_select ────
 router.get('/search/options', verifyAdmin, async (req, res) => {
   try {
-    const q = req.query.q || '';
+    const raw = req.query.q || '';
+    const q = raw.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     const emps = await Employee.find({
       isActive: true,
       $or: [

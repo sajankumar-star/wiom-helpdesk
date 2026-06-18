@@ -156,9 +156,9 @@ app.use((err, req, res, next) => {
 });
 
 // ── SLA Cron: Check every 30 min ─────────────────────────────────────────────
-cron.schedule('*/30 * * * *', () => {
+cron.schedule('*/30 * * * *', async () => {
  console.log('⏰ SLA check running...');
- slaService.checkBreaches();
+ await slaService.checkBreaches().catch(e => console.error('SLA check error:', e.message));
 });
 
 // ── Auto-Escalation Cron: Every hour ─────────────────────────────────────────
@@ -370,13 +370,12 @@ app.listen(PORT, async () => {
  try {
    const mongoose = require('mongoose');
    const Counter = mongoose.models.Counter || mongoose.model('Counter', new mongoose.Schema({ _id: String, seq: { type: Number, default: 0 } }));
-   const lastTicket = await Ticket.findOne({}, 'ticketId').lean();
-   if (lastTicket) {
-     const allTickets = await Ticket.find({}, 'ticketId').lean();
-     const maxNum = allTickets.reduce((max, t) => {
-       const num = parseInt((t.ticketId || '').replace(/\D/g, '')) || 0;
-       return Math.max(max, num);
-     }, 0);
+   const agg = await Ticket.aggregate([
+     { $project: { n: { $toInt: { $arrayElemAt: [{ $split: ['$ticketId', '-'] }, -1] } } } },
+     { $group: { _id: null, max: { $max: '$n' } } }
+   ]);
+   const maxNum = agg[0]?.max || 0;
+   if (maxNum > 0) {
      const current = await Counter.findOne({ _id: 'ticketId' });
      if (!current || current.seq < maxNum) {
        await Counter.findOneAndUpdate({ _id: 'ticketId' }, { $set: { seq: maxNum } }, { upsert: true });
@@ -3987,7 +3986,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
 
      } else {
        // ── No manager configured — go directly to IT admin ───────────────────
-       const adminId = process.env.ADMIN_SLACK_USER_ID || userId;
+       const adminId = process.env.ADMIN_SLACK_USER_ID || process.env.SAJAN_SLACK_ID || SAJAN_ID;
        const adminDm = await client.conversations.open({ users: adminId });
        await client.chat.postMessage({
          channel: adminDm.channel.id,
@@ -5387,7 +5386,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
 
    const label = categoryLabels[vagueMatch.type] || 'Issue';
    // Script hint only for categories where scripts actually help (not power/boot issues)
-   const canScript = vagueMatch.type !== 'laptop' || true; // label is generic — no script promise
+   const canScript = vagueMatch.type !== 'laptop';
    const subLabel = `_Select below — IT Assistant will help you 👇_`;
    const blocks = [
      { type: 'section', text: { type: 'mrkdwn', text: `*${label} — select your exact problem:*\n${subLabel}` } },
@@ -6159,7 +6158,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  slackApp.action('script_download_btn', async ({ body, ack, client }) => {
    await ack();
    const userId = body.user.id;
-   const channelId = body.channel?.id || body.container?.channel_id;
+   const channelId = body.channel?.id || body.container?.channel_id || userId;
    const problemText = body.actions?.[0]?.value || '';
 
    // Small delay then ask if script worked
@@ -6362,6 +6361,9 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
      if (!ticket) {
        return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Not Found' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `❌ Ticket \`${ticketId}\` not found.` }}] });
      }
+     if (ticket.slackUserId && ticket.slackUserId !== userId) {
+       return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Not Allowed' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `You can only cancel your own tickets.` }}] });
+     }
      if (['Resolved','Closed'].includes(ticket.status)) {
        return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Already Closed' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `Ticket \`${ticketId}\` is already ${ticket.status}.` }}] });
      }
@@ -6387,6 +6389,9 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
      const ticket = await Ticket.findOne({ ticketId });
      if (!ticket || !['Resolved','Closed'].includes(ticket.status)) {
        return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Cannot Reopen' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: 'This ticket is not closed/resolved or was not found.' }}] });
+     }
+     if (ticket.slackUserId && ticket.slackUserId !== userId) {
+       return showModal({ type: 'modal', title: { type: 'plain_text', text: 'Not Allowed' }, close: { type: 'plain_text', text: 'Close' }, blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `You can only reopen your own tickets.` }}] });
      }
      await Ticket.findOneAndUpdate({ ticketId }, { status: 'Open', resolvedAt: null, closedReason: null, reopenedAt: new Date(), reopenedBy: userId });
      await showModal({ type: 'modal', title: { type: 'plain_text', text: '🔄 Ticket Reopened', emoji: true }, close: { type: 'plain_text', text: 'Close', emoji: true },

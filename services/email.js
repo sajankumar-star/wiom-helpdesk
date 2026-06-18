@@ -29,6 +29,8 @@ const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'it@wiom.in';
 // ── Priority colors ───────────────────────────────────────────────────────────
 const priColor = { Critical:'#ef4444', High:'#f97316', Medium:'#eab308', Low:'#22c55e' };
 
+const he = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
 // ── Email template wrapper ────────────────────────────────────────────────────
 const wrap = (body) => `
 <!DOCTYPE html>
@@ -89,30 +91,30 @@ const sendAdminAlert = async (ticket) => {
   const isCrit = ticket.priority === 'Critical' || ticket.priority === 'High';
 
   const html = wrap(`
-    ${isCrit ? '<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;margin-bottom:16px;text-align:center"><strong style="color:#dc2626">🚨 URGENT — ${ticket.priority} Priority Ticket</strong></div>' : ''}
+    ${isCrit ? `<div style="background:#fef2f2;border:1px solid #fecaca;border-radius:8px;padding:12px;margin-bottom:16px;text-align:center"><strong style="color:#dc2626">🚨 URGENT — ${he(ticket.priority)} Priority Ticket</strong></div>` : ''}
 
     <p style="color:#374151">Naya IT ticket aaya hai:</p>
 
     <div style="background:#f9fafb;border-radius:8px;padding:16px;border-left:4px solid ${color}">
       <table style="width:100%;border-collapse:collapse">
         <tr><td style="padding:4px 0;color:#6b7280;font-size:13px;width:120px">Ticket ID</td>
-            <td style="padding:4px 0;font-weight:700;color:#1f2937;font-family:monospace;font-size:15px">${ticket.ticketId}</td></tr>
+            <td style="padding:4px 0;font-weight:700;color:#1f2937;font-family:monospace;font-size:15px">${he(ticket.ticketId)}</td></tr>
         <tr><td style="padding:4px 0;color:#6b7280;font-size:13px">Employee</td>
-            <td style="padding:4px 0;color:#1f2937">${ticket.empName || ticket.empId} (${ticket.empId})</td></tr>
+            <td style="padding:4px 0;color:#1f2937">${he(ticket.empName || ticket.empId)} (${he(ticket.empId)})</td></tr>
         <tr><td style="padding:4px 0;color:#6b7280;font-size:13px">Department</td>
-            <td style="padding:4px 0;color:#1f2937">${ticket.empDept || 'N/A'} — ${ticket.empFloor || 'N/A'}</td></tr>
+            <td style="padding:4px 0;color:#1f2937">${he(ticket.empDept || 'N/A')} — ${he(ticket.empFloor || 'N/A')}</td></tr>
         <tr><td style="padding:4px 0;color:#6b7280;font-size:13px">Category</td>
-            <td style="padding:4px 0;color:#1f2937">${ticket.category}</td></tr>
+            <td style="padding:4px 0;color:#1f2937">${he(ticket.category)}</td></tr>
         <tr><td style="padding:4px 0;color:#6b7280;font-size:13px">Priority</td>
-            <td style="padding:4px 0"><span style="background:${color};color:#fff;padding:2px 10px;border-radius:20px;font-size:12px">${ticket.priority}</span></td></tr>
+            <td style="padding:4px 0"><span style="background:${color};color:#fff;padding:2px 10px;border-radius:20px;font-size:12px">${he(ticket.priority)}</span></td></tr>
         <tr><td style="padding:4px 0;color:#6b7280;font-size:13px">SLA Deadline</td>
             <td style="padding:4px 0;color:#dc2626;font-weight:600">${ticket.slaDeadline ? new Date(ticket.slaDeadline).toLocaleString('en-IN') : 'N/A'}</td></tr>
         <tr><td style="padding:4px 0;color:#6b7280;font-size:13px">Source</td>
-            <td style="padding:4px 0;color:#1f2937">${ticket.source}</td></tr>
+            <td style="padding:4px 0;color:#1f2937">${he(ticket.source)}</td></tr>
         <tr><td style="padding:4px 0;color:#6b7280;font-size:13px">AI Tried</td>
             <td style="padding:4px 0;color:#1f2937">${ticket.aiTried ? '✅ Yes — ' + (ticket.aiSteps?.length || 0) + ' steps' : '❌ No'}</td></tr>
         <tr><td style="padding:4px 0;color:#6b7280;font-size:13px;vertical-align:top">Issue</td>
-            <td style="padding:4px 0;color:#1f2937">${ticket.description}</td></tr>
+            <td style="padding:4px 0;color:#1f2937">${he(ticket.description)}</td></tr>
       </table>
     </div>
 
@@ -120,7 +122,7 @@ const sendAdminAlert = async (ticket) => {
     <div style="margin-top:12px;background:#eff6ff;border-radius:8px;padding:12px;font-size:13px">
       <strong style="color:#1d4ed8">🤖 AI ne ye steps try kiye:</strong>
       <ol style="margin:8px 0 0;padding-left:20px;color:#374151">
-        ${ticket.aiSteps.map(s => `<li style="margin-bottom:4px">${s}</li>`).join('')}
+        ${ticket.aiSteps.map(s => `<li style="margin-bottom:4px">${he(s)}</li>`).join('')}
       </ol>
     </div>` : ''}
   `);
