@@ -1350,7 +1350,10 @@ app.listen(PORT, async () => {
  const email = profile.user?.profile?.email;
  const name = profile.user?.profile?.real_name || profile.user?.name;
  if (email) dbEmp = await Employee.findOne({ email: email.toLowerCase() }).lean();
- if (!dbEmp && name) dbEmp = await Employee.findOne({ name: { $regex: name.split(' ')[0], $options: 'i' } }).lean();
+ if (!dbEmp && name) {
+   const safeName = name.split(' ')[0].replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+   dbEmp = await Employee.findOne({ name: { $regex: safeName, $options: 'i' } }).lean();
+ }
  if (dbEmp && !dbEmp.slackUserId) {
  Employee.findByIdAndUpdate(dbEmp._id, { slackUserId }).catch(() => {});
  }
@@ -1364,14 +1367,15 @@ app.listen(PORT, async () => {
  if (!dbEmp && !notifiedUnknowns.has(slackUserId)) {
    notifiedUnknowns.add(slackUserId);
    const adminId = process.env.SAJAN_SLACK_ID || SAJAN_ID;
+   const _mrkdwnEscape = s => (s || '').replace(/[*_~`>]/g, '');
    client.chat.postMessage({
      channel: adminId,
      text: `🆕 New/Unknown Employee ne helpdesk use kiya`,
      blocks: [
        { type: 'section', text: { type: 'mrkdwn', text:
          `*🆕 New Employee Alert*\n\n` +
-         `*Name:* ${name || 'Unknown'}\n` +
-         `*Email:* ${email || 'N/A'}\n` +
+         `*Name:* ${_mrkdwnEscape(name) || 'Unknown'}\n` +
+         `*Email:* ${_mrkdwnEscape(email) || 'N/A'}\n` +
          `*Slack ID:* \`${slackUserId}\`\n\n` +
          `_Ye employee helpdesk mein registered nahi hai. Add karo taaki unka ticket properly track ho._`
        }},
@@ -2595,15 +2599,25 @@ app.listen(PORT, async () => {
  });
 
  slackApp.view('add_employee_modal_submit', async ({ body, ack, client, view }) => {
+   const vals   = view.state.values;
+   const empId  = vals.emp_id_block.emp_id.value?.trim().toUpperCase();
+   const name   = vals.emp_name_block.emp_name.value?.trim();
+   const rawEmail = vals.emp_email_block.emp_email.value?.trim().toLowerCase();
+   const errors = {};
+   if (!empId)  errors.emp_id_block    = 'Employee ID is required';
+   if (!name)   errors.emp_name_block  = 'Full name is required';
+   if (!rawEmail) {
+     errors.emp_email_block = 'Email is required';
+   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawEmail)) {
+     errors.emp_email_block = 'Enter a valid email address (e.g. rahul@wiom.in)';
+   }
+   if (Object.keys(errors).length) { await ack({ response_action: 'errors', errors }); return; }
    await ack();
    try {
      const { slackUserId } = JSON.parse(view.private_metadata || '{}');
-     const vals = view.state.values;
-     const empId   = vals.emp_id_block.emp_id.value?.trim().toUpperCase();
-     const name    = vals.emp_name_block.emp_name.value?.trim();
-     const email   = vals.emp_email_block.emp_email.value?.trim().toLowerCase();
-     const dept    = vals.emp_dept_block.emp_dept.value?.trim() || '';
-     const laptop  = vals.emp_laptop_block.emp_laptop.value?.trim() || '';
+     const email  = rawEmail;
+     const dept   = vals.emp_dept_block.emp_dept.value?.trim() || '';
+     const laptop = vals.emp_laptop_block.emp_laptop.value?.trim() || '';
      if (!empId || !name || !email) return;
 
      await Employee.findOneAndUpdate(
@@ -2793,6 +2807,20 @@ app.listen(PORT, async () => {
  const triggerId = body.trigger_id;
  let loadingViewId = null;
 
+ // ── Emergency first-aid steps (static, defined once) ──────────────────────────
+ const EMERGENCY_STEPS = {
+   liquid_damage:    '1. *TURN OFF IMMEDIATELY* — Hold the power button\n2. *UNPLUG THE CHARGER*\n3. *TURN UPSIDE DOWN* — Let the liquid drain\n4. *Do NOT turn it back on*\n5. *Do NOT use a hairdryer*\n6. Stay at your desk — IT is on the way',
+   burning_smell:    '1. *SHUT DOWN IMMEDIATELY* — Hold the power button\n2. *UNPLUG FROM POWER*\n3. *Do NOT use the laptop*\n4. Move away from the device\n5. Stay at your desk — IT is on the way',
+   battery_swelling: '1. *STOP USING IMMEDIATELY*\n2. *UNPLUG THE CHARGER*\n3. *Do NOT press on the battery*\n4. Place the laptop on a flat surface\n5. Stay at your desk — IT is on the way',
+   virus_malware:    '1. *Disconnect from WiFi immediately*\n2. *Do NOT open any files or emails*\n3. *Do NOT restart the laptop*\n4. Leave it on and do not touch it\n5. IT has been alerted and is responding',
+   account_hacked:   '1. *Change your password immediately* from another device\n2. *Log out of all active sessions*\n3. *Do NOT click any suspicious links*\n4. IT has been alerted\n5. Check your email for any unauthorized activity',
+   phishing_email:   '1. *Do NOT click any links*\n2. *Do NOT download any attachments*\n3. *Do NOT reply to the email*\n4. Mark it as spam or phishing\n5. IT has been alerted and will investigate',
+   suspicious_login: '1. *Change your password immediately* from another device\n2. *Check active sessions* and log out of all\n3. *Enable 2FA* if not already done\n4. IT has been alerted\n5. Do not access sensitive data until cleared by IT',
+   device_lost:      '1. *Note the last known location*\n2. *Change all passwords immediately* from another device\n3. *Log out of Google/Microsoft account* remotely\n4. IT has been alerted\n5. File a police complaint if the device was stolen',
+   data_loss:        '1. *STOP ALL WORK IMMEDIATELY*\n2. *Do NOT save anything* — you may overwrite lost data\n3. *Do NOT restart the laptop*\n4. IT has been alerted\n5. Stay at your desk — IT is on the way',
+   security_alert:   '1. *Do NOT dismiss the alert*\n2. *Disconnect from the internet* if prompted\n3. *Do NOT install anything*\n4. IT has been alerted\n5. Wait for IT response before doing anything',
+ };
+
  // ── Auto-Fix scripts map — rawKey → { script filename, label } ──────────────
  const PORTAL = process.env.API_BASE_URL || 'https://wiom-helpdesk-production.up.railway.app';
  const AUTO_FIX = {
@@ -2922,19 +2950,6 @@ app.listen(PORT, async () => {
        skipDuplicateCheck: true
      }).catch(e => console.error('[EMERGENCY] ticket create error:', e.message));
 
-     // Per-issue first-aid instructions shown to user immediately
-     const EMERGENCY_STEPS = {
-       liquid_damage:    '1. *TURN OFF IMMEDIATELY* — Hold the power button\n2. *UNPLUG THE CHARGER*\n3. *TURN UPSIDE DOWN* — Let the liquid drain\n4. *Do NOT turn it back on*\n5. *Do NOT use a hairdryer*\n6. Stay at your desk — IT is on the way',
-       burning_smell:    '1. *SHUT DOWN IMMEDIATELY* — Hold the power button\n2. *UNPLUG FROM POWER*\n3. *Do NOT use the laptop*\n4. Move away from the device\n5. Stay at your desk — IT is on the way',
-       battery_swelling: '1. *STOP USING IMMEDIATELY*\n2. *UNPLUG THE CHARGER*\n3. *Do NOT press on the battery*\n4. Place the laptop on a flat surface\n5. Stay at your desk — IT is on the way',
-       virus_malware:    '1. *Disconnect from WiFi immediately*\n2. *Do NOT open any files or emails*\n3. *Do NOT restart the laptop*\n4. Leave it on and do not touch it\n5. IT has been alerted and is responding',
-       account_hacked:   '1. *Change your password immediately* from another device\n2. *Log out of all active sessions*\n3. *Do NOT click any suspicious links*\n4. IT has been alerted\n5. Check your email for any unauthorized activity',
-       phishing_email:   '1. *Do NOT click any links*\n2. *Do NOT download any attachments*\n3. *Do NOT reply to the email*\n4. Mark it as spam or phishing\n5. IT has been alerted and will investigate',
-       suspicious_login: '1. *Change your password immediately* from another device\n2. *Check active sessions* and log out of all\n3. *Enable 2FA* if not already done\n4. IT has been alerted\n5. Do not access sensitive data until cleared by IT',
-       device_lost:      '1. *Note the last known location*\n2. *Change all passwords immediately* from another device\n3. *Log out of Google/Microsoft account* remotely\n4. IT has been alerted\n5. File a police complaint if the device was stolen',
-       data_loss:        '1. *STOP ALL WORK IMMEDIATELY*\n2. *Do NOT save anything* — you may overwrite lost data\n3. *Do NOT restart the laptop*\n4. IT has been alerted\n5. Stay at your desk — IT is on the way',
-       security_alert:   '1. *Do NOT dismiss the alert*\n2. *Disconnect from the internet* if prompted\n3. *Do NOT install anything*\n4. IT has been alerted\n5. Wait for IT response before doing anything',
-     };
      const steps = EMERGENCY_STEPS[rawKey] || '1. Stay calm\n2. Do not restart your device\n3. IT has been alerted\n4. Wait for IT support';
 
      const emergencyModal = {
@@ -4150,6 +4165,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
        { empId: emp.empId },
        { managerSlackId: mgr.slackId, managerName: mgr.name }
      );
+     empCache.delete(emp.slackId || '');
 
      // Confirm to admin via DM
      const adminId = body.user.id;
@@ -4257,6 +4273,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
 
      const mgr = JSON.parse(mgrVal);
      await Employee.findOneAndUpdate({ empId }, { managerSlackId: mgr.slackId, managerName: mgr.name });
+     empCache.delete(body.user.id);
 
      // Update original blast message to show done
      if (channelId && msgTs) {

@@ -395,7 +395,7 @@ const DIRECT_KB = {
     `Phishing/suspicious email received!\n\n1. *Do NOT click any link* → ABSOLUTELY do not click any link or attachment in the email\n2. *Report in Gmail* → Email → 3 dots → Report phishing\n3. *Notify IT* → Click *Create Ticket* button — IT will investigate 🎫\n\n⚠️ If you already clicked the link → raise a ticket IMMEDIATELY!`,
 
   virus_malware:
-    `Virus/Malware suspected!\n\n1. *Disconnect internet* → Disconnect WiFi IMMEDIATELY\n2. *Create Ticket* → Raise one NOW — IT will come directly\n\n⚠️ Do not do anything on the laptop — IT is coming 🎫`,
+    `Virus/Malware suspected!\n\n1. *Disconnect WiFi immediately* — turn it off now\n2. *Do NOT open any files or emails*\n3. *Do NOT restart the laptop*\n4. Leave it on and do not touch it\n5. *Create Ticket* → Raise one NOW — IT is on the way\n\n⚠️ Do not do anything on the laptop 🎫`,
 
   suspicious_login:
     `Suspicious login detected — do this IMMEDIATELY:\n\n1. *Create Ticket* → Raise one now — HIGH priority\n2. *Email IT* → ${ADMIN_EMAIL_KB}\n\nIT will secure your account. Do NOT change the password yourself — IT will do it. 🎫`,
@@ -419,7 +419,7 @@ const DIRECT_KB = {
     `Laptop has been physically damaged.\n\nThis cannot be fixed with software — click *Create Ticket* button IMMEDIATELY.\nIT will physically assess and repair/replace it.\nIn the ticket, describe the damage. 🎫`,
 
   liquid_damage:
-    `EMERGENCY! Liquid/Water spilled!\n\n1. *TURN OFF IMMEDIATELY* — Hold the power button\n2. *UNPLUG CHARGER*\n3. *TURN UPSIDE DOWN* → Let the liquid drain out\n4. *Do NOT use a hairdryer*\n5. *Notify IT* → ${ADMIN_EMAIL_KB}\n\nClick *Create Ticket* → CRITICAL emergency 🎫`,
+    `EMERGENCY! Liquid/Water spilled!\n\n1. *TURN OFF IMMEDIATELY* — Hold the power button\n2. *UNPLUG THE CHARGER*\n3. *TURN UPSIDE DOWN* → Let the liquid drain out\n4. *Do NOT turn it back on*\n5. *Do NOT use a hairdryer*\n6. *Notify IT* → ${ADMIN_EMAIL_KB}\n\nClick *Create Ticket* → CRITICAL emergency 🎫`,
 
   device_lost:
     `Device is lost or stolen.\n\n1. *Check first* → Check desk/drawer/surroundings, ask colleagues\n2. *If not found* → Click *Create Ticket* button — HIGH PRIORITY\n3. *Email IT* → ${ADMIN_EMAIL_KB}\n4. *Inform HR as well*\n\n⚠️ Must be reported within 24 hours. 🎫`,
