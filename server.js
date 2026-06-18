@@ -2924,16 +2924,16 @@ app.listen(PORT, async () => {
 
      // Per-issue first-aid instructions shown to user immediately
      const EMERGENCY_STEPS = {
-       liquid_damage:    '1. *TURN OFF IMMEDIATELY* — Hold power button\n2. *UNPLUG CHARGER*\n3. *TURN UPSIDE DOWN* — Let liquid drain\n4. *Do NOT use a hairdryer*\n5. Stay at your desk — IT is coming',
-       burning_smell:    '1. *SHUT DOWN IMMEDIATELY*\n2. *UNPLUG from power*\n3. *Do NOT use the laptop*\n4. Move to a safe distance\n5. Stay at your desk — IT is coming',
-       battery_swelling: '1. *STOP USING immediately*\n2. *UNPLUG charger*\n3. *Do NOT press on the battery*\n4. Place on flat surface\n5. Stay at your desk — IT is coming',
-       virus_malware:    '1. *Disconnect from WiFi* (turn off)\n2. *Do NOT open any files or emails*\n3. *Do NOT restart the laptop*\n4. Leave it on and wait\n5. IT has been alerted and is responding',
-       account_hacked:   '1. *Change your password immediately* from another device\n2. *Log out of all sessions*\n3. *Do NOT click any suspicious links*\n4. IT has been alerted\n5. Check your email for any unauthorized activity',
-       phishing_email:   '1. *Do NOT click any links*\n2. *Do NOT download any attachments*\n3. *Do NOT reply to the email*\n4. Mark as spam/phishing\n5. IT has been alerted — they will investigate',
-       suspicious_login: '1. *Change your password immediately*\n2. *Check active sessions* and log out all\n3. *Enable 2FA* if not already done\n4. IT has been alerted\n5. Do not access sensitive data until cleared',
-       device_lost:      '1. *Note the last known location*\n2. *Change all passwords* from another device\n3. *Log out of Google/Microsoft* account remotely\n4. IT has been alerted\n5. File a complaint if stolen',
-       data_loss:        '1. *STOP all work immediately*\n2. *Do NOT save anything* — you may overwrite data\n3. *Do NOT restart*\n4. IT has been alerted\n5. Stay at your desk — IT is coming',
-       security_alert:   '1. *Do NOT dismiss the alert*\n2. *Disconnect from internet* if prompted\n3. *Do NOT install anything*\n4. IT has been alerted\n5. Wait for IT response before proceeding',
+       liquid_damage:    '1. *TURN OFF IMMEDIATELY* — Hold the power button\n2. *UNPLUG THE CHARGER*\n3. *TURN UPSIDE DOWN* — Let the liquid drain\n4. *Do NOT turn it back on*\n5. *Do NOT use a hairdryer*\n6. Stay at your desk — IT is on the way',
+       burning_smell:    '1. *SHUT DOWN IMMEDIATELY* — Hold the power button\n2. *UNPLUG FROM POWER*\n3. *Do NOT use the laptop*\n4. Move away from the device\n5. Stay at your desk — IT is on the way',
+       battery_swelling: '1. *STOP USING IMMEDIATELY*\n2. *UNPLUG THE CHARGER*\n3. *Do NOT press on the battery*\n4. Place the laptop on a flat surface\n5. Stay at your desk — IT is on the way',
+       virus_malware:    '1. *Disconnect from WiFi immediately*\n2. *Do NOT open any files or emails*\n3. *Do NOT restart the laptop*\n4. Leave it on and do not touch it\n5. IT has been alerted and is responding',
+       account_hacked:   '1. *Change your password immediately* from another device\n2. *Log out of all active sessions*\n3. *Do NOT click any suspicious links*\n4. IT has been alerted\n5. Check your email for any unauthorized activity',
+       phishing_email:   '1. *Do NOT click any links*\n2. *Do NOT download any attachments*\n3. *Do NOT reply to the email*\n4. Mark it as spam or phishing\n5. IT has been alerted and will investigate',
+       suspicious_login: '1. *Change your password immediately* from another device\n2. *Check active sessions* and log out of all\n3. *Enable 2FA* if not already done\n4. IT has been alerted\n5. Do not access sensitive data until cleared by IT',
+       device_lost:      '1. *Note the last known location*\n2. *Change all passwords immediately* from another device\n3. *Log out of Google/Microsoft account* remotely\n4. IT has been alerted\n5. File a police complaint if the device was stolen',
+       data_loss:        '1. *STOP ALL WORK IMMEDIATELY*\n2. *Do NOT save anything* — you may overwrite lost data\n3. *Do NOT restart the laptop*\n4. IT has been alerted\n5. Stay at your desk — IT is on the way',
+       security_alert:   '1. *Do NOT dismiss the alert*\n2. *Disconnect from the internet* if prompted\n3. *Do NOT install anything*\n4. IT has been alerted\n5. Wait for IT response before doing anything',
      };
      const steps = EMERGENCY_STEPS[rawKey] || '1. Stay calm\n2. Do not restart your device\n3. IT has been alerted\n4. Wait for IT support';
 
@@ -2943,9 +2943,9 @@ app.listen(PORT, async () => {
        close: { type: 'plain_text', text: '⬅ Previous Menu', emoji: true },
        blocks: [
          { type: 'header', text: { type: 'plain_text', text: '✅ IT Has Been Notified', emoji: true }},
-         { type: 'section', text: { type: 'mrkdwn', text: `IT team ko turant alert bhej diya gaya hai.\n\n*IT support is on the way.*` }},
+         { type: 'section', text: { type: 'mrkdwn', text: `The IT team has been immediately alerted.\n\n*IT support is on the way.*` }},
          { type: 'divider' },
-         { type: 'section', text: { type: 'mrkdwn', text: `*⚡ Abhi ye karo:*\n\n${steps}` }},
+         { type: 'section', text: { type: 'mrkdwn', text: `*⚡ Do this now:*\n\n${steps}` }},
          { type: 'divider' },
          { type: 'context', elements: [{ type: 'mrkdwn', text: `_Alert sent to IT_` }]}
        ]
