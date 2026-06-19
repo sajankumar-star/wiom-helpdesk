@@ -18,6 +18,7 @@ const slaService = require('./services/sla');
 const Ticket = require('./models/Ticket');
 const Conversation = require('./models/Conversation');
 const FixJob = require('./models/FixJob');
+const BotResolution = require('./models/BotResolution');
 
 // ── FIX: Global crash guards Slack Socket Mode prevent disconnect from crashing ─
 process.on('uncaughtException', (err) => {
@@ -5868,6 +5869,15 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
    console.log(`✅ resolved_yes_btn: userId=${userId} viewType=${viewType} viewId=${viewId}`);
    failedAttempts.delete(userId);
    pendingTickets.delete(userId);
+
+   // Track self-resolution — bot solved this without a ticket
+   lookupEmployee(userId, client).then(emp => {
+     BotResolution.create({
+       slackUserId: userId,
+       empId  : emp?.empId  || '',
+       empName: emp?.empName || '',
+     }).catch(() => {});
+   }).catch(() => {});
 
    if (viewType === 'modal' && viewId) {
      // Inside a modal — update it in-place

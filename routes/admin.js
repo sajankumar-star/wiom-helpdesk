@@ -1,7 +1,8 @@
-const router   = require('express').Router();
-const Admin    = require('../models/Admin');
-const Employee = require('../models/Employee');
-const Ticket   = require('../models/Ticket');
+const router        = require('express').Router();
+const Admin         = require('../models/Admin');
+const Employee      = require('../models/Employee');
+const Ticket        = require('../models/Ticket');
+const BotResolution = require('../models/BotResolution');
 const { verifyAdmin } = require('../middleware/auth');
 
 // ── POST /api/admin/broadcast  — Send message to all Slack employees ──────────
@@ -351,6 +352,67 @@ router.post('/import-laptops', verifyAdmin, async (req, res) => {
     }
     res.json({ success: true, updated, skipped, total: laptops.length });
   } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /api/admin/bot-stats  — Bot effectiveness analytics ──────────────────
+router.get('/bot-stats', verifyAdmin, async (req, res) => {
+  try {
+    const slackSources = ['slack', 'slack-bot', 'slack-emergency', 'slack-ai'];
+
+    const [botResolved, ticketsFromSlack, ticketsResolved, ticketsOpen, topResolvers] = await Promise.all([
+      BotResolution.countDocuments(),
+      Ticket.countDocuments({ source: { $in: slackSources } }),
+      Ticket.countDocuments({ source: { $in: slackSources }, status: { $in: ['Resolved', 'Closed'] } }),
+      Ticket.countDocuments({ source: { $in: slackSources }, status: { $in: ['Open', 'In Progress'] } }),
+      BotResolution.aggregate([
+        { $group: { _id: '$empName', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ]),
+    ]);
+
+    const totalInteractions = botResolved + ticketsFromSlack;
+    const botPct    = totalInteractions ? Math.round((botResolved    / totalInteractions) * 100) : 0;
+    const ticketPct = totalInteractions ? Math.round((ticketsFromSlack / totalInteractions) * 100) : 0;
+
+    // Daily trend — last 7 days for bot resolutions
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 3600000);
+    const IST = 5.5 * 3600000;
+    const dailyBot = await BotResolution.aggregate([
+      { $match: { resolvedAt: { $gte: sevenDaysAgo } } },
+      { $project: { day: { $dateToString: { format: '%Y-%m-%d', date: { $add: ['$resolvedAt', IST] } } } } },
+      { $group: { _id: '$day', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]);
+    const dailyTickets = await Ticket.aggregate([
+      { $match: { createdAt: { $gte: sevenDaysAgo }, source: { $in: slackSources } } },
+      { $project: { day: { $dateToString: { format: '%Y-%m-%d', date: { $add: ['$createdAt', IST] } } } } },
+      { $group: { _id: '$day', count: { $sum: 1 } } },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const botByDay    = Object.fromEntries(dailyBot.map(r => [r._id, r.count]));
+    const ticketByDay = Object.fromEntries(dailyTickets.map(r => [r._id, r.count]));
+    const trendLabels = [], trendBot = [], trendTickets = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 24 * 3600000);
+      const key = new Date(d.getTime() + IST).toISOString().slice(0, 10);
+      trendLabels.push(d.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', timeZone: 'Asia/Kolkata' }));
+      trendBot.push(botByDay[key] || 0);
+      trendTickets.push(ticketByDay[key] || 0);
+    }
+
+    res.json({
+      totalInteractions,
+      botResolved, botPct,
+      ticketsFromSlack, ticketPct,
+      ticketsResolved, ticketsOpen,
+      topResolvers: topResolvers.map(r => ({ name: r._id || 'Unknown', count: r.count })),
+      trend: { labels: trendLabels, bot: trendBot, tickets: trendTickets },
+    });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal error' });
+  }
 });
 
 module.exports = router;

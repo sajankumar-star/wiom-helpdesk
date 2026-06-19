@@ -383,6 +383,50 @@
         </div>
       </div>
 
+      <!-- Bot Effectiveness Stats -->
+      <div class="card" style="margin-bottom:20px;">
+        <div class="card-header">
+          <h3>🤖 Bot Effectiveness</h3>
+          <button class="refresh-btn" onclick="loadBotStats()">Refresh</button>
+        </div>
+        <div class="card-body" style="padding:20px;">
+          <!-- 4 stat chips -->
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
+            <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px;text-align:center;border-top:3px solid #10b981;">
+              <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Total Interactions</div>
+              <div id="bsTotalInteractions" style="font-size:28px;font-weight:700;color:#fff;">—</div>
+              <div style="font-size:11px;color:#6b7280;margin-top:4px;">Via Slack bot</div>
+            </div>
+            <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px;text-align:center;border-top:3px solid #22c55e;">
+              <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Bot se Solve ✅</div>
+              <div id="bsBotResolved" style="font-size:28px;font-weight:700;color:#22c55e;">—</div>
+              <div id="bsBotPct" style="font-size:11px;color:#6b7280;margin-top:4px;">—% of interactions</div>
+            </div>
+            <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px;text-align:center;border-top:3px solid #f97316;">
+              <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Ticket Bana 🎫</div>
+              <div id="bsTickets" style="font-size:28px;font-weight:700;color:#f97316;">—</div>
+              <div id="bsTicketPct" style="font-size:11px;color:#6b7280;margin-top:4px;">—% needed IT</div>
+            </div>
+            <div style="background:#0f172a;border:1px solid #1e293b;border-radius:12px;padding:16px;text-align:center;border-top:3px solid #3b82f6;">
+              <div style="font-size:11px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Tickets Resolved ✔</div>
+              <div id="bsResolved" style="font-size:28px;font-weight:700;color:#3b82f6;">—</div>
+              <div id="bsOpen" style="font-size:11px;color:#6b7280;margin-top:4px;">— still open</div>
+            </div>
+          </div>
+          <!-- Trend chart + top resolvers -->
+          <div style="display:grid;grid-template-columns:1fr 220px;gap:16px;align-items:start;">
+            <div>
+              <div style="font-size:12px;color:#9ca3af;margin-bottom:8px;">📈 Last 7 Days — Bot Solved vs Tickets</div>
+              <canvas id="botTrendChart" style="max-height:160px;"></canvas>
+            </div>
+            <div>
+              <div style="font-size:12px;color:#9ca3af;margin-bottom:8px;">🏆 Top Self-Resolvers</div>
+              <div id="topResolversList" style="font-size:13px;color:#d1d5db;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Pending Approvals -->
       <div class="card" id="pendingApprovalsCard" style="display:none;margin-bottom:20px;">
         <div class="card-header">
@@ -1108,6 +1152,7 @@ async function doLogin() {
       loadDashboard();
       loadAllTickets();
       loadEmployees();
+      loadBotStats();
       loadTeamMembers(); // load team names for Assigned To dropdown
       requestNotifPermission();
       startAutoRefresh();
@@ -1171,6 +1216,7 @@ function refreshData() {
   loadDashboard();
   loadAllTickets();
   loadEmployees();
+  loadBotStats();
 }
 
 // ── DASHBOARD ──────────────────────────────────────────────────────────────
@@ -1196,6 +1242,56 @@ async function loadDashboard() {
   }
   renderRecentTickets();
   loadPendingApprovals();
+}
+
+let botTrendChartInstance = null;
+async function loadBotStats() {
+  try {
+    const d = await apiGet('/api/admin/bot-stats');
+    document.getElementById('bsTotalInteractions').textContent = d.totalInteractions ?? '—';
+    document.getElementById('bsBotResolved').textContent       = d.botResolved      ?? '—';
+    document.getElementById('bsBotPct').textContent            = `${d.botPct ?? 0}% of interactions`;
+    document.getElementById('bsTickets').textContent           = d.ticketsFromSlack  ?? '—';
+    document.getElementById('bsTicketPct').textContent         = `${d.ticketPct ?? 0}% needed IT`;
+    document.getElementById('bsResolved').textContent          = d.ticketsResolved  ?? '—';
+    document.getElementById('bsOpen').textContent              = `${d.ticketsOpen ?? 0} still open`;
+
+    // Top resolvers
+    const topEl = document.getElementById('topResolversList');
+    if (d.topResolvers?.length) {
+      topEl.innerHTML = d.topResolvers.map((r,i) =>
+        `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #1e293b;">
+          <span>${['🥇','🥈','🥉','4️⃣','5️⃣'][i] || ''} ${r.name || 'Unknown'}</span>
+          <span style="color:#22c55e;font-weight:700;">${r.count}</span>
+        </div>`).join('');
+    } else {
+      topEl.innerHTML = '<div style="color:#6b7280;font-size:12px;">No data yet — users solve problems, click "Yes Fixed!" to track</div>';
+    }
+
+    // Trend chart
+    const ctx = document.getElementById('botTrendChart').getContext('2d');
+    if (botTrendChartInstance) botTrendChartInstance.destroy();
+    botTrendChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: d.trend?.labels || [],
+        datasets: [
+          { label: 'Bot Solved', data: d.trend?.bot || [], backgroundColor: 'rgba(34,197,94,0.7)', borderRadius: 4 },
+          { label: 'Ticket Bana', data: d.trend?.tickets || [], backgroundColor: 'rgba(249,115,22,0.7)', borderRadius: 4 },
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: true,
+        plugins: { legend: { labels: { color: '#9ca3af', font: { size: 11 } } } },
+        scales: {
+          x: { ticks: { color: '#6b7280', font: { size: 10 } }, grid: { color: '#1e293b' } },
+          y: { ticks: { color: '#6b7280', font: { size: 10 }, stepSize: 1 }, grid: { color: '#1e293b' }, beginAtZero: true },
+        }
+      }
+    });
+  } catch(e) {
+    console.error('bot-stats error:', e);
+  }
 }
 
 function renderRecentTickets() {
