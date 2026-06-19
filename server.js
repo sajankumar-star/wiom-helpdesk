@@ -4969,117 +4969,79 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  } catch (err) { console.error('Appt cancel error:', err.message); }
  });
 
- // ── New Employee Auto-Onboarding ──────────────────────────────────────
+ // ── New Employee Auto-Onboarding (fully automatic) ────────────────────
+ // When anyone joins the Slack workspace, their profile data is pulled
+ // automatically and saved to DB. No action needed from employee or admin.
  slackApp.event('team_join', async ({ event, client }) => {
    try {
-     const userId = event.user?.id || event.user;
+     const userId = event.user?.id || (typeof event.user === 'string' ? event.user : null);
      if (!userId) return;
 
-     // Try auto-match by email first
-     const profile = await client.users.info({ user: userId }).then(r => r.user?.profile).catch(() => null);
-     const email   = profile?.email?.toLowerCase();
+     // Skip bots
+     const userInfo = await client.users.info({ user: userId }).catch(() => null);
+     if (!userInfo?.user || userInfo.user.is_bot || userInfo.user.is_app_user) return;
+
+     const profile     = userInfo.user.profile || {};
+     const realName    = (profile.real_name || profile.display_name || userInfo.user.real_name || '').trim();
+     const email       = (profile.email || '').toLowerCase().trim();
+     const designation = (profile.title || '').trim();
+
+     if (!realName) return; // incomplete profile, skip
+
+     // 1. Try match by email → just link Slack ID, already in DB
      if (email) {
-       const matched = await Employee.findOneAndUpdate(
-         { email, slackUserId: { $exists: false } },
-         { $set: { slackUserId: userId } },
+       const byEmail = await Employee.findOneAndUpdate(
+         { email, $or: [{ slackUserId: { $exists: false } }, { slackUserId: '' }] },
+         { $set: { slackUserId: userId, ...(designation && { designation }) } },
          { new: true }
        ).lean();
-       if (matched) {
+       if (byEmail) {
          await client.chat.postMessage({
            channel: userId,
-           text: `Welcome to WIOM IT Helpdesk, ${matched.name}!`,
            blocks: [
-             { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${matched.name}!*\n\nYour IT Helpdesk account is ready. Koi bhi IT problem ke liye yahan aao — laptop, internet, software sab kuch.` } },
-             { type: 'section', text: { type: 'mrkdwn', text: `*Employee ID:* \`${matched.empId}\`\n*Department:* ${matched.department || 'N/A'}` } },
+             { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(byEmail.name)}!*\n\nYour IT Helpdesk account is ready.\n*Employee ID:* \`${byEmail.empId}\` · *Dept:* ${_mrkdwnEscape(byEmail.department || 'N/A')}` } },
              { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🏠 Open IT Helpdesk' }, action_id: 'open_home_tab', style: 'primary' }] }
-           ]
+           ], text: `Welcome ${byEmail.name}!`
          });
-         console.log(`✅ team_join: auto-linked ${matched.empId} (${email})`);
+         console.log(`✅ team_join auto-linked: ${byEmail.empId} (${email})`);
          return;
        }
      }
 
-     // No email match — ask for Employee ID
+     // 2. Already in DB by slackUserId — already registered
+     const bySid = await Employee.findOne({ slackUserId: userId }).lean();
+     if (bySid) return;
+
+     // 3. Not in DB — auto-create from Slack profile
+     // Generate a temp ID: SLACK- prefix so admin can recognise and update later
+     const tempId = `SLACK-${userId}`;
+     await Employee.findOneAndUpdate(
+       { empId: tempId },
+       { $setOnInsert: { empId: tempId, name: realName, email: email || '', designation, slackUserId: userId, isActive: true } },
+       { upsert: true, new: true }
+     );
+
+     // Welcome DM to new employee
      await client.chat.postMessage({
        channel: userId,
-       text: 'Welcome to WIOM! Please link your Employee ID.',
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM IT Helpdesk!*\n\nIT support ke liye apna Employee ID link karo — ek baar link karo, hamesha ke liye connected.` } },
-         { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🔗 Link My Employee ID' }, action_id: 'onboard_link_emp_btn', style: 'primary' }] }
-       ]
+         { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(realName)}!*\n\nAapka IT Helpdesk account auto-create ho gaya hai. Koi bhi IT problem ke liye directly yahan aao.` } },
+         { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🏠 Open IT Helpdesk' }, action_id: 'open_home_tab', style: 'primary' }] }
+       ], text: `Welcome ${realName}!`
      });
-     console.log(`👋 team_join: onboarding DM sent to ${userId}`);
-   } catch (err) { console.error('team_join error:', err.message); }
- });
 
- // Button: open Employee ID link modal
- slackApp.action('onboard_link_emp_btn', async ({ body, ack, client }) => {
-   await ack();
-   try {
-     await client.views.open({
-       trigger_id: body.trigger_id,
-       view: {
-         type: 'modal', callback_id: 'onboard_emp_modal', title: { type: 'plain_text', text: 'Link Employee ID' },
-         submit: { type: 'plain_text', text: 'Link & Continue' },
-         close:  { type: 'plain_text', text: 'Cancel' },
-         blocks: [
-           { type: 'section', text: { type: 'mrkdwn', text: 'Apna Employee ID enter karo (HR se mila hoga — jaise `WIOM001`).' } },
-           { type: 'input', block_id: 'onboard_empid_block', element: { type: 'plain_text_input', action_id: 'onboard_empid', placeholder: { type: 'plain_text', text: 'e.g. WIOM001' } }, label: { type: 'plain_text', text: 'Employee ID' } },
-           { type: 'input', block_id: 'onboard_name_block', element: { type: 'plain_text_input', action_id: 'onboard_name', placeholder: { type: 'plain_text', text: 'e.g. Rahul Sharma' } }, label: { type: 'plain_text', text: 'Full Name' } },
-           { type: 'input', block_id: 'onboard_dept_block', optional: true, element: { type: 'plain_text_input', action_id: 'onboard_dept', placeholder: { type: 'plain_text', text: 'e.g. Technology' } }, label: { type: 'plain_text', text: 'Department (optional)' } }
-         ]
-       }
-     });
-   } catch (err) { console.error('onboard modal open error:', err.message); }
- });
-
- // Modal submit: link or create employee
- slackApp.view('onboard_emp_modal', async ({ body, ack, client, view }) => {
-   const vals  = view.state.values;
-   const empId = (vals.onboard_empid_block?.onboard_empid?.value || '').trim().toUpperCase();
-   const name  = (vals.onboard_name_block?.onboard_name?.value   || '').trim();
-   const dept  = (vals.onboard_dept_block?.onboard_dept?.value   || '').trim();
-   if (!empId) { await ack({ response_action: 'errors', errors: { onboard_empid_block: 'Employee ID required' } }); return; }
-   if (!name)  { await ack({ response_action: 'errors', errors: { onboard_name_block: 'Name required' } }); return; }
-   await ack();
-
-   const userId = body.user.id;
-   try {
-     const existing = await Employee.findOne({ empId });
-     if (existing) {
-       // Link Slack ID to existing record
-       await Employee.updateOne({ empId }, { $set: { slackUserId: userId, ...(dept && !existing.department && { department: dept }) } });
+     // Notify IT admin (Sajan) — so he can update empId from SLACK-xxx to real ID
+     if (SAJAN_ID) {
        await client.chat.postMessage({
-         channel: userId,
-         text: `Employee ID linked! Welcome ${existing.name}.`,
-         blocks: [
-           { type: 'section', text: { type: 'mrkdwn', text: `✅ *Linked successfully!* Welcome, *${existing.name}*.\n\nKoi IT problem ho toh yahan IT Helpdesk kholo — sab kuch yahan handle hoga.` } },
-           { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🏠 Open IT Helpdesk' }, action_id: 'open_home_tab', style: 'primary' }] }
-         ]
+         channel: SAJAN_ID,
+         blocks: [{
+           type: 'section',
+           text: { type: 'mrkdwn', text: `👤 *New Joiner Auto-Added*\n*Name:* ${_mrkdwnEscape(realName)}\n*Email:* ${_mrkdwnEscape(email || 'N/A')}\n*Designation:* ${_mrkdwnEscape(designation || 'N/A')}\n*Slack:* <@${userId}>\n*Temp ID:* \`${tempId}\`\n\n_Admin dashboard mein real Employee ID update kar do._` }
+         }], text: `New joiner: ${realName}`
        });
-       console.log(`✅ onboard: linked existing ${empId} → ${userId}`);
-     } else {
-       // Create new employee record
-       await Employee.create({ empId, name, department: dept, slackUserId: userId, isActive: true });
-       await client.chat.postMessage({
-         channel: userId,
-         text: `Welcome ${name}! Your IT account is ready.`,
-         blocks: [
-           { type: 'section', text: { type: 'mrkdwn', text: `✅ *IT Account created!* Welcome, *${name}*.\n\nEmployee ID \`${empId}\` register ho gaya. IT team ko ek notification bheja ja raha hai.` } },
-           { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🏠 Open IT Helpdesk' }, action_id: 'open_home_tab', style: 'primary' }] }
-         ]
-       });
-       // Notify IT admin about new employee
-       if (SAJAN_ID) {
-         await client.chat.postMessage({
-           channel: SAJAN_ID,
-           text: `New employee registered: ${name} (${empId})`,
-           blocks: [{ type: 'section', text: { type: 'mrkdwn', text: `👤 *New Employee Registered via Slack*\n*Name:* ${_mrkdwnEscape(name)}\n*Employee ID:* \`${empId}\`\n*Department:* ${_mrkdwnEscape(dept) || 'Not set'}\n*Slack:* <@${userId}>` } }]
-         });
-       }
-       console.log(`✅ onboard: new employee created ${empId} (${name})`);
      }
-   } catch (err) { console.error('onboard view error:', err.message); }
+     console.log(`✅ team_join auto-created: ${tempId} (${realName})`);
+   } catch (err) { console.error('team_join error:', err.message); }
  });
 
  // ── DM Handler ────────────────────────────────────────────────────────
