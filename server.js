@@ -967,25 +967,10 @@ app.listen(PORT, async () => {
    const openCount    = tickets.filter(t => t.status === 'Open').length;
    const pendingCount = tickets.filter(t => ['In Progress','Waiting'].includes(t.status)).length;
 
-   // ── 1. Header with status ─────────────────────────────────────────────
-   const onlineNow = istHour >= 9 && istHour < 19;
-   const supportStatus = onlineNow
-     ? '🟢 IT Support: *Online* (9AM–7PM)'
-     : '🟠 IT Support: *After Hours* — Emergency available 24/7';
-
-   let ticketStatusLine = '';
-   if (openCount > 0 || pendingCount > 0) {
-     const total = openCount + pendingCount;
-     ticketStatusLine = `\n🎫 *${total} open ticket${total > 1 ? 's' : ''}* waiting — tap *My Tickets* below to check.`;
-   } else if (stats.resolvedCount > 0) {
-     ticketStatusLine = `\n✅ All clear! ${stats.resolvedCount} ticket${stats.resolvedCount > 1 ? 's' : ''} resolved so far.`;
-   } else {
-     ticketStatusLine = `\n✅ No open tickets — everything looks good!`;
-   }
-
+   // ── 1. Header ─────────────────────────────────────────────────────────
    blocks.push({
      type: 'section',
-     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n⚡ *Nova – Your IT Superpower*\n${supportStatus}${ticketStatusLine}` },
+     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n⚡ *Nova – Your IT Superpower*` },
    });
 
    // ── 5. Quick Actions ──────────────────────────────────────────────────
