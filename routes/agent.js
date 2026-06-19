@@ -117,8 +117,14 @@ router.get('/status', checkKey, async (req, res) => {
   }
 });
 
+const checkKeyOrJwt = (req, res, next) => {
+  const key = req.headers['x-agent-key'];
+  if (key === process.env.AGENT_SECRET || key === process.env.JWT_SECRET) return next();
+  return res.status(401).json({ error: 'Unauthorized' });
+};
+
 // ── POST /api/agent/fix-slack-ids — fix all employee Slack ID mismatches ──────
-router.post('/fix-slack-ids', checkKey, async (req, res) => {
+router.post('/fix-slack-ids', checkKeyOrJwt, async (req, res) => {
   const slackClient = req.app.locals.slackClient;
   if (!slackClient) return res.status(503).json({ error: 'Slack not connected' });
 
