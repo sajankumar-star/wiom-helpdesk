@@ -215,33 +215,36 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
   try {
     const clientId     = process.env.KEKA_CLIENT_ID;
     const clientSecret = process.env.KEKA_CLIENT_SECRET;
-    if (!clientId || !clientSecret) {
+    const apiKey       = process.env.KEKA_API_KEY;
+    if (!clientId || !clientSecret || !apiKey) {
       return res.status(503).json({
-        error: 'KEKA_CLIENT_ID aur KEKA_CLIENT_SECRET Railway Variables mein set karein.'
+        error: 'Railway Variables mein set karein: KEKA_CLIENT_ID, KEKA_CLIENT_SECRET, KEKA_API_KEY'
       });
     }
 
-    // Step 1: Get OAuth2 access token — try both known Keka token endpoints
-    let access_token = null;
     const KEKA_BASE = 'https://omniainformation.keka.com';
 
-    // Step 1: Get OAuth2 access token
+    // Step 1: Get OAuth2 access token using Keka's custom grant type
     const tokenRes = await fetch(`${KEKA_BASE}/connect/token`, {
       method : 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body   : new URLSearchParams({
-        grant_type   : 'client_credentials',
+        grant_type   : 'kekaapi',
         client_id    : clientId,
         client_secret: clientSecret,
         scope        : 'kekaapi',
+        api_key      : apiKey,
       }),
     });
     if (!tokenRes.ok) {
       const errBody = await tokenRes.text().catch(() => '');
-      return res.status(502).json({ error: `Keka token error ${tokenRes.status}: ${errBody.substring(0, 300)}` });
+      const hint = tokenRes.status === 404
+        ? ' — Keka External API enabled nahi hai. Keka admin > Settings > Integrations > External API enable karo.'
+        : '';
+      return res.status(502).json({ error: `Keka token error ${tokenRes.status}${hint}: ${errBody.substring(0, 200)}` });
     }
     const tokenJson = await tokenRes.json();
-    access_token = tokenJson.access_token;
+    const access_token = tokenJson.access_token;
     if (!access_token) {
       return res.status(502).json({ error: 'Keka token response mein access_token nahi mila' });
     }

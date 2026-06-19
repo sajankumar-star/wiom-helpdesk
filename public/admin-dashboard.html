@@ -785,14 +785,37 @@
         </div>
       </div>
       <div class="card" style="margin-top:20px;">
-        <div class="card-header"><h3>🔗 Keka HRMS Auto-Sync</h3></div>
+        <div class="card-header"><h3>🔗 Keka HRMS — Employee Import</h3></div>
         <div class="card-body" style="padding:24px;">
-          <div style="padding:14px;background:rgba(255,165,0,0.08);border:1px solid rgba(255,165,0,0.2);border-radius:8px;margin-bottom:16px;font-size:13px;color:#fde047;">
-            ⚙️ <strong>Setup required:</strong> Railway Variables mein add karein:<br/>
-            <code>KEKA_CLIENT_ID</code> &nbsp;·&nbsp; <code>KEKA_CLIENT_SECRET</code><br/>
-            <span style="opacity:0.7;">Keka Admin → Settings → Integrations → API Access</span>
+
+          <!-- Step-by-step instructions -->
+          <div style="padding:16px;background:rgba(99,179,237,0.08);border:1px solid rgba(99,179,237,0.2);border-radius:10px;margin-bottom:20px;font-size:13px;color:var(--text);line-height:1.7;">
+            <strong style="color:#63b3ed;">📋 Keka se export kaise karein:</strong><br/>
+            1. Keka login karo → <strong>HR → Reports → Employee Report</strong><br/>
+            2. Sabhi employees select karo → <strong>Export → CSV / Excel</strong><br/>
+            3. Woh file neeche upload karo — automatic sync ho jayega ✅
           </div>
-          <button onclick="kekaSync()" style="padding:10px 24px;background:rgba(232,25,125,0.15);border:1px solid rgba(232,25,125,0.3);border-radius:8px;color:var(--pink);font-size:14px;font-family:'Inter',sans-serif;cursor:pointer;font-weight:600;">🔄 Sync from Keka Now</button>
+
+          <!-- File upload area -->
+          <div id="kekaDropZone" onclick="document.getElementById('kekaFileInput').click()"
+            style="border:2px dashed rgba(232,25,125,0.35);border-radius:12px;padding:32px;text-align:center;cursor:pointer;transition:background 0.2s;"
+            onmouseover="this.style.background='rgba(232,25,125,0.06)'" onmouseout="this.style.background='transparent'">
+            <div style="font-size:32px;margin-bottom:8px;">📂</div>
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;">Keka CSV / Excel file yahan drop karo</div>
+            <div style="font-size:12px;color:var(--muted);">ya click karke select karo (.csv ya .xlsx)</div>
+          </div>
+          <input type="file" id="kekaFileInput" accept=".csv,.xlsx,.xls" style="display:none" onchange="kekaFileSelected(this)"/>
+
+          <div id="kekaFileName" style="margin-top:10px;font-size:12px;color:var(--muted);"></div>
+
+          <div style="display:flex;gap:12px;margin-top:16px;flex-wrap:wrap;align-items:center;">
+            <button onclick="kekaImportFile()" id="kekaImportBtn" style="padding:10px 24px;background:var(--pink);border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;font-family:'Inter',sans-serif;cursor:pointer;display:none;">
+              📥 Employees Import Karo
+            </button>
+            <button onclick="kekaSync()" style="padding:10px 20px;background:rgba(232,25,125,0.1);border:1px solid rgba(232,25,125,0.3);border-radius:8px;color:var(--pink);font-size:13px;font-family:'Inter',sans-serif;cursor:pointer;">
+              🔄 API Sync (agar enabled ho)
+            </button>
+          </div>
           <div id="kekaResult" style="margin-top:12px;font-size:13px;"></div>
         </div>
       </div>
@@ -2160,7 +2183,7 @@ function downloadSampleCSV() {
 
 async function kekaSync() {
   const res = document.getElementById('kekaResult');
-  res.innerHTML = '⏳ Keka se sync ho raha hai...';
+  res.innerHTML = '⏳ Keka API se sync ho raha hai...';
   try {
     const d = await (await fetch(`${API}/api/admin/keka-sync`, {
       method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
@@ -2170,6 +2193,98 @@ async function kekaSync() {
       loadEmployees();
     } else { res.innerHTML = `<span style="color:#f87171;">❌ ${d.error}</span>`; }
   } catch(e) { res.innerHTML = `<span style="color:#f87171;">❌ ${e.message}</span>`; }
+}
+
+// ── KEKA FILE IMPORT ────────────────────────────────────────────────────────
+let _kekaFileData = null;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('kekaDropZone');
+  if (!dz) return;
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.background = 'rgba(232,25,125,0.1)'; });
+  dz.addEventListener('dragleave', () => { dz.style.background = 'transparent'; });
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.style.background = 'transparent';
+    const file = e.dataTransfer.files[0];
+    if (file) { document.getElementById('kekaFileInput').files; _kekaFileData = file; document.getElementById('kekaFileName').textContent = '📄 ' + file.name; document.getElementById('kekaImportBtn').style.display = 'inline-block'; }
+  });
+});
+
+function kekaFileSelected(input) {
+  const file = input.files[0];
+  if (!file) return;
+  document.getElementById('kekaFileName').textContent = '📄 ' + file.name;
+  document.getElementById('kekaImportBtn').style.display = 'inline-block';
+  _kekaFileData = file;
+}
+
+// Parse CSV text → array of row objects (handles Keka export format)
+function parseKekaCsv(text) {
+  const lines = text.replace(/\r/g, '').split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+  // Detect delimiter (comma or semicolon)
+  const delim = lines[0].includes(';') ? ';' : ',';
+  const headers = lines[0].split(delim).map(h => h.replace(/"/g,'').trim().toLowerCase());
+
+  // Column name mapping — handles various Keka export header names
+  const col = (row, ...names) => {
+    for (const n of names) {
+      const idx = headers.indexOf(n.toLowerCase());
+      if (idx !== -1) return (row[idx] || '').replace(/"/g,'').trim();
+    }
+    return '';
+  };
+
+  return lines.slice(1).map(line => {
+    const row = line.split(delim);
+    const firstName = col(row, 'first name', 'firstname');
+    const lastName  = col(row, 'last name', 'lastname', 'surname');
+    const fullName  = col(row, 'name', 'employee name', 'full name', 'display name') ||
+                      [firstName, lastName].filter(Boolean).join(' ');
+    const empId = col(row, 'employee number', 'employee id', 'emp id', 'empid', 'employee no', 'staff id');
+    const email = col(row, 'work email', 'email', 'email address', 'official email');
+    const dept  = col(row, 'department', 'department name', 'team');
+    const desig = col(row, 'job title', 'designation', 'position', 'title');
+    const status = col(row, 'employment status', 'status', 'employee status');
+    const mgr   = col(row, 'reporting manager', 'manager', 'manager name', 'reports to');
+    return { empId: empId.toUpperCase(), name: fullName, email: email.toLowerCase(), department: dept, designation: desig, isActive: !status || /active/i.test(status), managerName: mgr };
+  }).filter(e => e.empId && e.name);
+}
+
+async function kekaImportFile() {
+  const res = document.getElementById('kekaResult');
+  const btn = document.getElementById('kekaImportBtn');
+  if (!_kekaFileData) return;
+
+  res.innerHTML = '⏳ File read ho rahi hai...';
+  btn.disabled = true;
+
+  try {
+    const text = await _kekaFileData.text();
+    const employees = parseKekaCsv(text);
+    if (!employees.length) {
+      res.innerHTML = '<span style="color:#f87171;">❌ File mein koi employee data nahi mila. CSV format check karo.</span>';
+      btn.disabled = false;
+      return;
+    }
+
+    res.innerHTML = `⏳ ${employees.length} employees import ho rahe hain...`;
+
+    const r = await fetch(`${API}/api/employees/bulk`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+      body: JSON.stringify({ employees })
+    });
+    const d = await r.json();
+    const success = (d.inserted || 0) + (d.updated || 0);
+    const failed = d.errors?.length || 0;
+
+    res.innerHTML = `<span style="color:#34d399;">✅ Complete! ${d.inserted || 0} naye, ${d.updated || 0} updated, ${failed} failed (total: ${employees.length})</span>`;
+    if (success) loadEmployees();
+  } catch(e) {
+    res.innerHTML = `<span style="color:#f87171;">❌ Error: ${e.message}</span>`;
+  }
+  btn.disabled = false;
 }
 
 // ── LEARNING QUEUE ──────────────────────────────────────────────────────────
