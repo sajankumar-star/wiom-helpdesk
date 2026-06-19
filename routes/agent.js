@@ -117,5 +117,68 @@ router.get('/status', checkKey, async (req, res) => {
   }
 });
 
+// ── POST /api/agent/fix-slack-ids — fix all employee Slack ID mismatches ──────
+router.post('/fix-slack-ids', checkKey, async (req, res) => {
+  const slackClient = req.app.locals.slackClient;
+  if (!slackClient) return res.status(503).json({ error: 'Slack not connected' });
+
+  const report = { fixed: [], cleared: [], notFound: [], alreadyOk: [] };
+
+  try {
+    // Fetch all Slack workspace users
+    let allSlackUsers = [];
+    let cursor;
+    do {
+      const r = await slackClient.users.list({ limit: 200, ...(cursor ? { cursor } : {}) });
+      allSlackUsers = allSlackUsers.concat(r.members || []);
+      cursor = r.response_metadata?.next_cursor;
+    } while (cursor);
+
+    // Build email → slackUserId map (skip bots)
+    const emailToSlack = {};
+    for (const u of allSlackUsers) {
+      if (u.is_bot || u.is_app_user || u.deleted) continue;
+      const email = u.profile?.email?.toLowerCase();
+      if (email) emailToSlack[email] = u.id;
+    }
+
+    const employees = await Employee.find({ isActive: true });
+
+    for (const emp of employees) {
+      const correctSlackId = emailToSlack[emp.email?.toLowerCase()];
+
+      if (!correctSlackId) {
+        // Employee email not found in Slack workspace
+        if (emp.slackUserId) {
+          await Employee.updateOne({ _id: emp._id }, { $unset: { slackUserId: '' } });
+          report.cleared.push({ empId: emp.empId, name: emp.name, reason: 'not in Slack' });
+        } else {
+          report.notFound.push({ empId: emp.empId, name: emp.name });
+        }
+        continue;
+      }
+
+      if (emp.slackUserId === correctSlackId) {
+        report.alreadyOk.push({ empId: emp.empId, name: emp.name });
+        continue;
+      }
+
+      // Fix the slackUserId
+      await Employee.updateOne({ _id: emp._id }, { $set: { slackUserId: correctSlackId } });
+      report.fixed.push({
+        empId: emp.empId,
+        name: emp.name,
+        old: emp.slackUserId || 'none',
+        new: correctSlackId
+      });
+    }
+
+    console.log(`Slack ID fix complete — fixed: ${report.fixed.length}, cleared: ${report.cleared.length}`);
+    res.json({ ok: true, summary: { fixed: report.fixed.length, cleared: report.cleared.length, notFound: report.notFound.length, alreadyOk: report.alreadyOk.length }, details: report });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
 
