@@ -944,6 +944,12 @@ app.listen(PORT, async () => {
    { title: '🔋 Battery Care', lines: ['✅ Use the original charger provided with your laptop.', '✅ Keep battery level between 20% and 80% whenever possible.', '✅ Unplug the charger when fully charged and not in use.', '✅ Restart your laptop regularly.', '❌ Do not use damaged chargers or cables.', '❌ Do not place the laptop in direct sunlight.'] },
    { title: '🔐 Keep Your Data Secure', lines: ['✅ Lock your laptop when away from desk — press *Windows + L*.', '✅ Use strong passwords.', '✅ Report suspicious emails to IT.', '❌ Do not share your password with anyone.', '❌ Do not leave your laptop unlocked.'] },
    { title: '🌐 Better Internet Performance', lines: ['✅ Sit within good Wi-Fi coverage.', '✅ Disconnect unused devices from hotspots.', '✅ Restart Wi-Fi if connectivity issues occur.', '❌ Do not download unnecessary large files on office networks.'] },
+   { title: '📧 Email Best Practices', lines: ['✅ Check sender email address before clicking any link.', '✅ Never open attachments from unknown senders.', '✅ Use BCC when emailing large groups.', '❌ Do not forward confidential company data to personal email.', '💡 Suspicious email? Forward it to IT immediately.'] },
+   { title: '💾 Save Your Work', lines: ['✅ Save documents frequently — *Ctrl + S*.', '✅ Use OneDrive or SharePoint for important files.', '✅ Never save critical files only on Desktop.', '❌ Do not use pen drives without IT approval.', '💡 Cloud saves = never lose your work again!'] },
+   { title: '🖥️ Screen & Display Tips', lines: ['✅ Clean your screen with a microfiber cloth only.', '✅ Adjust brightness to reduce eye strain.', '✅ Take a 5-min break every 1 hour (20-20-20 rule).', '❌ Do not press the screen hard while cleaning.', '💡 Need an external monitor? Raise an Asset Request!'] },
+   { title: '🔄 When to Restart Your Laptop', lines: ['✅ Restart after installing any software.', '✅ Restart if laptop feels slow or unresponsive.', '✅ Restart at least once a week.', '💡 90% of IT issues are solved by a simple restart!', '❌ Do not force shutdown unless completely frozen.'] },
+   { title: '🔑 Password Best Practices', lines: ['✅ Use a mix of letters, numbers, and symbols.', '✅ Change your password every 90 days.', '✅ Use different passwords for different accounts.', '❌ Do not write passwords on sticky notes.', '❌ Do not use your name or birthdate as password.'] },
+   { title: '📱 Mobile & Device Security', lines: ['✅ Lock your phone with a PIN or biometrics.', '✅ Keep your apps and OS updated.', '✅ Use company Wi-Fi only on trusted devices.', '❌ Do not install unknown apps on work devices.', '💡 Lost your work phone? Report to IT immediately!'] },
    { title: '📁 File Management', lines: ['✅ Store important files in approved cloud storage.', '✅ Organize files into folders.', '✅ Take regular backups of critical work.', '❌ Do not save company files on personal devices.'] },
    { title: '⚡ Charger Safety', lines: ['✅ Plug the charger into a stable power source.', '✅ Disconnect by holding the plug, not the cable.', '✅ Keep the charger in a cool, dry place.', '❌ Do not twist or bend the charging cable.', '❌ Do not use damaged charging adapters.'] },
    { title: '🛠️ Before Raising an IT Ticket', lines: ['✅ Restart your laptop first.', '✅ Check power and network connections.', '✅ Take a screenshot of the error.', '✅ Note the exact issue and time it occurred.', '💡 This helps the IT team resolve issues faster!'] },
@@ -961,10 +967,25 @@ app.listen(PORT, async () => {
    const openCount    = tickets.filter(t => t.status === 'Open').length;
    const pendingCount = tickets.filter(t => ['In Progress','Waiting'].includes(t.status)).length;
 
-   // ── 1. Header ─────────────────────────────────────────────────────────
+   // ── 1. Header with status ─────────────────────────────────────────────
+   const onlineNow = istHour >= 9 && istHour < 19;
+   const supportStatus = onlineNow
+     ? '🟢 IT Support: *Online* (9AM–7PM)'
+     : '🟠 IT Support: *After Hours* — Emergency available 24/7';
+
+   let ticketStatusLine = '';
+   if (openCount > 0 || pendingCount > 0) {
+     const total = openCount + pendingCount;
+     ticketStatusLine = `\n🎫 *${total} open ticket${total > 1 ? 's' : ''}* waiting — tap *My Tickets* below to check.`;
+   } else if (stats.resolvedCount > 0) {
+     ticketStatusLine = `\n✅ All clear! ${stats.resolvedCount} ticket${stats.resolvedCount > 1 ? 's' : ''} resolved so far.`;
+   } else {
+     ticketStatusLine = `\n✅ No open tickets — everything looks good!`;
+   }
+
    blocks.push({
      type: 'section',
-     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n_Welcome to WIOM IT Helpdesk — Get instant support._` },
+     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n⚡ *Nova – Your IT Superpower*\n${supportStatus}${ticketStatusLine}` },
    });
 
    // ── 5. Quick Actions ──────────────────────────────────────────────────
@@ -980,6 +1001,25 @@ app.listen(PORT, async () => {
      { type: 'button', text: { type: 'plain_text', text: '📶 WiFi Fix', emoji: true }, action_id: 'home_quick_11', value: 'WiFi not working no internet connection' },
      { type: 'button', text: { type: 'plain_text', text: '📦 Asset Requests', emoji: true }, action_id: 'cat_asset', value: 'asset', style: 'primary' },
    ]});
+
+   // My Tickets + My Device row (only if employee is registered)
+   if (emp?.empId) {
+     const deviceLine = emp.laptop ? `💻 *${emp.laptop}*${emp.laptopSN ? `  \`SN: ${emp.laptopSN}\`` : ''}` : null;
+     const deptLine   = emp.department ? `🏢 ${emp.department}${emp.floor ? ' · ' + emp.floor : ''}` : null;
+     if (deviceLine || deptLine) {
+       blocks.push({ type: 'divider' });
+       blocks.push({
+         type: 'section',
+         text: { type: 'mrkdwn', text: `*🪪 My Details*\n${[deviceLine, deptLine].filter(Boolean).join('\n')}` },
+         accessory: { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' }
+       });
+     } else {
+       blocks.push({ type: 'divider' });
+       blocks.push({ type: 'actions', elements: [
+         { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' },
+       ]});
+     }
+   }
 
    // ── 6. All Categories ─────────────────────────────────────────────────
    blocks.push({ type: 'divider' });
@@ -1061,7 +1101,7 @@ app.listen(PORT, async () => {
  const buildGreetingBlocks = (firstName = 'there') => ([
    {
      type: 'section',
-     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\n*WIOM IT Helpdesk*\nLaptop, WiFi, software, password — tell me your problem and I'll help you right away!\n\n_Select a category below 👇_` },
+     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\n⚡ *Nova – Your IT Superpower*\nLaptop, WiFi, software, password — batao, main turant help karunga!\n\n_Select a category below 👇_` },
     },
    { type: 'divider' },
    {
@@ -1081,7 +1121,7 @@ app.listen(PORT, async () => {
        { type: 'button', text: { type: 'plain_text', text: '📞  Contact IT', emoji: true }, action_id: 'home_contact_it', value: 'contact_it' },
      ]
    },
-   { type: 'context', elements: [{ type: 'mrkdwn', text: '_24/7 available — Anytime, Anywhere_' }] }
+   { type: 'context', elements: [{ type: 'mrkdwn', text: '_⚡ Nova – Your IT Superpower · 24/7 Available_' }] }
  ]);
 
  // ── Shared: "Issue Resolved" modal view — same for every problem ────────────
@@ -1487,8 +1527,8 @@ app.listen(PORT, async () => {
 
  if (!text) {
  await respond({ response_type: 'ephemeral', blocks:[
- { type:'section', text:{ type:'mrkdwn', text:'* WIOM IT Helpdesk*\nDescribe your IT problem!\n\n*Examples:*\n `/helpdesk wifi not working`\n `/helpdesk laptop is slow`\n `/helpdesk gmail not opening`\n\n_To view your tickets:_ `/helpdesk status`' }}
- ], text:'WIOM IT Helpdesk — describe your problem' });
+ { type:'section', text:{ type:'mrkdwn', text:'⚡ *Nova – Your IT Superpower*\nDescribe your IT problem!\n\n*Examples:*\n `/helpdesk wifi not working`\n `/helpdesk laptop is slow`\n `/helpdesk gmail not opening`\n\n_To view your tickets:_ `/helpdesk status`' }}
+ ], text:'Nova – Your IT Superpower · describe your problem' });
  return;
  }
 
@@ -2635,7 +2675,7 @@ app.listen(PORT, async () => {
      // Welcome message to new employee
      await client.chat.postMessage({
        channel: slackUserId,
-       text: `✅ Tumhara WIOM IT Helpdesk account set ho gaya! Ab tum tickets raise kar sakte ho. Home tab kholo.`,
+       text: `✅ Nova se connected ho gaye! Ab tum tickets raise kar sakte ho. Home tab kholo. ⚡`,
      });
    } catch (err) { console.error('add_employee_modal_submit error:', err.message); }
  });
@@ -3207,7 +3247,7 @@ app.listen(PORT, async () => {
          text: 'No pending tickets!',
          blocks: [
            { type: 'section', text: { type: 'mrkdwn', text: `✅ *No pending tickets!*\n\nAll clear — if you have a new problem, just select a category from the Home tab! 😊` } },
-           { type: 'context', elements: [{ type: 'mrkdwn', text: '_WIOM IT Helpdesk — Available 24/7 ✦_' }] }
+           { type: 'context', elements: [{ type: 'mrkdwn', text: '_⚡ Nova – Your IT Superpower · Available 24/7_' }] }
          ]
        });
        return;
@@ -4206,7 +4246,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
            channel: dm.channel.id,
            text: `Hi ${emp.name.split(' ')[0]}! Please select your reporting manager 👇`,
            blocks: [
-             { type: 'section', text: { type: 'mrkdwn', text: `*Hi ${emp.name.split(' ')[0]}! 👋*\n\nWIOM IT Helpdesk needs to know your *reporting manager* to process software requests.\n\nPlease click below to select your manager:` } },
+             { type: 'section', text: { type: 'mrkdwn', text: `*Hi ${emp.name.split(' ')[0]}! 👋*\n\n⚡ Nova needs to know your *reporting manager* to process software requests.\n\nPlease click below to select your manager:` } },
              { type: 'actions', elements: [
                { type: 'button', text: { type: 'plain_text', text: '👤 Select My Manager', emoji: true }, style: 'primary', action_id: 'emp_self_select_manager', value: JSON.stringify({ empId: emp.empId, empName: emp.name }) },
              ]}
@@ -4999,7 +5039,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
          await client.chat.postMessage({
            channel: userId,
            blocks: [
-             { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(byEmail.name)}!*\n\nYour IT Helpdesk account is ready.\n*Employee ID:* \`${byEmail.empId}\` · *Dept:* ${_mrkdwnEscape(byEmail.department || 'N/A')}` } },
+             { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(byEmail.name)}!*\n\n⚡ *Nova – Your IT Superpower* is ready.\n*Employee ID:* \`${byEmail.empId}\` · *Dept:* ${_mrkdwnEscape(byEmail.department || 'N/A')}` } },
              { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🏠 Open IT Helpdesk' }, action_id: 'open_home_tab', style: 'primary' }] }
            ], text: `Welcome ${byEmail.name}!`
          });
@@ -5025,7 +5065,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
      await client.chat.postMessage({
        channel: userId,
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(realName)}!*\n\nAapka IT Helpdesk account auto-create ho gaya hai. Koi bhi IT problem ke liye directly yahan aao.` } },
+         { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(realName)}!*\n\n⚡ *Nova – Your IT Superpower* se ab tum connected ho. Koi bhi IT problem ho — Nova yahan hai!` } },
          { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🏠 Open IT Helpdesk' }, action_id: 'open_home_tab', style: 'primary' }] }
        ], text: `Welcome ${realName}!`
      });
@@ -5503,7 +5543,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  { type:'button', text:{ type:'plain_text', text:'📹 Teams / Zoom', emoji:true }, action_id:'vague_pick_teams_issue', value:'Microsoft Teams not working' },
  { type:'button', text:{ type:'plain_text', text:'🎫 Create Ticket', emoji:true }, style:'primary', action_id:'vague_pick_create_ticket', value:'create ticket' },
  ]},
- { type:'context', elements:[{ type:'mrkdwn', text:`_24/7 available — Anytime, Anywhere_` }]}
+ { type:'context', elements:[{ type:'mrkdwn', text:`_⚡ Nova – Your IT Superpower · 24/7 Available_` }]}
  ]
  });
  return;
@@ -6678,7 +6718,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  text : `⚡ WIOM IT — Good Morning! IT Helpdesk Daily Summary ${dateStr}`,
  blocks : [
  { type:'header', text:{ type:'plain_text', text:`⚡ WIOM IT — Daily Summary`, emoji:true }},
- { type:'context', elements:[{ type:'mrkdwn', text:`_${dateStr} | WIOM IT Helpdesk_` }]},
+ { type:'context', elements:[{ type:'mrkdwn', text:`_${dateStr} | ⚡ Nova – Your IT Superpower_` }]},
  { type:'divider' },
  { type:'section', fields:[
  { type:'mrkdwn', text:`*🎫 Today's New*\n*${newToday}* tickets` },
@@ -6693,7 +6733,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  { type:'divider' },
  { type:'section', text:{ type:'mrkdwn', text:`*⏳ Oldest Pending Tickets:*\n${oldestText}` }}
  ] : []),
- { type:'context', elements:[{ type:'mrkdwn', text:`_Good morning! ⚡ WIOM IT Helpdesk_` }]}
+ { type:'context', elements:[{ type:'mrkdwn', text:`_⚡ Nova – Your IT Superpower_` }]}
  ]
  });
  console.log(' Daily summary sent to admin');
