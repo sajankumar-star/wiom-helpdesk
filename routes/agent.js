@@ -186,5 +186,97 @@ router.post('/fix-slack-ids', checkKeyOrJwt, async (req, res) => {
   }
 });
 
+// ── GET /api/agent/data-audit — full data health check ────────────────────────
+router.get('/data-audit', checkKeyOrJwt, async (req, res) => {
+  const slackClient = req.app.locals.slackClient;
+  if (!slackClient) return res.status(503).json({ error: 'Slack not connected' });
+
+  try {
+    // Fetch all Slack users
+    let allSlackUsers = [];
+    let cursor;
+    do {
+      const r = await slackClient.users.list({ limit: 200, ...(cursor ? { cursor } : {}) });
+      allSlackUsers = allSlackUsers.concat(r.members || []);
+      cursor = r.response_metadata?.next_cursor;
+    } while (cursor);
+
+    const realSlackUsers = allSlackUsers.filter(u => !u.is_bot && !u.is_app_user && !u.deleted);
+    const emailToSlack = {};
+    const slackIdToUser = {};
+    for (const u of realSlackUsers) {
+      const email = u.profile?.email?.toLowerCase();
+      if (email) emailToSlack[email] = u;
+      slackIdToUser[u.id] = u;
+    }
+
+    const employees = await Employee.find({}).lean();
+    const issues = [];
+
+    // Check 1: Slack ID mismatch
+    for (const emp of employees) {
+      if (!emp.email) continue;
+      const correctSlack = emailToSlack[emp.email.toLowerCase()];
+      if (correctSlack && emp.slackUserId && emp.slackUserId !== correctSlack.id) {
+        issues.push({ type: 'SLACK_ID_MISMATCH', empId: emp.empId, name: emp.name, email: emp.email, currentSlackId: emp.slackUserId, correctSlackId: correctSlack.id });
+      }
+    }
+
+    // Check 2: Duplicate Slack IDs
+    const slackIdCount = {};
+    for (const emp of employees) {
+      if (emp.slackUserId) slackIdCount[emp.slackUserId] = (slackIdCount[emp.slackUserId] || 0) + 1;
+    }
+    for (const [slackId, count] of Object.entries(slackIdCount)) {
+      if (count > 1) {
+        const dupes = employees.filter(e => e.slackUserId === slackId).map(e => ({ empId: e.empId, name: e.name, email: e.email }));
+        issues.push({ type: 'DUPLICATE_SLACK_ID', slackId, count, employees: dupes });
+      }
+    }
+
+    // Check 3: SLACK- temp ID employees that now have real email match
+    const tempEmps = employees.filter(e => e.empId?.startsWith('SLACK-'));
+    for (const tmp of tempEmps) {
+      const realEmp = employees.find(e => !e.empId?.startsWith('SLACK-') && e.email && e.email.toLowerCase() === tmp.email?.toLowerCase());
+      if (realEmp) {
+        issues.push({ type: 'TEMP_ID_HAS_REAL_MATCH', tempEmpId: tmp.empId, tempName: tmp.name, realEmpId: realEmp.empId, realName: realEmp.name, email: tmp.email });
+      }
+    }
+
+    // Check 4: Employees in Slack but missing from DB
+    const dbEmails = new Set(employees.map(e => e.email?.toLowerCase()).filter(Boolean));
+    const missingFromDb = realSlackUsers.filter(u => {
+      const email = u.profile?.email?.toLowerCase();
+      return email && email.endsWith('@wiom.in') && !dbEmails.has(email);
+    }).map(u => ({ slackId: u.id, name: u.profile?.real_name, email: u.profile?.email }));
+
+    // Check 5: Employees with no Slack link
+    const noSlack = employees.filter(e => !e.slackUserId && !e.empId?.startsWith('SLACK-') && e.isActive).map(e => ({ empId: e.empId, name: e.name, email: e.email }));
+
+    // Check 6: Duplicate emails in DB
+    const emailCount = {};
+    for (const emp of employees) {
+      if (emp.email) emailCount[emp.email.toLowerCase()] = (emailCount[emp.email.toLowerCase()] || 0) + 1;
+    }
+    const dupEmails = Object.entries(emailCount).filter(([, c]) => c > 1).map(([email, count]) => {
+      const dupes = employees.filter(e => e.email?.toLowerCase() === email).map(e => ({ empId: e.empId, name: e.name }));
+      return { type: 'DUPLICATE_EMAIL', email, count, employees: dupes };
+    });
+    issues.push(...dupEmails);
+
+    res.json({
+      ok: true,
+      totalEmployeesInDb: employees.length,
+      totalInSlack: realSlackUsers.length,
+      issueCount: issues.length + missingFromDb.length + noSlack.length,
+      issues,
+      missingFromDb,
+      noSlackLink: noSlack
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
 
