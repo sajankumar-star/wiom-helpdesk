@@ -989,12 +989,11 @@ app.listen(PORT, async () => {
    // My Tickets + My Device row (only if employee is registered)
    if (emp?.empId) {
      const deviceLine = emp.laptop ? `💻 *${emp.laptop}*${emp.laptopSN ? `  \`SN: ${emp.laptopSN}\`` : ''}` : null;
-     const deptLine   = emp.department ? `🏢 ${emp.department}${emp.floor ? ' · ' + emp.floor : ''}` : null;
-     if (deviceLine || deptLine) {
+     if (deviceLine) {
        blocks.push({ type: 'divider' });
        blocks.push({
          type: 'section',
-         text: { type: 'mrkdwn', text: `*🪪 My Details*\n${[deviceLine, deptLine].filter(Boolean).join('\n')}` },
+         text: { type: 'mrkdwn', text: `*🪪 My Details*\n${deviceLine}` },
          accessory: { type: 'button', text: { type: 'plain_text', text: '📋 My Tickets', emoji: true }, action_id: 'dm_my_tickets', value: 'my_tickets' }
        });
      } else {
