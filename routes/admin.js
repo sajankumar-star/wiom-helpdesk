@@ -213,19 +213,13 @@ router.get('/charts', verifyAdmin, async (req, res) => {
 // ── POST /api/admin/keka-sync  — Sync employees from Keka HRMS ───────────────
 router.post('/keka-sync', verifyAdmin, async (req, res) => {
   try {
-    const clientId     = process.env.KEKA_CLIENT_ID;
-    const clientSecret = process.env.KEKA_CLIENT_SECRET;
-    const apiKey       = process.env.KEKA_API_KEY;
-    if (!clientId || !clientSecret || !apiKey) {
-      return res.status(503).json({
-        error: 'Railway Variables mein set karein: KEKA_CLIENT_ID, KEKA_CLIENT_SECRET, KEKA_API_KEY'
-      });
-    }
+    const clientId     = process.env.KEKA_CLIENT_ID     || 'ba5e016d-b4ae-4760-8ce8-13f0161badfe';
+    const clientSecret = process.env.KEKA_CLIENT_SECRET || 'A6hO1Q3Oym5RLVoAlr3r';
+    const apiKey       = process.env.KEKA_API_KEY       || 'txHdWdKQtRw2lkOjg0YaqQeFeTRZuU-luZbj9IdfEGA=';
+    const KEKA_BASE    = 'https://omniainformation.keka.com';
 
-    const KEKA_BASE = 'https://omniainformation.keka.com';
-
-    // Step 1: Get OAuth2 access token using Keka's custom grant type
-    const tokenRes = await fetch(`${KEKA_BASE}/connect/token`, {
+    // Step 1: Get OAuth2 access token from Keka auth server
+    const tokenRes = await fetch('https://login.keka.com/connect/token', {
       method : 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body   : new URLSearchParams({
@@ -238,10 +232,7 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
     });
     if (!tokenRes.ok) {
       const errBody = await tokenRes.text().catch(() => '');
-      const hint = tokenRes.status === 404
-        ? ' — Keka External API enabled nahi hai. Keka admin > Settings > Integrations > External API enable karo.'
-        : '';
-      return res.status(502).json({ error: `Keka token error ${tokenRes.status}${hint}: ${errBody.substring(0, 200)}` });
+      return res.status(502).json({ error: `Keka token error ${tokenRes.status}: ${errBody.substring(0, 200)}` });
     }
     const tokenJson = await tokenRes.json();
     const access_token = tokenJson.access_token;
@@ -250,7 +241,7 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
     }
 
     // Step 2: Fetch employees using Bearer token
-    const kekaRes = await fetch(`${KEKA_BASE}/api/v1/hris/employees?pagesize=500&status=active`, {
+    const kekaRes = await fetch(`${KEKA_BASE}/api/v1/hris/employees?pageNumber=1&pageSize=500`, {
       headers: { 'Authorization': `Bearer ${access_token}`, 'Accept': 'application/json' }
     });
 
