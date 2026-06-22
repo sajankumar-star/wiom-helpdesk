@@ -206,7 +206,7 @@ router.post('/fix-ticket', checkKeyOrJwt, async (req, res) => {
   }
 });
 
-// ── POST /api/agent/fix-all — fix email mismatches + duplicate Manoj Kumar ────
+// ── POST /api/agent/fix-all — fix email mismatches + duplicate cleanup ────────
 router.post('/fix-all', checkKeyOrJwt, async (req, res) => {
   const slackClient = req.app.locals.slackClient;
   if (!slackClient) return res.status(503).json({ error: 'Slack not connected' });
@@ -225,40 +225,65 @@ router.post('/fix-all', checkKeyOrJwt, async (req, res) => {
 
     const realSlack = allSlackUsers.filter(u => !u.is_bot && !u.is_app_user && !u.deleted);
 
-    // Build name → slack user map (normalized)
-    const normName = n => n?.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
-    const slackByName = {};
+    // Normalize helper
+    const norm = n => (n || '').toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
+
+    // Build multiple lookup maps
+    const slackByFullName = {}, slackByFirstLast = {}, slackByEmail = {};
     for (const u of realSlack) {
-      const n = normName(u.profile?.real_name || u.real_name);
-      if (n) slackByName[n] = u;
+      const full = norm(u.profile?.real_name || u.real_name || '');
+      if (full) slackByFullName[full] = u;
+      const parts = full.split(' ');
+      if (parts.length >= 2) {
+        const firstLast = `${parts[0]} ${parts[parts.length - 1]}`;
+        if (!slackByFirstLast[firstLast]) slackByFirstLast[firstLast] = u;
+      }
+      const email = u.profile?.email?.toLowerCase();
+      if (email) slackByEmail[email] = u;
     }
 
-    // Fix duplicate Manoj Kumar — keep 2025258, remove 2025296 (or vice versa — keep one with more tickets)
+    // Find Slack user by DB employee using multiple strategies
+    const findSlack = (emp) => {
+      const fullNorm = norm(emp.name);
+      if (slackByFullName[fullNorm]) return slackByFullName[fullNorm];
+      const parts = fullNorm.split(' ');
+      if (parts.length >= 2) {
+        const firstLast = `${parts[0]} ${parts[parts.length - 1]}`;
+        if (slackByFirstLast[firstLast]) return slackByFirstLast[firstLast];
+      }
+      if (emp.email && slackByEmail[emp.email.toLowerCase()]) return slackByEmail[emp.email.toLowerCase()];
+      return null;
+    };
+
+    // Fix duplicate employees (same email, multiple records) — keep one with more tickets
     const Ticket = require('../models/Ticket');
-    const manoj1 = await Employee.findOne({ empId: '2025258' }).lean();
-    const manoj2 = await Employee.findOne({ empId: '2025296' }).lean();
-    if (manoj1 && manoj2) {
-      const t1 = await Ticket.countDocuments({ empId: '2025258' });
-      const t2 = await Ticket.countDocuments({ empId: '2025296' });
-      const keepId = t1 >= t2 ? '2025258' : '2025296';
-      const removeId = keepId === '2025258' ? '2025296' : '2025258';
-      await Employee.updateOne({ empId: removeId }, { $set: { empId: `MERGED-${removeId}`, isActive: false, email: `merged-${removeId}@wiom.in` } });
-      report.duplicateFixed = { kept: keepId, deactivated: removeId, tickets: { [keepId]: t1, [removeId]: t2 } };
+    const allEmps = await Employee.find({ isActive: true }).lean();
+    const emailGroups = {};
+    for (const e of allEmps) {
+      const key = e.email?.toLowerCase();
+      if (key) { if (!emailGroups[key]) emailGroups[key] = []; emailGroups[key].push(e); }
     }
+    const dupFixed = [];
+    for (const [email, group] of Object.entries(emailGroups)) {
+      if (group.length < 2) continue;
+      const counts = await Promise.all(group.map(e => Ticket.countDocuments({ empId: e.empId })));
+      const maxIdx = counts.indexOf(Math.max(...counts));
+      for (let i = 0; i < group.length; i++) {
+        if (i !== maxIdx && !group[i].empId?.startsWith('MERGED-')) {
+          await Employee.updateOne({ _id: group[i]._id }, { $set: { empId: `MERGED-${group[i].empId}`, isActive: false, email: `merged-${Date.now()}@wiom.in` } });
+          dupFixed.push({ deactivated: group[i].empId, kept: group[maxIdx].empId, email });
+        }
+      }
+    }
+    if (dupFixed.length) report.duplicateFixed = dupFixed;
 
-    // Fix email mismatches — employees with no slackUserId
+    // Fix unlinked employees
     const unlinked = await Employee.find({ $or: [{ slackUserId: { $exists: false } }, { slackUserId: '' }, { slackUserId: null }], isActive: true }).lean();
 
     for (const emp of unlinked) {
       if (emp.empId?.startsWith('SLACK-') || emp.empId?.startsWith('MERGED-') || emp.empId === 'TEST001') continue;
-
-      const normalized = normName(emp.name);
-      const slackUser = slackByName[normalized];
-
-      if (!slackUser) {
-        report.skipped.push({ empId: emp.empId, name: emp.name, reason: 'no Slack name match' });
-        continue;
-      }
+      const slackUser = findSlack(emp);
+      if (!slackUser) { report.skipped.push({ empId: emp.empId, name: emp.name }); continue; }
 
       const slackEmail = slackUser.profile?.email?.toLowerCase();
       const updates = { slackUserId: slackUser.id };
@@ -272,12 +297,7 @@ router.post('/fix-all', checkKeyOrJwt, async (req, res) => {
 
     res.json({
       ok: true,
-      summary: {
-        emailFixed: report.emailFixed.length,
-        slackLinked: report.slackLinked.length,
-        duplicateFixed: !!report.duplicateFixed,
-        skipped: report.skipped.length
-      },
+      summary: { emailFixed: report.emailFixed.length, slackLinked: report.slackLinked.length, duplicatesDeactivated: dupFixed.length, skipped: report.skipped.length },
       details: report
     });
   } catch (err) {
