@@ -6779,8 +6779,8 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
    }
  });
 
- // ── Keka daily sync — every day at 1:00 AM ──────────────────────────────────
- cron.schedule('0 1 * * *', async () => {
+ // ── Keka sync — every 15 minutes ────────────────────────────────────────────
+ cron.schedule('*/15 * * * *', async () => {
    console.log('🔄 Keka daily sync starting...');
    try {
      const KEKA_CLIENT_ID     = 'ba5e016d-b4ae-4760-8ce8-13f0161badfe';
