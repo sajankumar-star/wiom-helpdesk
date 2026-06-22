@@ -186,6 +186,26 @@ router.post('/fix-slack-ids', checkKeyOrJwt, async (req, res) => {
   }
 });
 
+// ── POST /api/agent/fix-ticket — fix wrong employee on a ticket ───────────────
+router.post('/fix-ticket', checkKeyOrJwt, async (req, res) => {
+  const { ticketId, empId } = req.body;
+  if (!ticketId || !empId) return res.status(400).json({ error: 'ticketId and empId required' });
+  try {
+    const Ticket   = require('../models/Ticket');
+    const emp = await Employee.findOne({ empId }).lean();
+    if (!emp) return res.status(404).json({ error: `Employee ${empId} not found` });
+    const ticket = await Ticket.findOneAndUpdate(
+      { ticketId },
+      { $set: { empId: emp.empId, empName: emp.name, empEmail: emp.email, slackUserId: emp.slackUserId || '' } },
+      { new: true }
+    ).lean();
+    if (!ticket) return res.status(404).json({ error: `Ticket ${ticketId} not found` });
+    res.json({ ok: true, ticketId, updatedTo: { empId: emp.empId, empName: emp.name, email: emp.email } });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/agent/data-audit — full data health check ────────────────────────
 router.get('/data-audit', checkKeyOrJwt, async (req, res) => {
   const slackClient = req.app.locals.slackClient;
