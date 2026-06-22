@@ -240,25 +240,26 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
       return res.status(502).json({ error: 'Keka token response mein access_token nahi mila' });
     }
 
-    // Step 2: Fetch employees using Bearer token
-    const kekaRes = await fetch(`${KEKA_BASE}/api/v1/hris/employees?pageNumber=1&pageSize=500`, {
-      headers: { 'Authorization': `Bearer ${access_token}`, 'Accept': 'application/json' }
-    });
-
-    if (!kekaRes.ok) {
-      const errBody = await kekaRes.text().catch(() => '');
-      return res.status(502).json({ error: `Keka API ${kekaRes.status}: ${errBody.substring(0, 200)}` });
+    // Step 2: Fetch ALL employees from Keka (all pages)
+    let employees = [], page = 1;
+    while (true) {
+      const r = await fetch(`${KEKA_BASE}/api/v1/hris/employees?pageNumber=${page}&pageSize=200`, {
+        headers: { 'Authorization': `Bearer ${access_token}`, 'Accept': 'application/json' }
+      });
+      if (!r.ok) { const e = await r.text().catch(() => ''); return res.status(502).json({ error: `Keka API ${r.status}: ${e.substring(0, 200)}` }); }
+      const d = await r.json();
+      if (!d.succeeded || !d.data?.length) break;
+      employees = employees.concat(d.data);
+      if (page >= d.totalPages) break;
+      page++;
     }
 
-    const kekaJson = await kekaRes.json();
-    const employees = kekaJson.data || [];
     let synced = 0, errors = 0;
     const errorDetails = [];
 
     for (const ke of employees) {
       try {
         if (!ke.employeeNumber || ke.employeeNumber === '01') continue;
-        if (ke.employmentStatus !== 0) continue; // 0 = active
 
         const email = ke.email?.toLowerCase();
         if (!email) continue;
@@ -267,10 +268,10 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
           { empId: String(ke.employeeNumber) },
           {
             $set: {
-              empId  : String(ke.employeeNumber),
-              name   : ke.displayName || `${ke.firstName} ${ke.lastName}`.trim(),
+              empId   : String(ke.employeeNumber),
+              name    : ke.displayName || `${ke.firstName} ${ke.lastName}`.trim(),
               email,
-              isActive: true,
+              isActive: ke.employmentStatus === 0,
             }
           },
           { upsert: true, new: true }
