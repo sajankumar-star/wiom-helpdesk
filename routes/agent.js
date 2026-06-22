@@ -397,5 +397,110 @@ router.get('/data-audit', checkKeyOrJwt, async (req, res) => {
   }
 });
 
+// ── POST /api/agent/keka-sync — sync employees + assets from Keka ─────────────
+router.post('/keka-sync', checkKeyOrJwt, async (req, res) => {
+  const KEKA_CLIENT_ID     = 'ba5e016d-b4ae-4760-8ce8-13f0161badfe';
+  const KEKA_CLIENT_SECRET = 'A6hO1Q3Oym5RLVoAlr3r';
+  const KEKA_API_KEY       = 'txHdWdKQtRw2lkOjg0YaqQeFeTRZuU-luZbj9IdfEGA=';
+  const KEKA_BASE          = 'https://omniainformation.keka.com/api/v1';
+
+  const report = { employeesAdded: 0, employeesUpdated: 0, assetsLinked: 0, assetsSkipped: 0, errors: [] };
+
+  try {
+    // 1. Get Keka token
+    const tokenRes = await fetch('https://login.keka.com/connect/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'kekaapi', scope: 'kekaapi',
+        client_id: KEKA_CLIENT_ID, client_secret: KEKA_CLIENT_SECRET, api_key: KEKA_API_KEY
+      })
+    });
+    if (!tokenRes.ok) return res.status(502).json({ error: 'Keka token failed', status: tokenRes.status });
+    const { access_token } = await tokenRes.json();
+    const headers = { Authorization: `Bearer ${access_token}` };
+
+    // 2. Fetch all employees from Keka (paginated)
+    let allKekaEmps = [];
+    let page = 1;
+    while (true) {
+      const r = await fetch(`${KEKA_BASE}/hris/employees?pageNumber=${page}&pageSize=100`, { headers });
+      const d = await r.json();
+      if (!d.succeeded || !d.data?.length) break;
+      allKekaEmps = allKekaEmps.concat(d.data);
+      if (page >= d.totalPages) break;
+      page++;
+    }
+
+    // 3. Upsert employees in DB
+    const slackClient = req.app.locals.slackClient;
+    let slackEmailMap = {};
+    if (slackClient) {
+      let allSlackUsers = [], cursor;
+      do {
+        const r = await slackClient.users.list({ limit: 200, ...(cursor ? { cursor } : {}) });
+        allSlackUsers = allSlackUsers.concat(r.members || []);
+        cursor = r.response_metadata?.next_cursor;
+      } while (cursor);
+      for (const u of allSlackUsers) {
+        if (u.is_bot || u.is_app_user || u.deleted) continue;
+        const email = u.profile?.email?.toLowerCase();
+        if (email) slackEmailMap[email] = u.id;
+      }
+    }
+
+    for (const ke of allKekaEmps) {
+      if (!ke.employeeNumber || ke.employeeNumber === '01') continue; // skip test record
+      if (ke.employmentStatus !== 0) continue; // 0 = active
+
+      const empData = {
+        empId: ke.employeeNumber,
+        name: ke.displayName || `${ke.firstName} ${ke.lastName}`.trim(),
+        email: ke.email?.toLowerCase(),
+        isActive: true,
+      };
+      if (slackEmailMap[empData.email]) empData.slackUserId = slackEmailMap[empData.email];
+
+      const existing = await Employee.findOne({ empId: ke.employeeNumber });
+      if (existing) {
+        await Employee.updateOne({ empId: ke.employeeNumber }, { $set: empData });
+        report.employeesUpdated++;
+      } else {
+        await Employee.create(empData);
+        report.employeesAdded++;
+      }
+    }
+
+    // 4. Fetch all assets from Keka (paginated)
+    let allAssets = [];
+    page = 1;
+    while (true) {
+      const r = await fetch(`${KEKA_BASE}/assets?pageNumber=${page}&pageSize=100`, { headers });
+      const d = await r.json();
+      if (!d.succeeded || !d.data?.length) break;
+      allAssets = allAssets.concat(d.data);
+      if (page >= d.totalPages) break;
+      page++;
+    }
+
+    // 5. Link assets to employees
+    for (const asset of allAssets) {
+      if (!asset.assignedTo?.email) { report.assetsSkipped++; continue; }
+      const email = asset.assignedTo.email.toLowerCase();
+      const updated = await Employee.findOneAndUpdate(
+        { email },
+        { $set: { laptop: asset.assetName, laptopSN: asset.assetId } }
+      );
+      if (updated) report.assetsLinked++;
+      else report.assetsSkipped++;
+    }
+
+    console.log(`Keka sync done: +${report.employeesAdded} new, ${report.employeesUpdated} updated, ${report.assetsLinked} assets linked`);
+    res.json({ ok: true, ...report });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
 
