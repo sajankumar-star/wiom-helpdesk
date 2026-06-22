@@ -502,5 +502,20 @@ router.post('/keka-sync', checkKeyOrJwt, async (req, res) => {
   }
 });
 
+// ── POST /api/agent/fix-merged-records — delete fake MERGED- empId records ────
+router.post('/fix-merged-records', checkKeyOrJwt, async (req, res) => {
+  try {
+    const mergedRecords = await Employee.find({ empId: /^MERGED-/ }).lean();
+    const deleted = [];
+    for (const rec of mergedRecords) {
+      await Employee.deleteOne({ _id: rec._id });
+      deleted.push({ empId: rec.empId, name: rec.name });
+    }
+    res.json({ ok: true, deleted, count: deleted.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
 
