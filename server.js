@@ -969,7 +969,7 @@ app.listen(PORT, async () => {
    // ── 1. Header ─────────────────────────────────────────────────────────
    blocks.push({
      type: 'section',
-     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n⚡ *Nova – Your IT Superpower*` },
+     text: { type: 'mrkdwn', text: `*${greeting}, ${firstName}! 👋*\n⚡ *Techseva – Your IT Superpower*` },
    });
 
    // ── 5. Quick Actions ──────────────────────────────────────────────────
@@ -1084,7 +1084,7 @@ app.listen(PORT, async () => {
  const buildGreetingBlocks = (firstName = 'there') => ([
    {
      type: 'section',
-     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\n⚡ *Nova – Your IT Superpower*\nLaptop, WiFi, software, password — batao, main turant help karunga!\n\n_Select a category below 👇_` },
+     text: { type: 'mrkdwn', text: `*Hey ${firstName}! 👋*\n\n⚡ *Techseva – Your IT Superpower*\nLaptop, WiFi, software, password — batao, main turant help karunga!\n\n_Select a category below 👇_` },
     },
    { type: 'divider' },
    {
@@ -1104,7 +1104,7 @@ app.listen(PORT, async () => {
        { type: 'button', text: { type: 'plain_text', text: '📞  Contact IT', emoji: true }, action_id: 'home_contact_it', value: 'contact_it' },
      ]
    },
-   { type: 'context', elements: [{ type: 'mrkdwn', text: '_⚡ Nova – Your IT Superpower · 24/7 Available_' }] }
+   { type: 'context', elements: [{ type: 'mrkdwn', text: '_⚡ Techseva – Your IT Superpower · 24/7 Available_' }] }
  ]);
 
  // ── Shared: "Issue Resolved" modal view — same for every problem ────────────
@@ -1510,8 +1510,8 @@ app.listen(PORT, async () => {
 
  if (!text) {
  await respond({ response_type: 'ephemeral', blocks:[
- { type:'section', text:{ type:'mrkdwn', text:'⚡ *Nova – Your IT Superpower*\nDescribe your IT problem!\n\n*Examples:*\n `/helpdesk wifi not working`\n `/helpdesk laptop is slow`\n `/helpdesk gmail not opening`\n\n_To view your tickets:_ `/helpdesk status`' }}
- ], text:'Nova – Your IT Superpower · describe your problem' });
+ { type:'section', text:{ type:'mrkdwn', text:'⚡ *Techseva – Your IT Superpower*\nDescribe your IT problem!\n\n*Examples:*\n `/helpdesk wifi not working`\n `/helpdesk laptop is slow`\n `/helpdesk gmail not opening`\n\n_To view your tickets:_ `/helpdesk status`' }}
+ ], text:'Techseva – Your IT Superpower · describe your problem' });
  return;
  }
 
@@ -2658,7 +2658,7 @@ app.listen(PORT, async () => {
      // Welcome message to new employee
      await client.chat.postMessage({
        channel: slackUserId,
-       text: `✅ Nova se connected ho gaye! Ab tum tickets raise kar sakte ho. Home tab kholo. ⚡`,
+       text: `✅ Techseva se connected ho gaye! Ab tum tickets raise kar sakte ho. Home tab kholo. ⚡`,
      });
    } catch (err) { console.error('add_employee_modal_submit error:', err.message); }
  });
@@ -3230,7 +3230,7 @@ app.listen(PORT, async () => {
          text: 'No pending tickets!',
          blocks: [
            { type: 'section', text: { type: 'mrkdwn', text: `✅ *No pending tickets!*\n\nAll clear — if you have a new problem, just select a category from the Home tab! 😊` } },
-           { type: 'context', elements: [{ type: 'mrkdwn', text: '_⚡ Nova – Your IT Superpower · Available 24/7_' }] }
+           { type: 'context', elements: [{ type: 'mrkdwn', text: '_⚡ Techseva – Your IT Superpower · Available 24/7_' }] }
          ]
        });
        return;
@@ -4229,7 +4229,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
            channel: dm.channel.id,
            text: `Hi ${emp.name.split(' ')[0]}! Please select your reporting manager 👇`,
            blocks: [
-             { type: 'section', text: { type: 'mrkdwn', text: `*Hi ${emp.name.split(' ')[0]}! 👋*\n\n⚡ Nova needs to know your *reporting manager* to process software requests.\n\nPlease click below to select your manager:` } },
+             { type: 'section', text: { type: 'mrkdwn', text: `*Hi ${emp.name.split(' ')[0]}! 👋*\n\n⚡ Techseva needs to know your *reporting manager* to process software requests.\n\nPlease click below to select your manager:` } },
              { type: 'actions', elements: [
                { type: 'button', text: { type: 'plain_text', text: '👤 Select My Manager', emoji: true }, style: 'primary', action_id: 'emp_self_select_manager', value: JSON.stringify({ empId: emp.empId, empName: emp.name }) },
              ]}
@@ -5022,7 +5022,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
          await client.chat.postMessage({
            channel: userId,
            blocks: [
-             { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(byEmail.name)}!*\n\n⚡ *Nova – Your IT Superpower* is ready.\n*Employee ID:* \`${byEmail.empId}\` · *Dept:* ${_mrkdwnEscape(byEmail.department || 'N/A')}` } },
+             { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(byEmail.name)}!*\n\n⚡ *Techseva – Your IT Superpower* is ready.\n*Employee ID:* \`${byEmail.empId}\` · *Dept:* ${_mrkdwnEscape(byEmail.department || 'N/A')}` } },
              { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🏠 Open IT Helpdesk' }, action_id: 'open_home_tab', style: 'primary' }] }
            ], text: `Welcome ${byEmail.name}!`
          });
@@ -5048,7 +5048,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
      await client.chat.postMessage({
        channel: userId,
        blocks: [
-         { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(realName)}!*\n\n⚡ *Nova – Your IT Superpower* se ab tum connected ho. Koi bhi IT problem ho — Nova yahan hai!` } },
+         { type: 'section', text: { type: 'mrkdwn', text: `👋 *Welcome to WIOM, ${_mrkdwnEscape(realName)}!*\n\n⚡ *Techseva – Your IT Superpower* se ab tum connected ho. Koi bhi IT problem ho — Techseva yahan hai!` } },
          { type: 'actions', elements: [{ type: 'button', text: { type: 'plain_text', text: '🏠 Open IT Helpdesk' }, action_id: 'open_home_tab', style: 'primary' }] }
        ], text: `Welcome ${realName}!`
      });
@@ -5526,7 +5526,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  { type:'button', text:{ type:'plain_text', text:'📹 Teams / Zoom', emoji:true }, action_id:'vague_pick_teams_issue', value:'Microsoft Teams not working' },
  { type:'button', text:{ type:'plain_text', text:'🎫 Create Ticket', emoji:true }, style:'primary', action_id:'vague_pick_create_ticket', value:'create ticket' },
  ]},
- { type:'context', elements:[{ type:'mrkdwn', text:`_⚡ Nova – Your IT Superpower · 24/7 Available_` }]}
+ { type:'context', elements:[{ type:'mrkdwn', text:`_⚡ Techseva – Your IT Superpower · 24/7 Available_` }]}
  ]
  });
  return;
@@ -6701,7 +6701,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  text : `⚡ WIOM IT — Good Morning! IT Helpdesk Daily Summary ${dateStr}`,
  blocks : [
  { type:'header', text:{ type:'plain_text', text:`⚡ WIOM IT — Daily Summary`, emoji:true }},
- { type:'context', elements:[{ type:'mrkdwn', text:`_${dateStr} | ⚡ Nova – Your IT Superpower_` }]},
+ { type:'context', elements:[{ type:'mrkdwn', text:`_${dateStr} | ⚡ Techseva – Your IT Superpower_` }]},
  { type:'divider' },
  { type:'section', fields:[
  { type:'mrkdwn', text:`*🎫 Today's New*\n*${newToday}* tickets` },
@@ -6716,7 +6716,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  { type:'divider' },
  { type:'section', text:{ type:'mrkdwn', text:`*⏳ Oldest Pending Tickets:*\n${oldestText}` }}
  ] : []),
- { type:'context', elements:[{ type:'mrkdwn', text:`_⚡ Nova – Your IT Superpower_` }]}
+ { type:'context', elements:[{ type:'mrkdwn', text:`_⚡ Techseva – Your IT Superpower_` }]}
  ]
  });
  console.log(' Daily summary sent to admin');
