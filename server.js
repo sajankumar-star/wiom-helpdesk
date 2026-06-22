@@ -181,13 +181,12 @@ cron.schedule('0 * * * *', async () => {
  try {
  await slackClient.chat.postMessage({
  channel: adminId,
- text: `⚠️ Escalation: ${t.ticketId} ${t.empName} (${hoursOld}h open)`,
+ text: `⚠️ Escalation: ${t.ticketId} (${hoursOld}h open)`,
  attachments: [{
  color: '#ef4444',
  blocks: [
  { type:'header', text:{ type:'plain_text', text:`⚠️ Escalation Alert ${t.ticketId}`, emoji:true }},
  { type:'section', fields:[
- { type:'mrkdwn', text:`* Employee*\n${t.empName} (${t.empDept||'Unknown'})` },
  { type:'mrkdwn', text:`*${priEmoji[t.priority]||''} Priority*\n${t.priority}` },
  { type:'mrkdwn', text:`*⏱ Open Since*\n${hoursOld} hours` },
  { type:'mrkdwn', text:`* Category*\n${t.category||'Other'}` }
