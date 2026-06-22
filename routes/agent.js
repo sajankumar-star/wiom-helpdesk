@@ -206,6 +206,85 @@ router.post('/fix-ticket', checkKeyOrJwt, async (req, res) => {
   }
 });
 
+// ── POST /api/agent/fix-all — fix email mismatches + duplicate Manoj Kumar ────
+router.post('/fix-all', checkKeyOrJwt, async (req, res) => {
+  const slackClient = req.app.locals.slackClient;
+  if (!slackClient) return res.status(503).json({ error: 'Slack not connected' });
+
+  const report = { emailFixed: [], slackLinked: [], duplicateFixed: null, skipped: [] };
+
+  try {
+    // Fetch all Slack users
+    let allSlackUsers = [];
+    let cursor;
+    do {
+      const r = await slackClient.users.list({ limit: 200, ...(cursor ? { cursor } : {}) });
+      allSlackUsers = allSlackUsers.concat(r.members || []);
+      cursor = r.response_metadata?.next_cursor;
+    } while (cursor);
+
+    const realSlack = allSlackUsers.filter(u => !u.is_bot && !u.is_app_user && !u.deleted);
+
+    // Build name → slack user map (normalized)
+    const normName = n => n?.toLowerCase().replace(/[^a-z\s]/g, '').replace(/\s+/g, ' ').trim();
+    const slackByName = {};
+    for (const u of realSlack) {
+      const n = normName(u.profile?.real_name || u.real_name);
+      if (n) slackByName[n] = u;
+    }
+
+    // Fix duplicate Manoj Kumar — keep 2025258, remove 2025296 (or vice versa — keep one with more tickets)
+    const Ticket = require('../models/Ticket');
+    const manoj1 = await Employee.findOne({ empId: '2025258' }).lean();
+    const manoj2 = await Employee.findOne({ empId: '2025296' }).lean();
+    if (manoj1 && manoj2) {
+      const t1 = await Ticket.countDocuments({ empId: '2025258' });
+      const t2 = await Ticket.countDocuments({ empId: '2025296' });
+      const keepId = t1 >= t2 ? '2025258' : '2025296';
+      const removeId = keepId === '2025258' ? '2025296' : '2025258';
+      await Employee.updateOne({ empId: removeId }, { $set: { empId: `MERGED-${removeId}`, isActive: false, email: `merged-${removeId}@wiom.in` } });
+      report.duplicateFixed = { kept: keepId, deactivated: removeId, tickets: { [keepId]: t1, [removeId]: t2 } };
+    }
+
+    // Fix email mismatches — employees with no slackUserId
+    const unlinked = await Employee.find({ $or: [{ slackUserId: { $exists: false } }, { slackUserId: '' }, { slackUserId: null }], isActive: true }).lean();
+
+    for (const emp of unlinked) {
+      if (emp.empId?.startsWith('SLACK-') || emp.empId?.startsWith('MERGED-') || emp.empId === 'TEST001') continue;
+
+      const normalized = normName(emp.name);
+      const slackUser = slackByName[normalized];
+
+      if (!slackUser) {
+        report.skipped.push({ empId: emp.empId, name: emp.name, reason: 'no Slack name match' });
+        continue;
+      }
+
+      const slackEmail = slackUser.profile?.email?.toLowerCase();
+      const updates = { slackUserId: slackUser.id };
+      if (slackEmail && slackEmail !== emp.email?.toLowerCase()) {
+        updates.email = slackEmail;
+        report.emailFixed.push({ empId: emp.empId, name: emp.name, oldEmail: emp.email, newEmail: slackEmail });
+      }
+      await Employee.updateOne({ _id: emp._id }, { $set: updates });
+      report.slackLinked.push({ empId: emp.empId, name: emp.name, slackId: slackUser.id });
+    }
+
+    res.json({
+      ok: true,
+      summary: {
+        emailFixed: report.emailFixed.length,
+        slackLinked: report.slackLinked.length,
+        duplicateFixed: !!report.duplicateFixed,
+        skipped: report.skipped.length
+      },
+      details: report
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/agent/data-audit — full data health check ────────────────────────
 router.get('/data-audit', checkKeyOrJwt, async (req, res) => {
   const slackClient = req.app.locals.slackClient;
