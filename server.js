@@ -6779,6 +6779,97 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
    }
  });
 
+ // ── Keka daily sync — every day at 1:00 AM ──────────────────────────────────
+ cron.schedule('0 1 * * *', async () => {
+   console.log('🔄 Keka daily sync starting...');
+   try {
+     const KEKA_CLIENT_ID     = 'ba5e016d-b4ae-4760-8ce8-13f0161badfe';
+     const KEKA_CLIENT_SECRET = 'A6hO1Q3Oym5RLVoAlr3r';
+     const KEKA_API_KEY       = 'txHdWdKQtRw2lkOjg0YaqQeFeTRZuU-luZbj9IdfEGA=';
+     const KEKA_BASE          = 'https://omniainformation.keka.com/api/v1';
+
+     const tokenRes = await fetch('https://login.keka.com/connect/token', {
+       method: 'POST',
+       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+       body: new URLSearchParams({
+         grant_type: 'kekaapi', scope: 'kekaapi',
+         client_id: KEKA_CLIENT_ID, client_secret: KEKA_CLIENT_SECRET, api_key: KEKA_API_KEY
+       })
+     });
+     if (!tokenRes.ok) { console.error('Keka token failed:', tokenRes.status); return; }
+     const { access_token } = await tokenRes.json();
+     const headers = { Authorization: `Bearer ${access_token}` };
+
+     // Fetch all active employees
+     let allKekaEmps = [], page = 1;
+     while (true) {
+       const r = await fetch(`${KEKA_BASE}/hris/employees?pageNumber=${page}&pageSize=100`, { headers });
+       const d = await r.json();
+       if (!d.succeeded || !d.data?.length) break;
+       allKekaEmps = allKekaEmps.concat(d.data);
+       if (page >= d.totalPages) break;
+       page++;
+     }
+
+     // Build Slack email map
+     let slackEmailMap = {};
+     try {
+       let allSlackUsers = [], cursor;
+       do {
+         const r = await slackApp.client.users.list({ limit: 200, ...(cursor ? { cursor } : {}) });
+         allSlackUsers = allSlackUsers.concat(r.members || []);
+         cursor = r.response_metadata?.next_cursor;
+       } while (cursor);
+       for (const u of allSlackUsers) {
+         if (u.is_bot || u.is_app_user || u.deleted) continue;
+         const email = u.profile?.email?.toLowerCase();
+         if (email) slackEmailMap[email] = u.id;
+       }
+     } catch (e) { console.error('Keka sync: Slack lookup failed', e.message); }
+
+     let added = 0, updated = 0;
+     for (const ke of allKekaEmps) {
+       if (!ke.employeeNumber || ke.employeeNumber === '01') continue;
+       if (ke.employmentStatus !== 0) continue;
+       const email = ke.email?.toLowerCase();
+       const empData = {
+         empId: ke.employeeNumber,
+         name: ke.displayName || `${ke.firstName} ${ke.lastName}`.trim(),
+         email,
+         isActive: true,
+       };
+       if (slackEmailMap[email]) empData.slackUserId = slackEmailMap[email];
+       const existing = await Employee.findOne({ empId: ke.employeeNumber });
+       if (existing) { await Employee.updateOne({ empId: ke.employeeNumber }, { $set: empData }); updated++; }
+       else { await Employee.create(empData); added++; }
+     }
+
+     // Fetch and link assets
+     let allAssets = []; page = 1;
+     while (true) {
+       const r = await fetch(`${KEKA_BASE}/assets?pageNumber=${page}&pageSize=100`, { headers });
+       const d = await r.json();
+       if (!d.succeeded || !d.data?.length) break;
+       allAssets = allAssets.concat(d.data);
+       if (page >= d.totalPages) break;
+       page++;
+     }
+     let assetsLinked = 0;
+     for (const asset of allAssets) {
+       if (!asset.assignedTo?.email) continue;
+       const res = await Employee.findOneAndUpdate(
+         { email: asset.assignedTo.email.toLowerCase() },
+         { $set: { laptop: asset.assetName, laptopSN: asset.assetId } }
+       );
+       if (res) assetsLinked++;
+     }
+
+     console.log(`✅ Keka sync done: +${added} new, ${updated} updated, ${assetsLinked} assets linked`);
+   } catch (err) {
+     console.error('Keka sync cron error:', err.message);
+   }
+ });
+
  }).catch(err => {
  console.error('❌ Slack Bot start failed:', err.message);
  });
