@@ -250,30 +250,33 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
       return res.status(502).json({ error: `Keka API ${kekaRes.status}: ${errBody.substring(0, 200)}` });
     }
 
-    const { data: employees = [] } = await kekaRes.json();
+    const kekaJson = await kekaRes.json();
+    const employees = kekaJson.data || [];
     let synced = 0, errors = 0;
+    const errorDetails = [];
 
     for (const ke of employees) {
       try {
-        const mgr = ke.reportingManager || ke.reportsTo || null;
-        const mgrId = String(mgr?.employeeNumber || mgr?.id || '').toUpperCase() || null;
-        const mgrName = mgr ? `${mgr.firstName || ''} ${mgr.lastName || ''}`.trim() || mgr.displayName || mgr.name || '' : '';
+        if (!ke.employeeNumber || ke.employeeNumber === '01') continue;
+        if (ke.employmentStatus !== 0) continue; // 0 = active
+
+        const email = ke.email?.toLowerCase();
+        if (!email) continue;
 
         await Employee.findOneAndUpdate(
-          { empId: String(ke.employeeNumber || ke.id).toUpperCase() },
+          { empId: String(ke.employeeNumber) },
           {
-            name       : `${ke.firstName} ${ke.lastName}`.trim(),
-            email      : ke.workEmail?.toLowerCase() || ke.email?.toLowerCase(),
-            department : ke.department?.name,
-            designation: ke.jobTitle,
-            isActive   : ke.employmentStatus !== 'terminated',
-            ...(mgrId   && { managerId: mgrId }),
-            ...(mgrName && { managerName: mgrName }),
+            $set: {
+              empId  : String(ke.employeeNumber),
+              name   : ke.displayName || `${ke.firstName} ${ke.lastName}`.trim(),
+              email,
+              isActive: true,
+            }
           },
           { upsert: true, new: true }
         );
         synced++;
-      } catch { errors++; }
+      } catch (e) { errors++; errorDetails.push(e.message); }
     }
 
     // Second pass: resolve managerSlackId using managerId → Employee.slackUserId
