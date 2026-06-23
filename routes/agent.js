@@ -502,6 +502,45 @@ router.post('/keka-sync', checkKeyOrJwt, async (req, res) => {
   }
 });
 
+// ── POST /api/agent/create-missing-slack-records — create temp DB records for Slack users not in DB ──
+router.post('/create-missing-slack-records', checkKeyOrJwt, async (req, res) => {
+  const slackClient = req.app.locals.slackClient;
+  if (!slackClient) return res.status(503).json({ error: 'Slack not connected' });
+
+  try {
+    let allSlackUsers = [], cursor;
+    do {
+      const r = await slackClient.users.list({ limit: 200, ...(cursor ? { cursor } : {}) });
+      allSlackUsers = allSlackUsers.concat(r.members || []);
+      cursor = r.response_metadata?.next_cursor;
+    } while (cursor);
+
+    const realUsers = allSlackUsers.filter(u => !u.is_bot && !u.is_app_user && !u.deleted);
+    const employees = await Employee.find({}).lean();
+    const dbEmails = new Set(employees.map(e => e.email?.toLowerCase()).filter(Boolean));
+    const dbSlackIds = new Set(employees.map(e => e.slackUserId).filter(Boolean));
+
+    const created = [], skipped = [];
+    for (const u of realUsers) {
+      const email = u.profile?.email?.toLowerCase();
+      if (!email || !email.endsWith('@wiom.in')) continue;
+      if (dbEmails.has(email) || dbSlackIds.has(u.id)) { skipped.push(u.id); continue; }
+
+      const name = u.profile?.real_name || u.name;
+      await Employee.findOneAndUpdate(
+        { empId: `SLACK-${u.id}` },
+        { $setOnInsert: { empId: `SLACK-${u.id}`, name, email, slackUserId: u.id, isActive: true } },
+        { upsert: true }
+      );
+      created.push({ slackId: u.id, name, email });
+    }
+
+    res.json({ ok: true, created: created.length, skipped: skipped.length, records: created });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── POST /api/agent/set-slack-id — directly set slackUserId on an employee ───
 router.post('/set-slack-id', checkKeyOrJwt, async (req, res) => {
   const { empId, slackUserId } = req.body;
