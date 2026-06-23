@@ -502,6 +502,23 @@ router.post('/keka-sync', checkKeyOrJwt, async (req, res) => {
   }
 });
 
+// ── POST /api/agent/set-slack-id — directly set slackUserId on an employee ───
+router.post('/set-slack-id', checkKeyOrJwt, async (req, res) => {
+  const { empId, slackUserId } = req.body;
+  if (!empId || !slackUserId) return res.status(400).json({ error: 'empId and slackUserId required' });
+  try {
+    const emp = await Employee.findOneAndUpdate(
+      { empId },
+      { $set: { slackUserId } },
+      { new: true }
+    );
+    if (!emp) return res.status(404).json({ error: `Employee ${empId} not found` });
+    res.json({ ok: true, empId: emp.empId, name: emp.name, slackUserId: emp.slackUserId });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── POST /api/agent/fix-merged-records — delete fake MERGED- empId records ────
 router.post('/fix-merged-records', checkKeyOrJwt, async (req, res) => {
   try {
