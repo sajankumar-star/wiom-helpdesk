@@ -541,6 +541,18 @@ router.post('/create-missing-slack-records', checkKeyOrJwt, async (req, res) => 
   }
 });
 
+// ── GET /api/agent/emp-check?empId=XXX — check employee record ───────────────
+router.get('/emp-check', checkKeyOrJwt, async (req, res) => {
+  const { empId, email } = req.query;
+  try {
+    const emp = empId
+      ? await Employee.findOne({ empId }).lean()
+      : await Employee.findOne({ email: email?.toLowerCase() }).lean();
+    if (!emp) return res.status(404).json({ error: 'Not found' });
+    res.json({ empId: emp.empId, name: emp.name, email: emp.email, laptop: emp.laptop, laptopSN: emp.laptopSN, slackUserId: emp.slackUserId, isActive: emp.isActive });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── POST /api/agent/set-slack-id — directly set slackUserId on an employee ───
 router.post('/set-slack-id', checkKeyOrJwt, async (req, res) => {
   const { empId, slackUserId } = req.body;
