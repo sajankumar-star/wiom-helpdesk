@@ -6854,8 +6854,10 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
        if (page >= d.totalPages) break;
        page++;
      }
+     const LAPTOP_TYPE_ID = '9992eb42-d8ab-4d7e-9a1b-183e951eedab';
      let assetsLinked = 0;
      for (const asset of allAssets) {
+       if (asset.assetTypeId !== LAPTOP_TYPE_ID) continue;
        if (!asset.assignedTo?.email) continue;
        const res = await Employee.findOneAndUpdate(
          { email: asset.assignedTo.email.toLowerCase() },

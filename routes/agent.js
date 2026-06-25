@@ -483,8 +483,11 @@ router.post('/keka-sync', checkKeyOrJwt, async (req, res) => {
       page++;
     }
 
-    // 5. Link assets to employees
+    const LAPTOP_TYPE_ID = '9992eb42-d8ab-4d7e-9a1b-183e951eedab';
+
+    // 5. Link only laptop assets to employees
     for (const asset of allAssets) {
+      if (asset.assetTypeId !== LAPTOP_TYPE_ID) { report.assetsSkipped++; continue; }
       if (!asset.assignedTo?.email) { report.assetsSkipped++; continue; }
       const email = asset.assignedTo.email.toLowerCase();
       const updated = await Employee.findOneAndUpdate(
