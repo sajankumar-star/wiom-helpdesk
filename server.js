@@ -1451,6 +1451,24 @@ app.listen(PORT, async () => {
  }
  };
 
+ // ── Notify employee — confirm ticket creation via DM ──────────────────────
+ const notifyEmployee = async (client, ticket, slackUserId) => {
+   if (!slackUserId) return;
+   try {
+     await client.chat.postMessage({
+       channel: slackUserId,
+       text: `✅ Ticket Created: ${ticket.ticketId}`,
+       blocks: [
+         { type: 'section', text: { type: 'mrkdwn', text: `✅ *Aapka ticket submit ho gaya!*\n\n🎫 *Ticket ID:* \`${ticket.ticketId}\`\n📂 *Category:* ${ticket.category || 'Other'}\n⚡ *Priority:* ${ticket.priority || 'Medium'}` }},
+         { type: 'section', text: { type: 'mrkdwn', text: `📝 *Issue:* ${ticket.description}` }},
+         { type: 'context', elements: [{ type: 'mrkdwn', text: `IT team jald hi aapki madad karega. 🙏` }]}
+       ]
+     });
+   } catch (err) {
+     console.error('Employee DM error:', err.message);
+   }
+ };
+
  // ── Create ticket directly in MongoDB (no HTTP call needed) ──────────────
  const SAJAN_ID = (process.env.ADMIN_SLACK_USER_ID || '').trim() || 'U08K2LXAN5Q';
 
@@ -1586,7 +1604,7 @@ app.listen(PORT, async () => {
  { type:'mrkdwn', text:`*${priEmoji[result.priority]||''} Priority:*\n${result.priority}` }
  ]});
  blocks.push({ type:'context', elements:[{ type:'mrkdwn', text:`✅ IT team has been alerted ` }]});
- await notifyAdmin(client, result, emp);
+ await notifyAdmin(client, result, emp); notifyEmployee(client, result, result.slackUserId);
  }
  }
 
@@ -1691,7 +1709,7 @@ app.listen(PORT, async () => {
  { type:'context', elements:[{ type:'mrkdwn', text:`✅ IT team has been notified | Track: type *my tickets*` }]}
  ]
  });
- await notifyAdmin(client, result, emp);
+ await notifyAdmin(client, result, emp); notifyEmployee(client, result, result.slackUserId);
  console.log(`Ticket ${result.ticketId} created via /ticket modal by ${emp.empName}`);
  } else {
  await client.chat.postMessage({
@@ -3712,7 +3730,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
          });
          if (result && !result._duplicate) {
            ticketId = result.ticketId;
-           await notifyAdmin(client, result, emp);
+           await notifyAdmin(client, result, emp); notifyEmployee(client, result, result.slackUserId);
          }
        } catch (ticketErr) {
          console.error('SOS ticket error:', ticketErr.message);
@@ -4498,7 +4516,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
        category: 'Hardware', priority: 'Critical',
        source: 'slack', slackUserId: userId
      });
-     if (result && !result._duplicate) await notifyAdmin(client, result, emp);
+     if (result && !result._duplicate) await notifyAdmin(client, result, emp); notifyEmployee(client, result, result.slackUserId);
    }
  }).catch(e => console.error('Liquid damage ticket error:', e.message));
  }
@@ -4757,7 +4775,7 @@ slackApp.action('home_contact_it', async ({ body, ack, client }) => {
  } else if (triggerId) {
    await client.views.open({ trigger_id: triggerId, view: successView }).catch(() => {});
  }
- if (result && !result._duplicate) await notifyAdmin(client, result, emp);
+ if (result && !result._duplicate) await notifyAdmin(client, result, emp); notifyEmployee(client, result, result.slackUserId);
  } catch (err) {
  console.error('Email pwd ticket error:', err.message);
  if (viewId) {
@@ -5562,7 +5580,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  { type:'context', elements:[{ type:'mrkdwn', text:`✅ IT team has been notified | Track: type *my tickets*` }]}
  ]
  });
- await notifyAdmin(client, result, emp);
+ await notifyAdmin(client, result, emp); notifyEmployee(client, result, result.slackUserId);
  } else {
  await say({ text: '❌ Could not create ticket. Please use the `/ticket` command.' });
  }
@@ -5614,7 +5632,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
  { type:'context', elements:[{ type:'mrkdwn', text:`✅ IT team has been notified | Track: type *my tickets*` }]}
  ]
  });
- await notifyAdmin(client, result, emp);
+ await notifyAdmin(client, result, emp); notifyEmployee(client, result, result.slackUserId);
  } else {
  await say({ text: '❌ Could not create ticket. Please try `/ticket` or contact IT directly.' });
  }
@@ -6379,7 +6397,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
            ]
          });
        }
-       await notifyAdmin(client, result, emp);
+       await notifyAdmin(client, result, emp); notifyEmployee(client, result, result.slackUserId);
      }
    } catch(err) {
      console.error('quick_ticket_btn error:', err.message);
@@ -6438,7 +6456,7 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
      } else if (result) {
        pendingTickets.delete(userId);
        if (viewId) await client.views.update({ view_id: viewId, view: ticketCreatedModalView(result) }).catch(() => {});
-       await notifyAdmin(client, result, emp);
+       await notifyAdmin(client, result, emp); notifyEmployee(client, result, result.slackUserId);
      } else {
        if (viewId) await client.views.update({ view_id: viewId, view: {
          type: 'modal', title: { type: 'plain_text', text: 'Error', emoji: true },

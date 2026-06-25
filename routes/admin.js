@@ -413,4 +413,67 @@ router.get('/bot-stats', verifyAdmin, async (req, res) => {
   }
 });
 
+// ── GET /api/admin/laptops — All employees with laptop + S/N ─────────────────
+router.get('/laptops', verifyAdmin, async (req, res) => {
+  try {
+    const employees = await Employee.find({}, 'empId name email laptop laptopSN isActive').sort({ name: 1 });
+    res.json({ total: employees.length, employees });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// ── GET /api/admin/tickets/export — Download all tickets as CSV ──────────────
+router.get('/tickets/export', verifyAdmin, async (req, res) => {
+  try {
+    const { status, from, to } = req.query;
+    const filter = {};
+    if (status) filter.status = status;
+    if (from || to) {
+      filter.createdAt = {};
+      if (from) filter.createdAt.$gte = new Date(from);
+      if (to)   filter.createdAt.$lte = new Date(to + 'T23:59:59Z');
+    }
+    const tickets = await Ticket.find(filter).sort({ createdAt: -1 }).limit(5000);
+
+    const escape = v => `"${String(v ?? '').replace(/"/g, '""')}"`;
+    const header = ['Ticket ID','Employee','Email','Category','Priority','Status','Description','Laptop','S/N','Created At','Resolved At'];
+    const rows = tickets.map(t => [
+      t.ticketId, t.empName, t.empEmail, t.category, t.priority, t.status,
+      t.description, t.laptop || '', t.laptopSN || '',
+      t.createdAt ? new Date(t.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : '',
+      t.resolvedAt ? new Date(t.resolvedAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : ''
+    ].map(escape).join(','));
+
+    const csv = [header.join(','), ...rows].join('\r\n');
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="tickets-${new Date().toISOString().slice(0,10)}.csv"`);
+    res.send(csv);
+  } catch (err) {
+    res.status(500).json({ error: 'Internal error' });
+  }
+});
+
+// ── GET /api/admin/pending-summary — Live ticket counts by status ────────────
+router.get('/pending-summary', verifyAdmin, async (req, res) => {
+  try {
+    const [counts, critical, slaBreached] = await Promise.all([
+      Ticket.aggregate([
+        { $match: { status: { $in: ['Open', 'In Progress', 'Waiting'] } } },
+        { $group: { _id: '$status', count: { $sum: 1 } } }
+      ]),
+      Ticket.countDocuments({ status: { $in: ['Open', 'In Progress'] }, priority: 'Critical' }),
+      Ticket.countDocuments({ status: { $in: ['Open', 'In Progress'] }, slaBreached: true })
+    ]);
+
+    const byStatus = { Open: 0, 'In Progress': 0, Waiting: 0 };
+    counts.forEach(c => { byStatus[c._id] = c.count; });
+    const totalPending = byStatus.Open + byStatus['In Progress'] + byStatus.Waiting;
+
+    res.json({ totalPending, byStatus, critical, slaBreached });
+  } catch (err) {
+    res.status(500).json({ error: 'Internal error' });
+  }
+});
+
 module.exports = router;
