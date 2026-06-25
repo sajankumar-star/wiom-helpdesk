@@ -1438,8 +1438,7 @@ app.listen(PORT, async () => {
  blocks: [
  { type:'section', fields:[
  { type:'mrkdwn', text:`*🎫 Ticket ID*\n\`${ticket.ticketId}\`` },
- { type:'mrkdwn', text:`*👤 Employee*\n${emp.empName}` },
- { type:'mrkdwn', text:`*🏢 Dept*\n${emp.dept||'Unknown'}` }
+ { type:'mrkdwn', text:`*👤 Employee*\n${emp.empName}` }
  ]},
  { type:'section', text:{ type:'mrkdwn', text:laptopLine }},
  { type:'section', text:{ type:'mrkdwn', text:`*📝 Issue:*\n${ticket.description}` }},
