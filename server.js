@@ -1427,9 +1427,6 @@ app.listen(PORT, async () => {
  if (!adminId || adminId === 'FILL_KARO') return;
  const priEmoji = { Critical:'', High:'', Medium:'', Low:'' };
  const priColor = { Critical:'#ef4444', High:'#f59e0b', Medium:'#3b82f6', Low:'#10b981' };
- const laptopLine = emp.laptop
-   ? `💻 *Laptop:* ${emp.laptop}${emp.laptopSN ? `  |  *S/N:* \`${emp.laptopSN}\`` : ''}`
-   : `💻 *Laptop:* _Not assigned_`;
  await client.chat.postMessage({
  channel: adminId,
  text: `${priEmoji[ticket.priority]||''} New Ticket: ${ticket.ticketId} ${emp.empName}`,
@@ -1437,10 +1434,11 @@ app.listen(PORT, async () => {
  color: priColor[ticket.priority] || '#3b82f6',
  blocks: [
  { type:'section', fields:[
- { type:'mrkdwn', text:`*🎫 Ticket ID*\n\`${ticket.ticketId}\`` },
- { type:'mrkdwn', text:`*👤 Employee*\n${emp.empName}` }
+   { type:'mrkdwn', text:`*🎫 Ticket ID*\n\`${ticket.ticketId}\`` },
+   { type:'mrkdwn', text:`*👤 Employee*\n${emp.empName}` },
+   { type:'mrkdwn', text:`*💻 Laptop*\n${emp.laptop || '_Not assigned_'}` },
+   { type:'mrkdwn', text:`*🔢 S/N*\n${emp.laptopSN ? `\`${emp.laptopSN}\`` : '_N/A_'}` }
  ]},
- { type:'section', text:{ type:'mrkdwn', text:laptopLine }},
  { type:'section', text:{ type:'mrkdwn', text:`*📝 Issue:*\n${ticket.description}` }}
  ]
  }]
