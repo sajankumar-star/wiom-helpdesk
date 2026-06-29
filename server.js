@@ -1441,8 +1441,7 @@ app.listen(PORT, async () => {
  { type:'mrkdwn', text:`*👤 Employee*\n${emp.empName}` }
  ]},
  { type:'section', text:{ type:'mrkdwn', text:laptopLine }},
- { type:'section', text:{ type:'mrkdwn', text:`*📝 Issue:*\n${ticket.description}` }},
- { type:'context', elements:[{ type:'mrkdwn', text:`Added by Techseva` }]}
+ { type:'section', text:{ type:'mrkdwn', text:`*📝 Issue:*\n${ticket.description}` }}
  ]
  }]
  });
