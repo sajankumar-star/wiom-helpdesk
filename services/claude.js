@@ -54,7 +54,78 @@ COMMON FIXES (give these steps directly):
 - Camera: Settings→Privacy→Camera→ON → correct camera select in app
 - Mic: Settings→Privacy→Microphone→ON → correct mic in app settings
 - Password/Account locked: TICKET ONLY — IT resets
-- Excel slow: Close other files → disable add-ins (File→Options→Add-ins) → restart Excel`;
+- Excel slow: Close other files → disable add-ins (File→Options→Add-ins) → restart Excel
+
+═══════════════════════════════════════════════════════════════
+WIOM IT KNOWLEDGE BASE (Hindi/Hinglish mein jawab do)
+═══════════════════════════════════════════════════════════════
+
+🛠️ TOOLS JO WIOM MEIN USE HOTE HAIN:
+- Email: Gmail (Google Workspace) — sirf wiom.in Gmail, koi aur email nahi
+- Chat: Slack — primary communication tool
+- Video Call: Google Meet, Zoom, Microsoft Teams — teeno use hote hain
+- HR/Attendance: Keka HRMS — attendance, leave, salary sab Keka mein
+- Project Management: Jira — manager ke approval ke baad milta hai
+- Office: Microsoft Office (licensed) — Word, Excel, PowerPoint
+- File Storage: Google Drive (Shared Drive) — company files yahan hain
+- VPN: Wiom mein VPN USE NAHI HOTA — agar koi pooche toh yahi batao
+
+👤 NAYA EMPLOYEE — DAY 1 SETUP:
+Day 1 pe IT (Sajan Kumar) yeh karta hai:
+1. Laptop assign aur configure karta hai
+2. Gmail account banata hai: firstname.lastname@wiom.in
+3. Slack mein add karta hai
+4. MS Office license set up karta hai
+5. Google Drive shared access deta hai
+HR karta hai: Keka access
+Manager ke baad milta hai: Jira access
+Kisi cheez ka access na mile → Techseva pe ticket raise karo ya Sajan ko Slack pe message karo
+
+💻 LAPTOP POLICY — ROLE KE HISAAB SE:
+- Tech Team: Apple MacBook M4 / M5
+- Accounts Team: Intel Core Ultra 7 Laptop
+- Business Team: Lenovo 15" (13th Gen)
+- Pods Team: Microsoft Surface
+- High config chahiye: Pehle reporting manager se approval lo
+
+LAPTOP KE RULES:
+- Laptop company ki property hai — sirf kaam ke liye
+- Personal use allowed NAHI hai
+- Ghar le jaana: reporting manager se permission leni hogi
+- Scratch: koi baat nahi (normal wear)
+- Dent/physical damage: employee responsible hai
+- Laptop kho gaya: employee responsible hai
+- Accessories (charger, mouse, keyboard): manager approval ke baad company deti hai
+- Phone/SIM: agar role ki zaroorat hai toh company deti hai
+- Resign hone pe: notice poora hone ke 3 din mein laptop wapas karna hoga
+- Repair: IT khud karta hai, hardware ke liye vendor ke paas bhejta hai, khud repair mat karo
+
+🔐 SECURITY RULES:
+- Password: har 30 din mein change karo
+- Strong password: letters + numbers + special characters
+- Password kisi ko share mat karo — IT team ko bhi nahi
+- Screen lock: desk chhodne se pehle lock karo (Windows: Win+L | Mac: Cmd+Ctrl+Q)
+- USB/Pen drive: allowed hai, lekin unknown device mat lagao
+- Personal Gmail office laptop pe: BILKUL NAHI
+- Company data: sirf office laptop aur company Google Drive mein save karo
+- Software install: khud nahi kar sakte — IT se lena hoga (Techseva ticket)
+- Internet: koi site blocked nahi, responsibly use karo
+- Data backup: IT department handle karta hai, Google Drive pe save karte raho
+
+🚨 EMERGENCY / INCIDENT:
+- Laptop kho gaya ya chori hua: pehle police mein FIR, phir HR ko batao, phir IT ko batao
+- Data breach / suspicious activity: turant Sajan Kumar ko Slack pe message karo
+- Virus/malware: laptop use mat karo — turant IT ko contact karo
+
+🎫 HELPDESK / SUPPORT:
+- Techseva Slack bot: problem type karo ya category button click karo
+- Ticket manually: /ticket command ya "Raise Ticket" button
+- Emergency: Emergency button ya Sajan Kumar ko directly Slack pe
+- Ticket track karo: Techseva mein "my tickets" type karo
+- IT support: office hours mein available hai
+
+IT CONTACT: Sajan Kumar | sajan.kumar@wiom.in | Slack pe message karo
+═══════════════════════════════════════════════════════════════`;
 
 
 
