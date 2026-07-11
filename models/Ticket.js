@@ -34,7 +34,7 @@ const ticketSchema = new mongoose.Schema({
     default: 'Medium'
   },
   description: { type: String, required: true },
-  source     : { type: String, enum: ['slack','slack-emergency','web','whatsapp','manual'], default: 'web' },
+  source     : { type: String, enum: ['slack','slack-emergency','web','whatsapp','manual','employee-query-bot'], default: 'web' },
 
   // ── Status ───────────────────────────────────────────────────────────────────
   status     : {
@@ -70,6 +70,7 @@ const ticketSchema = new mongoose.Schema({
   aiSessionId   : { type: String },           // Linked conversation session
   aiTried       : { type: Boolean, default: false },
   aiSteps       : [{ type: String }],         // Steps AI suggested
+  aiNotes       : { type: String },           // Free-text notes from the querying bot (e.g. what it already told the employee)
   screenshots   : [{ type: String }],         // Base64 images attached by employee
   escalated     : { type: Boolean, default: false }, // Employee clicked "Talk to Human"
   escalatedAt   : { type: Date },

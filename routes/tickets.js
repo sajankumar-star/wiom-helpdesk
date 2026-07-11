@@ -5,12 +5,96 @@ const { verifyAdmin, verifyEmployee } = require('../middleware/auth');
 const emailSvc    = require('../services/email');
 const slaSvc      = require('../services/sla');
 
+// ── Category / priority normalization ─────────────────────────────────────────
+// External bots may send lowercase/slug values (e.g. "asset-request", "high").
+// Map them onto this portal's canonical enum values.
+const VALID_CATEGORIES = ['Hardware','Software','Network','Account','Purchase','Theft/Loss','Asset Request','Software Request','Emergency','Other'];
+const CATEGORY_ALIASES = {
+  'hardware':'Hardware', 'software':'Software', 'network':'Network',
+  'account':'Account', 'purchase':'Purchase',
+  'asset-request':'Asset Request', 'asset_request':'Asset Request', 'assetrequest':'Asset Request', 'asset request':'Asset Request',
+  'software-request':'Software Request', 'software_request':'Software Request', 'software request':'Software Request',
+  'theft/loss':'Theft/Loss', 'theft':'Theft/Loss', 'loss':'Theft/Loss',
+  'emergency':'Emergency', 'other':'Other'
+};
+function normalizeCategory(c) {
+  if (!c) return 'Other';
+  const key = String(c).trim().toLowerCase();
+  if (CATEGORY_ALIASES[key]) return CATEGORY_ALIASES[key];
+  const match = VALID_CATEGORIES.find(v => v.toLowerCase() === key);
+  return match || 'Other';
+}
+function normalizePriority(p) {
+  if (!p) return 'Medium';
+  const map = { critical:'Critical', high:'High', medium:'Medium', low:'Low' };
+  return map[String(p).trim().toLowerCase()] || 'Medium';
+}
+
+// ── Notify the Employee Query Bot of status changes (Section 2 of integration spec)
+// Stubbed until the bot team provides BOT_WEBHOOK_URL + BOT_WEBHOOK_SECRET.
+async function notifyBotWebhook(payload) {
+  const url = process.env.BOT_WEBHOOK_URL;
+  if (!url) return; // not configured yet — no-op
+  const secret = process.env.BOT_WEBHOOK_SECRET || '';
+  try {
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 5000);
+    await fetch(url, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': secret },
+      body   : JSON.stringify(payload),
+      signal : ac.signal
+    });
+    clearTimeout(timer);
+  } catch (err) {
+    console.error('[bot-webhook] failed:', err.message);
+  }
+}
+
+// ── Notify IT admin on Slack for a newly created ticket (Section 3) ────────────
+async function notifyAdminSlack(req, ticket) {
+  try {
+    const client  = req.app.locals.slackClient;
+    const adminId = process.env.ADMIN_EMAIL_SLACK_ID || process.env.ADMIN_SLACK_USER_ID || process.env.SAJAN_SLACK_ID;
+    if (!client || !adminId || adminId === 'FILL_KARO') return;
+    const priColor = { Critical:'#ef4444', High:'#f59e0b', Medium:'#3b82f6', Low:'#10b981' };
+    await client.chat.postMessage({
+      channel: adminId,
+      text   : `New Ticket: ${ticket.ticketId} — ${ticket.empName}`,
+      attachments: [{
+        color: priColor[ticket.priority] || '#3b82f6',
+        blocks: [
+          { type:'section', fields:[
+            { type:'mrkdwn', text:`*🎫 Ticket*\n\`${ticket.ticketId}\`` },
+            { type:'mrkdwn', text:`*👤 Employee*\n${ticket.empName} (${ticket.empId})` },
+            { type:'mrkdwn', text:`*📂 Category*\n${ticket.category}` },
+            { type:'mrkdwn', text:`*⚡ Priority*\n${ticket.priority}` }
+          ]},
+          { type:'section', text:{ type:'mrkdwn', text:`*📝 Issue:*\n${ticket.description}` }},
+          { type:'context', elements:[{ type:'mrkdwn', text:`Source: ${ticket.source}` }]}
+        ]
+      }]
+    });
+  } catch (err) {
+    console.error('[admin-notify] failed:', err.message);
+  }
+}
+
 // ── POST /api/tickets  — Create new ticket ────────────────────────────────────
 router.post('/', async (req, res) => {
   try {
+    // Optional shared-token protection. Open by default; if BOT_API_TOKEN is set,
+    // callers must send it as `Authorization: Bearer <token>` or `x-api-key`.
+    const requiredToken = process.env.BOT_API_TOKEN;
+    if (requiredToken) {
+      const auth = req.headers['authorization'] || '';
+      const provided = auth.startsWith('Bearer ') ? auth.slice(7) : (req.headers['x-api-key'] || '');
+      if (provided !== requiredToken) return res.status(401).json({ error: 'unauthorized' });
+    }
+
     const { empId, empName, empEmail, empDept, empFloor, laptop,
             category, priority, description, source, slackUserId,
-            slackChannelId, aiSessionId, aiSteps, skipDuplicateCheck,
+            slackChannelId, aiSessionId, aiSteps, aiNotes, skipDuplicateCheck,
             screenshots } = req.body;
 
     if (!empId || !description)
@@ -26,22 +110,25 @@ router.post('/', async (req, res) => {
       });
       if (existing) {
         return res.status(409).json({
-          error  : 'duplicate',
-          message: `Aapka ticket ${existing.ticketId} already open hai. Pehle wala resolve hone ke baad naya ticket create karein.`,
-          ticket : existing
+          error   : 'duplicate',
+          message : `Aapka ticket ${existing.ticketId} already open hai. Pehle wala resolve hone ke baad naya ticket create karein.`,
+          ticketId: existing.ticketId,
+          status  : existing.status,
+          ticket  : existing
         });
       }
     }
 
     const ticket = await Ticket.create({
       empId, empName, empEmail, empDept, empFloor, laptop,
-      category   : category   || 'Other',
-      priority   : priority   || 'Medium',
+      category   : normalizeCategory(category),
+      priority   : normalizePriority(priority),
       description,
       source     : source     || 'web',
       slackUserId, slackChannelId, aiSessionId,
-      aiTried      : !!aiSteps,
+      aiTried      : !!(aiSteps || aiNotes),
       aiSteps      : aiSteps      || [],
+      aiNotes      : aiNotes      || undefined,
       screenshots  : Array.isArray(screenshots) ? screenshots.slice(0, 5) : []
     });
 
@@ -56,10 +143,18 @@ router.post('/', async (req, res) => {
       emailSvc.sendTicketConfirmation(ticket).catch(console.error);
     }
 
-    // Send alert to ADMIN_EMAIL
+    // Send alert to ADMIN_EMAIL (email) + IT admin Slack notification
     emailSvc.sendAdminAlert(ticket).catch(console.error);
+    notifyAdminSlack(req, ticket);
 
-    res.status(201).json({ success: true, ticket });
+    res.status(201).json({
+      success    : true,
+      ticketId   : ticket.ticketId,
+      status     : ticket.status,
+      slaDeadline: ticket.slaDeadline,
+      createdAt  : ticket.createdAt,
+      ticket
+    });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -273,6 +368,18 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
     }
 
     await ticket.save();
+
+    // Notify the Employee Query Bot on any status change (Open → … → Closed).
+    if (req.body.status) {
+      notifyBotWebhook({
+        ticketId      : ticket.ticketId,
+        empSlackUserId: ticket.slackUserId || null,
+        status        : ticket.status,
+        note          : resolution || comment || undefined,
+        updatedAt     : new Date().toISOString()
+      });
+    }
+
     res.json({ success: true, ticket });
   } catch (err) {
     res.status(500).json({ error: err.message });
