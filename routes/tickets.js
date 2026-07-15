@@ -32,32 +32,25 @@ function normalizePriority(p) {
 }
 
 // ── Notify the Employee Query Bot of status changes ──────────────────────────
-async function notifyBotWebhook(payload) {
-  const url    = process.env.BOT_WEBHOOK_URL;
-  const secret = process.env.BOT_WEBHOOK_SECRET;
-  if (!url || !secret) return;
-
+async function notifyBotStatusChange(ticket) {
+  const payload = {
+    ticketId      : ticket.ticketId,
+    empSlackUserId: ticket.slackUserId || ticket.empEmail || null,
+    status        : ticket.status,
+    note          : ticket.lastNote || '',
+    updatedAt     : new Date().toISOString()
+  };
   const body = JSON.stringify(payload);
-  const sig  = crypto.createHmac('sha256', secret).update(body).digest('hex');
-
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    try {
-      const ac    = new AbortController();
-      const timer = setTimeout(() => ac.abort(), 5000);
-      const res   = await fetch(url, {
-        method : 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-Bot-Signature': `sha256=${sig}` },
-        body,
-        signal : ac.signal
-      });
-      clearTimeout(timer);
-      if (res.ok) return;
-      console.error(`[bot-webhook] attempt ${attempt} non-200:`, res.status);
-    } catch (err) {
-      console.error(`[bot-webhook] attempt ${attempt} failed:`, err.message);
-    }
-    if (attempt < 3) await new Promise(r => setTimeout(r, attempt * 1000));
-  }
+  const sig  = crypto.createHmac('sha256', process.env.BOT_WEBHOOK_SECRET)
+                     .update(body).digest('hex');
+  try {
+    const r = await fetch(process.env.BOT_WEBHOOK_URL, {
+      method : 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Bot-Signature': 'sha256=' + sig },
+      body
+    });
+    console.log('bot webhook:', r.status, await r.text());
+  } catch (e) { console.error('bot webhook failed:', e); }
 }
 
 // ── Notify IT admin on Slack for a newly created ticket (Section 3) ────────────
@@ -351,15 +344,10 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
 
     await ticket.save();
 
-    // Notify the Employee Query Bot on any status change (Open → … → Closed).
-    if (req.body.status) {
-      notifyBotWebhook({
-        ticketId      : ticket.ticketId,
-        empSlackUserId: ticket.slackUserId || null,
-        status        : ticket.status,
-        note          : resolution || comment || undefined,
-        updatedAt     : new Date().toISOString()
-      });
+    // Notify the Employee Query Bot on any status change (fire-and-forget).
+    if (req.body.status && process.env.BOT_WEBHOOK_URL && process.env.BOT_WEBHOOK_SECRET) {
+      ticket.lastNote = resolution || comment || '';
+      notifyBotStatusChange(ticket);
     }
 
     res.json({ success: true, ticket });
