@@ -385,7 +385,7 @@ app.listen(PORT, async () => {
  } catch (e) { console.error('[Counter] auto-fix error:', e.message); }
 
  // ── Start Slack Bot ────────────────────────────────────────────────────────
- if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_BOT_TOKEN !== 'FILL_KARO') {
+ if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_BOT_TOKEN !== 'FILL_KARO' && !process.env.SLACK_DISABLED) {
  try {
  const { App } = require('@slack/bolt');
  const claudeSvc = require('./services/claude');
