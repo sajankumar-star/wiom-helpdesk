@@ -296,38 +296,11 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
       }
     }
 
-    // ── Slack DM to employee when ticket CLOSED ──────────────────────────────
     if (status === 'Closed' && !ticket.closedAt) {
       ticket.closedAt = new Date();
-
-      if (slackClient && ticket.slackUserId) {
-        slackClient.chat.postMessage({
-          channel: ticket.slackUserId,
-          text   : `🔒 Aapka ticket ${ticket.ticketId} close ho gaya!`,
-          blocks : [
-            { type:'header', text:{ type:'plain_text', text:'🔒 Ticket Closed', emoji:true }},
-            { type:'section', text:{ type:'mrkdwn', text:
-              `Aapka IT support ticket *close* kar diya gaya hai.\n\n` +
-              `*Ticket ID:* \`${ticket.ticketId}\`\n` +
-              `*Category:* ${ticket.category}\n` +
-              `*Issue:* ${(ticket.description || '').substring(0, 80)}${(ticket.description || '').length > 80 ? '...' : ''}` +
-              (ticket.resolution ? `\n*Resolution:* ${ticket.resolution}` : '')
-            }},
-            { type:'divider' },
-            { type:'section', text:{ type:'mrkdwn', text:`*Same problem wapas aayi?* Naya ticket banao:` }},
-            { type:'actions', elements:[
-              { type:'button', text:{ type:'plain_text', text:'🎫 New Ticket', emoji:true },
-                style:'primary', action_id:'new_ticket_after_close', value:'new_ticket' }
-            ]},
-            { type:'context', elements:[{ type:'mrkdwn',
-              text:`IT Helpdesk | Koi bhi problem ho: \`/ticket\` command use karo` }]}
-          ]
-        }).catch(e => console.error('Slack close DM error:', e.message));
-
-        // Refresh Home Tab — remove closed ticket from view
-        if (req.app.locals.refreshEmployeeHomeTab) {
-          setTimeout(() => req.app.locals.refreshEmployeeHomeTab(ticket.slackUserId), 2000);
-        }
+      // Refresh Home Tab — remove closed ticket from employee's view
+      if (slackClient && ticket.slackUserId && req.app.locals.refreshEmployeeHomeTab) {
+        setTimeout(() => req.app.locals.refreshEmployeeHomeTab(ticket.slackUserId), 2000);
       }
     }
 
