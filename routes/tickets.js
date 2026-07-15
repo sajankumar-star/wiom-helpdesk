@@ -1,4 +1,5 @@
 const router      = require('express').Router();
+const crypto      = require('crypto');
 const Ticket      = require('../models/Ticket');
 const Employee    = require('../models/Employee');
 const { verifyAdmin, verifyEmployee } = require('../middleware/auth');
@@ -30,24 +31,32 @@ function normalizePriority(p) {
   return map[String(p).trim().toLowerCase()] || 'Medium';
 }
 
-// ── Notify the Employee Query Bot of status changes (Section 2 of integration spec)
-// Stubbed until the bot team provides BOT_WEBHOOK_URL + BOT_WEBHOOK_SECRET.
+// ── Notify the Employee Query Bot of status changes ──────────────────────────
 async function notifyBotWebhook(payload) {
-  const url = process.env.BOT_WEBHOOK_URL;
-  if (!url) return; // not configured yet — no-op
-  const secret = process.env.BOT_WEBHOOK_SECRET || '';
-  try {
-    const ac = new AbortController();
-    const timer = setTimeout(() => ac.abort(), 5000);
-    await fetch(url, {
-      method : 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-Webhook-Secret': secret },
-      body   : JSON.stringify(payload),
-      signal : ac.signal
-    });
-    clearTimeout(timer);
-  } catch (err) {
-    console.error('[bot-webhook] failed:', err.message);
+  const url    = process.env.BOT_WEBHOOK_URL;
+  const secret = process.env.BOT_WEBHOOK_SECRET;
+  if (!url || !secret) return;
+
+  const body = JSON.stringify(payload);
+  const sig  = crypto.createHmac('sha256', secret).update(body).digest('hex');
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const ac    = new AbortController();
+      const timer = setTimeout(() => ac.abort(), 5000);
+      const res   = await fetch(url, {
+        method : 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Bot-Signature': `sha256=${sig}` },
+        body,
+        signal : ac.signal
+      });
+      clearTimeout(timer);
+      if (res.ok) return;
+      console.error(`[bot-webhook] attempt ${attempt} non-200:`, res.status);
+    } catch (err) {
+      console.error(`[bot-webhook] attempt ${attempt} failed:`, err.message);
+    }
+    if (attempt < 3) await new Promise(r => setTimeout(r, attempt * 1000));
   }
 }
 
@@ -316,7 +325,7 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
           { type: 'section', text: { type: 'mrkdwn', text: msg }},
           { type: 'context', elements: [{ type: 'mrkdwn', text: `_Assigned to: ${ticket.assignedTo || 'IT Team'}_` }]}
         ]
-      }).catch(() => {});
+      }).catch(e => console.error('[slack-dm] status update failed:', e.message));
     }
 
     // ── Slack DM when ticket is assigned/reassigned ──────────────────────────
