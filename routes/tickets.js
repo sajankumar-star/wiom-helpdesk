@@ -163,6 +163,36 @@ router.post('/', async (req, res) => {
   }
 });
 
+// ── GET /api/tickets/bot/status  — Bot read endpoint (BOT_API_TOKEN auth) ────
+router.get('/bot/status', async (req, res) => {
+  const requiredToken = process.env.BOT_API_TOKEN;
+  if (requiredToken) {
+    const auth = req.headers['authorization'] || '';
+    const provided = auth.startsWith('Bearer ') ? auth.slice(7) : (req.headers['x-api-key'] || '');
+    if (provided !== requiredToken) return res.status(401).json({ error: 'unauthorized' });
+  }
+
+  const { empEmail, empId, ticketId } = req.query;
+  if (!empEmail && !empId && !ticketId)
+    return res.status(400).json({ error: 'empEmail, empId, or ticketId required' });
+
+  try {
+    const filter = {};
+    if (ticketId)  filter.ticketId = ticketId;
+    else if (empId)    filter.empId    = empId.toUpperCase();
+    else if (empEmail) filter.empEmail = { $regex: new RegExp(`^${empEmail}$`, 'i') };
+
+    const tickets = await Ticket.find(filter)
+      .sort({ createdAt: -1 })
+      .limit(10)
+      .select('ticketId empId empEmail empName category priority status description resolution createdAt updatedAt resolvedAt slaDeadline slaBreached');
+
+    res.json({ tickets });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── GET /api/tickets  — List tickets (admin) ──────────────────────────────────
 router.get('/', verifyAdmin, async (req, res) => {
   try {
