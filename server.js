@@ -6856,6 +6856,23 @@ Reply in English. Be specific about what you see. Max 5 lines. No "common issue"
          email,
          isActive: true,
        };
+       // Extra fields from Keka (defensive mapping; only set when Keka has a value
+       // so we don't overwrite manually-entered data like floor with blanks).
+       {
+         const dept  = ke.department?.title || ke.department?.name || (typeof ke.department === 'string' ? ke.department : '') || '';
+         const desig = ke.jobTitle?.title   || ke.jobTitle?.name   || (typeof ke.jobTitle   === 'string' ? ke.jobTitle   : '') || '';
+         const phone = ke.mobilePhone || ke.workPhone || ke.phoneNumber || ke.phone || '';
+         const loc   = ke.location?.name || ke.location?.title || (typeof ke.location === 'string' ? ke.location : '') || '';
+         const mgr   = ke.reportingManager || ke.reportingTo || ke.reportsTo || ke.manager || {};
+         const mgrName = mgr?.name || mgr?.displayName || mgr?.fullName || '';
+         const mgrId   = mgr?.employeeNumber || mgr?.empNumber || mgr?.employeeId || '';
+         if (dept)    empData.department  = dept;
+         if (desig)   empData.designation = desig;
+         if (phone)   empData.phone       = phone;
+         if (loc)     empData.location    = loc;
+         if (mgrName) empData.managerName = mgrName;
+         if (mgrId)   empData.managerId   = String(mgrId).toUpperCase();
+       }
        if (slackEmailMap[email]) empData.slackUserId = slackEmailMap[email];
        const existing = await Employee.findOne({ empId: ke.employeeNumber });
        if (existing) { await Employee.updateOne({ empId: ke.employeeNumber }, { $set: empData }); updated++; }
