@@ -264,16 +264,33 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
         const email = ke.email?.toLowerCase();
         if (!email) continue;
 
+        // Core fields
+        const set = {
+          empId   : String(ke.employeeNumber),
+          name    : ke.displayName || `${ke.firstName} ${ke.lastName}`.trim(),
+          email,
+          isActive: ke.employmentStatus === 0,
+        };
+        // Extra fields from Keka (defensive: handles different Keka field shapes).
+        // Only set when Keka actually returns a value, so we never blank out
+        // manually-entered data (e.g. floor) with empty strings.
+        const dept  = ke.department?.title || ke.department?.name || (typeof ke.department === 'string' ? ke.department : '') || '';
+        const desig = ke.jobTitle?.title   || ke.jobTitle?.name   || (typeof ke.jobTitle   === 'string' ? ke.jobTitle   : '') || '';
+        const phone = ke.mobilePhone || ke.workPhone || ke.phoneNumber || ke.phone || '';
+        const loc   = ke.location?.name || ke.location?.title || (typeof ke.location === 'string' ? ke.location : '') || '';
+        const mgr   = ke.reportingManager || ke.reportingTo || ke.reportsTo || ke.manager || {};
+        const mgrName = mgr?.name || mgr?.displayName || mgr?.fullName || '';
+        const mgrId   = mgr?.employeeNumber || mgr?.empNumber || mgr?.employeeId || '';
+        if (dept)    set.department  = dept;
+        if (desig)   set.designation = desig;
+        if (phone)   set.phone       = phone;
+        if (loc)     set.location    = loc;
+        if (mgrName) set.managerName = mgrName;
+        if (mgrId)   set.managerId   = String(mgrId).toUpperCase();
+
         await Employee.findOneAndUpdate(
           { empId: String(ke.employeeNumber) },
-          {
-            $set: {
-              empId   : String(ke.employeeNumber),
-              name    : ke.displayName || `${ke.firstName} ${ke.lastName}`.trim(),
-              email,
-              isActive: ke.employmentStatus === 0,
-            }
-          },
+          { $set: set },
           { upsert: true, new: true }
         );
         synced++;
@@ -291,7 +308,15 @@ router.post('/keka-sync', verifyAdmin, async (req, res) => {
       }
     }
 
-    res.json({ success: true, synced, errors, total: employees.length, managerLinked });
+    // _debug: field names Keka actually returned (helps confirm/adjust the mapping above).
+    const _sample = employees[0] || {};
+    const _debug = {
+      kekaFields: Object.keys(_sample),
+      departmentShape: _sample.department ?? null,
+      jobTitleShape  : _sample.jobTitle ?? null,
+      managerShape   : _sample.reportingManager ?? _sample.reportingTo ?? _sample.reportsTo ?? _sample.manager ?? null,
+    };
+    res.json({ success: true, synced, errors, total: employees.length, managerLinked, _debug });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
