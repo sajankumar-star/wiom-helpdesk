@@ -16,6 +16,53 @@ const checkKey = (req, res, next) => {
   next();
 };
 
+// ── POST /api/agent/keka-proxy — fetch Keka data on behalf of the Asset Portal ──
+// The Asset Portal's server IP is blocked by Keka's firewall; this helpdesk (whose
+// IP is allowed) fetches employees + assets and returns them. Caller supplies the
+// Keka credentials in the body, so nothing is hardcoded here.
+router.post('/keka-proxy', checkKey, async (req, res) => {
+  const { clientId, clientSecret, apiKey } = req.body || {};
+  if (!clientId || !clientSecret || !apiKey) {
+    return res.status(400).json({ error: 'clientId, clientSecret, apiKey required' });
+  }
+  const KEKA_BASE = 'https://omniainformation.keka.com/api/v1';
+  try {
+    const tokenRes = await fetch('https://login.keka.com/connect/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'kekaapi', scope: 'kekaapi',
+        client_id: clientId, client_secret: clientSecret, api_key: apiKey,
+      }),
+    });
+    if (!tokenRes.ok) {
+      const t = await tokenRes.text().catch(() => '');
+      return res.status(502).json({ error: 'Keka token ' + tokenRes.status, detail: t.slice(0, 200) });
+    }
+    const { access_token } = await tokenRes.json();
+    const headers = { Authorization: 'Bearer ' + access_token };
+    async function fetchAll(path) {
+      let out = [], page = 1;
+      while (true) {
+        const r = await fetch(`${KEKA_BASE}/${path}?pageNumber=${page}&pageSize=100`, { headers });
+        if (!r.ok) break;
+        const d = await r.json();
+        if (!d.succeeded || !Array.isArray(d.data) || !d.data.length) break;
+        out = out.concat(d.data);
+        if (page >= (d.totalPages || 1)) break;
+        page++;
+      }
+      return out;
+    }
+    const employees = await fetchAll('hris/employees');
+    let assets = [];
+    try { assets = await fetchAll('assets'); } catch (e) { /* assets optional */ }
+    res.json({ ok: true, employees, assets });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // â”€â”€ POST /api/agent/register â€” agent startup ping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 router.post('/register', checkKey, async (req, res) => {
   const { laptopSN, empId, agentVersion } = req.body;
