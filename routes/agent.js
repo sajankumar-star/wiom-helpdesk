@@ -31,10 +31,12 @@ const checkKekaClient = (req, res, next) => {
 };
 
 router.post('/keka-proxy', checkKekaClient, async (req, res) => {
-  const { clientId, clientSecret, apiKey } = req.body || {};
-  if (!clientId || !clientSecret || !apiKey) {
-    return res.status(400).json({ error: 'clientId, clientSecret, apiKey required' });
-  }
+  // Use THIS helpdesk's own Keka credentials from its environment variables.
+  // The caller (our Asset Portal) has already been authenticated by
+  // checkKekaClient, and never needs to hold valid Keka credentials itself.
+  const clientId     = process.env.KEKA_CLIENT_ID     || '';
+  const clientSecret = process.env.KEKA_CLIENT_SECRET || '';
+  const apiKey       = process.env.KEKA_API_KEY       || '';
   const KEKA_BASE = 'https://omniainformation.keka.com/api/v1';
   try {
     const tokenRes = await fetch('https://login.keka.com/connect/token', {
