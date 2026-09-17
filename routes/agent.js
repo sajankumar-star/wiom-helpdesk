@@ -20,7 +20,17 @@ const checkKey = (req, res, next) => {
 // The Asset Portal's server IP is blocked by Keka's firewall; this helpdesk (whose
 // IP is allowed) fetches employees + assets and returns them. Caller supplies the
 // Keka credentials in the body, so nothing is hardcoded here.
-router.post('/keka-proxy', checkKey, async (req, res) => {
+// Auth for the proxy: the caller must present OUR own Keka client secret
+// (which only our trusted services know), so this is never an open proxy.
+const checkKekaClient = (req, res, next) => {
+  const provided = (req.body && req.body.clientSecret) || req.headers['x-agent-key'];
+  if (!provided || provided !== process.env.KEKA_CLIENT_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  next();
+};
+
+router.post('/keka-proxy', checkKekaClient, async (req, res) => {
   const { clientId, clientSecret, apiKey } = req.body || {};
   if (!clientId || !clientSecret || !apiKey) {
     return res.status(400).json({ error: 'clientId, clientSecret, apiKey required' });
