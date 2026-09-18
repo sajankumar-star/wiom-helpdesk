@@ -75,6 +75,36 @@ router.post('/keka-proxy', checkKekaClient, async (req, res) => {
   }
 });
 
+// ── POST /api/agent/slack-notify — post a Slack message on the Asset Portal's behalf.
+// Body: { clientSecret, text, header?, channel? , email? }. If `channel` is given it
+// posts there; else it DMs the Slack user resolved from `email`. Auth: same client
+// secret as the proxy, so only our own services can call it.
+router.post('/slack-notify', checkKekaClient, async (req, res) => {
+  const slackClient = req.app.locals.slackClient;
+  if (!slackClient) return res.status(503).json({ error: 'Slack bot not connected' });
+  let { channel, email, text, header } = req.body || {};
+  if (!text) return res.status(400).json({ error: 'text required' });
+  try {
+    if (!channel && email) {
+      try {
+        const u = await slackClient.users.lookupByEmail({ email: String(email).toLowerCase() });
+        channel = u.user && u.user.id;
+      } catch (e2) {
+        const emp = await Employee.findOne({ email: String(email).toLowerCase() }).select('slackUserId');
+        channel = emp && emp.slackUserId;
+      }
+    }
+    if (!channel) return res.status(404).json({ error: 'no Slack target resolved (channel/email)' });
+    const blocks = [];
+    if (header) blocks.push({ type: 'header', text: { type: 'plain_text', text: String(header).slice(0, 150), emoji: true } });
+    blocks.push({ type: 'section', text: { type: 'mrkdwn', text: String(text).slice(0, 2900) } });
+    const r = await slackClient.chat.postMessage({ channel, text: (header ? header + '\n' : '') + text, blocks });
+    res.json({ ok: true, ts: r.ts, channel: r.channel });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // â”€â”€ POST /api/agent/register â€” agent startup ping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 router.post('/register', checkKey, async (req, res) => {
   const { laptopSN, empId, agentVersion } = req.body;
