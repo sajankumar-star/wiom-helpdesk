@@ -188,6 +188,27 @@
   .filter-select { padding:7px 12px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--muted); font-size:13px; font-family:'Inter',sans-serif; outline:none; cursor:pointer; }
   .filter-select:focus { border-color:var(--pink); }
 
+  /* ── Employee Exit ── */
+  .exit-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; display:block; margin-bottom:4px; }
+  .exit-btn { padding:9px 16px; border-radius:8px; border:1px solid var(--border); background:rgba(255,255,255,0.04); color:var(--text); font-size:13px; font-family:'Inter',sans-serif; cursor:pointer; transition:all .2s; }
+  .exit-btn:hover { border-color:var(--pink); }
+  .exit-btn:disabled { opacity:.5; cursor:wait; }
+  .exit-btn.primary { background:linear-gradient(135deg,var(--pink),var(--pink-dark)); border:none; color:#fff; font-weight:600; }
+  .exit-btn.danger  { background:rgba(248,113,113,0.12); border-color:rgba(248,113,113,0.4); color:#fca5a5; }
+  .exit-btn.ok      { background:rgba(16,185,129,0.12); border-color:rgba(16,185,129,0.4); color:#86efac; }
+  .exit-step { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+  .exit-step-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; font-weight:600; color:#fff; font-size:14px; }
+  .exit-step-actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .exit-step-meta { font-size:11px; color:var(--muted); margin-top:8px; }
+  .exit-step-err  { font-size:12px; color:#fca5a5; margin-top:8px; }
+  .exit-pill { padding:2px 9px; border-radius:12px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .exit-pill.Pending { background:rgba(251,191,36,0.12); color:#fbbf24; }
+  .exit-pill.Done    { background:rgba(16,185,129,0.15); color:#86efac; }
+  .exit-pill.Failed  { background:rgba(248,113,113,0.15); color:#fca5a5; }
+  .exit-pill.Skipped { background:#1f2937; color:#9ca3af; }
+  .exit-checks { display:flex; gap:14px; flex-wrap:wrap; font-size:13px; color:var(--text); margin:10px 0; }
+  .exit-checks label { display:flex; align-items:center; gap:6px; cursor:pointer; }
+
   /* ── Loading ── */
   .loading { text-align:center; padding:30px; color:var(--muted); }
 
@@ -316,6 +337,7 @@
     <div class="nav-item" onclick="showTab('tickets')"><span class="icon">🎫</span> All Tickets</div>
     <div class="nav-item" onclick="showTab('open')"><span class="icon">⏳</span> Open Tickets</div>
     <div class="nav-item" onclick="showTab('employees')"><span class="icon">👥</span> Employees</div>
+    <div class="nav-item" onclick="showTab('exit')"><span class="icon">🚪</span> Employee Exit</div>
     <div class="nav-item" onclick="showTab('report')"><span class="icon">📈</span> Today Report</div>
     <div class="nav-item" onclick="showTab('analytics')"><span class="icon">📉</span> Analytics</div>
     <div class="nav-item" onclick="showTab('broadcast')"><span class="icon">📢</span> Broadcast</div>
@@ -545,6 +567,55 @@
             <tbody id="empBody"><tr class="empty-row"><td colspan="8">Loading...</td></tr></tbody>
           </table>
           <div id="empPagination"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── EMPLOYEE EXIT TAB ── -->
+    <div id="tab-exit" class="tab-content">
+      <div id="exitIntegrations" style="margin-bottom:16px;"></div>
+
+      <div class="card">
+        <div class="card-header"><h3>🚪 Naya Exit Shuru Karo</h3></div>
+        <div class="card-body" style="padding:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:240px;">
+            <label class="exit-label">Employee</label>
+            <input class="search-box" id="exitEmpInput" list="exitEmpList" placeholder="🔍 Name ya Emp ID likho..." style="width:100%;"/>
+            <datalist id="exitEmpList"></datalist>
+          </div>
+          <div>
+            <label class="exit-label">Last Working Day</label>
+            <input class="search-box" id="exitLwd" type="date" style="width:170px;color-scheme:dark;"/>
+          </div>
+          <div>
+            <label class="exit-label">Reason</label>
+            <select class="filter-select" id="exitReason" style="height:36px;">
+              <option>Resigned</option>
+              <option>Terminated</option>
+              <option>Absconding</option>
+              <option>Contract End</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <button class="exit-btn primary" onclick="startExit()">🚪 Exit Start Karo</button>
+        </div>
+        <div id="exitStartResult" style="padding:0 20px 16px;font-size:13px;"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 Exit Cases (<span id="exitCount">—</span>)</h3>
+          <div class="filters" style="margin:0;">
+            <button class="filter-btn active" onclick="filterExit('In Progress', this)">⏳ In Progress</button>
+            <button class="filter-btn" onclick="filterExit('Completed', this)">✅ Completed</button>
+            <button class="filter-btn" onclick="filterExit('', this)">All</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <table>
+            <thead><tr><th>Employee</th><th>Department</th><th>Last Day</th><th>Gmail</th><th>Slack</th><th>Laptop</th><th>Status</th><th></th></tr></thead>
+            <tbody id="exitBody"><tr class="empty-row"><td colspan="8">Loading...</td></tr></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -897,6 +968,14 @@
 </div>
 
 <!-- ══ EMPLOYEE HISTORY MODAL ════════════════════════════════════════════ -->
+<!-- ══ EMPLOYEE EXIT MODAL ═══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="exitModal">
+  <div class="modal" style="width:620px;">
+    <button class="modal-close" onclick="document.getElementById('exitModal').classList.remove('show')">✕</button>
+    <div id="exitModalBody"></div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="empModal">
   <div class="modal">
     <button class="modal-close" onclick="document.getElementById('empModal').classList.remove('show')">✕</button>
@@ -1225,7 +1304,7 @@ function showTab(tab) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('tab-' + tab).classList.add('active');
   event.currentTarget.classList.add('active');
-  const titles = { dashboard:'Dashboard', tickets:'All Tickets', open:'Open Tickets', employees:'Employees', report:'Today Report', analytics:'Analytics', broadcast:'Broadcast', team:'IT Team', kb:'Knowledge Base', import:'Bulk Import', learning:'Learning Queue', settings:'Settings' };
+  const titles = { dashboard:'Dashboard', tickets:'All Tickets', open:'Open Tickets', employees:'Employees', exit:'Employee Exit', report:'Today Report', analytics:'Analytics', broadcast:'Broadcast', team:'IT Team', kb:'Knowledge Base', import:'Bulk Import', learning:'Learning Queue', settings:'Settings' };
   document.getElementById('pageTitle').textContent = titles[tab] || tab;
   if (tab === 'report')    loadReport();
   if (tab === 'open')      loadOpenTickets();
@@ -1233,6 +1312,7 @@ function showTab(tab) {
   if (tab === 'team')      loadTeam();
   if (tab === 'kb')        loadKB();
   if (tab === 'learning')  { loadLearningStats(); loadLearningQueue('pending'); }
+  if (tab === 'exit')      loadExitTab();
 }
 
 function refreshData() {
@@ -1498,6 +1578,207 @@ function renderEmployees() {
 
 function goToEmpPage(p) { empPage = p; renderEmployees(); }
 function filterEmployees() { empPage = 1; renderEmployees(); }
+
+// ── EMPLOYEE EXIT ──────────────────────────────────────────────────────────
+let exitCases = [];
+let exitFilter = 'In Progress';
+let exitIntegrations = { google: false, slack: false };
+
+const exEsc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c]));
+const exDate = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' }) : '—';
+const exPill = (s) => `<span class="exit-pill ${s||'Pending'}">${{ Pending:'⏳ Pending', Done:'✅ Done', Failed:'❌ Failed', Skipped:'➖ Skipped' }[s||'Pending']}</span>`;
+
+async function loadExitTab() {
+  document.getElementById('exitEmpList').innerHTML = allEmployees
+    .map(e => `<option value="${exEsc(e.name)} (${exEsc(e.empId)})"></option>`).join('');
+  try {
+    exitIntegrations = await apiGet('/api/offboarding/integrations');
+  } catch(e) {}
+  const g = exitIntegrations.google, s = exitIntegrations.slack;
+  document.getElementById('exitIntegrations').innerHTML = (g && s) ? '' : `
+    <div style="padding:12px 16px;background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.25);border-radius:10px;font-size:13px;color:var(--text);line-height:1.6;">
+      ⚠️ <b>Auto band karna abhi setup nahi hai:</b>
+      ${g ? '' : 'Gmail (GOOGLE_SERVICE_ACCOUNT_JSON + GOOGLE_ADMIN_EMAIL)'}${!g && !s ? ' · ' : ''}${s ? '' : 'Slack (SLACK_SCIM_TOKEN)'}.
+      Tab tak admin console mein khud band karke "✔ Maine kar diya" dabao. Setup steps <code>.env.example</code> mein hain.
+    </div>`;
+  loadExitCases();
+}
+
+async function loadExitCases() {
+  try {
+    const q = exitFilter ? `?status=${encodeURIComponent(exitFilter)}` : '';
+    const data = await apiGet('/api/offboarding' + q);
+    exitCases = data.cases || [];
+    renderExitCases();
+  } catch(e) {
+    document.getElementById('exitBody').innerHTML = '<tr class="empty-row"><td colspan="8">❌ Load failed.</td></tr>';
+  }
+}
+
+function filterExit(status, btn) {
+  exitFilter = status;
+  btn.parentElement.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  loadExitCases();
+}
+
+function renderExitCases() {
+  document.getElementById('exitCount').textContent = exitCases.length;
+  const tbody = document.getElementById('exitBody');
+  if (!exitCases.length) { tbody.innerHTML = '<tr class="empty-row"><td colspan="8">Koi exit case nahi hai.</td></tr>'; return; }
+  tbody.innerHTML = exitCases.map(c => `
+    <tr>
+      <td><b>${exEsc(c.name)}</b><div style="font-size:11px;color:var(--muted);">${exEsc(c.empId)} · ${exEsc(c.email||'')}</div></td>
+      <td>${exEsc(c.department||'—')}</td>
+      <td>${exDate(c.lastWorkingDay)}</td>
+      <td>${exPill(c.gmail?.status)}</td>
+      <td>${exPill(c.slack?.status)}</td>
+      <td>${exPill(c.laptop?.status)}</td>
+      <td><span class="status ${c.status==='Completed'?'Resolved':'Open'}">${c.status}</span></td>
+      <td><button class="action-btn view" onclick="openExitCase('${c._id}')">Manage →</button></td>
+    </tr>`).join('');
+}
+
+async function startExit() {
+  const raw = document.getElementById('exitEmpInput').value.trim();
+  const out = document.getElementById('exitStartResult');
+  const m = raw.match(/\(([^)]+)\)\s*$/);
+  const empId = (m ? m[1] : raw).trim();
+  if (!empId) { out.innerHTML = '<span style="color:#f87171;">Employee select karo.</span>'; return; }
+  try {
+    const d = await apiFetch('/api/offboarding', 'POST', {
+      empId,
+      lastWorkingDay: document.getElementById('exitLwd').value || undefined,
+      reason: document.getElementById('exitReason').value,
+    });
+    if (d.error) { out.innerHTML = `<span style="color:#f87171;">❌ ${exEsc(d.error)}</span>`; return; }
+    out.innerHTML = d.existing
+      ? '<span style="color:#fbbf24;">Is employee ka exit pehle se chal raha hai, wahi khol diya.</span>'
+      : `<span style="color:#34d399;">✅ ${exEsc(d.case.name)} ka exit start ho gaya.</span>`;
+    document.getElementById('exitEmpInput').value = '';
+    upsertExitCase(d.case);
+    renderExitModal(d.case);
+  } catch(e) {
+    out.innerHTML = `<span style="color:#f87171;">❌ ${exEsc(e.message)}</span>`;
+  }
+}
+
+function upsertExitCase(c) {
+  const i = exitCases.findIndex(x => x._id === c._id);
+  if (i >= 0) exitCases[i] = c; else exitCases.unshift(c);
+  renderExitCases();
+}
+
+function openExitCase(id) {
+  const c = exitCases.find(x => x._id === id);
+  if (c) renderExitModal(c);
+}
+
+function renderExitModal(c) {
+  const id = c._id;
+  const lr = c.laptopReceived || {};
+  const meta = (s) => s && s.at ? `<div class="exit-step-meta">${s.mode==='auto'?'🤖 API se':'✋ Manual'} · ${exEsc(s.by||'')} · ${new Date(s.at).toLocaleString('en-IN')}${s.note?' · '+exEsc(s.note):''}</div>` : '';
+  const err  = (s) => s && s.status === 'Failed' && s.error ? `<div class="exit-step-err">❌ ${exEsc(s.error)}</div>` : '';
+  const final = (s) => s && (s.status === 'Done' || s.status === 'Skipped');
+  const done = c.status === 'Completed';
+  const canAuto = (exitIntegrations.google && !final(c.gmail)) || (exitIntegrations.slack && !final(c.slack));
+
+  const apiStep = (key, label, icon, enabled, autoText, consoleUrl) => `
+    <div class="exit-step">
+      <div class="exit-step-head"><span>${icon} ${label}</span>${exPill(c[key]?.status)}</div>
+      ${final(c[key]) ? '' : `<div class="exit-step-actions">
+        ${enabled ? `<button class="exit-btn danger" onclick="exitStep('${id}','${key}','auto',this)">${autoText}</button>` : ''}
+        <button class="exit-btn ok" onclick="exitStep('${id}','${key}','manual',this)">✔ Maine kar diya</button>
+        <button class="exit-btn" onclick="exitStep('${id}','${key}','skip',this)">Skip</button>
+        <a href="${consoleUrl}" target="_blank" rel="noopener" style="font-size:12px;color:var(--pink);margin-left:4px;">Admin console ↗</a>
+      </div>`}
+      ${err(c[key])}${meta(c[key])}
+    </div>`;
+
+  document.getElementById('exitModalBody').innerHTML = `
+    <h3>🚪 ${exEsc(c.name)} <span style="font-size:12px;color:var(--muted);font-weight:400;">${exEsc(c.empId)}</span></h3>
+    <div class="asset-box" style="margin-bottom:14px;">
+      <div class="asset-row">
+        <div class="asset-item"><span>Email</span>${exEsc(c.email||'—')}</div>
+        <div class="asset-item"><span>Slack ID</span>${exEsc(c.slackUserId||'— (email se dhundhega)')}</div>
+        <div class="asset-item"><span>Laptop</span>${exEsc(c.laptopModel||'—')}</div>
+        <div class="asset-item"><span>Serial No</span><b style="color:var(--pink);font-family:monospace;">${exEsc(c.laptopSN||'—')}</b></div>
+        <div class="asset-item"><span>Last Day · Reason</span>${exDate(c.lastWorkingDay)} · ${exEsc(c.reason||'—')}</div>
+      </div>
+    </div>
+
+    ${done ? `<div style="padding:10px 14px;background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);border-radius:10px;color:#86efac;font-size:13px;margin-bottom:12px;">✅ Exit complete — ${new Date(c.completedAt).toLocaleString('en-IN')}. Employee inactive kar diya gaya.</div>`
+      : canAuto ? `<button class="exit-btn primary" style="width:100%;margin-bottom:12px;padding:12px;" onclick="exitRunAll('${id}',this)">⚡ Gmail + Slack ek click mein band karo</button>` : ''}
+
+    ${apiStep('gmail', 'Gmail / Google Account', '📧', exitIntegrations.google, '🔒 Suspend karo', 'https://admin.google.com/ac/users')}
+    ${apiStep('slack', 'Slack Account', '💬', exitIntegrations.slack, '🚫 Deactivate karo', 'https://slack.com/admin')}
+
+    <div class="exit-step">
+      <div class="exit-step-head"><span>💻 Laptop & Accessories</span>${exPill(c.laptop?.status)}</div>
+      ${final(c.laptop) ? (lr.condition ? `<div style="font-size:13px;color:var(--text);">Condition: <b>${exEsc(lr.condition)}</b> · Charger ${lr.charger?'✅':'❌'} · Bag ${lr.bag?'✅':'❌'} · Mouse ${lr.mouse?'✅':'❌'} · ID Card ${lr.idCard?'✅':'❌'}${lr.other?' · '+exEsc(lr.other):''}</div>` : '') : `
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div><label class="exit-label">Condition</label>
+            <select class="filter-select" id="exLapCond">
+              <option ${lr.condition==='Good'?'selected':''}>Good</option>
+              <option ${lr.condition==='Damaged'?'selected':''}>Damaged</option>
+              <option ${lr.condition==='Not Returned'?'selected':''}>Not Returned</option>
+            </select></div>
+          <div style="flex:1;min-width:180px;"><label class="exit-label">Aur kuch / Note</label>
+            <input class="search-box" id="exLapOther" style="width:100%;" placeholder="e.g. headset, screen pe scratch" value="${exEsc(lr.other||'')}"/></div>
+        </div>
+        <div class="exit-checks">
+          <label><input type="checkbox" id="exLapCharger" ${lr.charger?'checked':''}/> Charger</label>
+          <label><input type="checkbox" id="exLapBag" ${lr.bag?'checked':''}/> Bag</label>
+          <label><input type="checkbox" id="exLapMouse" ${lr.mouse?'checked':''}/> Mouse</label>
+          <label><input type="checkbox" id="exLapId" ${lr.idCard?'checked':''}/> ID Card</label>
+        </div>
+        <div class="exit-step-actions">
+          <button class="exit-btn ok" onclick="exitLaptop('${id}',this)">💻 Laptop received save karo</button>
+          <button class="exit-btn" onclick="exitStep('${id}','laptop','skip',this)">Skip (laptop nahi tha)</button>
+        </div>`}
+      ${meta(c.laptop)}
+    </div>`;
+  document.getElementById('exitModal').classList.add('show');
+}
+
+async function exitCall(btn, path, body) {
+  btn.disabled = true;
+  try {
+    const d = await apiFetch(path, 'POST', body);
+    if (d.case) { upsertExitCase(d.case); renderExitModal(d.case); }
+    if (d.error) alert('❌ ' + d.error);
+  } catch(e) {
+    alert('❌ ' + e.message);
+  }
+  btn.disabled = false;
+}
+
+function exitStep(id, step, mode, btn) {
+  const c = exitCases.find(x => x._id === id) || {};
+  if (mode === 'auto') {
+    const what = step === 'gmail' ? `Gmail (${c.email}) SUSPEND` : 'Slack account DEACTIVATE';
+    if (!confirm(`${c.name} ka ${what} karna hai?`)) return;
+  }
+  const path = step === 'laptop' ? `/api/offboarding/${id}/laptop` : `/api/offboarding/${id}/${step}`;
+  exitCall(btn, path, { mode });
+}
+
+function exitRunAll(id, btn) {
+  const c = exitCases.find(x => x._id === id) || {};
+  if (!confirm(`${c.name} ka Gmail suspend aur Slack deactivate karna hai?`)) return;
+  exitCall(btn, `/api/offboarding/${id}/run-all`, {});
+}
+
+function exitLaptop(id, btn) {
+  exitCall(btn, `/api/offboarding/${id}/laptop`, {
+    condition: document.getElementById('exLapCond').value,
+    charger  : document.getElementById('exLapCharger').checked,
+    bag      : document.getElementById('exLapBag').checked,
+    mouse    : document.getElementById('exLapMouse').checked,
+    idCard   : document.getElementById('exLapId').checked,
+    other    : document.getElementById('exLapOther').value.trim(),
+  });
+}
 
 
 // ── REPORT ─────────────────────────────────────────────────────────────────

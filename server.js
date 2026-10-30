@@ -14,6 +14,7 @@ const adminRoutes = require('./routes/admin');
 const kbRoutes = require('./routes/kb');
 const agentRoutes = require('./routes/agent');
 const learningRoutes = require('./routes/learning');
+const offboardingRoutes = require('./routes/offboarding');
 const slaService = require('./services/sla');
 const Ticket = require('./models/Ticket');
 const Conversation = require('./models/Conversation');
@@ -125,6 +126,7 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/kb', kbRoutes);
 app.use('/api/agent', agentRoutes);
 app.use('/api/learning', learningRoutes);
+app.use('/api/offboarding', offboardingRoutes);
 
 // ── WhatsApp Webhook (Twilio) ──────────────────────────────────────────────────
 app.post('/api/whatsapp/incoming', async (req, res) => {
