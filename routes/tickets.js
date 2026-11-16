@@ -386,6 +386,44 @@ router.patch('/:id', verifyAdmin, async (req, res) => {
   }
 });
 
+// ── PATCH /api/tickets/:id/backdate — set original dates for imported tickets ─
+// Used when old complaints (Gmail/Slack) are imported: keeps the real report
+// and resolve time instead of the import time. Sends no email/Slack messages.
+router.patch('/:id/backdate', verifyAdmin, async (req, res) => {
+  try {
+    const ticket = await Ticket.findOne({ ticketId: req.params.id });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+
+    const toDate = v => {
+      const d = new Date(v);
+      return isNaN(d.getTime()) ? null : d;
+    };
+    const createdAt = toDate(req.body.createdAt);
+    if (!createdAt) return res.status(400).json({ error: 'Valid createdAt required' });
+    if (createdAt > new Date()) return res.status(400).json({ error: 'createdAt cannot be in the future' });
+
+    const set = { createdAt, updatedAt: createdAt };
+    const slaHours = ticket.slaHours || 24;
+    set.slaDeadline = new Date(createdAt.getTime() + slaHours * 3600000);
+
+    if (req.body.resolvedAt !== undefined) {
+      const resolvedAt = toDate(req.body.resolvedAt);
+      if (!resolvedAt || resolvedAt < createdAt) {
+        return res.status(400).json({ error: 'resolvedAt must be a valid date after createdAt' });
+      }
+      set.resolvedAt = resolvedAt;
+      set.updatedAt  = resolvedAt;
+      if (ticket.closedAt) set.closedAt = resolvedAt;
+    }
+
+    await Ticket.collection.updateOne({ _id: ticket._id }, { $set: set });
+    const updated = await Ticket.findById(ticket._id);
+    res.json({ success: true, ticket: updated });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ── POST /api/tickets/:id/comment ────────────────────────────────────────────
 router.post('/:id/comment', verifyAdmin, async (req, res) => {
   try {

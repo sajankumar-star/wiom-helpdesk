@@ -1421,7 +1421,7 @@ function renderRecentTickets() {
 async function loadAllTickets() {
   try {
     document.getElementById('allTicketsBody').innerHTML = '<tr class="empty-row"><td colspan="8">Loading...</td></tr>';
-    const data = await apiGet('/api/tickets?limit=500');
+    const data = await apiGet('/api/tickets?limit=2000');
     const fresh = Array.isArray(data.tickets) ? data.tickets : (Array.isArray(data) ? data : []);
     checkNewTickets(fresh);
     allTickets = fresh;
