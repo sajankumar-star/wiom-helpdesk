@@ -424,6 +424,107 @@ router.patch('/:id/backdate', verifyAdmin, async (req, res) => {
   }
 });
 
+// ── POST /api/tickets/import — weekly Gmail/Slack complaint import ────────────
+// Auth: header `x-import-key` must equal env IMPORT_API_KEY (no admin login),
+// so a scheduled job can run unattended. Skips complaints already imported
+// (same ref) or already in the portal (same email within 3 days). Keeps the
+// original report time and sends no email/Slack notifications.
+function importKeyOk(req) {
+  const expected = process.env.IMPORT_API_KEY || '';
+  const given    = String(req.get('x-import-key') || '');
+  if (expected.length < 24 || given.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(given), Buffer.from(expected));
+}
+
+function istStamp(d) {
+  const ist = new Date(d.getTime() + 330 * 60000);
+  return ist.toISOString().slice(0, 16).replace('T', ' ');
+}
+
+router.post('/import', async (req, res) => {
+  if (!process.env.IMPORT_API_KEY) return res.status(503).json({ error: 'IMPORT_API_KEY not configured' });
+  if (!importKeyOk(req)) return res.status(401).json({ error: 'Invalid import key' });
+
+  const items = Array.isArray(req.body?.items) ? req.body.items : null;
+  if (!items) return res.status(400).json({ error: 'items[] required' });
+  if (items.length > 200) return res.status(400).json({ error: 'Max 200 items per request' });
+
+  const results = [];
+  for (const it of items) {
+    try {
+      const reportedAt = new Date(it.reportedAt);
+      if (isNaN(reportedAt.getTime()) || reportedAt > new Date()) {
+        results.push({ ref: it.ref, status: 'error', error: 'invalid reportedAt' }); continue;
+      }
+      const ref   = String(it.ref || '').slice(0, 120);
+      const email = String(it.email || '').trim().toLowerCase();
+      const src   = String(it.source || '').toLowerCase() === 'slack' ? 'Slack' : 'Gmail';
+
+      if (ref && await Ticket.exists({ description: { $regex: `\\[ref:${ref.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\]` } })) {
+        results.push({ ref, status: 'skipped', reason: 'already imported' }); continue;
+      }
+      if (email) {
+        const win = 3 * 24 * 3600000;
+        const near = await Ticket.findOne({
+          empEmail : new RegExp(`^${email.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i'),
+          createdAt: { $gte: new Date(reportedAt - win), $lte: new Date(+reportedAt + win) }
+        }).select('ticketId');
+        if (near) { results.push({ ref, status: 'skipped', reason: `duplicate of ${near.ticketId}` }); continue; }
+      }
+
+      let emp = null;
+      if (email) {
+        const list = await Employee.find({ email }).lean();
+        emp = list.find(e => /^\d/.test(e.empId)) || list[0] || null;
+      }
+      if (!emp && it.name && it.name !== 'Deactivated User') {
+        emp = await Employee.findOne({ name: new RegExp(`^${String(it.name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, 'i') }).lean();
+      }
+
+      const label = src === 'Slack' ? 'Message' : 'Mail';
+      const where = it.channel ? ` (${String(it.channel).slice(0, 60)})` : '';
+      const description =
+        `[Imported from ${src}] ${label} received: ${istStamp(reportedAt)} IST${where}\n` +
+        `Subject: ${String(it.subject || '').slice(0, 200)}\n` +
+        `Issue: ${String(it.issue || '').slice(0, 1000)}` +
+        (ref ? `\n[ref:${ref}]` : '');
+
+      const open = String(it.status || '').toLowerCase() === 'open';
+      const ticket = new Ticket({
+        empId     : emp?.empId || 'N/A',
+        empName   : emp?.name  || it.name || 'Unknown',
+        empEmail  : emp?.email || email,
+        empDept   : emp?.department || '',
+        empFloor  : emp?.floor || '',
+        laptop    : emp?.laptop || '',
+        category  : normalizeCategory(it.category),
+        priority  : normalizePriority(it.priority),
+        description,
+        source    : 'admin',
+        status    : open ? 'Open' : 'Resolved',
+        resolvedBy: open ? null : 'Human',
+        resolution: open ? '' : (String(it.resolution || '').slice(0, 500) || `Resolved by IT Team (via ${src})`)
+      });
+      await ticket.save();
+
+      const set = {
+        createdAt  : reportedAt,
+        updatedAt  : reportedAt,
+        slaDeadline: new Date(+reportedAt + (ticket.slaHours || 24) * 3600000)
+      };
+      if (!open) set.resolvedAt = reportedAt;
+      await Ticket.collection.updateOne({ _id: ticket._id }, { $set: set });
+
+      results.push({ ref, status: 'created', ticketId: ticket.ticketId, matched: !!emp });
+    } catch (err) {
+      results.push({ ref: it.ref, status: 'error', error: err.message });
+    }
+  }
+
+  const count = s => results.filter(r => r.status === s).length;
+  res.json({ success: true, created: count('created'), skipped: count('skipped'), errors: count('error'), results });
+});
+
 // ── POST /api/tickets/:id/comment ────────────────────────────────────────────
 router.post('/:id/comment', verifyAdmin, async (req, res) => {
   try {
