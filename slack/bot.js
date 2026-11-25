@@ -6,6 +6,19 @@ const emailSvc = require('../services/email');
 
 const API_BASE = process.env.API_BASE_URL || 'http://localhost:3000';
 
+// ── Gatekeeper shadow-classify (TEST mode — sirf log, bot ka reply NAHI badalta) ──
+const { classify: classifyIssue } = require('../services/classifyIssue');
+const GK_SLACK_LOG = String(process.env.GATEKEEPER_SLACK_LOG || process.env.GATEKEEPER_ENABLED || 'false') === 'true';
+const shadowClassify = async (text, source) => {
+  if (!GK_SLACK_LOG || !text) return;
+  try {
+    const r = await classifyIssue(text);
+    console.log(`🔎 [Gatekeeper/Slack ${source}] ${r.isIT ? 'IT' : 'NON-IT'} (${r.category}, conf ${r.confidence.toFixed(2)}, via ${r.via}) — "${String(text).slice(0, 60)}"`);
+  } catch (e) {
+    console.warn('[Gatekeeper/Slack] classify fail:', e.message);
+  }
+};
+
 // â”€â”€ Init Slack Bolt App â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const app = new App({
   token        : process.env.SLACK_BOT_TOKEN,
@@ -88,6 +101,9 @@ app.command('/helpdesk', async ({ command, ack, client, respond }) => {
     });
     return;
   }
+
+  // Shadow classify (test mode — sirf log)
+  shadowClassify(text, 'cmd');
 
   // Show typing indicator
   await respond({ text: 'ðŸ¤– _Soch raha hoon... ek second..._', response_type: 'ephemeral' });
@@ -246,6 +262,9 @@ app.message(async ({ message, client, say }) => {
   const userId = message.user;
   const text   = message.text?.trim();
   if (!text) return;
+
+  // Shadow classify (test mode — sirf log)
+  shadowClassify(text, 'dm');
 
   const emp     = await lookupEmployee(userId, client);
   const session = getSession(userId) || { messages: [], sessionId: `slack-dm-${userId}-${Date.now()}` };
