@@ -129,16 +129,16 @@ STEP 6 — First-time Setup
 
 1. Admin account banao (browser mein):
    POST https://YOUR-RAILWAY-URL/api/auth/setup-admin
-   Body: { "password": "Wiom@2024" }
+   Body: { "password": "<STRONG-PASSWORD>" }
 
    Ya curl se:
    curl -X POST https://YOUR-URL/api/auth/setup-admin \
      -H "Content-Type: application/json" \
-     -d '{"password":"Wiom@2024"}'
+     -d '{"password":"<STRONG-PASSWORD>"}'
 
 2. Admin login karo, JWT token lo:
    POST /api/auth/admin-login
-   Body: { "username": "sajan", "password": "Wiom@2024" }
+   Body: { "username": "sajan", "password": "<STRONG-PASSWORD>" }
    Response mein token milega → .env mein ADMIN_JWT_TOKEN daalo
 
 3. Setup disable karo (security):
