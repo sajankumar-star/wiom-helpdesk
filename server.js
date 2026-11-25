@@ -72,7 +72,9 @@ app.use(express.urlencoded({ extended: true }));
 app.use(morgan('dev'));
 
 // ── Serve Employee Portal (public/) ──────────────────────────────────────────
-app.use(express.static('public'));
+// Employee portal page (index.html) is no longer used: send / to the admin dashboard.
+app.get(['/', '/index.html'], (req, res) => res.redirect('/admin-dashboard.html'));
+app.use(express.static('public', { index: false }));
 
 // ── Health Check ──────────────────────────────────────────────────────────────
 app.get('/api', (req, res) => {
