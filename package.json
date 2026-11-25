@@ -7,6 +7,7 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "bot": "node slack/bot.js",
+    "gatekeeper": "node services/emailGatekeeper.js",
     "check": "node --check server.js && node --check services/claude.js && node --check services/sla.js && node --check services/email.js && node --check routes/auth.js && node --check routes/tickets.js && node --check routes/ai.js && node --check routes/employees.js && echo All files OK"
   },
   "dependencies": {
@@ -21,6 +22,8 @@
     "express-rate-limit": "^7.3.1",
     "groq-sdk": "^1.1.2",
     "helmet": "^7.1.0",
+    "imapflow": "^1.0.164",
+    "mailparser": "^3.7.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.4.1",
     "morgan": "^1.10.0",
