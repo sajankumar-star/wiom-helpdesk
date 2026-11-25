@@ -386,6 +386,11 @@ app.listen(PORT, async () => {
    }
  } catch (e) { console.error('[Counter] auto-fix error:', e.message); }
 
+ // ── Start Email IT Gatekeeper (sirf GATEKEEPER_ENABLED=true par chalega) ─────
+ try {
+   require('./services/emailGatekeeper').start();
+ } catch (e) { console.error('[Gatekeeper] start error:', e.message); }
+
  // ── Start Slack Bot ────────────────────────────────────────────────────────
  if (process.env.SLACK_BOT_TOKEN && process.env.SLACK_BOT_TOKEN !== 'FILL_KARO' && !process.env.SLACK_DISABLED) {
  try {
